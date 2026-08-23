@@ -25,7 +25,14 @@ public sealed class DiceRollService(
             x.ParticipantId == participant.Id && x.ClientRequestId == requestId);
         if (existing is not null)
         {
-            return (CampaignService.ToDto(existing, participant.DisplayName), false);
+            var existingDto = CampaignService.ToDto(existing, participant.DisplayName);
+            if (request.Publish && existing.RevealedAt is null)
+            {
+                existing.Reveal(timeProvider.GetUtcNow());
+                await db.SaveChangesAsync(cancellationToken);
+                await notifier.NotifyAsync(campaignId, "DiceRolled", existingDto, cancellationToken);
+            }
+            return (existingDto, false);
         }
 
         DiceExpression expression;
@@ -51,12 +58,41 @@ public sealed class DiceRollService(
         var first = results[0];
         var roll = new DiceRoll(
             Guid.NewGuid(), campaignId, participant.Id, requestId, expression.Normalized,
-            JsonSerializer.Serialize(results), expression.Modifier, first.Total, timeProvider.GetUtcNow());
+            JsonSerializer.Serialize(results), expression.Modifier, first.Total, timeProvider.GetUtcNow(),
+            request.Publish ? timeProvider.GetUtcNow() : null);
         db.Add(roll);
         await db.SaveChangesAsync(cancellationToken);
 
         var dto = CampaignService.ToDto(roll, participant.DisplayName);
-        await notifier.NotifyAsync(campaignId, "DiceRolled", dto, cancellationToken);
+        if (request.Publish)
+        {
+            await notifier.NotifyAsync(campaignId, "DiceRolled", dto, cancellationToken);
+        }
         return (dto, true);
+    }
+
+    public async Task<DiceRollDto> RevealAsync(
+        Guid campaignId,
+        Guid rollId,
+        string token,
+        CancellationToken cancellationToken)
+    {
+        var participant = authorization.Require(campaignId, token);
+        var roll = db.DiceRolls.FirstOrDefault(x => x.CampaignId == campaignId && x.Id == rollId)
+            ?? throw new AppException(AppErrorKind.NotFound, "A rolagem não foi encontrada.");
+        if (roll.ParticipantId != participant.Id)
+        {
+            throw new AppException(AppErrorKind.Forbidden, "Somente quem rolou os dados pode revelar o resultado.");
+        }
+
+        var dto = CampaignService.ToDto(roll, participant.DisplayName);
+        if (roll.RevealedAt is null)
+        {
+            roll.Reveal(timeProvider.GetUtcNow());
+            await db.SaveChangesAsync(cancellationToken);
+            await notifier.NotifyAsync(campaignId, "DiceRolled", dto, cancellationToken);
+        }
+
+        return dto;
     }
 }

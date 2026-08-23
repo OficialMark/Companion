@@ -63,7 +63,7 @@ public sealed class CampaignService(
         var participants = db.Participants.Where(x => x.CampaignId == campaignId)
             .OrderBy(x => x.CreatedAt).AsEnumerable().Select(ToDto).ToArray();
         var participantNames = participants.ToDictionary(x => x.Id, x => x.DisplayName);
-        var rolls = db.DiceRolls.Where(x => x.CampaignId == campaignId)
+        var rolls = db.DiceRolls.Where(x => x.CampaignId == campaignId && x.RevealedAt != null)
             .OrderByDescending(x => x.CreatedAt).Take(50).AsEnumerable()
             .Select(x => ToDto(x, participantNames.GetValueOrDefault(x.ParticipantId, "Participante"))).ToArray();
         var encounter = db.Encounters.Where(x => x.CampaignId == campaignId && x.Status != EncounterStatus.Ended)

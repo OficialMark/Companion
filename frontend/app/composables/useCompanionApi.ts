@@ -28,9 +28,11 @@ export function useCompanionApi() {
       method: 'POST', body: JSON.stringify({ code, displayName })
     }),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
-    rollDice: (session: Session, expression: string) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, {
-      method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression })
+    rollDice: (session: Session, expression: string, publish = true) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, {
+      method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish })
     }, session.participantToken),
+    revealDiceRoll: (session: Session, rollId: string) => request<DiceRoll>(
+      `/campaigns/${session.campaignId}/dice-rolls/${rollId}/reveal`, { method: 'POST' }, session.participantToken),
     createEncounter: (session: Session) => request<Encounter>(`/campaigns/${session.campaignId}/encounters`, { method: 'POST' }, session.participantToken),
     addCombatant: (session: Session, encounterId: string, name: string, initiativeModifier: number) => request<Encounter>(
       `/campaigns/${session.campaignId}/encounters/${encounterId}/combatants`,

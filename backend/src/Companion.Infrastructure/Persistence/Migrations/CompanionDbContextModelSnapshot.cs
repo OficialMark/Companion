@@ -106,6 +106,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ParticipantId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTimeOffset?>("RevealedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("Total")
                         .HasColumnType("int");
 

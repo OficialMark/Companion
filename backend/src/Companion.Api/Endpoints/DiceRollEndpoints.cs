@@ -30,6 +30,17 @@ public static class DiceRollEndpoints
                 : Results.Ok(result.Roll);
         }).WithTags("Dice Rolls");
 
+        endpoints.MapPost("/api/campaigns/{campaignId:guid}/dice-rolls/{rollId:guid}/reveal", async (
+            Guid campaignId,
+            Guid rollId,
+            HttpRequest httpRequest,
+            DiceRollService service,
+            CancellationToken ct) => Results.Ok(await service.RevealAsync(
+                campaignId,
+                rollId,
+                httpRequest.Headers["X-Participant-Token"].ToString(),
+                ct))).WithTags("Dice Rolls");
+
         return endpoints;
     }
 }

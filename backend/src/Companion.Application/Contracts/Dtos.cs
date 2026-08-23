@@ -4,7 +4,7 @@ namespace Companion.Application.Contracts;
 
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
-public sealed record RollDiceRequest(string Expression);
+public sealed record RollDiceRequest(string Expression, bool Publish = true);
 public sealed record AddCombatantRequest(string Name, int InitiativeModifier);
 public sealed record RollInitiativeRequest(Guid? CombatantId);
 

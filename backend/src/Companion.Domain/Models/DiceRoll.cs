@@ -13,7 +13,8 @@ public sealed class DiceRoll
         string valuesJson,
         int modifier,
         int total,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt,
+        DateTimeOffset? revealedAt = null)
     {
         Id = id;
         CampaignId = campaignId;
@@ -24,6 +25,7 @@ public sealed class DiceRoll
         Modifier = modifier;
         Total = total;
         CreatedAt = createdAt;
+        RevealedAt = revealedAt;
     }
 
     public Guid Id { get; private set; }
@@ -35,4 +37,7 @@ public sealed class DiceRoll
     public int Modifier { get; private set; }
     public int Total { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? RevealedAt { get; private set; }
+
+    public void Reveal(DateTimeOffset revealedAt) => RevealedAt ??= revealedAt;
 }

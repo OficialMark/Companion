@@ -39,6 +39,7 @@ public sealed class DiceRollConfiguration : IEntityTypeConfiguration<DiceRoll>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Expression).HasMaxLength(128).IsRequired();
         builder.Property(x => x.ValuesJson).IsRequired();
+        builder.Property(x => x.RevealedAt);
         builder.HasIndex(x => new { x.ParticipantId, x.ClientRequestId }).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.CreatedAt });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Restrict);

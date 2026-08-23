@@ -43,6 +43,7 @@ Como participante, quero escolher uma expressão de dados e realizar uma rolagem
 4. **Given** um participante de outra campanha, **When** tenta consultar ou criar uma rolagem, **Then** o acesso é recusado.
 5. **Given** a expressão `3#3d5+4`, **When** o participante rola, **Then** o histórico apresenta três resultados individuais da mesma expressão dentro de um único teste compartilhado.
 6. **Given** a expressão `2d3+4+2d8+3`, **When** o participante rola, **Then** os dois grupos de dados e os modificadores são calculados em conjunto e discriminados no histórico.
+7. **Given** uma expressão contendo D4, D6, D8, D10, D12, D20 ou D100, **When** o participante rola, **Then** cada dado cai, gira e quica por aproximadamente um segundo, repousa com o valor gerado pelo servidor na face superior, exibe temporariamente o total apenas para o autor e só então o resultado entra no histórico público.
 7. **Given** um navegador Android sem geração nativa de UUID, **When** o participante rola, **Then** o comando recebe um identificador válido e é processado normalmente.
 
 ---
@@ -130,6 +131,7 @@ Como responsável pela mesa, quero iniciar toda a aplicação com um único proc
 - **FR-010**: O sistema MUST gerar os valores dos dados sem aceitar valores escolhidos pelo navegador.
 - **FR-011**: O sistema MUST registrar autor, expressão normalizada, cada repetição, termos e valores individuais, modificador, total de cada resultado e horário da rolagem.
 - **FR-012**: O sistema MUST notificar participantes conectados sobre uma nova rolagem depois que ela estiver registrada.
+- **FR-012a**: O sistema MUST manter uma rolagem animada oculta do snapshot e dos eventos públicos até que sua animação termine e o participante autor a revele.
 - **FR-013**: O sistema MUST retornar as 50 rolagens públicas mais recentes de uma campanha em ordem decrescente de criação.
 - **FR-014**: O sistema MUST permitir ao mestre criar no máximo um combate ativo por campanha.
 - **FR-015**: O sistema MUST permitir ao mestre adicionar combatantes com nome e modificador de iniciativa entre -100 e 100.

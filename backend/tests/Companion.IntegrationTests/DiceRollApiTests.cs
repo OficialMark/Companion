@@ -42,6 +42,31 @@ public sealed class DiceRollApiTests(CompanionApiFactory factory) : ApiTestBase(
         });
     }
 
+    [Fact]
+    public async Task Prepared_roll_enters_history_only_after_reveal()
+    {
+        var session = await CreateCampaign(Guid.NewGuid().ToString("N")[..6]);
+        var request = Authenticated(HttpMethod.Post, $"/api/campaigns/{session.CampaignId}/dice-rolls", session,
+            new RollDiceRequest("d20", false));
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        var response = await Client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var roll = (await response.Content.ReadFromJsonAsync<DiceRollDto>(JsonOptions))!;
+
+        var beforeReveal = await Client.SendAsync(Authenticated(HttpMethod.Get,
+            $"/api/campaigns/{session.CampaignId}/snapshot", session));
+        var hiddenSnapshot = (await beforeReveal.Content.ReadFromJsonAsync<CampaignSnapshot>(JsonOptions))!;
+        Assert.DoesNotContain(hiddenSnapshot.DiceRolls, item => item.Id == roll.Id);
+
+        var reveal = await Client.SendAsync(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{session.CampaignId}/dice-rolls/{roll.Id}/reveal", session));
+        reveal.EnsureSuccessStatusCode();
+        var afterReveal = await Client.SendAsync(Authenticated(HttpMethod.Get,
+            $"/api/campaigns/{session.CampaignId}/snapshot", session));
+        var visibleSnapshot = (await afterReveal.Content.ReadFromJsonAsync<CampaignSnapshot>(JsonOptions))!;
+        Assert.Contains(visibleSnapshot.DiceRolls, item => item.Id == roll.Id);
+    }
+
     private async Task<DiceRollDto> Roll(SessionResponse session, Guid requestId, string expression)
     {
         var request = Authenticated(HttpMethod.Post, $"/api/campaigns/{session.CampaignId}/dice-rolls", session, new RollDiceRequest(expression));
