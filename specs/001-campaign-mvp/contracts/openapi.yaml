@@ -1,0 +1,339 @@
+openapi: 3.1.0
+info:
+  title: Companion MVP API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /campaigns:
+    post:
+      operationId: createCampaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign and master session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400': { $ref: '#/components/responses/Problem' }
+  /campaigns/join:
+    post:
+      operationId: joinCampaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinCampaignRequest'
+      responses:
+        '200':
+          description: Participant session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/snapshot:
+    get:
+      operationId: getCampaignSnapshot
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '200':
+          description: Durable campaign state plus current presence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignSnapshot'
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/dice-rolls:
+    post:
+      operationId: rollDice
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/ParticipantToken'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expression]
+              properties:
+                expression: { type: string, minLength: 2, maxLength: 128, examples: [2d6+3, '3#3d5+4', 2d3+4+2d8+3] }
+      responses:
+        '201':
+          description: Persisted dice roll
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DiceRoll' }
+        '200':
+          description: Existing result for repeated idempotency key
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DiceRoll' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters:
+    post:
+      operationId: createEncounter
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '201':
+          description: Preparing encounter
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters/{encounterId}/combatants:
+    post:
+      operationId: addCombatant
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, initiativeModifier]
+              properties:
+                name: { type: string, maxLength: 60 }
+                initiativeModifier: { type: integer, minimum: -100, maximum: 100 }
+      responses:
+        '201':
+          description: Updated encounter
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters/{encounterId}/initiative:
+    post:
+      operationId: rollInitiative
+      description: Rolls or rerolls one combatant when combatantId is supplied, otherwise rerolls every combatant. Available while preparing or active and preserves the current combatant during active combat.
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                combatantId: { type: string, format: uuid, nullable: true }
+      responses:
+        '200':
+          description: Updated encounter
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters/{encounterId}/start:
+    post:
+      operationId: startEncounter
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '200':
+          description: Active encounter
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters/{encounterId}/next-turn:
+    post:
+      operationId: advanceTurn
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '200':
+          description: Encounter after turn advancement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /campaigns/{campaignId}/encounters/{encounterId}/end:
+    post:
+      operationId: endEncounter
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '200':
+          description: Ended encounter
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Encounter' }
+        '403': { $ref: '#/components/responses/Problem' }
+components:
+  parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    EncounterId:
+      name: encounterId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ParticipantToken:
+      name: X-Participant-Token
+      in: header
+      required: true
+      schema: { type: string, minLength: 32 }
+  responses:
+    Problem:
+      description: RFC 9457 problem details
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              title: { type: string }
+              status: { type: integer }
+              detail: { type: string }
+              errors: { type: object }
+  schemas:
+    CreateCampaignRequest:
+      type: object
+      required: [campaignName, displayName]
+      properties:
+        campaignName: { type: string, minLength: 1, maxLength: 80 }
+        displayName: { type: string, minLength: 1, maxLength: 40 }
+    JoinCampaignRequest:
+      type: object
+      required: [code, displayName]
+      properties:
+        code: { type: string, minLength: 6, maxLength: 8 }
+        displayName: { type: string, minLength: 1, maxLength: 40 }
+    SessionResponse:
+      type: object
+      required: [campaignId, campaignCode, participantId, role, participantToken]
+      properties:
+        campaignId: { type: string, format: uuid }
+        campaignCode: { type: string }
+        participantId: { type: string, format: uuid }
+        displayName: { type: string }
+        role: { type: string, enum: [Master, Player] }
+        participantToken: { type: string, writeOnly: true }
+    Participant:
+      type: object
+      required: [id, displayName, role, isOnline]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        role: { type: string, enum: [Master, Player] }
+        isOnline: { type: boolean }
+    DiceTermResult:
+      type: object
+      required: [expression, values, subtotal]
+      properties:
+        expression: { type: string, example: 2d8 }
+        values:
+          type: array
+          items: { type: integer }
+        subtotal: { type: integer }
+    DiceRollResult:
+      type: object
+      required: [sequence, terms, modifier, total]
+      properties:
+        sequence: { type: integer, minimum: 1 }
+        terms:
+          type: array
+          items: { $ref: '#/components/schemas/DiceTermResult' }
+        modifier: { type: integer }
+        total: { type: integer }
+    DiceRoll:
+      type: object
+      required: [id, participantId, displayName, expression, values, modifier, total, results, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        participantId: { type: string, format: uuid }
+        displayName: { type: string }
+        expression: { type: string }
+        values:
+          type: array
+          items: { type: integer }
+        modifier: { type: integer }
+        total: { type: integer }
+        results:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: '#/components/schemas/DiceRollResult' }
+        createdAt: { type: string, format: date-time }
+    Combatant:
+      type: object
+      required: [id, name, initiativeModifier, creationOrder]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        initiativeModifier: { type: integer }
+        initiative: { type: integer, nullable: true }
+        creationOrder: { type: integer }
+        isCurrent: { type: boolean }
+    Encounter:
+      type: object
+      required: [id, status, round, combatants]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [Preparing, Active, Ended] }
+        round: { type: integer }
+        currentTurnIndex: { type: integer, nullable: true }
+        combatants:
+          type: array
+          items: { $ref: '#/components/schemas/Combatant' }
+    CampaignSnapshot:
+      type: object
+      required: [campaign, currentParticipant, participants, diceRolls]
+      properties:
+        campaign:
+          type: object
+          required: [id, code, name]
+          properties:
+            id: { type: string, format: uuid }
+            code: { type: string }
+            name: { type: string }
+        currentParticipant: { $ref: '#/components/schemas/Participant' }
+        participants:
+          type: array
+          items: { $ref: '#/components/schemas/Participant' }
+        diceRolls:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/DiceRoll' }
+        activeEncounter:
+          allOf:
+            - $ref: '#/components/schemas/Encounter'
+          nullable: true

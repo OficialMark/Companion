@@ -1,0 +1,14 @@
+.git/
+.agents/
+.specify/
+specs/
+**/bin/
+**/obj/
+**/node_modules/
+**/.nuxt/
+**/.output/
+**/coverage/
+**/TestResults/
+.env*
+!.env.example
+*.log

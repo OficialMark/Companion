@@ -1,0 +1,29 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+coverage/
+
+# Node / Nuxt
+node_modules/
+.nuxt/
+.output/
+dist/
+playwright-report/
+test-results/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp

@@ -1,0 +1,46 @@
+using Companion.Domain.Models;
+
+namespace Companion.Application.Contracts;
+
+public interface ICompanionDbContext
+{
+    IQueryable<Campaign> Campaigns { get; }
+    IQueryable<Participant> Participants { get; }
+    IQueryable<DiceRoll> DiceRolls { get; }
+    IQueryable<Encounter> Encounters { get; }
+    IQueryable<Combatant> Combatants { get; }
+
+    void Add(Campaign campaign);
+    void Add(Participant participant);
+    void Add(DiceRoll diceRoll);
+    void Add(Encounter encounter);
+    void Add(Combatant combatant);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+}
+
+public sealed record ParticipantCredential(string Token, byte[] Hash);
+
+public interface IParticipantTokenService
+{
+    ParticipantCredential Create();
+    byte[] Hash(string token);
+    string CreateCampaignCode();
+}
+
+public interface IDiceRandomizer
+{
+    int Roll(int faces);
+}
+
+public interface IPresenceTracker
+{
+    bool IsOnline(Guid participantId);
+    bool Connected(Guid participantId, string connectionId);
+    bool Disconnected(string connectionId, out Guid participantId);
+}
+
+public interface ICampaignNotifier
+{
+    Task NotifyAsync(Guid campaignId, string type, object payload, CancellationToken cancellationToken = default);
+    Task ParticipantsChangedAsync(Guid campaignId, CancellationToken cancellationToken = default);
+}

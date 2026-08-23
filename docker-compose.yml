@@ -1,0 +1,64 @@
+name: companion
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - companion-sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+    restart: unless-stopped
+    networks: [companion-internal]
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__Companion: Server=sqlserver,1433;Database=Companion;User Id=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;ConnectRetryCount=10;ConnectRetryInterval=3
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    restart: unless-stopped
+    networks: [companion-internal]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "0.0.0.0:${COMPANION_PORT:-3000}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [companion-internal]
+
+volumes:
+  companion-sql-data:
+
+networks:
+  companion-internal:
+    driver: bridge
