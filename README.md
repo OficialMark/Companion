@@ -60,15 +60,6 @@ Depois de instalar e conectar os dispositivos à mesma rede virtual:
 
 O Compose continua igual porque publica em `0.0.0.0`. A segurança, o roteamento e o controle de membros da VPN permanecem sob responsabilidade do administrador da rede.
 
-## Erro 18456 do SQL Server após trocar a senha
-
-`MSSQL_SA_PASSWORD` define a senha na primeira criação do volume. Alterar o valor
-no `.env` posteriormente não atualiza automaticamente o login `sa` persistido.
-Nesse caso, rotacione primeiro a senha dentro do SQL Server e só então atualize o
-`.env`. Em um ambiente descartável, a alternativa é executar
-`docker compose down -v` e subir novamente, mas esse comando apaga definitivamente
-as campanhas, rolagens e combates armazenados.
-
 ## Comandos operacionais
 
 ```powershell
