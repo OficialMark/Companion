@@ -5,6 +5,7 @@ test('reconnects, resynchronizes and reloads without duplicate rolls', async ({ 
   await page.getByLabel('Nome da campanha').fill(`Reconexão ${Date.now()}`)
   await page.getByLabel('Seu nome').fill('Mestre Reconexão')
   await page.getByRole('button', { name: 'Criar e entrar' }).click()
+  await page.getByRole('button', { name: 'Entrar como mestre' }).click()
   await expect(page.getByText('Bem-vindo à mesa')).toBeVisible()
 
   const session = await page.evaluate(() =>

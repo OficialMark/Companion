@@ -8,6 +8,7 @@ public sealed class EncounterService(
     ICompanionDbContext db,
     ParticipantAuthorization authorization,
     IDiceRandomizer randomizer,
+    IPresenceTracker presence,
     ICampaignNotifier notifier,
     TimeProvider timeProvider)
 {
@@ -52,7 +53,39 @@ public sealed class EncounterService(
     public Task<EncounterDto> RollInitiativeAsync(
         Guid campaignId, Guid encounterId, string token, RollInitiativeRequest? request, CancellationToken cancellationToken) =>
         MutateAsync(campaignId, encounterId, token, "InitiativeRolled",
-            encounter => encounter.RollInitiative(() => randomizer.Roll(20), request?.CombatantId), cancellationToken);
+            encounter =>
+            {
+                if (request?.CombatantId is null && encounter.Status == EncounterStatus.Preparing)
+                {
+                    var linked = encounter.Combatants.Where(x => x.ParticipantId.HasValue)
+                        .Select(x => x.ParticipantId!.Value).ToHashSet();
+                    var onlinePlayers = db.Participants.Where(x =>
+                            x.CampaignId == campaignId && x.Role == ParticipantRole.Player)
+                        .AsEnumerable()
+                        .Where(x => presence.IsOnline(x.Id) && !linked.Contains(x.Id))
+                        .OrderBy(x => x.CreatedAt)
+                        .ToArray();
+                    foreach (var participant in onlinePlayers)
+                    {
+                        var combatant = encounter.AddCombatant(
+                            Guid.NewGuid(), participant.DisplayName, participant.InitiativeModifier ?? 0, participant.Id);
+                        db.Add(combatant);
+                    }
+                }
+
+                encounter.RollInitiative(() => randomizer.Roll(20), request?.CombatantId);
+            }, cancellationToken);
+
+    public Task<EncounterDto> UpdateCombatantAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token,
+        UpdateCombatantRequest request, CancellationToken cancellationToken) =>
+        MutateAsync(campaignId, encounterId, token, "CombatantUpdated",
+            encounter => encounter.UpdateCombatant(combatantId, request.Name, request.InitiativeModifier), cancellationToken);
+
+    public Task<EncounterDto> RemoveCombatantAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken) =>
+        MutateAsync(campaignId, encounterId, token, "CombatantRemoved",
+            encounter => encounter.RemoveCombatant(combatantId), cancellationToken);
 
     public Task<EncounterDto> StartAsync(
         Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
@@ -80,7 +113,7 @@ public sealed class EncounterService(
         {
             action(encounter);
         }
-        catch (InvalidOperationException exception)
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }

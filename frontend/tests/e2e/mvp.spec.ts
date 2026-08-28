@@ -5,8 +5,12 @@ test('create campaign and expose the shared table', async ({ page, browser }) =>
   await page.getByLabel('Nome da campanha').fill(`Mesa ${Date.now()}`)
   await page.getByLabel('Seu nome').fill('Mestre E2E')
   await page.getByRole('button', { name: 'Criar e entrar' }).click()
+  const code = await page.locator('.created-code').first().innerText()
+  await page.getByRole('button', { name: 'Revelar código de mestre' }).click()
+  const masterCode = await page.locator('.created-code.master-code').innerText()
+  await expect(page.getByText(masterCode, { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Entrar como mestre' }).click()
   await expect(page.getByText('Bem-vindo à mesa')).toBeVisible()
-  const code = await page.locator('.code-badge').innerText()
 
   const playerContext = await browser.newContext()
   const player = await playerContext.newPage()
@@ -16,9 +20,20 @@ test('create campaign and expose the shared table', async ({ page, browser }) =>
   await player.getByLabel('Seu nome').fill('Jogador E2E')
   await player.getByRole('button', { name: 'Entrar na campanha' }).click()
   await expect(player.getByText('Bem-vindo à mesa')).toBeVisible()
+  await expect(player.getByText(masterCode, { exact: true })).toHaveCount(0)
+
+  const masterContext = await browser.newContext()
+  const recoveredMaster = await masterContext.newPage()
+  await recoveredMaster.goto('/')
+  await recoveredMaster.getByRole('button', { name: 'Entrar com código' }).click()
+  await recoveredMaster.getByLabel('Código da campanha').fill(masterCode)
+  await recoveredMaster.getByLabel('Seu nome').fill('Mestre recuperado')
+  await recoveredMaster.getByRole('button', { name: 'Entrar na campanha' }).click()
+  await expect(recoveredMaster.getByRole('button', { name: 'Iniciar preparação' })).toBeVisible()
 
   await page.getByRole('button', { name: 'D20', exact: true }).click()
   await expect(player.locator('.roll-list li')).toHaveCount(1)
+  await masterContext.close()
   await playerContext.close()
 })
 
@@ -30,6 +45,7 @@ test('rolls repeated and compound expressions without native randomUUID', async 
   await page.getByLabel('Nome da campanha').fill(`Dados avançados ${Date.now()}`)
   await page.getByLabel('Seu nome').fill('Mestre dos dados')
   await page.getByRole('button', { name: 'Criar e entrar' }).click()
+  await page.getByRole('button', { name: 'Entrar como mestre' }).click()
 
   const input = page.getByLabel('Expressão de dados')
   await input.fill('3#3d5+4')

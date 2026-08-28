@@ -3,15 +3,16 @@ export type EncounterStatus = 'Preparing' | 'Active' | 'Ended'
 
 export interface Session {
   campaignId: string
-  campaignCode: string
+  playerCode: string
+  masterCode: string | null
   participantId: string
   displayName: string
   role: ParticipantRole
   participantToken: string
 }
 
-export interface Campaign { id: string; code: string; name: string }
-export interface Participant { id: string; displayName: string; role: ParticipantRole; isOnline: boolean }
+export interface Campaign { id: string; playerCode: string; name: string }
+export interface Participant { id: string; displayName: string; role: ParticipantRole; isOnline: boolean; initiativeModifier: number | null }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }
 export interface DiceRoll {
@@ -27,6 +28,7 @@ export interface DiceRoll {
 }
 export interface Combatant {
   id: string
+  participantId: string | null
   name: string
   initiativeModifier: number
   initiative: number | null
@@ -53,4 +55,13 @@ export interface CampaignEvent<T = unknown> {
   type: string
   occurredAt: string
   payload: T
+}
+export interface AdminCampaign {
+  id: string
+  name: string
+  createdAt: string
+  participantCount: number
+  onlineCount: number
+  playerCode: string
+  masterCode: string
 }

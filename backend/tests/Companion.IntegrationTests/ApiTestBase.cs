@@ -9,6 +9,7 @@ namespace Companion.IntegrationTests;
 public abstract class ApiTestBase(CompanionApiFactory factory)
 {
     protected HttpClient Client { get; } = factory.CreateClient();
+    protected IServiceProvider Services => factory.Services;
     protected static JsonSerializerOptions JsonOptions { get; } = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }

@@ -5,8 +5,6 @@ namespace Companion.Infrastructure.Security;
 
 public sealed class ParticipantTokenService : IParticipantTokenService
 {
-    private const string CodeAlphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-
     public ParticipantCredential Create()
     {
         var bytes = RandomNumberGenerator.GetBytes(32);
@@ -27,5 +25,5 @@ public sealed class ParticipantTokenService : IParticipantTokenService
         return SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token));
     }
 
-    public string CreateCampaignCode() => RandomNumberGenerator.GetString(CodeAlphabet, 6);
+    public string CreateCampaignCode() => RandomNumberGenerator.GetInt32(10_000).ToString("D4");
 }

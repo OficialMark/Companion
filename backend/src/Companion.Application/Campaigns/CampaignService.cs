@@ -17,41 +17,45 @@ public sealed class CampaignService(
     {
         var campaignName = ValidateName(request.CampaignName, 80, "campanha");
         var displayName = ValidateName(request.DisplayName, 40, "participante");
-        var code = CreateUniqueCode();
+        var (playerCode, masterCode) = CreateUniqueCodes();
         var credential = tokens.Create();
         var now = timeProvider.GetUtcNow();
-        var campaign = new Campaign(Guid.NewGuid(), code, campaignName, now);
+        var campaign = new Campaign(Guid.NewGuid(), campaignName, now);
         var master = new Participant(Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Master, credential.Hash, now);
 
         db.Add(campaign);
+        db.Add(new CampaignAccessCode(playerCode, campaign.Id, ParticipantRole.Player));
+        db.Add(new CampaignAccessCode(masterCode, campaign.Id, ParticipantRole.Master));
         db.Add(master);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new SessionResponse(campaign.Id, campaign.Code, master.Id, master.DisplayName, master.Role, credential.Token);
+        return new SessionResponse(campaign.Id, playerCode, masterCode, master.Id, master.DisplayName, master.Role, credential.Token);
     }
 
     public async Task<SessionResponse> JoinAsync(JoinCampaignRequest request, CancellationToken cancellationToken)
     {
-        var code = (request.Code ?? string.Empty).Trim().ToUpperInvariant();
-        var displayName = ValidateName(request.DisplayName, 40, "participante");
-        var campaign = db.Campaigns.FirstOrDefault(x => x.Code == code)
-            ?? throw new AppException(AppErrorKind.NotFound, "Campanha não encontrada.");
-
-        if (db.Participants.Where(x => x.CampaignId == campaign.Id)
-            .AsEnumerable().Any(x => string.Equals(x.DisplayName, displayName, StringComparison.OrdinalIgnoreCase)))
+        var code = (request.Code ?? string.Empty).Trim();
+        if (code.Length != 4 || code.Any(character => character is < '0' or > '9'))
         {
-            throw new AppException(AppErrorKind.Conflict, "Este nome já está em uso na campanha.");
+            throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
         }
+        var displayName = ValidateName(request.DisplayName, 40, "participante");
+        var access = db.CampaignAccessCodes.FirstOrDefault(x => x.Code == code)
+            ?? throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
+        var campaign = db.Campaigns.FirstOrDefault(x => x.Id == access.CampaignId)
+            ?? throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
 
         var credential = tokens.Create();
         var participant = new Participant(
-            Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Player,
+            Guid.NewGuid(), campaign.Id, displayName, access.Role,
             credential.Hash, timeProvider.GetUtcNow());
         db.Add(participant);
         await db.SaveChangesAsync(cancellationToken);
         await notifier.NotifyAsync(campaign.Id, "ParticipantJoined", ToDto(participant), cancellationToken);
 
-        return new SessionResponse(campaign.Id, campaign.Code, participant.Id, participant.DisplayName, participant.Role, credential.Token);
+        var playerCode = db.CampaignAccessCodes.First(x =>
+            x.CampaignId == campaign.Id && x.Role == ParticipantRole.Player).Code;
+        return new SessionResponse(campaign.Id, playerCode, null, participant.Id, participant.DisplayName, participant.Role, credential.Token);
     }
 
     public Task<CampaignSnapshot> GetSnapshotAsync(Guid campaignId, string token, CancellationToken cancellationToken)
@@ -76,31 +80,70 @@ public sealed class CampaignService(
             encounterDto = DtoMapper.ToDto(encounter);
         }
 
+        var playerCode = db.CampaignAccessCodes.First(x =>
+            x.CampaignId == campaignId && x.Role == ParticipantRole.Player).Code;
         return Task.FromResult(new CampaignSnapshot(
-            new CampaignDto(campaign.Id, campaign.Code, campaign.Name),
+            new CampaignDto(campaign.Id, playerCode, campaign.Name),
             ToDto(current), participants, rolls, encounterDto));
+    }
+
+    public async Task<ParticipantDto> UpdateInitiativeModifierAsync(
+        Guid campaignId, string token, UpdateInitiativeModifierRequest request, CancellationToken cancellationToken)
+    {
+        var participant = authorization.Require(campaignId, token);
+        try
+        {
+            participant.UpdateInitiativeModifier(request.InitiativeModifier);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        var dto = ToDto(participant);
+        await notifier.NotifyAsync(campaignId, "ParticipantUpdated", dto, cancellationToken);
+        return dto;
     }
 
     public IReadOnlyList<ParticipantDto> GetParticipants(Guid campaignId) =>
         db.Participants.Where(x => x.CampaignId == campaignId)
             .OrderBy(x => x.CreatedAt).AsEnumerable().Select(ToDto).ToArray();
 
-    private string CreateUniqueCode()
+    private (string PlayerCode, string MasterCode) CreateUniqueCodes()
     {
-        for (var attempt = 0; attempt < 10; attempt++)
+        var used = db.CampaignAccessCodes.Select(x => x.Code).ToHashSet(StringComparer.Ordinal);
+        if (used.Count > 9_998)
+        {
+            throw new AppException(AppErrorKind.Conflict, "Não há códigos livres suficientes para criar outra mesa.");
+        }
+
+        var selected = new List<string>(2);
+        for (var attempt = 0; attempt < 64 && selected.Count < 2; attempt++)
         {
             var code = tokens.CreateCampaignCode();
-            if (!db.Campaigns.Any(x => x.Code == code))
+            if (used.Add(code))
             {
-                return code;
+                selected.Add(code);
             }
         }
 
-        throw new AppException(AppErrorKind.Conflict, "Não foi possível gerar um código de campanha. Tente novamente.");
+        for (var value = 0; value < 10_000 && selected.Count < 2; value++)
+        {
+            var code = value.ToString("D4");
+            if (used.Add(code)) selected.Add(code);
+        }
+
+        if (selected.Count < 2)
+        {
+            throw new AppException(AppErrorKind.Conflict, "Não há códigos livres suficientes para criar outra mesa.");
+        }
+
+        return (selected[0], selected[1]);
     }
 
     private ParticipantDto ToDto(Participant participant) =>
-        new(participant.Id, participant.DisplayName, participant.Role, presence.IsOnline(participant.Id));
+        new(participant.Id, participant.DisplayName, participant.Role, presence.IsOnline(participant.Id), participant.InitiativeModifier);
 
     internal static DiceRollDto ToDto(DiceRoll roll, string displayName)
     {

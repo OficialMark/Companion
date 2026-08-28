@@ -31,4 +31,15 @@ public sealed class Participant
     public ParticipantRole Role { get; private set; }
     public byte[] TokenHash { get; private set; } = [];
     public DateTimeOffset CreatedAt { get; private set; }
+    public int? InitiativeModifier { get; private set; }
+
+    public void UpdateInitiativeModifier(int? modifier)
+    {
+        if (modifier is < -100 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(modifier), "O modificador deve estar entre -100 e 100.");
+        }
+
+        InitiativeModifier = modifier;
+    }
 }

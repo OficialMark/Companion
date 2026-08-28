@@ -46,6 +46,11 @@ export const useCampaignStore = defineStore('campaign', {
       }
     },
     applyEvent(event: CampaignEvent) {
+      if (event.type === 'CampaignDeleted') {
+        this.clearSession()
+        this.error = 'Esta mesa foi encerrada pelo administrador.'
+        return
+      }
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
       if (event.type === 'DiceRolled') {
@@ -53,8 +58,13 @@ export const useCampaignStore = defineStore('campaign', {
         if (!this.snapshot.diceRolls.some(x => x.id === roll.id)) {
           this.snapshot.diceRolls = [roll, ...this.snapshot.diceRolls].slice(0, 50)
         }
-      } else if (['EncounterStarted', 'CombatantAdded', 'InitiativeRolled', 'TurnAdvanced'].includes(event.type)) {
+      } else if (['EncounterStarted', 'CombatantAdded', 'CombatantUpdated', 'CombatantRemoved', 'InitiativeRolled', 'TurnAdvanced'].includes(event.type)) {
         this.snapshot.activeEncounter = event.payload as Encounter
+      } else if (event.type === 'ParticipantUpdated') {
+        const participant = event.payload as Participant
+        const index = this.snapshot.participants.findIndex(x => x.id === participant.id)
+        if (index >= 0) this.snapshot.participants[index] = participant
+        if (this.snapshot.currentParticipant.id === participant.id) this.snapshot.currentParticipant = participant
       } else if (event.type === 'EncounterEnded') {
         this.snapshot.activeEncounter = null
       }

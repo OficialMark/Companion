@@ -23,6 +23,18 @@ public static class EncounterEndpoints
             EncounterService service, CancellationToken ct) =>
             Results.Ok(await service.RollInitiativeAsync(campaignId, encounterId, Token(request), body, ct)));
 
+        group.MapPut("/{encounterId:guid}/combatants/{combatantId:guid}", async (
+            Guid campaignId, Guid encounterId, Guid combatantId, UpdateCombatantRequest body,
+            HttpRequest request, EncounterService service, CancellationToken ct) =>
+            Results.Ok(await service.UpdateCombatantAsync(
+                campaignId, encounterId, combatantId, Token(request), body, ct)));
+
+        group.MapDelete("/{encounterId:guid}/combatants/{combatantId:guid}", async (
+            Guid campaignId, Guid encounterId, Guid combatantId,
+            HttpRequest request, EncounterService service, CancellationToken ct) =>
+            Results.Ok(await service.RemoveCombatantAsync(
+                campaignId, encounterId, combatantId, Token(request), ct)));
+
         group.MapPost("/{encounterId:guid}/start", async (
             Guid campaignId, Guid encounterId, HttpRequest request, EncounterService service, CancellationToken ct) =>
             Results.Ok(await service.StartAsync(campaignId, encounterId, Token(request), ct)));

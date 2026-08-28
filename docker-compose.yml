@@ -26,6 +26,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://0.0.0.0:8080
       ConnectionStrings__Companion: Server=sqlserver,1433;Database=Companion;User Id=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;ConnectRetryCount=10;ConnectRetryInterval=3
+      Admin__AccessKey: ${ADMIN_ACCESS_KEY}
     depends_on:
       sqlserver:
         condition: service_healthy

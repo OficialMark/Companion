@@ -1,0 +1,61 @@
+openapi: 3.1.0
+info: { title: Companion Access and Administration Delta, version: 0.2.0 }
+paths:
+  /campaigns/join:
+    post:
+      summary: Join with the role represented by a four-digit code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, displayName]
+              properties:
+                code: { type: string, pattern: '^\d{4}$' }
+                displayName: { type: string, minLength: 1, maxLength: 40 }
+  /campaigns/{campaignId}/participants/me/initiative-modifier:
+    put:
+      summary: Set the authenticated participant modifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiativeModifier]
+              properties: { initiativeModifier: { type: integer, minimum: -100, maximum: 100 } }
+  /campaigns/{campaignId}/encounters/{encounterId}/combatants/{combatantId}:
+    put: { summary: Edit a combatant as master }
+    delete: { summary: Remove a combatant as master }
+  /admin/campaigns:
+    get:
+      summary: List campaigns for the installation operator
+      parameters: [{ $ref: '#/components/parameters/AdminCredential' }]
+  /admin/campaigns/{campaignId}:
+    delete:
+      summary: Permanently delete a campaign aggregate
+      parameters:
+        - { $ref: '#/components/parameters/AdminCredential' }
+        - { name: campaignId, in: path, required: true, schema: { type: string, format: uuid } }
+components:
+  parameters:
+    AdminCredential:
+      name: X-Admin-Key
+      in: header
+      required: true
+      schema: { type: string }
+  schemas:
+    Session:
+      type: object
+      properties:
+        playerCode: { type: string, pattern: '^\d{4}$' }
+        masterCode: { type: [string, 'null'], pattern: '^\d{4}$', description: Creation response only }
+    AdminCampaign:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        createdAt: { type: string, format: date-time }
+        participantCount: { type: integer }
+        onlineCount: { type: integer }
+        playerCode: { type: string, pattern: '^\d{4}$' }
+        masterCode: { type: string, pattern: '^\d{4}$' }

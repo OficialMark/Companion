@@ -5,17 +5,20 @@ namespace Companion.Application.Contracts;
 public interface ICompanionDbContext
 {
     IQueryable<Campaign> Campaigns { get; }
+    IQueryable<CampaignAccessCode> CampaignAccessCodes { get; }
     IQueryable<Participant> Participants { get; }
     IQueryable<DiceRoll> DiceRolls { get; }
     IQueryable<Encounter> Encounters { get; }
     IQueryable<Combatant> Combatants { get; }
 
     void Add(Campaign campaign);
+    void Add(CampaignAccessCode accessCode);
     void Add(Participant participant);
     void Add(DiceRoll diceRoll);
     void Add(Encounter encounter);
     void Add(Combatant combatant);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }
 
 public sealed record ParticipantCredential(string Token, byte[] Hash);
@@ -43,4 +46,9 @@ public interface ICampaignNotifier
 {
     Task NotifyAsync(Guid campaignId, string type, object payload, CancellationToken cancellationToken = default);
     Task ParticipantsChangedAsync(Guid campaignId, CancellationToken cancellationToken = default);
+}
+
+public interface IAdminCredentialValidator
+{
+    bool IsValid(string credential);
 }

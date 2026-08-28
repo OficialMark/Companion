@@ -4,7 +4,7 @@ public sealed class Campaign
 {
     private Campaign() { }
 
-    public Campaign(Guid id, string code, string name, DateTimeOffset createdAt)
+    public Campaign(Guid id, string name, DateTimeOffset createdAt)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 80)
         {
@@ -12,13 +12,11 @@ public sealed class Campaign
         }
 
         Id = id;
-        Code = code;
         Name = name.Trim();
         CreatedAt = createdAt;
     }
 
     public Guid Id { get; private set; }
-    public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
 }

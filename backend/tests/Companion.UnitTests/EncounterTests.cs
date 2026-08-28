@@ -72,6 +72,34 @@ public sealed class EncounterTests
         Assert.Equal(20, second.Initiative);
     }
 
+    [Fact]
+    public void Participant_link_is_unique_and_master_edits_are_preserved()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var participantId = Guid.NewGuid();
+        var combatant = encounter.AddCombatant(Guid.NewGuid(), "Lia", 2, participantId);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            encounter.AddCombatant(Guid.NewGuid(), "Lia duplicada", 2, participantId));
+        encounter.UpdateCombatant(combatant.Id, "Lia editada", 5);
+        encounter.RollInitiative(() => 10);
+
+        Assert.Equal("Lia editada", combatant.Name);
+        Assert.Equal(5, combatant.InitiativeModifier);
+        Assert.Equal(15, combatant.Initiative);
+    }
+
+    [Fact]
+    public void Removing_current_combatant_advances_to_its_successor()
+    {
+        var encounter = ActiveEncounter(3);
+        var ordered = encounter.Combatants.OrderByDescending(x => x.Initiative).ThenBy(x => x.CreationOrder).ToArray();
+        encounter.RemoveCombatant(ordered[0].Id);
+        var reordered = encounter.Combatants.OrderByDescending(x => x.Initiative).ThenBy(x => x.CreationOrder).ToArray();
+
+        Assert.Equal(ordered[1].Id, reordered[encounter.CurrentTurnIndex!.Value].Id);
+    }
+
     private static Encounter ActiveEncounter(int count)
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);

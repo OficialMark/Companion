@@ -22,7 +22,7 @@ async function leave() {
 }
 
 async function copyCode() {
-  const code = store.snapshot?.campaign.code
+  const code = store.snapshot?.campaign.playerCode
   if (code && navigator.clipboard) await navigator.clipboard.writeText(code)
 }
 
@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
       <div v-if="store.snapshot" class="campaign-heading">
         <span>{{ store.snapshot.campaign.name }}</span>
         <button class="code-badge" type="button" title="Copiar código" @click="copyCode">
-          {{ store.snapshot.campaign.code }}
+          {{ store.snapshot.campaign.playerCode }}
         </button>
       </div>
       <div class="top-actions">
@@ -80,6 +80,11 @@ onBeforeUnmount(() => {
         <p v-if="store.connection === 'offline'" class="offline-warning" role="alert">Comandos pausados até a conexão voltar.</p>
       </section>
 
+      <section v-if="store.isMaster && store.session.masterCode" class="master-code-panel">
+        <p><strong>Código reservado do mestre</strong> — guarde e não compartilhe com jogadores.</p>
+        <details><summary>Mostrar código</summary><span class="code-badge">{{ store.session.masterCode }}</span></details>
+      </section>
+
       <div class="dashboard-grid">
         <div class="main-column">
           <DiceRoller />
@@ -91,6 +96,7 @@ onBeforeUnmount(() => {
           <RollHistory :rolls="store.snapshot.diceRolls" />
         </div>
       </div>
+      <InitiativeModifier />
     </div>
   </main>
 </template>

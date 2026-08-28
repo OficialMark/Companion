@@ -13,7 +13,7 @@ public static class CampaignEndpoints
             Results.Created("/api/campaigns", await service.CreateAsync(request, ct)));
 
         group.MapPost("/join", async (JoinCampaignRequest request, CampaignService service, CancellationToken ct) =>
-            Results.Ok(await service.JoinAsync(request, ct)));
+            Results.Ok(await service.JoinAsync(request, ct))).RequireRateLimiting("access");
 
         group.MapGet("/{campaignId:guid}/snapshot", async (
             Guid campaignId,
@@ -21,6 +21,12 @@ public static class CampaignEndpoints
             CampaignService service,
             CancellationToken ct) =>
             Results.Ok(await service.GetSnapshotAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), ct)));
+
+        group.MapPut("/{campaignId:guid}/participants/me/initiative-modifier", async (
+            Guid campaignId, UpdateInitiativeModifierRequest body, HttpRequest request,
+            CampaignService service, CancellationToken ct) =>
+            Results.Ok(await service.UpdateInitiativeModifierAsync(
+                campaignId, request.Headers["X-Participant-Token"].ToString(), body, ct)));
 
         return endpoints;
     }

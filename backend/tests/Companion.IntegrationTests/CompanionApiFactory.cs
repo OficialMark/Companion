@@ -18,7 +18,8 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Companion"] = _sqlServer.GetConnectionString()
+                ["ConnectionStrings:Companion"] = _sqlServer.GetConnectionString(),
+                ["Admin:AccessKey"] = "integration-admin-secret"
             }));
     }
 }

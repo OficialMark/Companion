@@ -10,6 +10,8 @@ using Companion.Infrastructure.Persistence;
 using Companion.Infrastructure.Randomness;
 using Companion.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,26 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("sqlserver");
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("access", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 12,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+    options.AddPolicy("admin", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 8,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+});
 
 var connectionString = builder.Configuration.GetConnectionString("Companion")
     ?? throw new InvalidOperationException("ConnectionStrings:Companion não foi configurada.");
@@ -27,15 +49,18 @@ builder.Services.AddDbContext<CompanionDbContext>(options => options.UseSqlServe
 builder.Services.AddScoped<ICompanionDbContext>(provider => provider.GetRequiredService<CompanionDbContext>());
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IParticipantTokenService, ParticipantTokenService>();
+builder.Services.AddSingleton<IAdminCredentialValidator, AdminCredentialValidator>();
 builder.Services.AddSingleton<IDiceRandomizer, CryptoDiceRandomizer>();
 builder.Services.AddSingleton<IPresenceTracker, CampaignPresenceTracker>();
 builder.Services.AddScoped<ICampaignNotifier, SignalRCampaignNotifier>();
 builder.Services.AddScoped<ParticipantAuthorization>();
 builder.Services.AddScoped<CampaignService>();
+builder.Services.AddScoped<AdminCampaignService>();
 builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
 
 var app = builder.Build();
+app.UseRateLimiter();
 
 app.Use(async (context, next) =>
 {
@@ -83,6 +108,7 @@ app.MapHealthChecks("/health");
 app.MapCampaignEndpoints();
 app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
+app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 
 await using (var scope = app.Services.CreateAsyncScope())

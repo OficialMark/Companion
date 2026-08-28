@@ -1,4 +1,4 @@
-import type { CampaignSnapshot, DiceRoll, Encounter, Session } from '~/types/campaign'
+import type { AdminCampaign, CampaignSnapshot, DiceRoll, Encounter, Participant, Session } from '~/types/campaign'
 import { createUuid } from '~/utils/createUuid'
 
 interface ProblemDetails { title?: string; detail?: string }
@@ -17,6 +17,7 @@ export function useCompanionApi() {
       ;(error as Error & { status?: number }).status = response.status
       throw error
     }
+    if (response.status === 204) return undefined as T
     return response.json() as Promise<T>
   }
 
@@ -28,6 +29,9 @@ export function useCompanionApi() {
       method: 'POST', body: JSON.stringify({ code, displayName })
     }),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
+    updateInitiativeModifier: (session: Session, initiativeModifier: number | null) => request<Participant>(
+      `/campaigns/${session.campaignId}/participants/me/initiative-modifier`,
+      { method: 'PUT', body: JSON.stringify({ initiativeModifier }) }, session.participantToken),
     rollDice: (session: Session, expression: string, publish = true) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, {
       method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish })
     }, session.participantToken),
@@ -40,11 +44,23 @@ export function useCompanionApi() {
     rollInitiative: (session: Session, encounterId: string, combatantId: string | null = null) => request<Encounter>(
       `/campaigns/${session.campaignId}/encounters/${encounterId}/initiative`,
       { method: 'POST', body: JSON.stringify({ combatantId }) }, session.participantToken),
+    updateCombatant: (session: Session, encounterId: string, combatantId: string, name: string, initiativeModifier: number) => request<Encounter>(
+      `/campaigns/${session.campaignId}/encounters/${encounterId}/combatants/${combatantId}`,
+      { method: 'PUT', body: JSON.stringify({ name, initiativeModifier }) }, session.participantToken),
+    removeCombatant: (session: Session, encounterId: string, combatantId: string) => request<Encounter>(
+      `/campaigns/${session.campaignId}/encounters/${encounterId}/combatants/${combatantId}`,
+      { method: 'DELETE' }, session.participantToken),
     startEncounter: (session: Session, encounterId: string) => request<Encounter>(
       `/campaigns/${session.campaignId}/encounters/${encounterId}/start`, { method: 'POST' }, session.participantToken),
     nextTurn: (session: Session, encounterId: string) => request<Encounter>(
       `/campaigns/${session.campaignId}/encounters/${encounterId}/next-turn`, { method: 'POST' }, session.participantToken),
     endEncounter: (session: Session, encounterId: string) => request<Encounter>(
-      `/campaigns/${session.campaignId}/encounters/${encounterId}/end`, { method: 'POST' }, session.participantToken)
+      `/campaigns/${session.campaignId}/encounters/${encounterId}/end`, { method: 'POST' }, session.participantToken),
+    listAdminCampaigns: (adminKey: string) => request<AdminCampaign[]>('/admin/campaigns', {
+      headers: { 'X-Admin-Key': adminKey }
+    }),
+    deleteAdminCampaign: (adminKey: string, campaignId: string) => request<void>(`/admin/campaigns/${campaignId}`, {
+      method: 'DELETE', headers: { 'X-Admin-Key': adminKey }
+    })
   }
 }

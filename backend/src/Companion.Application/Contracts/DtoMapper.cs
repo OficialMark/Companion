@@ -11,7 +11,7 @@ public static class DtoMapper
             .ThenBy(x => x.CreationOrder)
             .ToArray();
         var combatants = ordered.Select((x, index) => new CombatantDto(
-            x.Id, x.Name, x.InitiativeModifier, x.Initiative, x.CreationOrder,
+            x.Id, x.ParticipantId, x.Name, x.InitiativeModifier, x.Initiative, x.CreationOrder,
             encounter.Status == EncounterStatus.Active && encounter.CurrentTurnIndex == index)).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }

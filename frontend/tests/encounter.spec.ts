@@ -5,7 +5,10 @@ import InitiativeTracker from '~/components/InitiativeTracker.vue'
 const rollInitiative = vi.fn()
 const store = { isMaster: true, session: {} as Record<string, unknown>, snapshot: { activeEncounter: null } as { activeEncounter: null | Record<string, unknown> } }
 vi.stubGlobal('useCampaignStore', () => store)
-vi.stubGlobal('useCompanionApi', () => ({ createEncounter: vi.fn(), rollInitiative, nextTurn: vi.fn(), endEncounter: vi.fn() }))
+vi.stubGlobal('useCompanionApi', () => ({
+  createEncounter: vi.fn(), rollInitiative, nextTurn: vi.fn(), endEncounter: vi.fn(),
+  updateCombatant: vi.fn(), removeCombatant: vi.fn()
+}))
 
 describe('EncounterSetup', () => {
   it('lets the master start encounter preparation', () => {
@@ -18,7 +21,7 @@ describe('EncounterSetup', () => {
   it('lets the master reroll one combatant during combat', async () => {
     const encounter = {
       id: 'encounter-1', status: 'Active', round: 1, currentTurnIndex: 0,
-      combatants: [{ id: 'combatant-1', name: 'Goblin', initiativeModifier: 2, initiative: 14, creationOrder: 0, isCurrent: true }]
+      combatants: [{ id: 'combatant-1', participantId: null, name: 'Goblin', initiativeModifier: 2, initiative: 14, creationOrder: 0, isCurrent: true }]
     }
     store.snapshot.activeEncounter = encounter
     rollInitiative.mockResolvedValue(encounter)

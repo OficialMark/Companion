@@ -10,9 +10,20 @@ public sealed class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
     {
         builder.ToTable("Campaigns");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Code).HasMaxLength(8).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(80).IsRequired();
-        builder.HasIndex(x => x.Code).IsUnique();
+    }
+}
+
+public sealed class CampaignAccessCodeConfiguration : IEntityTypeConfiguration<CampaignAccessCode>
+{
+    public void Configure(EntityTypeBuilder<CampaignAccessCode> builder)
+    {
+        builder.ToTable("CampaignAccessCodes");
+        builder.HasKey(x => x.Code);
+        builder.Property(x => x.Code).HasMaxLength(4).IsFixedLength().IsRequired();
+        builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10).IsRequired();
+        builder.HasIndex(x => new { x.CampaignId, x.Role }).IsUnique();
+        builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -26,7 +37,7 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.TokenHash).HasMaxLength(32).IsRequired();
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10);
         builder.HasIndex(x => x.TokenHash).IsUnique();
-        builder.HasIndex(x => new { x.CampaignId, x.DisplayName }).IsUnique();
+        builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
     }
 }
@@ -70,5 +81,8 @@ public sealed class CombatantConfiguration : IEntityTypeConfiguration<Combatant>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(60).IsRequired();
         builder.HasIndex(x => new { x.EncounterId, x.CreationOrder }).IsUnique();
+        builder.HasIndex(x => new { x.EncounterId, x.ParticipantId }).IsUnique()
+            .HasFilter("[ParticipantId] IS NOT NULL");
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
     }
 }

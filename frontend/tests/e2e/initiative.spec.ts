@@ -1,17 +1,28 @@
 import { expect, test } from '@playwright/test'
 
-test('rerolls initiative before and during combat', async ({ page }) => {
+test('imports online player modifier and supports master edits', async ({ page, browser }) => {
   await page.goto('/')
   await page.getByLabel('Nome da campanha').fill(`Iniciativa ${Date.now()}`)
   await page.getByLabel('Seu nome').fill('Mestre da iniciativa')
   await page.getByRole('button', { name: 'Criar e entrar' }).click()
+  const playerCode = await page.locator('.created-code').first().innerText()
+  await page.getByRole('button', { name: 'Entrar como mestre' }).click()
+
+  const playerContext = await browser.newContext()
+  const player = await playerContext.newPage()
+  await player.goto('/')
+  await player.getByRole('button', { name: 'Entrar com código' }).click()
+  await player.getByLabel('Código da campanha').fill(playerCode)
+  await player.getByLabel('Seu nome').fill('Guerreiro')
+  await player.getByRole('button', { name: 'Entrar na campanha' }).click()
+  await player.getByLabel('Modificador', { exact: true }).last().fill('3')
+  await player.getByRole('button', { name: 'Salvar', exact: true }).click()
+  await expect(player.getByText('Modificador salvo.')).toBeVisible()
 
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
-  await page.getByLabel('Nome').fill('Guerreiro')
-  await page.getByLabel('Modificador').fill('3')
-  await page.getByRole('button', { name: 'Adicionar' }).click()
-
   await page.getByRole('button', { name: 'Rolar iniciativas', exact: true }).click()
+  await expect(page.getByLabel('Nome de Guerreiro')).toHaveValue('Guerreiro')
+  await expect(page.getByLabel('Modificador de Guerreiro')).toHaveValue('3')
   await expect(page.getByRole('button', { name: 'Rolar iniciativas novamente' })).toBeVisible()
   await page.getByRole('button', { name: 'Rolar iniciativas novamente' }).click()
 
@@ -22,4 +33,5 @@ test('rerolls initiative before and during combat', async ({ page }) => {
   await expect(page.getByText('Turno', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Rolar iniciativa novamente para Guerreiro' }).click()
   await expect(page.getByText('Turno', { exact: true })).toBeVisible()
+  await playerContext.close()
 })

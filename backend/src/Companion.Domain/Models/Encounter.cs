@@ -24,12 +24,48 @@ public sealed class Encounter
     public byte[] Version { get; private set; } = [];
     public IReadOnlyCollection<Combatant> Combatants => _combatants;
 
-    public Combatant AddCombatant(Guid id, string name, int modifier)
+    public Combatant AddCombatant(Guid id, string name, int modifier, Guid? participantId = null)
     {
         EnsurePreparing();
-        var combatant = new Combatant(id, Id, name, modifier, _combatants.Count);
+        if (participantId.HasValue && _combatants.Any(x => x.ParticipantId == participantId))
+        {
+            throw new InvalidOperationException("Este participante já está na iniciativa.");
+        }
+
+        var combatant = new Combatant(id, Id, name, modifier, _combatants.Count, participantId);
         _combatants.Add(combatant);
         return combatant;
+    }
+
+    public void UpdateCombatant(Guid combatantId, string name, int modifier)
+    {
+        var currentId = CurrentCombatantId();
+        var combatant = _combatants.FirstOrDefault(x => x.Id == combatantId)
+            ?? throw new InvalidOperationException("Combatente não encontrado.");
+        combatant.Update(name, modifier);
+        RestoreCurrentTurn(currentId);
+    }
+
+    public void RemoveCombatant(Guid combatantId)
+    {
+        var ordered = OrderedCombatants();
+        var removedIndex = Array.FindIndex(ordered, x => x.Id == combatantId);
+        if (removedIndex < 0) throw new InvalidOperationException("Combatente não encontrado.");
+
+        var currentId = CurrentCombatantId();
+        var removedCurrent = currentId == combatantId;
+        Guid? successorId = null;
+        if (removedCurrent && ordered.Length > 1)
+        {
+            successorId = ordered[(removedIndex + 1) % ordered.Length].Id;
+        }
+
+        _combatants.RemoveAll(x => x.Id == combatantId);
+        RestoreCurrentTurn(removedCurrent ? successorId : currentId);
+        if (Status == EncounterStatus.Active && _combatants.Count == 0)
+        {
+            CurrentTurnIndex = null;
+        }
     }
 
     public void RollInitiative(Func<int> rollD20, Guid? combatantId = null)
@@ -119,4 +155,15 @@ public sealed class Encounter
         .OrderByDescending(x => x.Initiative ?? int.MinValue)
         .ThenBy(x => x.CreationOrder)
         .ToArray();
+
+    private Guid? CurrentCombatantId() => Status == EncounterStatus.Active && CurrentTurnIndex is not null
+        ? OrderedCombatants().ElementAtOrDefault(CurrentTurnIndex.Value)?.Id
+        : null;
+
+    private void RestoreCurrentTurn(Guid? combatantId)
+    {
+        if (Status != EncounterStatus.Active || combatantId is null) return;
+        var index = Array.FindIndex(OrderedCombatants(), x => x.Id == combatantId.Value);
+        CurrentTurnIndex = index >= 0 ? index : null;
+    }
 }

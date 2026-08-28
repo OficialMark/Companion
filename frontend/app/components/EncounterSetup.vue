@@ -58,7 +58,7 @@ async function start() {
       <button class="button secondary" :disabled="busy" type="submit">Adicionar</button>
     </form>
     <div class="button-row">
-      <button class="button ghost" :disabled="busy || !store.snapshot.activeEncounter.combatants.length" type="button" @click="rollAll">
+      <button class="button ghost" :disabled="busy" type="button" @click="rollAll">
         {{ store.snapshot.activeEncounter.combatants.some(c => c.initiative !== null) ? 'Rolar iniciativas novamente' : 'Rolar iniciativas' }}
       </button>
       <button class="button primary" :disabled="busy || store.snapshot.activeEncounter.combatants.some(c => c.initiative === null) || !store.snapshot.activeEncounter.combatants.length" type="button" @click="start">Começar combate</button>

@@ -4,7 +4,7 @@ public sealed class Combatant
 {
     private Combatant() { }
 
-    public Combatant(Guid id, Guid encounterId, string name, int initiativeModifier, int creationOrder)
+    public Combatant(Guid id, Guid encounterId, string name, int initiativeModifier, int creationOrder, Guid? participantId = null)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 60)
         {
@@ -21,14 +21,33 @@ public sealed class Combatant
         Name = name.Trim();
         InitiativeModifier = initiativeModifier;
         CreationOrder = creationOrder;
+        ParticipantId = participantId;
     }
 
     public Guid Id { get; private set; }
     public Guid EncounterId { get; private set; }
+    public Guid? ParticipantId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public int InitiativeModifier { get; private set; }
     public int? Initiative { get; private set; }
     public int CreationOrder { get; private set; }
 
     public void SetInitiative(int d20) => Initiative = checked(d20 + InitiativeModifier);
+
+    public void Update(string name, int initiativeModifier)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 60)
+        {
+            throw new ArgumentException("O nome do combatente deve ter entre 1 e 60 caracteres.", nameof(name));
+        }
+
+        if (initiativeModifier is < -100 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(initiativeModifier));
+        }
+
+        Name = name.Trim();
+        InitiativeModifier = initiativeModifier;
+        Initiative = null;
+    }
 }

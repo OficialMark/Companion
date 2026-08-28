@@ -28,11 +28,6 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -43,10 +38,30 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.ToTable("Campaigns", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CampaignAccessCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(4)
+                        .HasColumnType("nchar(4)")
+                        .IsFixedLength();
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("CampaignId", "Role")
                         .IsUnique();
 
-                    b.ToTable("Campaigns", (string)null);
+                    b.ToTable("CampaignAccessCodes", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.Combatant", b =>
@@ -72,10 +87,19 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
+                    b.Property<Guid?>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ParticipantId");
 
                     b.HasIndex("EncounterId", "CreationOrder")
                         .IsUnique();
+
+                    b.HasIndex("EncounterId", "ParticipantId")
+                        .IsUnique()
+                        .HasFilter("[ParticipantId] IS NOT NULL");
 
                     b.ToTable("Combatants", (string)null);
                 });
@@ -182,6 +206,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<int?>("InitiativeModifier")
+                        .HasColumnType("int");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -197,10 +224,18 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.HasIndex("CampaignId", "DisplayName")
-                        .IsUnique();
+                    b.HasIndex("CampaignId", "DisplayName");
 
                     b.ToTable("Participants", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CampaignAccessCode", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.Combatant", b =>
@@ -210,6 +245,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.DiceRoll", b =>
