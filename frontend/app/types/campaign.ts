@@ -12,7 +12,14 @@ export interface Session {
 }
 
 export interface Campaign { id: string; playerCode: string; name: string }
-export interface Participant { id: string; displayName: string; role: ParticipantRole; isOnline: boolean; initiativeModifier: number | null }
+export interface Participant {
+  id: string
+  displayName: string
+  role: ParticipantRole
+  isOnline: boolean
+  initiativeModifier: number | null
+  currentHitPoints: number | null
+}
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }
 export interface DiceRoll {
@@ -34,6 +41,8 @@ export interface Combatant {
   initiative: number | null
   creationOrder: number
   isCurrent: boolean
+  currentHitPoints: number | null
+  isDefeated?: boolean
 }
 export interface Encounter {
   id: string
@@ -42,6 +51,22 @@ export interface Encounter {
   currentTurnIndex: number | null
   combatants: Combatant[]
 }
+export interface AttackTarget {
+  combatantId: string
+  name: string
+  damageApplied: number
+  hitPointsBefore: number | null
+  hitPointsAfter: number | null
+}
+export interface CombatAttack {
+  id: string
+  diceRollId: string
+  authorParticipantId: string
+  damage: number
+  createdAt: string
+  targets: AttackTarget[]
+}
+export interface AttackResult { attack: CombatAttack; encounter: Encounter }
 export interface CampaignSnapshot {
   campaign: Campaign
   currentParticipant: Participant
@@ -49,6 +74,7 @@ export interface CampaignSnapshot {
   diceRolls: DiceRoll[]
   activeEncounter: Encounter | null
 }
+export interface DamageAppliedEvent { encounterId: string; targets: Array<{ combatantId: string; damageApplied: number }> }
 export interface CampaignEvent<T = unknown> {
   eventId: string
   campaignId: string

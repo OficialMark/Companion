@@ -64,6 +64,67 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("CampaignAccessCodes", (string)null);
                 });
 
+            modelBuilder.Entity("Companion.Domain.Models.CombatAttack", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuthorParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClientRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("DiceRollId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiceRollId")
+                        .IsUnique();
+
+                    b.HasIndex("EncounterId");
+
+                    b.HasIndex("AuthorParticipantId", "ClientRequestId")
+                        .IsUnique();
+
+                    b.ToTable("CombatAttacks", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CombatAttackTarget", b =>
+                {
+                    b.Property<Guid>("AttackId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CombatantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DamageApplied")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HitPointsAfter")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HitPointsBefore")
+                        .HasColumnType("int");
+
+                    b.HasKey("AttackId", "CombatantId");
+
+                    b.HasIndex("CombatantId");
+
+                    b.ToTable("CombatAttackTargets", (string)null);
+                });
+
             modelBuilder.Entity("Companion.Domain.Models.Combatant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -71,6 +132,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("CreationOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CurrentHitPoints")
                         .HasColumnType("int");
 
                     b.Property<Guid>("EncounterId")
@@ -89,6 +153,12 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("ParticipantId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -201,6 +271,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int?>("CurrentHitPoints")
+                        .HasColumnType("int");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -235,6 +308,42 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CombatAttack", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.DiceRoll", null)
+                        .WithOne()
+                        .HasForeignKey("Companion.Domain.Models.CombatAttack", "DiceRollId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Encounter", null)
+                        .WithMany()
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CombatAttackTarget", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.CombatAttack", null)
+                        .WithMany()
+                        .HasForeignKey("AttackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Combatant", null)
+                        .WithMany()
+                        .HasForeignKey("CombatantId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

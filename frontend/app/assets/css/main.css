@@ -248,3 +248,36 @@ input:hover, input:focus { border-color: rgba(215,174,93,.45); background: rgba(
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.attack-panel { display: grid; gap: 14px; }
+.attack-panel .dice-panel { border-color: rgba(215,174,93,.18); background: rgba(0,0,0,.08); box-shadow: none; }
+.attack-targets { display: grid; gap: 10px; }
+.attack-target { min-height: 44px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: rgba(0,0,0,.08); }
+.attack-target input { width: 20px; height: 20px; accent-color: var(--wine-light); }
+.own-hit-points { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.own-hit-points input { width: 90px; min-height: 40px; }
+.combatant-form { grid-template-columns: minmax(150px, 1fr) 120px 120px auto; }
+.combatant-editor { grid-template-columns: minmax(120px, 1fr) 82px 100px; }
+@media (max-width: 680px) {
+  .combatant-form { grid-template-columns: 1fr 1fr; }
+  .combatant-form label:first-child { grid-column: 1 / -1; }
+  .combatant-editor { grid-template-columns: 1fr; }
+  .attack-targets .button-row .button { flex: 1 1 100%; }
+}
+/* Combat profile and public damage feedback */
+.modifier-form { grid-template-columns: minmax(190px, 1fr) minmax(140px, .75fr) auto; align-items: end; }
+.combat-profile-field { display: grid; gap: 6px; min-width: 0; }
+.combat-profile-field input { width: 100%; min-width: 0; }
+.modifier-form .button { grid-column: auto; grid-row: auto; }
+.initiative-list li { position: relative; overflow: visible; }
+.damage-pop { position: absolute; z-index: 4; left: clamp(62px, 28%, 220px); top: 50%; pointer-events: none; color: #ff7892; font-size: 1.35rem; font-weight: 900; line-height: 1; text-shadow: 0 2px 8px rgba(76, 0, 20, .9); animation: damage-pop 1.35s ease-out both; }
+@keyframes damage-pop { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.72); } 18% { opacity: 1; transform: translate(-50%, -8px) scale(1.16); } 70% { opacity: 1; transform: translate(-50%, -28px) scale(1); } 100% { opacity: 0; transform: translate(-50%, -44px) scale(.9); } }
+@media (max-width: 680px) {
+  .modifier-form { grid-template-columns: 1fr 1fr; }
+  .modifier-form .button { grid-column: 1 / -1; }
+  .damage-pop { left: 50%; }
+}
+.initiative-list li > span:nth-child(2) > small { display: block; margin-top: 6px; }
+
+.initiative-list li.defeated { border-color: rgba(222, 68, 91, .58); background: linear-gradient(90deg, rgba(151, 24, 48, .34), rgba(111, 18, 37, .14)); box-shadow: inset 4px 0 0 rgba(238, 73, 99, .72); }
+.initiative-list li.defeated.current { border-color: rgba(242, 95, 116, .78); background: linear-gradient(90deg, rgba(169, 27, 53, .42), rgba(130, 42, 43, .16)); }

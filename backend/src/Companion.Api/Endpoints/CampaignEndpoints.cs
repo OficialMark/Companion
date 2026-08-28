@@ -22,6 +22,11 @@ public static class CampaignEndpoints
             CancellationToken ct) =>
             Results.Ok(await service.GetSnapshotAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), ct)));
 
+        group.MapPut("/{campaignId:guid}/participants/me/combat-profile", async (
+            Guid campaignId, UpdateCombatProfileRequest body, HttpRequest request,
+            CampaignService service, CancellationToken ct) =>
+            Results.Ok(await service.UpdateCombatProfileAsync(
+                campaignId, request.Headers["X-Participant-Token"].ToString(), body, ct)));
         group.MapPut("/{campaignId:guid}/participants/me/initiative-modifier", async (
             Guid campaignId, UpdateInitiativeModifierRequest body, HttpRequest request,
             CampaignService service, CancellationToken ct) =>

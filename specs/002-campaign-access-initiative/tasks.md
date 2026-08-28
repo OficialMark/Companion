@@ -1,142 +1,245 @@
-# Tasks: Acesso, Administração e Iniciativa da Campanha
+# Tasks: Acesso, Administração, Iniciativa e Vida em Combate
 
 **Input**: Design documents from `/specs/002-campaign-access-initiative/`
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/openapi.yaml, quickstart.md
 
-**Tests**: Automated tests are required by the specification success criteria and project constitution.
+**Tests**: Obrigatórios pela constituição: domínio, integração, componentes e jornadas críticas E2E.
 
-**Organization**: Tasks are grouped by user story so each journey remains independently testable.
+**Organization**: Tarefas agrupadas pelas cinco histórias da especificação. US1 e US5 preservam funcionalidades existentes por regressão; US2–US4 entregam o novo escopo de vida e ataques.
 
-## Phase 1: Setup (Shared Infrastructure)
+## Format: `[ID] [P?] [Story] Description`
 
-**Purpose**: Establish configuration and public contract scaffolding shared by all stories.
+- **[P]**: Pode ser executada em paralelo sem editar os mesmos arquivos.
+- **[Story]**: História da especificação coberta pela tarefa.
+- Todas as tarefas possuem caminho exato.
 
-- [x] T001 Add installation-level admin secret examples to `.env.example`, `docker-compose.yml`, and `backend/src/Companion.Api/appsettings.json`
-- [x] T002 [P] Extend shared requests, responses, DTOs, and service abstractions in `backend/src/Companion.Application/Contracts/Dtos.cs` and `backend/src/Companion.Application/Contracts/Abstractions.cs`
-- [x] T003 [P] Extend frontend campaign, participant, combatant, session, and admin types in `frontend/app/types/campaign.ts`
+## Phase 1: Setup e baseline
 
----
+**Purpose**: Confirmar o estado inicial e os arquivos de exclusão antes da mudança.
 
-## Phase 2: Foundational (Blocking Prerequisites)
-
-**Purpose**: Implement the storage, identity, security, and domain foundation required by every story.
-
-**CRITICAL**: No user story work begins until this phase is complete.
-
-- [x] T004 Create the `CampaignAccessCode` entity and adapt `Campaign`, `Participant`, `Combatant`, and `Encounter` domain models in `backend/src/Companion.Domain/Models/`
-- [x] T005 Configure access codes, participant modifiers, stable combatant links, uniqueness constraints, and aggregate deletion in `backend/src/Companion.Infrastructure/Persistence/CompanionDbContext.cs` and `backend/src/Companion.Infrastructure/Persistence/ModelConfigurations.cs`
-- [x] T006 Add and validate schema/data migrations in `backend/src/Companion.Infrastructure/Persistence/Migrations/20260823180817_CampaignAccessAndInitiative.cs`, `backend/src/Companion.Infrastructure/Persistence/Migrations/20260823181433_AllowDuplicateParticipantNames.cs`, and `backend/src/Companion.Infrastructure/Persistence/Migrations/CompanionDbContextModelSnapshot.cs`
-- [x] T007 Implement four-digit numeric code generation and constant-time administrative credential validation in `backend/src/Companion.Infrastructure/Security/ParticipantTokenService.cs` and `backend/src/Companion.Infrastructure/Security/AdminCredentialValidator.cs`
-- [x] T008 Register admin configuration, validators, services, and fixed-window rate limits for join and admin requests in `backend/src/Companion.Api/Program.cs`
-
-**Checkpoint**: Persistence and security foundations support all three stories.
+- [X] T001 Verificar padrões essenciais de .NET, Node, Docker e arquivos temporários em `.gitignore` e `.dockerignore`
+- [X] T002 [P] Confirmar que o design-time do EF Core carrega `backend/src/Companion.Infrastructure/Companion.Infrastructure.csproj` e a solução `backend/Companion.slnx`
+- [X] T003 [P] Executar o baseline de testes descrito em `frontend/package.json`, `backend/tests/Companion.UnitTests/Companion.UnitTests.csproj` e `backend/tests/Companion.IntegrationTests/Companion.IntegrationTests.csproj`
 
 ---
 
-## Phase 3: User Story 1 - Entrar como jogador ou mestre pelo código correto (Priority: P1) MVP
+## Phase 2: Foundational — contratos compartilhados
 
-**Goal**: Create globally unique four-digit player/master codes and grant the role represented by the supplied code without leaking the master code.
+**Purpose**: Definir os tipos e abstrações usados pelas histórias de vida, ataque e privacidade.
 
-**Independent Test**: Create a campaign, use each code in clean sessions, confirm the roles differ, and verify player responses never contain the master code.
+- [X] T004 Atualizar requests e DTOs de perfil, vida, ataque e projeção filtrada em `backend/src/Companion.Application/Contracts/Dtos.cs`
+- [X] T005 Atualizar abstrações de persistência e notificação para ataques e invalidação de snapshot em `backend/src/Companion.Application/Contracts/Abstractions.cs`
+- [X] T006 [P] Atualizar tipos TypeScript de participante, combatente, ataque e evento em `frontend/app/types/campaign.ts`
+
+**Checkpoint**: Contratos compiláveis e prontos para as histórias.
+
+---
+
+## Phase 3: User Story 1 — Entrar como jogador ou mestre (Priority: P1)
+
+**Goal**: Preservar códigos, papéis e ocultação de segredos enquanto os novos campos são adicionados aos snapshots.
+
+**Independent Test**: Criar campanha e entrar pelos dois códigos; somente o código correto concede mestre e nenhum campo novo expõe segredo ou vida alheia.
 
 ### Tests for User Story 1
 
-- [x] T009 [P] [US1] Add unit tests for exact four-digit numeric access-code generation in `backend/tests/Companion.UnitTests/CampaignTests.cs`
-- [x] T010 [P] [US1] Add integration tests for creation, player/master joins, invalid formats, uniqueness, and master-code non-disclosure in `backend/tests/Companion.IntegrationTests/CampaignApiTests.cs`
-- [x] T011 [P] [US1] Add frontend tests for numeric code input, role recovery, and reserved-code presentation in `frontend/tests/campaign.spec.ts`
+- [X] T007 [P] [US1] Estender regressões de criação, entrada e snapshot com os novos campos opcionais em `backend/tests/Companion.IntegrationTests/CampaignApiTests.cs`
+- [X] T008 [P] [US1] Estender regressões de papel e sessão no frontend em `frontend/tests/campaign.spec.ts`
 
-### Implementation for User Story 1
-
-- [x] T012 [US1] Implement atomic allocation of two free codes and role-aware joins in `backend/src/Companion.Application/Campaigns/CampaignService.cs`
-- [x] T013 [US1] Update campaign creation/join/snapshot endpoints and safe response mapping in `backend/src/Companion.Api/Endpoints/CampaignEndpoints.cs` and `backend/src/Companion.Application/Contracts/DtoMapper.cs`
-- [x] T014 [US1] Update API calls and campaign state persistence for player/master code contracts in `frontend/app/composables/useCompanionApi.ts` and `frontend/app/stores/campaign.ts`
-- [x] T015 [US1] Implement four-digit entry and a concealed reserved master-code presentation in `frontend/app/components/CampaignAccess.vue` and `frontend/app/pages/index.vue`
-- [x] T016 [US1] Cover the complete create/player-join/master-join journey in `frontend/tests/e2e/mvp.spec.ts`
-
-**Checkpoint**: Campaign access is independently functional and role-safe.
+**Checkpoint**: Entrada por código continua funcional e independente.
 
 ---
 
-## Phase 4: User Story 2 - Preparar iniciativa a partir dos jogadores presentes (Priority: P1)
+## Phase 4: User Story 2 — Preparar iniciativa e vida (Priority: P1) 🎯 MVP do novo escopo
 
-**Goal**: Persist each participant's modifier and import online players once into initiative while preserving master edits and manual combatants.
+**Goal**: Jogador salva iniciativa/vida; mestre importa, edita e valida vidas na preparação.
 
-**Independent Test**: Save distinct modifiers for online players, roll all as master, and verify stable, editable, non-duplicated combatants while offline players are omitted.
+**Independent Test**: Jogadores salvam valores, mestre importa todos sem duplicação, edita uma vida, rerrola sem sobrescrever e só inicia quando todas as vidas existem.
 
 ### Tests for User Story 2
 
-- [x] T017 [P] [US2] Add domain tests for participant linkage, combatant edit/removal, and turn preservation in `backend/tests/Companion.UnitTests/EncounterTests.cs`
-- [x] T018 [P] [US2] Add integration tests for own-modifier authorization, online import, deduplication, edit preservation, and combatant removal in `backend/tests/Companion.IntegrationTests/EncounterApiTests.cs`
-- [x] T019 [P] [US2] Add frontend component tests for modifier persistence and master combatant controls in `frontend/tests/encounter.spec.ts`
+- [X] T009 [P] [US2] Adicionar testes de limite, valor nulo, cópia e requisito de início em `backend/tests/Companion.UnitTests/EncounterTests.cs`
+- [X] T010 [P] [US2] Adicionar testes de perfil, importação, edição e persistência em `backend/tests/Companion.IntegrationTests/EncounterApiTests.cs`
+- [X] T011 [P] [US2] Atualizar testes dos componentes de perfil e preparação em `frontend/tests/initiative-modifier.spec.ts` e `frontend/tests/encounter.spec.ts`
 
 ### Implementation for User Story 2
 
-- [x] T020 [US2] Implement own-participant modifier updates in `backend/src/Companion.Application/Campaigns/CampaignService.cs` and `backend/src/Companion.Api/Endpoints/CampaignEndpoints.cs`
-- [x] T021 [US2] Import online players by stable participant identity and implement combatant edit/removal in `backend/src/Companion.Application/Encounters/EncounterService.cs`
-- [x] T022 [US2] Expose combatant update/removal contracts and routes in `backend/src/Companion.Api/Endpoints/EncounterEndpoints.cs`
-- [x] T023 [US2] Extend client API/state handling for modifiers, participant-linked combatants, and campaign deletion events in `frontend/app/composables/useCompanionApi.ts`, `frontend/app/stores/campaign.ts`, and `frontend/app/composables/useCampaignRealtime.ts`
-- [x] T024 [US2] Add the bottom-of-page modifier component in `frontend/app/components/InitiativeModifier.vue` and `frontend/app/pages/index.vue`
-- [x] T025 [US2] Add editable/removable master controls and enable empty-list auto-import in `frontend/app/components/EncounterSetup.vue` and `frontend/app/components/InitiativeTracker.vue`
-- [x] T026 [US2] Cover modifier persistence and automatic initiative preparation in `frontend/tests/e2e/initiative.spec.ts`
+- [X] T012 [P] [US2] Adicionar vida opcional validada ao participante em `backend/src/Companion.Domain/Models/Participant.cs`
+- [X] T013 [US2] Adicionar vida, edição e validação de início ao combatente/encontro em `backend/src/Companion.Domain/Models/Combatant.cs` e `backend/src/Companion.Domain/Models/Encounter.cs`
+- [X] T014 [US2] Implementar atualização do perfil e cópia de vida no encontro em `backend/src/Companion.Application/Campaigns/CampaignService.cs` e `backend/src/Companion.Application/Encounters/EncounterService.cs`
+- [X] T015 [US2] Expor perfil de combate e aceitar vida nos comandos de combatente em `backend/src/Companion.Api/Endpoints/CampaignEndpoints.cs` e `backend/src/Companion.Api/Endpoints/EncounterEndpoints.cs`
+- [X] T016 [US2] Mapear participante/combatente com vida e projeção por observador em `backend/src/Companion.Application/Contracts/DtoMapper.cs`
+- [X] T017 [US2] Configurar colunas de vida e gerar migration `AddCombatHealthAndAttacks` em `backend/src/Companion.Infrastructure/Persistence/ModelConfigurations.cs` e `backend/src/Companion.Infrastructure/Persistence/Migrations/`
+- [X] T018 [US2] Atualizar cliente HTTP para perfil e vida dos combatentes em `frontend/app/composables/useCompanionApi.ts`
+- [X] T019 [US2] Transformar o formulário final em perfil de iniciativa e vida somente para jogadores em `frontend/app/components/InitiativeModifier.vue` e `frontend/app/pages/index.vue`
+- [X] T020 [US2] Adicionar vida na inclusão/edição e bloqueio de início em `frontend/app/components/EncounterSetup.vue` e `frontend/app/components/InitiativeTracker.vue`
 
-**Checkpoint**: Initiative preparation works from current presence and remains independently editable.
+**Checkpoint**: US2 funciona sem depender de ataques.
 
 ---
 
-## Phase 5: User Story 3 - Administrar mesas existentes (Priority: P2)
+## Phase 5: User Story 3 — Atacar um ou mais alvos (Priority: P1)
 
-**Goal**: Protect a hidden `/admin` page that lists all campaigns and permanently deletes a confirmed campaign aggregate.
+**Goal**: Jogador vinculado ou mestre usa uma rolagem de resultado único para causar dano atômico e idempotente a alvos distintos em qualquer turno.
 
-**Independent Test**: Verify unauthorized requests reveal nothing, then authenticate, list two campaigns with both codes/presence, delete one, and confirm its codes and sessions stop working.
+**Independent Test**: Rolar dano, selecionar dois alvos, confirmar uma vez e verificar o mesmo desconto em ambos, sem alterar terceiro alvo nem duplicar dano no retry.
 
 ### Tests for User Story 3
 
-- [x] T027 [P] [US3] Add integration tests for admin denial, listing, confirmed aggregate deletion, session invalidation, and safe auditing in `backend/tests/Companion.IntegrationTests/AdminApiTests.cs`
-- [x] T028 [P] [US3] Add frontend tests for admin authentication, campaign rendering, cancellation, and confirmed deletion in `frontend/tests/admin.spec.ts`
+- [X] T021 [P] [US3] Adicionar testes de dano, piso zero, alvos distintos e ataque fora do turno em `backend/tests/Companion.UnitTests/EncounterTests.cs`
+- [X] T022 [P] [US3] Adicionar testes de autorização, rolagem válida, atomicidade e idempotência em `backend/tests/Companion.IntegrationTests/EncounterApiTests.cs`
+- [X] T023 [P] [US3] Adicionar testes de seleção posterior, cancelamento e confirmação em `frontend/tests/attack.spec.ts`
 
 ### Implementation for User Story 3
 
-- [x] T029 [US3] Implement protected campaign listing and aggregate deletion with post-commit notification in `backend/src/Companion.Application/Campaigns/AdminCampaignService.cs`
-- [x] T030 [US3] Add rate-limited admin list/delete routes and secret-safe audit logging in `backend/src/Companion.Api/Endpoints/AdminEndpoints.cs`
-- [x] T031 [US3] Add admin API calls and the unlinked authenticated panel with explicit deletion confirmation in `frontend/app/composables/useCompanionApi.ts` and `frontend/app/pages/admin.vue`
-- [x] T032 [US3] Handle campaign-closed realtime state and responsive admin/modifier styling in `frontend/app/stores/campaign.ts` and `frontend/app/assets/css/main.css`
-- [x] T033 [US3] Cover the protected list-and-delete journey in `frontend/tests/e2e/admin.spec.ts`
+- [X] T024 [P] [US3] Criar agregado e alvos de ataque em `backend/src/Companion.Domain/Models/CombatAttack.cs` e `backend/src/Companion.Domain/Models/CombatAttackTarget.cs`
+- [X] T025 [US3] Implementar aplicação de dano e regras de alvo no domínio em `backend/src/Companion.Domain/Models/Encounter.cs` e `backend/src/Companion.Domain/Models/Combatant.cs`
+- [X] T026 [US3] Persistir ataques/alvos, índices idempotentes e relacionamentos em `backend/src/Companion.Infrastructure/Persistence/CompanionDbContext.cs` e `backend/src/Companion.Infrastructure/Persistence/ModelConfigurations.cs`
+- [X] T027 [US3] Implementar validação da rolagem, autorização, tratamento de concorrência e resolução atômica em `backend/src/Companion.Application/Encounters/AttackService.cs`
+- [X] T028 [US3] Expor `POST /attacks` com Idempotency-Key em `backend/src/Companion.Api/Endpoints/EncounterEndpoints.cs` e registrar o serviço em `backend/src/Companion.Api/Program.cs`
+- [X] T029 [US3] Adicionar chamada idempotente de ataque em `frontend/app/composables/useCompanionApi.ts`
+- [X] T030 [US3] Permitir que a rolagem existente devolva o resultado ao fluxo chamador em `frontend/app/components/DiceRoller.vue`
+- [X] T031 [US3] Criar jornada Atacar com rolagem, seleção múltipla, revisão e cancelamento em `frontend/app/components/CombatAttack.vue` e integrar em `frontend/app/pages/index.vue`
 
-**Checkpoint**: All user stories are independently functional.
+**Checkpoint**: US3 aplica ataques independentemente do avanço de turno.
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: User Story 4 — Alterar e acompanhar vida em tempo real (Priority: P1)
 
-**Purpose**: Confirm security, contract alignment, regressions, and the documented acceptance path.
+**Goal**: Jogador edita/vê apenas sua vida; mestre edita/vê todas; mudanças chegam em tempo real e reconexão recupera snapshot correto.
 
-- [x] T034 [P] Reconcile implemented endpoints and security behavior with `specs/002-campaign-access-initiative/contracts/openapi.yaml` and `specs/002-campaign-access-initiative/quickstart.md`
-- [x] T035 Run backend unit/integration tests and frontend unit/E2E tests, fixing regressions in files touched by this feature
-- [x] T036 Validate production builds, migration startup, rate-limit behavior, secret non-disclosure, and all scenarios in `specs/002-campaign-access-initiative/quickstart.md`
+**Independent Test**: Três navegadores confirmam que mestre e dono recebem uma mudança, terceiro jogador não recebe a vida, e reconexão restaura o valor autorizado.
+
+### Tests for User Story 4
+
+- [X] T032 [P] [US4] Adicionar testes de autorização e projeção de snapshot em `backend/tests/Companion.IntegrationTests/EncounterApiTests.cs`
+- [X] T033 [P] [US4] Adicionar testes de invalidação/refetch e ausência de vazamento em `frontend/tests/realtime.spec.ts` e `frontend/tests/encounter.spec.ts`
+- [X] T034 [P] [US4] Adicionar jornada desktop/Android de vida, privacidade e reconexão em `frontend/tests/e2e/health-attack.spec.ts`
+
+### Implementation for User Story 4
+
+- [X] T035 [US4] Implementar edição direta autorizada e retorno filtrado em `backend/src/Companion.Application/Encounters/EncounterService.cs`
+- [X] T036 [US4] Expor endpoint de vida do combatente em `backend/src/Companion.Api/Endpoints/EncounterEndpoints.cs`
+- [X] T037 [US4] Filtrar participantes e encontro do snapshot pelo observador em `backend/src/Companion.Application/Campaigns/CampaignService.cs` e `backend/src/Companion.Application/Contracts/DtoMapper.cs`
+- [X] T038 [US4] Emitir invalidação sem vida após ataques/edições em `backend/src/Companion.Api/Realtime/SignalRCampaignNotifier.cs` e `backend/src/Companion.Application/Contracts/Abstractions.cs`
+- [X] T039 [US4] Recarregar snapshot em eventos sensíveis e deduplicar refresh em `frontend/app/stores/campaign.ts` e `frontend/app/composables/useCampaignRealtime.ts`
+- [X] T040 [US4] Mostrar/editar vida conforme papel no tracker em `frontend/app/components/InitiativeTracker.vue`
+
+**Checkpoint**: US4 atende tempo real, privacidade e reconexão.
+
+---
+
+## Phase 7: User Story 5 — Administrar mesas existentes (Priority: P2)
+
+**Goal**: Preservar listagem/exclusão e garantir remoção dos novos registros de combate.
+
+**Independent Test**: Excluir campanha com ataque confirmado e verificar que códigos, sessões, ataques, alvos, rolagens e encontro deixam de existir.
+
+### Tests and implementation for User Story 5
+
+- [X] T041 [P] [US5] Estender regressão de exclusão com ataques e alvos em `backend/tests/Companion.IntegrationTests/AdminApiTests.cs`
+- [X] T042 [US5] Incluir ataques e alvos na exclusão transacional em `backend/src/Companion.Infrastructure/Persistence/CompanionDbContext.cs`
+
+**Checkpoint**: US5 continua funcional com o novo agregado.
+
+---
+
+## Phase 8: Polish e validação transversal
+
+**Purpose**: Fechar acessibilidade, migração, documentação e todas as suítes.
+
+- [X] T043 [P] Atualizar estilos responsivos e estados de erro/pendência em `frontend/app/assets/css/main.css`
+- [X] T044 [P] Atualizar cobertura do contrato realizado e passos executáveis em `specs/002-campaign-access-initiative/contracts/openapi.yaml` e `specs/002-campaign-access-initiative/quickstart.md`
+- [X] T045 Validar a migration contra banco vazio e banco no schema anterior usando `backend/src/Companion.Infrastructure/Persistence/Migrations/`
+- [X] T046 Executar `dotnet test` para `backend/tests/Companion.UnitTests/Companion.UnitTests.csproj` e `backend/tests/Companion.IntegrationTests/Companion.IntegrationTests.csproj`
+- [X] T047 Executar `pnpm test`, `pnpm typecheck` e `pnpm test:e2e` definidos em `frontend/package.json`
+- [X] T048 Revisar aderência final a `specs/002-campaign-access-initiative/spec.md`, `plan.md` e `quickstart.md`
+- [X] T049 Ajustar a grade responsiva do perfil de combate em `frontend/app/components/InitiativeModifier.vue` e `frontend/app/assets/css/main.css`
+- [X] T050 Publicar e animar a quantidade de dano para todos sem expor vidas privadas em `backend/src/Companion.Application/Encounters/AttackService.cs`, `frontend/app/stores/campaign.ts` e `frontend/app/components/InitiativeTracker.vue`
+- [X] T051 Separar visualmente nome e modificador na visão do jogador em `frontend/app/assets/css/main.css`
+- [X] T052 Fazer a rerrolagem geral transferir o turno para a maior iniciativa, preservando a rerrolagem individual, em `backend/src/Companion.Domain/Models/Encounter.cs`
+- [X] T053 Descartar o efeito de dano após a animação e cobrir a regressão de reordenação em `frontend/app/stores/campaign.ts` e `frontend/tests/e2e/health-attack.spec.ts`
+- [X] T054 Expor o estado público de PV zero sem revelar o valor privado e aplicar tonalidade vermelha no tracker em `backend/src/Companion.Application/Contracts/DtoMapper.cs` e `frontend/app/components/InitiativeTracker.vue`
 
 ---
 
 ## Dependencies & Execution Order
 
-- Phase 1 precedes Phase 2; Phase 2 blocks every user story.
-- US1 and US2 are both P1 and may proceed in parallel after Phase 2, but this implementation executes US1 before US2 to stabilize shared campaign contracts.
-- US3 depends only on Phase 2 at the backend, but its frontend state handling follows US1/US2 contract changes.
-- Phase 6 follows completion of all selected stories.
-- Within each story, tests are written before implementation, then services precede endpoints and UI integration.
+### Phase Dependencies
 
-## Parallel Opportunities
+- Phase 1 → Phase 2 → histórias.
+- US1 é regressão independente após Foundation.
+- US2 entrega o modelo de vida e bloqueia US3 e US4.
+- US3 depende de US2 para vida dos alvos.
+- US4 depende de US2 e integra eventos produzidos por US3.
+- US5 depende do agregado criado em US3.
+- Polish depende de todas as histórias.
 
-- T002 and T003 touch separate backend/frontend contracts.
-- T009, T010, and T011 can be authored in parallel after the foundation.
-- T017, T018, and T019 can be authored in parallel.
-- T027 and T028 can be authored in parallel.
-- US1 backend, US2 domain tests, and US3 frontend test scaffolding can be split among contributors once shared contracts are stable.
+### User Story Completion Order
+
+```text
+US1 (regressão) ───────────────┐
+US2 (perfil/preparação) → US3 (ataque) → US4 (tempo real/privacidade) ─→ Polish
+                           └────────────→ US5 (exclusão) ────────────────┘
+```
+
+### Parallel Opportunities
+
+- T002 e T003 podem executar em paralelo; T006 pode avançar enquanto T004/T005 são preparados.
+- Testes marcados `[P]` em cada história podem ser escritos em paralelo antes da implementação correspondente.
+- US1 pode ser validada em paralelo com US2 após Foundation.
+- T034 (E2E) pode ser preparado enquanto backend de US4 é implementado.
+- T041 pode ser escrito após o modelo de US3 sem esperar a interface de US4.
+- T043 e T044 podem executar em paralelo antes das validações finais.
+
+## Parallel Examples
+
+### User Story 2
+
+```text
+T009: testes de domínio em backend/tests/Companion.UnitTests/EncounterTests.cs
+T010: testes HTTP em backend/tests/Companion.IntegrationTests/EncounterApiTests.cs
+T011: testes Vue em frontend/tests/initiative-modifier.spec.ts e frontend/tests/encounter.spec.ts
+```
+
+### User Story 3
+
+```text
+T021: regras de dano no domínio
+T022: contrato/autorização/idempotência HTTP
+T023: fluxo do componente de ataque
+```
+
+### User Story 4
+
+```text
+T032: privacidade do snapshot no backend
+T033: invalidação e refetch no store
+T034: jornada E2E desktop/Android
+```
 
 ## Implementation Strategy
 
-1. Complete setup and persistence/security foundations.
-2. Deliver US1 as the access-control MVP and validate no master-code leakage.
-3. Deliver US2 and validate presence-driven initiative without duplicates.
-4. Deliver US3 and validate permanent deletion/session invalidation.
-5. Run the complete cross-stack regression and quickstart suite.
+### MVP do novo escopo
+
+1. Completar Setup e Foundation.
+2. Validar regressão US1.
+3. Entregar US2: perfil de iniciativa/vida e preparação completa.
+4. Validar US2 isoladamente antes de introduzir ataques.
+
+### Incremental Delivery
+
+1. US2 → vida preparada e editável pelo mestre.
+2. US3 → dano por ataque confirmado.
+3. US4 → privacidade e sincronização resiliente.
+4. US5 → administração compatível com novos dados.
+5. Polish → migração, acessibilidade e suíte completa.
+
+## Notes
+
+- Testes são escritos antes da implementação da história correspondente.
+- Payload compartilhado em SignalR nunca contém vida.
+- Reenvios usam a mesma Idempotency-Key; o cliente não inventa dano.
+- Cada tarefa concluída deve ser marcada `[X]`.

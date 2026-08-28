@@ -58,6 +58,7 @@ builder.Services.AddScoped<CampaignService>();
 builder.Services.AddScoped<AdminCampaignService>();
 builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
+builder.Services.AddScoped<AttackService>();
 
 var app = builder.Build();
 app.UseRateLimiter();

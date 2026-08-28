@@ -14,117 +14,103 @@ public sealed class EncounterService(
 {
     public async Task<EncounterDto> CreateAsync(Guid campaignId, string token, CancellationToken cancellationToken)
     {
-        _ = authorization.Require(campaignId, token, masterOnly: true);
+        var master = authorization.Require(campaignId, token, masterOnly: true);
         if (db.Encounters.Any(x => x.CampaignId == campaignId && x.Status != EncounterStatus.Ended))
-        {
             throw new AppException(AppErrorKind.Conflict, "Já existe um combate ativo ou em preparação.");
-        }
-
         var encounter = new Encounter(Guid.NewGuid(), campaignId, timeProvider.GetUtcNow());
         db.Add(encounter);
         await db.SaveChangesAsync(cancellationToken);
-        var dto = DtoMapper.ToDto(encounter);
-        await notifier.NotifyAsync(campaignId, "EncounterStarted", dto, cancellationToken);
-        return dto;
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
     }
 
     public async Task<EncounterDto> AddCombatantAsync(
         Guid campaignId, Guid encounterId, string token, AddCombatantRequest request, CancellationToken cancellationToken)
     {
-        _ = authorization.Require(campaignId, token, masterOnly: true);
+        var master = authorization.Require(campaignId, token, masterOnly: true);
         var encounter = Load(campaignId, encounterId);
-        Combatant combatant;
         try
         {
-            combatant = encounter.AddCombatant(Guid.NewGuid(), request.Name, request.InitiativeModifier);
+            var combatant = encounter.AddCombatant(Guid.NewGuid(), request.Name, request.InitiativeModifier,
+                currentHitPoints: request.CurrentHitPoints);
+            db.Add(combatant);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
-
-        db.Add(combatant);
         await db.SaveChangesAsync(cancellationToken);
-        var dto = DtoMapper.ToDto(encounter);
-        await notifier.NotifyAsync(campaignId, "CombatantAdded", dto, cancellationToken);
-        return dto;
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
     }
 
     public Task<EncounterDto> RollInitiativeAsync(
         Guid campaignId, Guid encounterId, string token, RollInitiativeRequest? request, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "InitiativeRolled",
-            encounter =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter =>
+        {
+            if (request?.CombatantId is null && encounter.Status == EncounterStatus.Preparing)
             {
-                if (request?.CombatantId is null && encounter.Status == EncounterStatus.Preparing)
+                var linked = encounter.Combatants.Where(x => x.ParticipantId.HasValue).Select(x => x.ParticipantId!.Value).ToHashSet();
+                var onlinePlayers = db.Participants.Where(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player)
+                    .AsEnumerable().Where(x => presence.IsOnline(x.Id) && !linked.Contains(x.Id)).OrderBy(x => x.CreatedAt).ToArray();
+                foreach (var participant in onlinePlayers)
                 {
-                    var linked = encounter.Combatants.Where(x => x.ParticipantId.HasValue)
-                        .Select(x => x.ParticipantId!.Value).ToHashSet();
-                    var onlinePlayers = db.Participants.Where(x =>
-                            x.CampaignId == campaignId && x.Role == ParticipantRole.Player)
-                        .AsEnumerable()
-                        .Where(x => presence.IsOnline(x.Id) && !linked.Contains(x.Id))
-                        .OrderBy(x => x.CreatedAt)
-                        .ToArray();
-                    foreach (var participant in onlinePlayers)
-                    {
-                        var combatant = encounter.AddCombatant(
-                            Guid.NewGuid(), participant.DisplayName, participant.InitiativeModifier ?? 0, participant.Id);
-                        db.Add(combatant);
-                    }
+                    var combatant = encounter.AddCombatant(Guid.NewGuid(), participant.DisplayName,
+                        participant.InitiativeModifier ?? 0, participant.Id, participant.CurrentHitPoints);
+                    db.Add(combatant);
                 }
-
-                encounter.RollInitiative(() => randomizer.Roll(20), request?.CombatantId);
-            }, cancellationToken);
+            }
+            encounter.RollInitiative(() => randomizer.Roll(20), request?.CombatantId);
+        }, cancellationToken);
 
     public Task<EncounterDto> UpdateCombatantAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token,
         UpdateCombatantRequest request, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "CombatantUpdated",
-            encounter => encounter.UpdateCombatant(combatantId, request.Name, request.InitiativeModifier), cancellationToken);
+        MutateMasterAsync(campaignId, encounterId, token,
+            encounter => encounter.UpdateCombatant(combatantId, request.Name, request.InitiativeModifier, request.CurrentHitPoints), cancellationToken);
 
-    public Task<EncounterDto> RemoveCombatantAsync(
-        Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "CombatantRemoved",
-            encounter => encounter.RemoveCombatant(combatantId), cancellationToken);
-
-    public Task<EncounterDto> StartAsync(
-        Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "EncounterStarted", encounter => encounter.Start(), cancellationToken);
-
-    public Task<EncounterDto> AdvanceAsync(
-        Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "TurnAdvanced", encounter => encounter.AdvanceTurn(), cancellationToken);
-
-    public Task<EncounterDto> EndAsync(
-        Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
-        MutateAsync(campaignId, encounterId, token, "EncounterEnded", encounter => encounter.End(timeProvider.GetUtcNow()), cancellationToken);
-
-    private async Task<EncounterDto> MutateAsync(
-        Guid campaignId,
-        Guid encounterId,
-        string token,
-        string eventType,
-        Action<Encounter> action,
-        CancellationToken cancellationToken)
+    public async Task<EncounterDto> UpdateHitPointsAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token,
+        UpdateHitPointsRequest request, CancellationToken cancellationToken)
     {
-        _ = authorization.Require(campaignId, token, masterOnly: true);
+        var participant = authorization.Require(campaignId, token);
         var encounter = Load(campaignId, encounterId);
-        try
-        {
-            action(encounter);
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
-        {
-            throw new AppException(AppErrorKind.Validation, exception.Message);
-        }
-
+        if (encounter.Status != EncounterStatus.Active)
+            throw new AppException(AppErrorKind.Validation, "A vida direta só pode ser alterada durante um combate ativo.");
+        var combatant = encounter.Combatants.FirstOrDefault(x => x.Id == combatantId)
+            ?? throw new AppException(AppErrorKind.NotFound, "Combatente não encontrado.");
+        if (participant.Role != ParticipantRole.Master && combatant.ParticipantId != participant.Id)
+            throw new AppException(AppErrorKind.Forbidden, "Você só pode editar diretamente a vida do próprio personagem.");
+        try { encounter.UpdateHitPoints(combatantId, request.CurrentHitPoints); }
+        catch (ArgumentOutOfRangeException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         await db.SaveChangesAsync(cancellationToken);
-        var dto = DtoMapper.ToDto(encounter);
-        await notifier.NotifyAsync(campaignId, eventType, dto, cancellationToken);
-        return dto;
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        return DtoMapper.ToDto(encounter, participant);
     }
 
-    private Encounter Load(Guid campaignId, Guid encounterId)
+    public Task<EncounterDto> RemoveCombatantAsync(Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.RemoveCombatant(combatantId), cancellationToken);
+    public Task<EncounterDto> StartAsync(Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.Start(), cancellationToken);
+    public Task<EncounterDto> AdvanceAsync(Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.AdvanceTurn(), cancellationToken);
+    public Task<EncounterDto> EndAsync(Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.End(timeProvider.GetUtcNow()), cancellationToken);
+
+    private async Task<EncounterDto> MutateMasterAsync(
+        Guid campaignId, Guid encounterId, string token, Action<Encounter> action, CancellationToken cancellationToken)
+    {
+        var master = authorization.Require(campaignId, token, masterOnly: true);
+        var encounter = Load(campaignId, encounterId);
+        try { action(encounter); }
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
+        { throw new AppException(AppErrorKind.Validation, exception.Message); }
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
+    }
+
+    internal Encounter Load(Guid campaignId, Guid encounterId)
     {
         var encounter = db.Encounters.FirstOrDefault(x => x.Id == encounterId && x.CampaignId == campaignId)
             ?? throw new AppException(AppErrorKind.NotFound, "Combate não encontrado.");

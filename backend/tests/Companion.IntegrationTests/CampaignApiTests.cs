@@ -25,6 +25,8 @@ public sealed class CampaignApiTests(CompanionApiFactory factory) : ApiTestBase(
         snapshotResponse.EnsureSuccessStatusCode();
         var snapshot = (await snapshotResponse.Content.ReadFromJsonAsync<CampaignSnapshot>(JsonOptions))!;
         Assert.Equal(2, snapshot.Participants.Count);
+        Assert.Null(snapshot.CurrentParticipant.CurrentHitPoints);
+        Assert.All(snapshot.Participants.Where(x => x.Id != player.ParticipantId), x => Assert.Null(x.CurrentHitPoints));
 
         var other = await CreateCampaign(Guid.NewGuid().ToString("N")[..6]);
         var crossRequest = Authenticated(HttpMethod.Get, $"/api/campaigns/{other.CampaignId}/snapshot", player);

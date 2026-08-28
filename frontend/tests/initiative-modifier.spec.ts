@@ -1,27 +1,36 @@
 import { mount } from '@vue/test-utils'
 import InitiativeModifier from '~/components/InitiativeModifier.vue'
 
-const updateInitiativeModifier = vi.fn()
-const participant = { id: 'p1', displayName: 'Lia', role: 'Player', isOnline: true, initiativeModifier: 2 }
+const updateCombatProfile = vi.fn()
+const participant = { id: 'p1', displayName: 'Lia', role: 'Player', isOnline: true, initiativeModifier: 2, currentHitPoints: 18 }
 const store = {
-  session: { participantId: 'p1' },
+  isMaster: false,
+  session: { participantId: 'p1', role: 'Player' },
   connection: 'online',
   snapshot: { currentParticipant: { ...participant }, participants: [{ ...participant }] }
 }
 vi.stubGlobal('useCampaignStore', () => store)
-vi.stubGlobal('useCompanionApi', () => ({ updateInitiativeModifier }))
+vi.stubGlobal('useCompanionApi', () => ({ updateCombatProfile }))
 
 describe('InitiativeModifier', () => {
-  it('loads and persists only the current participant modifier', async () => {
-    updateInitiativeModifier.mockResolvedValue({ ...participant, initiativeModifier: 5 })
+  it('loads and persists current player initiative and hit points', async () => {
+    updateCombatProfile.mockResolvedValue({ ...participant, initiativeModifier: 5, currentHitPoints: 24 })
     const wrapper = mount(InitiativeModifier)
-    const input = wrapper.get('#own-initiative-modifier')
-    expect((input.element as HTMLInputElement).value).toBe('2')
-    await input.setValue('5')
+    expect((wrapper.get('#own-initiative-modifier').element as HTMLInputElement).value).toBe('2')
+    expect((wrapper.get('#own-hit-points').element as HTMLInputElement).value).toBe('18')
+    await wrapper.get('#own-initiative-modifier').setValue('5')
+    await wrapper.get('#own-hit-points').setValue('24')
     await wrapper.get('form').trigger('submit')
     await Promise.resolve()
 
-    expect(updateInitiativeModifier).toHaveBeenCalledWith(store.session, 5)
-    expect(wrapper.text()).toContain('Modificador salvo.')
+    expect(updateCombatProfile).toHaveBeenCalledWith(store.session, 5, 24)
+    expect(wrapper.text()).toContain('Perfil de combate salvo.')
+  })
+
+  it('is not rendered for a master', () => {
+    store.isMaster = true
+    const wrapper = mount(InitiativeModifier)
+    expect(wrapper.find('section').exists()).toBe(false)
+    store.isMaster = false
   })
 })

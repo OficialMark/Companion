@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { CampaignEvent, CampaignSnapshot, DiceRoll, Encounter, Participant, Session } from '~/types/campaign'
+import type { CampaignEvent, CampaignSnapshot, DamageAppliedEvent, DiceRoll, Encounter, Participant, Session } from '~/types/campaign'
 
 const SESSION_KEY = 'companion.session.v1'
 
@@ -9,7 +9,8 @@ export const useCampaignStore = defineStore('campaign', {
     snapshot: null as CampaignSnapshot | null,
     connection: 'offline' as 'offline' | 'connecting' | 'online',
     error: '' as string,
-    seenEvents: [] as string[]
+    seenEvents: [] as string[],
+    damageEffects: {} as Record<string, { amount: number; nonce: string }>
   }),
   getters: {
     isMaster: state => state.session?.role === 'Master',
@@ -45,7 +46,7 @@ export const useCampaignStore = defineStore('campaign', {
         throw error
       }
     },
-    applyEvent(event: CampaignEvent) {
+    async applyEvent(event: CampaignEvent) {
       if (event.type === 'CampaignDeleted') {
         this.clearSession()
         this.error = 'Esta mesa foi encerrada pelo administrador.'
@@ -53,6 +54,15 @@ export const useCampaignStore = defineStore('campaign', {
       }
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
+      if (event.type === 'DamageApplied') {
+        const payload = event.payload as DamageAppliedEvent
+        for (const target of payload.targets) this.damageEffects[target.combatantId] = { amount: target.damageApplied, nonce: event.eventId }
+        return
+      }
+      if (event.type === 'EncounterInvalidated') {
+        await this.refresh()
+        return
+      }
       if (event.type === 'DiceRolled') {
         const roll = event.payload as DiceRoll
         if (!this.snapshot.diceRolls.some(x => x.id === roll.id)) {
@@ -64,14 +74,20 @@ export const useCampaignStore = defineStore('campaign', {
         const participant = event.payload as Participant
         const index = this.snapshot.participants.findIndex(x => x.id === participant.id)
         if (index >= 0) this.snapshot.participants[index] = participant
-        if (this.snapshot.currentParticipant.id === participant.id) this.snapshot.currentParticipant = participant
+        if (this.snapshot.currentParticipant.id === participant.id) {
+          this.snapshot.currentParticipant = { ...participant, currentHitPoints: participant.currentHitPoints ?? this.snapshot.currentParticipant.currentHitPoints }
+        }
       } else if (event.type === 'EncounterEnded') {
         this.snapshot.activeEncounter = null
       }
     },
+    clearDamageEffect(combatantId: string, nonce?: string) {
+      if (this.damageEffects[combatantId]?.nonce === nonce) delete this.damageEffects[combatantId]
+    },
     applyParticipants(event: CampaignEvent<Participant[]>) {
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
+
       this.snapshot.participants = event.payload
     }
   }

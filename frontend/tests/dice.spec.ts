@@ -21,7 +21,7 @@ describe('DiceRoller', () => {
     const wrapper = mount(DiceRoller)
     expect(wrapper.text()).toContain('D20')
     expect(wrapper.text()).toContain('D6')
-    expect(wrapper.get('#dice-expression').attributes('placeholder')).toBe('2d6+3')
+    expect(wrapper.get('input[placeholder="2d6+3"]' ).attributes('placeholder')).toBe('2d6+3')
   })
 
   it('creates a UUID without depending on crypto.randomUUID', () => {

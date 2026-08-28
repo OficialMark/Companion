@@ -5,10 +5,13 @@ namespace Companion.Application.Contracts;
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
 public sealed record RollDiceRequest(string Expression, bool Publish = true);
-public sealed record AddCombatantRequest(string Name, int InitiativeModifier);
-public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier);
+public sealed record AddCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null);
+public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null);
 public sealed record RollInitiativeRequest(Guid? CombatantId);
 public sealed record UpdateInitiativeModifierRequest(int? InitiativeModifier);
+public sealed record UpdateCombatProfileRequest(int? InitiativeModifier, int? CurrentHitPoints);
+public sealed record UpdateHitPointsRequest(int CurrentHitPoints);
+public sealed record ResolveAttackRequest(Guid DiceRollId, IReadOnlyList<Guid> TargetCombatantIds);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -20,7 +23,13 @@ public sealed record SessionResponse(
     string ParticipantToken);
 
 public sealed record CampaignDto(Guid Id, string PlayerCode, string Name);
-public sealed record ParticipantDto(Guid Id, string DisplayName, ParticipantRole Role, bool IsOnline, int? InitiativeModifier);
+public sealed record ParticipantDto(
+    Guid Id,
+    string DisplayName,
+    ParticipantRole Role,
+    bool IsOnline,
+    int? InitiativeModifier,
+    int? CurrentHitPoints = null);
 public sealed record DiceRollDto(
     Guid Id,
     Guid ParticipantId,
@@ -40,13 +49,30 @@ public sealed record CombatantDto(
     int InitiativeModifier,
     int? Initiative,
     int CreationOrder,
-    bool IsCurrent);
+    bool IsCurrent,
+    int? CurrentHitPoints = null,
+    bool IsDefeated = false);
 public sealed record EncounterDto(
     Guid Id,
     EncounterStatus Status,
     int Round,
     int? CurrentTurnIndex,
     IReadOnlyList<CombatantDto> Combatants);
+public sealed record AttackTargetDto(
+    Guid CombatantId,
+    string Name,
+    int DamageApplied,
+    int? HitPointsBefore,
+    int? HitPointsAfter);
+public sealed record CombatAttackDto(
+    Guid Id,
+    Guid DiceRollId,
+    Guid AuthorParticipantId,
+    int Damage,
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<AttackTargetDto> Targets);
+public sealed record AttackResultDto(CombatAttackDto Attack, EncounterDto Encounter);
+public sealed record EncounterInvalidationDto(Guid EncounterId);
 public sealed record CampaignSnapshot(
     CampaignDto Campaign,
     ParticipantDto CurrentParticipant,

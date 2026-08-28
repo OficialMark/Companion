@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Acesso, Administração e Iniciativa da Campanha
+# Specification Quality Checklist: Acesso, Administração, Iniciativa e Vida em Combate
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-23
+**Created**: 2026-08-28
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -34,4 +34,7 @@
 - Validation completed in one revision pass.
 - Security-sensitive defaults are explicit: the hidden admin route also requires an installation-level credential, repeated attempts are limited, and secrets are excluded from logs and ordinary campaign data.
 - “Active tables” is defined as all non-deleted campaigns, with online presence represented separately.
-- Player initiative preferences and encounter-specific master edits have separate ownership and precedence rules.
+- Player initiative and health preferences and encounter-specific master edits have separate ownership and precedence rules.
+- Combat health visibility is explicitly bounded: each player sees only their own value, while the master sees all combatants.
+- Attack targeting, cancellation, idempotency, concurrent updates, invalid targets and the zero-health boundary are covered by testable requirements and scenarios.
+- Validation completed in one revision pass after the combat-health-and-attacks update; no clarification markers remain.

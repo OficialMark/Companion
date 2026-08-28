@@ -36,6 +36,7 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.DisplayName).HasMaxLength(40).IsRequired();
         builder.Property(x => x.TokenHash).HasMaxLength(32).IsRequired();
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10);
+        builder.Property(x => x.CurrentHitPoints);
         builder.HasIndex(x => x.TokenHash).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
@@ -80,9 +81,35 @@ public sealed class CombatantConfiguration : IEntityTypeConfiguration<Combatant>
         builder.ToTable("Combatants");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(60).IsRequired();
+        builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.EncounterId, x.CreationOrder }).IsUnique();
         builder.HasIndex(x => new { x.EncounterId, x.ParticipantId }).IsUnique()
             .HasFilter("[ParticipantId] IS NOT NULL");
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class CombatAttackConfiguration : IEntityTypeConfiguration<CombatAttack>
+{
+    public void Configure(EntityTypeBuilder<CombatAttack> builder)
+    {
+        builder.ToTable("CombatAttacks");
+        builder.HasKey(x => x.Id);
+        builder.HasIndex(x => new { x.AuthorParticipantId, x.ClientRequestId }).IsUnique();
+        builder.HasIndex(x => x.DiceRollId).IsUnique();
+        builder.HasOne<Encounter>().WithMany().HasForeignKey(x => x.EncounterId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.AuthorParticipantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<DiceRoll>().WithOne().HasForeignKey<CombatAttack>(x => x.DiceRollId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class CombatAttackTargetConfiguration : IEntityTypeConfiguration<CombatAttackTarget>
+{
+    public void Configure(EntityTypeBuilder<CombatAttackTarget> builder)
+    {
+        builder.ToTable("CombatAttackTargets");
+        builder.HasKey(x => new { x.AttackId, x.CombatantId });
+        builder.HasOne<CombatAttack>().WithMany().HasForeignKey(x => x.AttackId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
     }
 }

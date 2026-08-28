@@ -1,61 +1,166 @@
 openapi: 3.1.0
-info: { title: Companion Access and Administration Delta, version: 0.2.0 }
+info:
+  title: Companion Combat Health and Attacks Delta
+  version: 0.3.0
 paths:
-  /campaigns/join:
-    post:
-      summary: Join with the role represented by a four-digit code
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [code, displayName]
-              properties:
-                code: { type: string, pattern: '^\d{4}$' }
-                displayName: { type: string, minLength: 1, maxLength: 40 }
-  /campaigns/{campaignId}/participants/me/initiative-modifier:
+  /campaigns/{campaignId}/participants/me/combat-profile:
     put:
-      summary: Set the authenticated participant modifier
+      summary: Update the authenticated player's initiative modifier and initial hit points
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/ParticipantToken'
       requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCombatProfile' }
+      responses:
+        '200':
+          description: Updated participant projection
+          content: { application/json: { schema: { $ref: '#/components/schemas/Participant' } } }
+  /campaigns/{campaignId}/encounters/{encounterId}/combatants:
+    post:
+      summary: Add a manual combatant with initiative modifier and hit points as master
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CombatantInput' }
+  /campaigns/{campaignId}/encounters/{encounterId}/combatants/{combatantId}:
+    put:
+      summary: Edit combatant name, initiative modifier and hit points as master
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/CombatantId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CombatantInput' }
+  /campaigns/{campaignId}/encounters/{encounterId}/combatants/{combatantId}/hit-points:
+    put:
+      summary: Directly replace hit points as the linked player or master
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/CombatantId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
-              required: [initiativeModifier]
-              properties: { initiativeModifier: { type: integer, minimum: -100, maximum: 100 } }
-  /campaigns/{campaignId}/encounters/{encounterId}/combatants/{combatantId}:
-    put: { summary: Edit a combatant as master }
-    delete: { summary: Remove a combatant as master }
-  /admin/campaigns:
-    get:
-      summary: List campaigns for the installation operator
-      parameters: [{ $ref: '#/components/parameters/AdminCredential' }]
-  /admin/campaigns/{campaignId}:
-    delete:
-      summary: Permanently delete a campaign aggregate
+              required: [currentHitPoints]
+              properties:
+                currentHitPoints: { type: integer, minimum: 0, maximum: 99999 }
+      responses:
+        '200':
+          description: Encounter projection filtered for the requester
+          content: { application/json: { schema: { $ref: '#/components/schemas/Encounter' } } }
+        '403': { description: Requester does not control the combatant and is not master }
+        '409': { description: Concurrent update could not be retried safely; refresh snapshot }
+  /campaigns/{campaignId}/encounters/{encounterId}/attacks:
+    post:
+      summary: Apply one revealed dice-roll total to one or more distinct targets
       parameters:
-        - { $ref: '#/components/parameters/AdminCredential' }
-        - { name: campaignId, in: path, required: true, schema: { type: string, format: uuid } }
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [diceRollId, targetCombatantIds]
+              properties:
+                diceRollId: { type: string, format: uuid }
+                targetCombatantIds:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  uniqueItems: true
+                  items: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Existing attack returned for an idempotent retry
+          content: { application/json: { schema: { $ref: '#/components/schemas/AttackResult' } } }
+        '201':
+          description: Attack applied atomically
+          content: { application/json: { schema: { $ref: '#/components/schemas/AttackResult' } } }
+        '409': { description: Selected target changed validity or concurrency retry was exhausted }
 components:
   parameters:
-    AdminCredential:
-      name: X-Admin-Key
-      in: header
-      required: true
-      schema: { type: string }
+    CampaignId: { name: campaignId, in: path, required: true, schema: { type: string, format: uuid } }
+    EncounterId: { name: encounterId, in: path, required: true, schema: { type: string, format: uuid } }
+    CombatantId: { name: combatantId, in: path, required: true, schema: { type: string, format: uuid } }
+    ParticipantToken: { name: X-Participant-Token, in: header, required: true, schema: { type: string } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   schemas:
-    Session:
+    UpdateCombatProfile:
       type: object
+      required: [initiativeModifier, currentHitPoints]
       properties:
-        playerCode: { type: string, pattern: '^\d{4}$' }
-        masterCode: { type: [string, 'null'], pattern: '^\d{4}$', description: Creation response only }
-    AdminCampaign:
+        initiativeModifier: { type: [integer, 'null'], minimum: -100, maximum: 100 }
+        currentHitPoints: { type: [integer, 'null'], minimum: 0, maximum: 99999 }
+    CombatantInput:
+      type: object
+      required: [name, initiativeModifier, currentHitPoints]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        initiativeModifier: { type: integer, minimum: -100, maximum: 100 }
+        currentHitPoints: { type: [integer, 'null'], minimum: 0, maximum: 99999 }
+    Participant:
       type: object
       properties:
         id: { type: string, format: uuid }
+        displayName: { type: string }
+        role: { type: string, enum: [Player, Master] }
+        isOnline: { type: boolean }
+        initiativeModifier: { type: [integer, 'null'] }
+        currentHitPoints: { type: [integer, 'null'], description: Present only for the owner }
+    Combatant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        participantId: { type: [string, 'null'], format: uuid }
         name: { type: string }
+        initiativeModifier: { type: integer }
+        initiative: { type: [integer, 'null'] }
+        currentHitPoints: { type: [integer, 'null'], description: Null when hidden from this observer or unset during preparation }
+        creationOrder: { type: integer }
+        isCurrent: { type: boolean }
+    Encounter:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [Preparing, Active, Ended] }
+        round: { type: integer }
+        currentTurnIndex: { type: [integer, 'null'] }
+        combatants: { type: array, items: { $ref: '#/components/schemas/Combatant' } }
+    AttackTarget:
+      type: object
+      properties:
+        combatantId: { type: string, format: uuid }
+        name: { type: string }
+        damageApplied: { type: integer }
+        hitPointsBefore: { type: [integer, 'null'], description: Visible only to master or target owner }
+        hitPointsAfter: { type: [integer, 'null'], description: Visible only to master or target owner }
+    AttackResult:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        diceRollId: { type: string, format: uuid }
+        authorParticipantId: { type: string, format: uuid }
+        damage: { type: integer }
         createdAt: { type: string, format: date-time }
-        participantCount: { type: integer }
-        onlineCount: { type: integer }
-        playerCode: { type: string, pattern: '^\d{4}$' }
-        masterCode: { type: string, pattern: '^\d{4}$' }
+        targets: { type: array, items: { $ref: '#/components/schemas/AttackTarget' } }
+        encounter: { $ref: '#/components/schemas/Encounter' }

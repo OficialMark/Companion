@@ -1,49 +1,57 @@
-# Research: Acesso, Administração e Iniciativa da Campanha
+# Research: Vida e Ataques em Combate
 
-## Códigos de acesso globais
+## Preferência de vida e cópia por encontro
 
-**Decision**: Registros separados, com código de quatro dígitos como chave única e associação à campanha e ao papel.
+**Decision**: Persistir vida opcional no participante e copiá-la para o combatente quando o jogador for importado. A cópia do encontro passa a ser independente.
 
-**Rationale**: Uma restrição cobre códigos dos dois papéis e de todas as mesas.
+**Rationale**: Reutiliza o valor informado na tela inicial sem fazer alterações de um combate contaminarem encontros futuros.
 
-**Alternatives considered**: Duas colunas na campanha não garantem facilmente unicidade cruzada; prefixo de papel violaria quatro dígitos.
+**Alternatives considered**: Referência viva ao participante sobrescreveria edições do mestre; manter vida apenas no combatente exigiria redigitação em todo encontro.
 
-## Migração de códigos existentes
+## Vida obrigatória e limites
 
-**Decision**: Criar dois códigos numéricos únicos por campanha existente, remover o código alfanumérico anterior e preservar tokens de sessão.
+**Decision**: Aceitar inteiros entre 0 e 99.999. A preferência pode ficar vazia, mas todo combatente precisa de vida antes do início do combate e antes de ser alvo.
 
-**Rationale**: Mantém campanhas e sessões; somente códigos antigos de entrada são substituídos.
+**Rationale**: Diferencia “não informado” de zero e fornece limite explícito para validação e testes.
 
-**Alternatives considered**: Compatibilidade legada quebraria o formato; excluir mesas causaria perda.
+**Alternatives considered**: Usar zero como padrão confundiria personagem derrotado com campo ausente; vida sem limite exporia persistência e interface a valores impraticáveis.
 
-## Proteção administrativa
+## Vínculo entre ataque e rolagem
 
-**Decision**: Segredo externo da instalação, comparação em tempo constante, retenção somente na sessão da página e limite de tentativas nas rotas de entrada e administração.
+**Decision**: O ataque referencia uma rolagem pública existente, pertencente ao autor e com exatamente um resultado. O total final, limitado ao mínimo zero, é aplicado igualmente a cada alvo.
 
-**Rationale**: A URL não autentica; um segredo externo atende ao escopo doméstico sem criar contas administrativas.
+**Rationale**: Reutiliza parser, aleatoriedade e animação existentes e impede que o cliente escolha o dano.
 
-**Alternatives considered**: URL secreta é descobrível; conta completa amplia escopo.
+**Alternatives considered**: Rolar novamente no endpoint de ataque duplicaria a experiência; aceitar total enviado pelo cliente quebraria a autoridade do servidor; repetições criariam ambiguidade sobre qual total aplicar.
 
-## Exclusão de campanha
+## Atomicidade e idempotência
 
-**Decision**: Excluir o agregado em transação e emitir `CampaignDeleted` somente após commit.
+**Decision**: Persistir `CombatAttack` com chave única `(AuthorParticipantId, ClientRequestId)` e todos os `CombatAttackTarget` na mesma confirmação que atualiza as vidas. Alvos são distintos e qualquer alvo inválido rejeita a ação inteira.
 
-**Rationale**: Evita exclusão parcial e eventos de operação revertida.
+**Rationale**: Reenvios não duplicam dano e nenhum subconjunto de alvos fica alterado após erro.
 
-**Alternatives considered**: Soft delete conflita com exclusão permanente; cascata total cria múltiplos caminhos problemáticos.
+**Alternatives considered**: Atualização alvo a alvo permitiria sucesso parcial; confiar apenas no botão desabilitado não cobre reconexão e retry HTTP.
 
-## Preferência e cópia de iniciativa
+## Concorrência de vida
 
-**Decision**: Persistir `InitiativeModifier` na participação e `ParticipantId` opcional no combatente. A rolagem geral em preparação importa jogadores online ainda não vinculados; a entrada passa a ser uma cópia editável pelo mestre.
+**Decision**: Usar a versão do encontro como barreira de concorrência. Conflitos retornam resposta recuperável para sincronização, e uma nova tentativa reutiliza a chave idempotente.
 
-**Rationale**: Identidade evita duplicidade e a cópia preserva edições do encontro.
+**Rationale**: Preserva mudanças confirmadas sem introduzir Redis ou locks distribuídos no MVP de instância única.
 
-**Alternatives considered**: Nome falha com duplicatas; referência viva sobrescreve ajustes do mestre.
+**Alternatives considered**: Última escrita vence perderia dano/curas; lock apenas no navegador não protege clientes diferentes; infraestrutura distribuída viola simplicidade operacional.
 
-## Edição durante combate
+## Privacidade em tempo real
 
-**Decision**: Permitir editar e remover combatentes preservando o atual quando ele continuar; remover o atual seleciona deterministicamente o próximo da ordem resultante.
+**Decision**: Mapear snapshots por observador e publicar somente invalidação sem vida para o grupo SignalR nas mudanças sensíveis. Cada cliente recarrega o snapshot autenticado.
 
-**Rationale**: Atende à edição durante combate sem perder rodada e turno.
+**Rationale**: Um payload único no grupo não consegue mostrar todas as vidas ao mestre e ocultá-las dos jogadores. O snapshot REST já é a fonte recuperável prevista na constituição.
 
-**Alternatives considered**: Restringir à preparação contraria a especificação; reiniciar combate perde estado.
+**Alternatives considered**: Enviar a vida completa no grupo vazaria dados; manter grupos por participante aumentaria o acoplamento do notifier; ocultar apenas na interface ainda exporia o payload.
+
+## Histórico do ataque
+
+**Decision**: Armazenar autor, rolagem, dano, alvos e vidas anterior/posterior. Para jogadores, respostas e eventos omitem vidas alheias; o mestre pode consultar o estado atual pelo snapshot.
+
+**Rationale**: O registro permite auditoria e testes de idempotência sem contrariar a visibilidade por papel.
+
+**Alternatives considered**: Não registrar impediria explicar alterações; expor todo o histórico aos jogadores violaria privacidade.

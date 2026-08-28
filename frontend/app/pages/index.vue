@@ -90,6 +90,7 @@ onBeforeUnmount(() => {
           <DiceRoller />
           <EncounterSetup />
           <InitiativeTracker />
+          <CombatAttack />
         </div>
         <div class="side-column">
           <ParticipantsPanel :participants="store.snapshot.participants" />

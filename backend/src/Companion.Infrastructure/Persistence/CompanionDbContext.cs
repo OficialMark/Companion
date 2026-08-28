@@ -13,6 +13,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<Combatant> Combatants => Set<Combatant>();
+    public DbSet<CombatAttack> CombatAttacks => Set<CombatAttack>();
+    public DbSet<CombatAttackTarget> CombatAttackTargets => Set<CombatAttackTarget>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -20,6 +22,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<DiceRoll> ICompanionDbContext.DiceRolls => DiceRolls;
     IQueryable<Encounter> ICompanionDbContext.Encounters => Encounters;
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
+    IQueryable<CombatAttack> ICompanionDbContext.CombatAttacks => CombatAttacks;
+    IQueryable<CombatAttackTarget> ICompanionDbContext.CombatAttackTargets => CombatAttackTargets;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -27,6 +31,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
     void ICompanionDbContext.Add(Encounter encounter) => Encounters.Add(encounter);
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);
+    void ICompanionDbContext.Add(CombatAttack attack) => CombatAttacks.Add(attack);
+    void ICompanionDbContext.Add(CombatAttackTarget target) => CombatAttackTargets.Add(target);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +42,12 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public async Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default)
     {
         await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        await CombatAttackTargets.Where(target => CombatAttacks
+            .Where(attack => Encounters.Where(encounter => encounter.CampaignId == campaignId)
+                .Select(encounter => encounter.Id).Contains(attack.EncounterId))
+            .Select(attack => attack.Id).Contains(target.AttackId)).ExecuteDeleteAsync(cancellationToken);
+        await CombatAttacks.Where(attack => Encounters.Where(encounter => encounter.CampaignId == campaignId)
+            .Select(encounter => encounter.Id).Contains(attack.EncounterId)).ExecuteDeleteAsync(cancellationToken);
         await DiceRolls.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await Combatants.Where(combatant => Encounters
             .Where(encounter => encounter.CampaignId == campaignId)

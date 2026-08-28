@@ -8,8 +8,8 @@ public sealed class EncounterTests
     public void Start_orders_by_initiative_then_creation_order()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
-        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0);
-        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0);
+        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0, currentHitPoints: 10);
+        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0, currentHitPoints: 10);
         first.SetInitiative(12);
         second.SetInitiative(12);
 
@@ -35,7 +35,7 @@ public sealed class EncounterTests
     public void Cannot_start_with_missing_initiative()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
-        encounter.AddCombatant(Guid.NewGuid(), "Sem iniciativa", 0);
+        encounter.AddCombatant(Guid.NewGuid(), "Sem iniciativa", 0, currentHitPoints: 10);
         Assert.Throws<InvalidOperationException>(encounter.Start);
     }
 
@@ -43,8 +43,8 @@ public sealed class EncounterTests
     public void Roll_again_replaces_existing_initiatives_while_preparing()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
-        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 1);
-        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", -1);
+        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 1, currentHitPoints: 10);
+        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", -1, currentHitPoints: 10);
         encounter.RollInitiative(() => 10);
 
         encounter.RollInitiative(() => 18);
@@ -54,11 +54,11 @@ public sealed class EncounterTests
     }
 
     [Fact]
-    public void Roll_again_during_combat_preserves_current_combatant()
+    public void Roll_all_again_during_combat_moves_turn_to_highest_initiative()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
-        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0);
-        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0);
+        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0, currentHitPoints: 10);
+        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0, currentHitPoints: 10);
         first.SetInitiative(20);
         second.SetInitiative(10);
         encounter.Start();
@@ -67,21 +67,37 @@ public sealed class EncounterTests
         encounter.RollInitiative(() => rolls.Dequeue());
         var reordered = encounter.Combatants.OrderByDescending(x => x.Initiative).ThenBy(x => x.CreationOrder).ToArray();
 
-        Assert.Equal(first.Id, reordered[encounter.CurrentTurnIndex!.Value].Id);
+        Assert.Equal(0, encounter.CurrentTurnIndex);
+        Assert.Equal(second.Id, reordered[encounter.CurrentTurnIndex!.Value].Id);
         Assert.Equal(1, first.Initiative);
         Assert.Equal(20, second.Initiative);
     }
 
     [Fact]
-    public void Participant_link_is_unique_and_master_edits_are_preserved()
+    public void Roll_one_again_during_combat_preserves_current_combatant()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0, currentHitPoints: 10);
+        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0, currentHitPoints: 10);
+        first.SetInitiative(20);
+        second.SetInitiative(10);
+        encounter.Start();
+
+        encounter.RollInitiative(() => 1, first.Id);
+        var reordered = encounter.Combatants.OrderByDescending(x => x.Initiative).ThenBy(x => x.CreationOrder).ToArray();
+
+        Assert.Equal(first.Id, reordered[encounter.CurrentTurnIndex!.Value].Id);
+    }
+
+    [Fact]
+    public void Participant_link_is_unique_and_master_edits_are_preserved()    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
         var participantId = Guid.NewGuid();
-        var combatant = encounter.AddCombatant(Guid.NewGuid(), "Lia", 2, participantId);
+        var combatant = encounter.AddCombatant(Guid.NewGuid(), "Lia", 2, participantId, 18);
 
         Assert.Throws<InvalidOperationException>(() =>
-            encounter.AddCombatant(Guid.NewGuid(), "Lia duplicada", 2, participantId));
-        encounter.UpdateCombatant(combatant.Id, "Lia editada", 5);
+            encounter.AddCombatant(Guid.NewGuid(), "Lia duplicada", 2, participantId, 18));
+        encounter.UpdateCombatant(combatant.Id, "Lia editada", 5, 20);
         encounter.RollInitiative(() => 10);
 
         Assert.Equal("Lia editada", combatant.Name);
@@ -100,12 +116,54 @@ public sealed class EncounterTests
         Assert.Equal(ordered[1].Id, reordered[encounter.CurrentTurnIndex!.Value].Id);
     }
 
+
+    [Fact]
+    public void Participant_validates_and_updates_own_hit_points()
+    {
+        var participant = new Participant(Guid.NewGuid(), Guid.NewGuid(), "Lia", ParticipantRole.Player, new byte[32], DateTimeOffset.UtcNow);
+        participant.UpdateCombatProfile(3, 24);
+        Assert.Equal(3, participant.InitiativeModifier);
+        Assert.Equal(24, participant.CurrentHitPoints);
+        Assert.Throws<ArgumentOutOfRangeException>(() => participant.UpdateCombatProfile(3, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => participant.UpdateCombatProfile(3, 100_000));
+    }
+
+    [Fact]
+    public void Cannot_start_with_missing_hit_points()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        encounter.AddCombatant(Guid.NewGuid(), "Sem vida", 0).SetInitiative(10);
+        var error = Assert.Throws<InvalidOperationException>(encounter.Start);
+        Assert.Contains("vida", error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Damage_uses_latest_hit_points_deduplicates_targets_and_never_goes_below_zero()
+    {
+        var encounter = ActiveEncounter(2);
+        var targets = encounter.Combatants.ToArray();
+        targets[0].UpdateHitPoints(5);
+        var results = encounter.ApplyDamage([targets[0].Id, targets[1].Id], 7);
+        Assert.Equal(0, targets[0].CurrentHitPoints);
+        Assert.Equal(13, targets[1].CurrentHitPoints);
+        Assert.Equal(5, results.Single(x => x.CombatantId == targets[0].Id).DamageApplied);
+        Assert.Throws<InvalidOperationException>(() => encounter.ApplyDamage([targets[0].Id, targets[0].Id], 1));
+    }
+
+    [Fact]
+    public void Active_combatant_hit_points_can_change_outside_turn()
+    {
+        var encounter = ActiveEncounter(2);
+        var notCurrent = encounter.Combatants.Single(x => x.Id != encounter.Combatants.OrderByDescending(c => c.Initiative).First().Id);
+        notCurrent.UpdateHitPoints(42);
+        Assert.Equal(42, notCurrent.CurrentHitPoints);
+    }
     private static Encounter ActiveEncounter(int count)
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
         for (var index = 0; index < count; index++)
         {
-            encounter.AddCombatant(Guid.NewGuid(), $"Combatente {index}", index).SetInitiative(10);
+            encounter.AddCombatant(Guid.NewGuid(), $"Combatente {index}", index, currentHitPoints: 20).SetInitiative(10);
         }
         encounter.Start();
         return encounter;

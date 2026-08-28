@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: Companion Battlemap Delta
+  version: 0.1.0
+paths:
+  /campaigns/{campaignId}/encounters/{encounterId}/battlemap:
+    get:
+      summary: Get the current authorized battlemap snapshot without image bytes
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      responses:
+        '200':
+          description: Current battlemap metadata and projected player tokens
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BattlemapSnapshot' }
+        '403': { description: Requester is not a campaign participant }
+        '404': { description: Encounter or battlemap was not found }
+    put:
+      summary: Publish or replace the encounter battlemap as master
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, columns, rows]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: PNG, JPEG or WebP with at most 20 MB
+                columns:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                rows:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                expectedRevision:
+                  type: [string, 'null']
+                  description: Opaque revision from the last snapshot; null only on first publication
+      responses:
+        '200':
+          description: Existing battlemap replaced
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReplaceBattlemapResult' }
+        '201':
+          description: First battlemap published
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReplaceBattlemapResult' }
+        '400': { description: Dimensions, file size or image signature is invalid }
+        '403': { description: Only the campaign master can configure the battlemap }
+        '409': { description: Expected revision is stale; reload the battlemap snapshot }
+        '413': { description: Image exceeds 20 MB }
+
+  /campaigns/{campaignId}/encounters/{encounterId}/battlemap/image:
+    get:
+      summary: Download the current battlemap image
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantToken'
+        - name: revision
+          in: query
+          required: true
+          schema: { type: string }
+          description: Image revision returned by the snapshot
+        - name: If-None-Match
+          in: header
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Current image bytes
+          headers:
+            ETag:
+              schema: { type: string }
+            Cache-Control:
+              schema: { type: string, example: 'private, max-age=31536000, immutable' }
+          content:
+            image/png: { schema: { type: string, format: binary } }
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+        '304': { description: Cached image revision is current }
+        '403': { description: Requester is not a campaign participant }
+        '404': { description: Battlemap or requested revision was not found }
+
+  /campaigns/{campaignId}/encounters/{encounterId}/battlemap/tokens/{participantId}/position:
+    put:
+      summary: Move a player token as its owner or the campaign master
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/ParticipantId'
+        - $ref: '#/components/parameters/ParticipantToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [column, row, expectedPositionVersion]
+              properties:
+                column: { type: integer, minimum: 0, maximum: 99 }
+                row: { type: integer, minimum: 0, maximum: 99 }
+                expectedPositionVersion:
+                  type: [string, 'null']
+                  description: Null for a token in reserve; otherwise the opaque version from its projection
+      responses:
+        '200':
+          description: Position persisted and current battlemap snapshot returned
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BattlemapSnapshot' }
+        '400': { description: Coordinate is outside the current grid }
+        '403': { description: Requester cannot control this token }
+        '404': { description: Encounter, battlemap or player was not found }
+        '409': { description: Map or position changed; reload the snapshot }
+
+components:
+  parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    EncounterId:
+      name: encounterId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ParticipantId:
+      name: participantId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ParticipantToken:
+      name: X-Participant-Token
+      in: header
+      required: true
+      schema: { type: string }
+
+  schemas:
+    BattlemapSnapshot:
+      type: object
+      required: [id, encounterId, columns, rows, revision, imageRevision, imageUrl, tokens]
+      properties:
+        id: { type: string, format: uuid }
+        encounterId: { type: string, format: uuid }
+        columns: { type: integer, minimum: 1, maximum: 100 }
+        rows: { type: integer, minimum: 1, maximum: 100 }
+        revision: { type: string, description: Opaque battlemap concurrency revision }
+        imageRevision: { type: string, format: uuid }
+        imageUrl: { type: string, format: uri-reference }
+        imageMediaType: { type: string, enum: [image/png, image/jpeg, image/webp] }
+        imageFileName: { type: string }
+        updatedAt: { type: string, format: date-time }
+        tokens:
+          type: array
+          maxItems: 20
+          items: { $ref: '#/components/schemas/BattlemapToken' }
+
+    BattlemapToken:
+      type: object
+      required: [participantId, displayName, initials, colorKey, positionVersion]
+      properties:
+        participantId: { type: string, format: uuid }
+        displayName: { type: string }
+        initials: { type: string, minLength: 1, maxLength: 3 }
+        colorKey: { type: integer, minimum: 0 }
+        column: { type: [integer, 'null'], minimum: 0, maximum: 99 }
+        row: { type: [integer, 'null'], minimum: 0, maximum: 99 }
+        positionVersion:
+          type: [string, 'null']
+          description: Null while the token is in reserve
+
+    ReplaceBattlemapResult:
+      type: object
+      required: [battlemap, returnedToReserve]
+      properties:
+        battlemap: { $ref: '#/components/schemas/BattlemapSnapshot' }
+        returnedToReserve:
+          type: array
+          items: { type: string, format: uuid }
+
+x-signalr-events:
+  battlemap.invalidated:
+    direction: server-to-client
+    transport: CampaignHub campaign group
+    payload:
+      type: object
+      required: [encounterId, revision]
+      properties:
+        encounterId: { type: string, format: uuid }
+        revision: { type: string }
+    semantics:
+      - Emitted only after battlemap configuration or token position is persisted.
+      - Contains no image bytes or token positions.
+      - Client reloads the authorized battlemap snapshot and only reloads the image when imageRevision changes.

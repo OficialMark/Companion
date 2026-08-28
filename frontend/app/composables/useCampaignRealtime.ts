@@ -27,7 +27,7 @@ export function useCampaignRealtime() {
         .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
         .configureLogging(signalR.LogLevel.Warning)
         .build()
-      connection.on('CampaignEvent', (event: CampaignEvent) => store.applyEvent(event))
+      connection.on('CampaignEvent', (event: CampaignEvent) => { void store.applyEvent(event) })
       connection.on('ParticipantsChanged', (event: CampaignEvent<Participant[]>) => store.applyParticipants(event))
       connection.onreconnecting(() => { store.connection = 'connecting' })
       connection.onreconnected(() => { void joinAndRefresh() })
