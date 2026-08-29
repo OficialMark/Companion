@@ -19,6 +19,8 @@ public sealed class SignalRCampaignNotifier(
     public Task EncounterInvalidatedAsync(Guid campaignId, Guid encounterId, CancellationToken cancellationToken = default) =>
         NotifyAsync(campaignId, "EncounterInvalidated", new EncounterInvalidationDto(encounterId), cancellationToken);
 
+    public Task BattlemapInvalidatedAsync(Guid campaignId, Guid encounterId, string revision, CancellationToken cancellationToken = default) =>
+        NotifyAsync(campaignId, "BattlemapInvalidated", new BattlemapInvalidationDto(encounterId, revision), cancellationToken);
     public Task ParticipantsChangedAsync(Guid campaignId, CancellationToken cancellationToken = default)
     {
         var participants = db.Participants.Where(x => x.CampaignId == campaignId)

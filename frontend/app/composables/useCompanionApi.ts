@@ -1,16 +1,40 @@
-import type { AdminCampaign, AttackResult, CampaignSnapshot, DiceRoll, Encounter, Participant, Session } from '~/types/campaign'
+import type {
+  AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceRoll, Encounter,
+  MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session
+} from '~/types/campaign'
 import { createUuid } from '~/utils/createUuid'
+
 interface ProblemDetails { title?: string; detail?: string }
+
 export function useCompanionApi() {
   const config = useRuntimeConfig()
+
+  async function problem(response: Response) {
+    const details = await response.json().catch(() => ({})) as ProblemDetails
+    const error = new Error(details.detail || details.title || 'Não foi possível concluir a operação.')
+    ;(error as Error & { status?: number }).status = response.status
+    return error
+  }
+
   async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
-    const headers = new Headers(options.headers); headers.set('Content-Type', 'application/json')
+    const headers = new Headers(options.headers)
+    if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json')
+    }
     if (token) headers.set('X-Participant-Token', token)
     const response = await fetch(`${config.public.apiBase}${path}`, { ...options, headers })
-    if (!response.ok) { const problem = await response.json().catch(() => ({})) as ProblemDetails; const error = new Error(problem.detail || problem.title || 'Não foi possível concluir a operação.'); (error as Error & { status?: number }).status = response.status; throw error }
+    if (!response.ok) throw await problem(response)
     if (response.status === 204) return undefined as T
     return response.json() as Promise<T>
   }
+
+  async function battlemapImage(session: Session, imageUrl: string) {
+    const headers = new Headers({ 'X-Participant-Token': session.participantToken })
+    const response = await fetch(imageUrl, { headers })
+    if (!response.ok) throw await problem(response)
+    return response.blob()
+  }
+
   return {
     createCampaign: (campaignName: string, displayName: string) => request<Session>('/campaigns', { method: 'POST', body: JSON.stringify({ campaignName, displayName }) }),
     joinCampaign: (code: string, displayName: string) => request<Session>('/campaigns/join', { method: 'POST', body: JSON.stringify({ code, displayName }) }),
@@ -29,6 +53,18 @@ export function useCompanionApi() {
     startEncounter: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/start`, { method: 'POST' }, session.participantToken),
     nextTurn: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/next-turn`, { method: 'POST' }, session.participantToken),
     endEncounter: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/end`, { method: 'POST' }, session.participantToken),
+    getBattlemap: (session: Session, encounterId: string) => request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, {}, session.participantToken),
+    configureBattlemap: (session: Session, encounterId: string, image: File, columns: number, rows: number, expectedRevision: string | null) => {
+      const form = new FormData()
+      form.append('image', image)
+      form.append('columns', String(columns))
+      form.append('rows', String(rows))
+      if (expectedRevision) form.append('expectedRevision', expectedRevision)
+      return request<ReplaceBattlemapResult>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, { method: 'PUT', body: form }, session.participantToken)
+    },
+    moveBattlemapToken: (session: Session, encounterId: string, participantId: string, body: MoveBattlemapTokenRequest) =>
+      request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/tokens/${participantId}/position`, { method: 'PUT', body: JSON.stringify(body) }, session.participantToken),
+    battlemapImage,
     listAdminCampaigns: (adminKey: string) => request<AdminCampaign[]>('/admin/campaigns', { headers: { 'X-Admin-Key': adminKey } }),
     deleteAdminCampaign: (adminKey: string, campaignId: string) => request<void>(`/admin/campaigns/${campaignId}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } })
   }

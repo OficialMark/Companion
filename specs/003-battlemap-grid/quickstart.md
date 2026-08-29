@@ -114,3 +114,15 @@ Confirme pelos testes de integração e logs que:
 - `battlemap.invalidated` é emitido somente após persistência;
 - evento contém apenas encontro e revisão;
 - entrada tardia projeta pino em reserva sem exigir recriação do battlemap.
+## Validation record
+
+Validado em 2026-08-29:
+
+- dotnet test backend/Companion.slnx --no-restore: 47 testes unitários e 20 testes de integração aprovados.
+- pnpm run typecheck: aprovado.
+- pnpm run test: 31 testes Vitest aprovados.
+- pnpm run test:e2e: 12 jornadas aprovadas em desktop/Android e 2 testes administrativos ignorados por configuração existente.
+- docker compose up --build -d: API, frontend e SQL Server reconstruídos e saudáveis.
+- Jornada específica do battlemap: 2/2 projetos Playwright aprovados, incluindo publicação 100×100 e movimento do pino.
+
+- Correções de regressão validadas em 2026-08-29: viewport preservado durante sincronização; criaturas manuais projetadas e movidas exclusivamente pelo mestre; 47 testes unitários, 21 de integração e 33 Vitest aprovados; typecheck aprovado.

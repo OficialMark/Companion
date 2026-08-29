@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
-import type { CampaignEvent, CampaignSnapshot, DamageAppliedEvent, DiceRoll, Encounter, Participant, Session } from '~/types/campaign'
+import type {
+  BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
+  DamageAppliedEvent, DiceRoll, Encounter, Participant, Session
+} from '~/types/campaign'
 
 const SESSION_KEY = 'companion.session.v1'
 
@@ -7,6 +10,10 @@ export const useCampaignStore = defineStore('campaign', {
   state: () => ({
     session: null as Session | null,
     snapshot: null as CampaignSnapshot | null,
+    battlemap: null as BattlemapSnapshot | null,
+    battlemapImageSource: '' as string,
+    battlemapLoading: false,
+    pendingBattlemapTokenId: null as string | null,
     connection: 'offline' as 'offline' | 'connecting' | 'online',
     error: '' as string,
     seenEvents: [] as string[],
@@ -27,23 +34,84 @@ export const useCampaignStore = defineStore('campaign', {
     setSession(session: Session) {
       this.session = session
       this.snapshot = null
+      this.clearBattlemap()
       if (import.meta.client) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    },
+    clearBattlemap() {
+      if (import.meta.client && this.battlemapImageSource.startsWith('blob:')) {
+        URL.revokeObjectURL(this.battlemapImageSource)
+      }
+      this.battlemap = null
+      this.battlemapImageSource = ''
+      this.pendingBattlemapTokenId = null
     },
     clearSession() {
       this.session = null
       this.snapshot = null
       this.seenEvents = []
+      this.clearBattlemap()
       if (import.meta.client) localStorage.removeItem(SESSION_KEY)
     },
     async refresh() {
       if (!this.session) return
       try {
         this.snapshot = await useCompanionApi().snapshot(this.session)
+        await this.refreshBattlemap()
         this.error = ''
       } catch (error) {
         if ((error as Error & { status?: number }).status === 401) this.clearSession()
         this.error = (error as Error).message
         throw error
+      }
+    },
+    async refreshBattlemap() {
+      const encounter = this.snapshot?.activeEncounter
+      if (!this.session || !encounter) {
+        this.clearBattlemap()
+        return
+      }
+      this.battlemapLoading = true
+      try {
+        const next = await useCompanionApi().getBattlemap(this.session, encounter.id)
+        const imageChanged = this.battlemap?.imageRevision !== next.imageRevision || !this.battlemapImageSource
+        this.battlemap = next
+        if (imageChanged && import.meta.client) {
+          const blob = await useCompanionApi().battlemapImage(this.session, next.imageUrl)
+          if (this.battlemapImageSource.startsWith('blob:')) URL.revokeObjectURL(this.battlemapImageSource)
+          this.battlemapImageSource = URL.createObjectURL(blob)
+        }
+      } catch (error) {
+        if ((error as Error & { status?: number }).status === 404) {
+          this.clearBattlemap()
+          return
+        }
+        throw error
+      } finally {
+        this.battlemapLoading = false
+      }
+    },
+    async moveBattlemapToken(participantId: string, column: number, row: number) {
+      if (!this.session || !this.battlemap) return
+      if (this.connection !== 'online') {
+        this.error = 'Conexão necessária para mover pinos.'
+        return
+      }
+      const token = this.battlemap.tokens.find(item => item.participantId === participantId)
+      if (!token) return
+      this.pendingBattlemapTokenId = participantId
+      try {
+        this.battlemap = await useCompanionApi().moveBattlemapToken(
+          this.session,
+          this.battlemap.encounterId,
+          participantId,
+          { column, row, expectedPositionVersion: token.positionVersion }
+        )
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+        if ((error as Error & { status?: number }).status === 409) await this.refreshBattlemap()
+      } finally {
+        this.pendingBattlemapTokenId = null
       }
     },
     async applyEvent(event: CampaignEvent) {
@@ -54,9 +122,16 @@ export const useCampaignStore = defineStore('campaign', {
       }
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
+      if (event.type === 'BattlemapInvalidated') {
+        const payload = event.payload as BattlemapInvalidationEvent
+        if (payload.encounterId === this.snapshot.activeEncounter?.id) await this.refreshBattlemap()
+        return
+      }
       if (event.type === 'DamageApplied') {
         const payload = event.payload as DamageAppliedEvent
-        for (const target of payload.targets) this.damageEffects[target.combatantId] = { amount: target.damageApplied, nonce: event.eventId }
+        for (const target of payload.targets) {
+          this.damageEffects[target.combatantId] = { amount: target.damageApplied, nonce: event.eventId }
+        }
         return
       }
       if (event.type === 'EncounterInvalidated') {
@@ -70,15 +145,20 @@ export const useCampaignStore = defineStore('campaign', {
         }
       } else if (['EncounterStarted', 'CombatantAdded', 'CombatantUpdated', 'CombatantRemoved', 'InitiativeRolled', 'TurnAdvanced'].includes(event.type)) {
         this.snapshot.activeEncounter = event.payload as Encounter
+        await this.refreshBattlemap()
       } else if (event.type === 'ParticipantUpdated') {
         const participant = event.payload as Participant
         const index = this.snapshot.participants.findIndex(x => x.id === participant.id)
         if (index >= 0) this.snapshot.participants[index] = participant
         if (this.snapshot.currentParticipant.id === participant.id) {
-          this.snapshot.currentParticipant = { ...participant, currentHitPoints: participant.currentHitPoints ?? this.snapshot.currentParticipant.currentHitPoints }
+          this.snapshot.currentParticipant = {
+            ...participant,
+            currentHitPoints: participant.currentHitPoints ?? this.snapshot.currentParticipant.currentHitPoints
+          }
         }
       } else if (event.type === 'EncounterEnded') {
         this.snapshot.activeEncounter = null
+        this.clearBattlemap()
       }
     },
     clearDamageEffect(combatantId: string, nonce?: string) {
@@ -87,7 +167,6 @@ export const useCampaignStore = defineStore('campaign', {
     applyParticipants(event: CampaignEvent<Participant[]>) {
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
-
       this.snapshot.participants = event.payload
     }
   }

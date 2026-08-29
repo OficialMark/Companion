@@ -88,8 +88,20 @@ public sealed class EncounterService(
         return DtoMapper.ToDto(encounter, participant);
     }
 
-    public Task<EncounterDto> RemoveCombatantAsync(Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken) =>
-        MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.RemoveCombatant(combatantId), cancellationToken);
+    public async Task<EncounterDto> RemoveCombatantAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken)
+    {
+        var master = authorization.Require(campaignId, token, masterOnly: true);
+        var encounter = Load(campaignId, encounterId);
+        var positions = db.BattlemapTokenPositions.Where(x => x.CombatantId == combatantId).ToArray();
+        foreach (var position in positions) db.Remove(position);
+        try { encounter.RemoveCombatant(combatantId); }
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
+        { throw new AppException(AppErrorKind.Validation, exception.Message); }
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
+    }
     public Task<EncounterDto> StartAsync(Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>
         MutateMasterAsync(campaignId, encounterId, token, encounter => encounter.Start(), cancellationToken);
     public Task<EncounterDto> AdvanceAsync(Guid campaignId, Guid encounterId, string token, CancellationToken cancellationToken) =>

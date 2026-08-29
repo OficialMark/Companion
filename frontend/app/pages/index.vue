@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
+import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const loading = ref(true)
@@ -16,6 +18,13 @@ async function activate() {
   }
 }
 
+async function battlemapConfigured() {
+  await store.refreshBattlemap()
+}
+
+async function moveBattlemapToken(participantId: string, column: number, row: number) {
+  await store.moveBattlemapToken(participantId, column, row)
+}
 async function leave() {
   await realtime.disconnect()
   store.clearSession()
@@ -88,6 +97,33 @@ onBeforeUnmount(() => {
       <div class="dashboard-grid">
         <div class="main-column">
           <DiceRoller />
+          <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
+            <div class="panel-heading">
+              <div><p class="eyebrow">Cena compartilhada</p><h2 id="battlemap-title">Battlemap</h2></div>
+              <span v-if="store.battlemap" class="count-pill">{{ store.battlemap.columns }} × {{ store.battlemap.rows }}</span>
+            </div>
+            <details v-if="store.isMaster" class="battlemap-config" :open="!store.battlemap">
+              <summary>{{ store.battlemap ? 'Substituir mapa' : 'Adicionar mapa' }}</summary>
+              <BattlemapSetup
+                :encounter-id="store.snapshot.activeEncounter.id"
+                :battlemap="store.battlemap"
+                @configured="battlemapConfigured"
+              />
+            </details>
+            <BattlemapBoard
+              v-if="store.battlemap && store.battlemapImageSource"
+              :battlemap="store.battlemap"
+              :image-source="store.battlemapImageSource"
+              :current-participant-id="store.session.participantId"
+              :is-master="store.isMaster"
+              :online="store.connection === 'online'"
+              :pending-participant-id="store.pendingBattlemapTokenId"
+              @move="moveBattlemapToken"
+            />
+            <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
+            <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>
+            <p v-if="store.error && store.battlemap" class="form-error" role="alert">{{ store.error }}</p>
+          </section>
           <EncounterSetup />
           <InitiativeTracker />
           <CombatAttack />

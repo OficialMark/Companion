@@ -27,4 +27,19 @@ public static class DtoMapper
             x.CurrentHitPoints == 0)).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }
+
+    public static string Revision(byte[] version) =>
+        version.Length == 0 ? string.Empty : Convert.ToBase64String(version);
+
+    public static string Initials(string displayName)
+    {
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return string.Concat(parts.Take(3).Select(part => char.ToUpperInvariant(part[0])));
+    }
+
+    public static int ColorKey(Guid participantId)
+    {
+        var bytes = participantId.ToByteArray();
+        return (int)(BitConverter.ToUInt32(bytes, 0) % 12);
+    }
 }

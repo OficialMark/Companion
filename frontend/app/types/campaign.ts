@@ -75,6 +75,32 @@ export interface CampaignSnapshot {
   activeEncounter: Encounter | null
 }
 export interface DamageAppliedEvent { encounterId: string; targets: Array<{ combatantId: string; damageApplied: number }> }
+export interface BattlemapToken {
+  participantId: string
+  displayName: string
+  initials: string
+  colorKey: number
+  column: number | null
+  row: number | null
+  positionVersion: string | null
+  isCreature?: boolean
+}
+export interface BattlemapSnapshot {
+  id: string
+  encounterId: string
+  columns: number
+  rows: number
+  revision: string
+  imageRevision: string
+  imageUrl: string
+  imageMediaType: 'image/png' | 'image/jpeg' | 'image/webp'
+  imageFileName: string
+  updatedAt: string
+  tokens: BattlemapToken[]
+}
+export interface ReplaceBattlemapResult { battlemap: BattlemapSnapshot; returnedToReserve: string[] }
+export interface MoveBattlemapTokenRequest { column: number; row: number; expectedPositionVersion: string | null }
+export interface BattlemapInvalidationEvent { encounterId: string; revision: string }
 export interface CampaignEvent<T = unknown> {
   eventId: string
   campaignId: string

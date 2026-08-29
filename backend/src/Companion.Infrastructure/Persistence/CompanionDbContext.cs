@@ -15,6 +15,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Combatant> Combatants => Set<Combatant>();
     public DbSet<CombatAttack> CombatAttacks => Set<CombatAttack>();
     public DbSet<CombatAttackTarget> CombatAttackTargets => Set<CombatAttackTarget>();
+    public DbSet<Battlemap> Battlemaps => Set<Battlemap>();
+    public DbSet<BattlemapTokenPosition> BattlemapTokenPositions => Set<BattlemapTokenPosition>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -24,6 +26,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
     IQueryable<CombatAttack> ICompanionDbContext.CombatAttacks => CombatAttacks;
     IQueryable<CombatAttackTarget> ICompanionDbContext.CombatAttackTargets => CombatAttackTargets;
+    IQueryable<Battlemap> ICompanionDbContext.Battlemaps => Battlemaps;
+    IQueryable<BattlemapTokenPosition> ICompanionDbContext.BattlemapTokenPositions => BattlemapTokenPositions;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -33,6 +37,9 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);
     void ICompanionDbContext.Add(CombatAttack attack) => CombatAttacks.Add(attack);
     void ICompanionDbContext.Add(CombatAttackTarget target) => CombatAttackTargets.Add(target);
+    void ICompanionDbContext.Add(Battlemap battlemap) => Battlemaps.Add(battlemap);
+    void ICompanionDbContext.Add(BattlemapTokenPosition position) => BattlemapTokenPositions.Add(position);
+    void ICompanionDbContext.Remove(BattlemapTokenPosition position) => BattlemapTokenPositions.Remove(position);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

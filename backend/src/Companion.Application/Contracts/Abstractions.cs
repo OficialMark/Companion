@@ -12,6 +12,8 @@ public interface ICompanionDbContext
     IQueryable<Combatant> Combatants { get; }
     IQueryable<CombatAttack> CombatAttacks { get; }
     IQueryable<CombatAttackTarget> CombatAttackTargets { get; }
+    IQueryable<Battlemap> Battlemaps { get; }
+    IQueryable<BattlemapTokenPosition> BattlemapTokenPositions { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
@@ -21,6 +23,9 @@ public interface ICompanionDbContext
     void Add(Combatant combatant);
     void Add(CombatAttack attack);
     void Add(CombatAttackTarget target);
+    void Add(Battlemap battlemap);
+    void Add(BattlemapTokenPosition position);
+    void Remove(BattlemapTokenPosition position);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }
@@ -51,6 +56,7 @@ public interface ICampaignNotifier
     Task NotifyAsync(Guid campaignId, string type, object payload, CancellationToken cancellationToken = default);
     Task ParticipantsChangedAsync(Guid campaignId, CancellationToken cancellationToken = default);
     Task EncounterInvalidatedAsync(Guid campaignId, Guid encounterId, CancellationToken cancellationToken = default);
+    Task BattlemapInvalidatedAsync(Guid campaignId, Guid encounterId, string revision, CancellationToken cancellationToken = default);
 }
 
 public interface IAdminCredentialValidator

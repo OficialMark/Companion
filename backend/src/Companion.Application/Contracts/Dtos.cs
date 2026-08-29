@@ -12,6 +12,14 @@ public sealed record UpdateInitiativeModifierRequest(int? InitiativeModifier);
 public sealed record UpdateCombatProfileRequest(int? InitiativeModifier, int? CurrentHitPoints);
 public sealed record UpdateHitPointsRequest(int CurrentHitPoints);
 public sealed record ResolveAttackRequest(Guid DiceRollId, IReadOnlyList<Guid> TargetCombatantIds);
+public sealed record ConfigureBattlemapRequest(
+    byte[] ImageContent,
+    string ImageMediaType,
+    string ImageFileName,
+    int Columns,
+    int Rows,
+    string? ExpectedRevision);
+public sealed record MoveBattlemapTokenRequest(int Column, int Row, string? ExpectedPositionVersion);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -73,6 +81,36 @@ public sealed record CombatAttackDto(
     IReadOnlyList<AttackTargetDto> Targets);
 public sealed record AttackResultDto(CombatAttackDto Attack, EncounterDto Encounter);
 public sealed record EncounterInvalidationDto(Guid EncounterId);
+public sealed record BattlemapInvalidationDto(Guid EncounterId, string Revision);
+public sealed record BattlemapTokenDto(
+    Guid ParticipantId,
+    string DisplayName,
+    string Initials,
+    int ColorKey,
+    int? Column,
+    int? Row,
+    string? PositionVersion,
+    bool IsCreature = false);
+public sealed record BattlemapSnapshotDto(
+    Guid Id,
+    Guid EncounterId,
+    int Columns,
+    int Rows,
+    string Revision,
+    Guid ImageRevision,
+    string ImageUrl,
+    string ImageMediaType,
+    string ImageFileName,
+    DateTimeOffset UpdatedAt,
+    IReadOnlyList<BattlemapTokenDto> Tokens);
+public sealed record ReplaceBattlemapResultDto(
+    BattlemapSnapshotDto Battlemap,
+    IReadOnlyList<Guid> ReturnedToReserve);
+public sealed record BattlemapImageDto(
+    byte[] Content,
+    string MediaType,
+    string FileName,
+    Guid ImageRevision);
 public sealed record CampaignSnapshot(
     CampaignDto Campaign,
     ParticipantDto CurrentParticipant,

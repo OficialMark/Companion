@@ -109,3 +109,8 @@ A feature do MVP está em [`specs/001-campaign-mvp`](specs/001-campaign-mvp):
 - `quickstart.md`: roteiro de validação ponta a ponta
 
 Para evoluir uma funcionalidade com Codex, use as skills `$speckit-specify`, `$speckit-plan`, `$speckit-tasks`, `$speckit-analyze` e `$speckit-implement`.
+## Battlemap interativo
+
+Durante um encontro, o mestre pode publicar uma imagem PNG, JPEG ou WebP de até 20 MB e definir um grid de 1×1 a 100×100. Cada jogador recebe um pino próprio; jogadores movem somente seu pino e o mestre pode arbitrar qualquer posição.
+
+O visualizador mantém uma área estável em desktop e Android, usa células com escala inicial próxima de 40 px e oferece pan, zoom, ajuste total, arraste, seleção por toque e navegação por teclado. O estado confirmado é persistido no SQL Server e ressincronizado por snapshot após eventos SignalR ou reconexão.

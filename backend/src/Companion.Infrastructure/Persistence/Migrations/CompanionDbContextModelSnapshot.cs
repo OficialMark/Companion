@@ -22,6 +22,110 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Companion.Domain.Models.Battlemap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("ImageContent")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ImageFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImageMediaType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("ImageRevision")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EncounterId")
+                        .IsUnique();
+
+                    b.ToTable("Battlemaps", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.BattlemapTokenPosition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BattlemapId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Column")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("CombatantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Row")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BattlemapId");
+
+                    b.HasIndex("CombatantId");
+
+                    b.HasIndex("ParticipantId");
+
+                    b.HasIndex("BattlemapId", "CombatantId")
+                        .IsUnique()
+                        .HasFilter("[CombatantId] IS NOT NULL");
+
+                    b.HasIndex("BattlemapId", "ParticipantId")
+                        .IsUnique()
+                        .HasFilter("[ParticipantId] IS NOT NULL");
+
+                    b.ToTable("BattlemapTokenPositions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BattlemapTokenPositions_Owner", "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Companion.Domain.Models.Campaign", b =>
                 {
                     b.Property<Guid>("Id")
@@ -300,6 +404,34 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("CampaignId", "DisplayName");
 
                     b.ToTable("Participants", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.Battlemap", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Encounter", null)
+                        .WithOne()
+                        .HasForeignKey("Companion.Domain.Models.Battlemap", "EncounterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.BattlemapTokenPosition", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Battlemap", null)
+                        .WithMany()
+                        .HasForeignKey("BattlemapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Combatant", null)
+                        .WithMany()
+                        .HasForeignKey("CombatantId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.CampaignAccessCode", b =>

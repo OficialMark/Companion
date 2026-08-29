@@ -113,3 +113,36 @@ public sealed class CombatAttackTargetConfiguration : IEntityTypeConfiguration<C
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
     }
 }
+public sealed class BattlemapConfiguration : IEntityTypeConfiguration<Battlemap>
+{
+    public void Configure(EntityTypeBuilder<Battlemap> builder)
+    {
+        builder.ToTable("Battlemaps");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.ImageContent).HasColumnType("varbinary(max)").IsRequired();
+        builder.Property(x => x.ImageMediaType).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.ImageFileName).HasMaxLength(255).IsRequired();
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.HasIndex(x => x.EncounterId).IsUnique();
+        builder.HasOne<Encounter>().WithOne().HasForeignKey<Battlemap>(x => x.EncounterId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class BattlemapTokenPositionConfiguration : IEntityTypeConfiguration<BattlemapTokenPosition>
+{
+    public void Configure(EntityTypeBuilder<BattlemapTokenPosition> builder)
+    {
+        builder.ToTable("BattlemapTokenPositions");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => x.BattlemapId);
+        builder.ToTable(table => table.HasCheckConstraint(
+            "CK_BattlemapTokenPositions_Owner",
+            "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)"));
+        builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+    }
+}

@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Companion.Api;
 using Companion.Api.Endpoints;
 using Companion.Api.Realtime;
+using Companion.Application.Battlemaps;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
 using Companion.Application.DiceRolls;
@@ -11,6 +12,7 @@ using Companion.Infrastructure.Randomness;
 using Companion.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.Configure<FormOptions>(options =>
+    options.MultipartBodyLengthLimit = 21 * 1024 * 1024);
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("sqlserver");
 builder.Services.AddRateLimiter(options =>
 {
@@ -58,10 +62,11 @@ builder.Services.AddScoped<CampaignService>();
 builder.Services.AddScoped<AdminCampaignService>();
 builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
+builder.Services.AddScoped<BattlemapService>();
 builder.Services.AddScoped<AttackService>();
 
 var app = builder.Build();
-app.UseRateLimiter();
+if (!app.Environment.IsEnvironment("Testing")) app.UseRateLimiter();
 
 app.Use(async (context, next) =>
 {
@@ -109,6 +114,7 @@ app.MapHealthChecks("/health");
 app.MapCampaignEndpoints();
 app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
+app.MapBattlemapEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 

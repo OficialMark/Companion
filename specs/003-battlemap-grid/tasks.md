@@ -22,9 +22,9 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 **Purpose**: Preparar limites de upload, contratos compartilhados e fixtures reutilizáveis.
 
-- [ ] T001 Configurar limite de upload de 20 MB e opções de battlemap em `backend/src/Companion.Api/appsettings.json` e `backend/src/Companion.Api/Program.cs`
-- [ ] T002 [P] Adicionar tipos compartilhados `BattlemapSnapshot`, `BattlemapToken` e comandos em `frontend/app/types/campaign.ts`
-- [ ] T003 [P] Criar fixtures PNG/JPEG/WebP válidas e arquivos inválidos para testes em `backend/tests/Companion.IntegrationTests/Fixtures/Battlemaps/` e `frontend/tests/fixtures/battlemaps/`
+- [X] T001 Configurar limite de upload de 20 MB e opções de battlemap em `backend/src/Companion.Api/appsettings.json` e `backend/src/Companion.Api/Program.cs`
+- [X] T002 [P] Adicionar tipos compartilhados `BattlemapSnapshot`, `BattlemapToken` e comandos em `frontend/app/types/campaign.ts`
+- [X] T003 [P] Criar fixtures PNG/JPEG/WebP válidas e arquivos inválidos para testes em `backend/tests/Companion.IntegrationTests/Fixtures/Battlemaps/` e `frontend/tests/fixtures/battlemaps/`
 
 ---
 
@@ -34,13 +34,13 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 **⚠️ CRITICAL**: Nenhuma história começa antes desta fase.
 
-- [ ] T004 [P] Escrever testes unitários inicialmente falhos para criação, substituição, limites do grid e coordenadas em `backend/tests/Companion.UnitTests/BattlemapTests.cs`
-- [ ] T005 Implementar entidades e invariantes `Battlemap` e `BattlemapTokenPosition` em `backend/src/Companion.Domain/Models/Battlemap.cs` e `backend/src/Companion.Domain/Models/BattlemapTokenPosition.cs`
-- [ ] T006 Integrar DbSets, mapeamentos, índices, cascades e row versions em `backend/src/Companion.Application/Contracts/Abstractions.cs`, `backend/src/Companion.Infrastructure/Persistence/CompanionDbContext.cs` e `backend/src/Companion.Infrastructure/Persistence/ModelConfigurations.cs`
-- [ ] T007 Gerar e revisar migration EF Core de battlemap/imagem/posições em `backend/src/Companion.Infrastructure/Persistence/Migrations/*_AddBattlemap.cs` e `backend/src/Companion.Infrastructure/Persistence/Migrations/CompanionDbContextModelSnapshot.cs`
-- [ ] T008 [P] Definir requests, snapshots, resultado de substituição e projeções de pino em `backend/src/Companion.Application/Contracts/Dtos.cs` e `backend/src/Companion.Application/Contracts/DtoMapper.cs`
-- [ ] T009 [P] Acrescentar contrato e implementação de `BattlemapInvalidatedAsync` em `backend/src/Companion.Application/Contracts/Abstractions.cs` e `backend/src/Companion.Api/Realtime/SignalRCampaignNotifier.cs`
-- [ ] T010 Preparar estado de battlemap, revisão, carregamento e limpeza de sessão em `frontend/app/stores/campaign.ts`
+- [X] T004 [P] Escrever testes unitários inicialmente falhos para criação, substituição, limites do grid e coordenadas em `backend/tests/Companion.UnitTests/BattlemapTests.cs`
+- [X] T005 Implementar entidades e invariantes `Battlemap` e `BattlemapTokenPosition` em `backend/src/Companion.Domain/Models/Battlemap.cs` e `backend/src/Companion.Domain/Models/BattlemapTokenPosition.cs`
+- [X] T006 Integrar DbSets, mapeamentos, índices, cascades e row versions em `backend/src/Companion.Application/Contracts/Abstractions.cs`, `backend/src/Companion.Infrastructure/Persistence/CompanionDbContext.cs` e `backend/src/Companion.Infrastructure/Persistence/ModelConfigurations.cs`
+- [X] T007 Gerar e revisar migration EF Core de battlemap/imagem/posições em `backend/src/Companion.Infrastructure/Persistence/Migrations/*_AddBattlemap.cs` e `backend/src/Companion.Infrastructure/Persistence/Migrations/CompanionDbContextModelSnapshot.cs`
+- [X] T008 [P] Definir requests, snapshots, resultado de substituição e projeções de pino em `backend/src/Companion.Application/Contracts/Dtos.cs` e `backend/src/Companion.Application/Contracts/DtoMapper.cs`
+- [X] T009 [P] Acrescentar contrato e implementação de `BattlemapInvalidatedAsync` em `backend/src/Companion.Application/Contracts/Abstractions.cs` e `backend/src/Companion.Api/Realtime/SignalRCampaignNotifier.cs`
+- [X] T010 Preparar estado de battlemap, revisão, carregamento e limpeza de sessão em `frontend/app/stores/campaign.ts`
 
 **Checkpoint**: Modelo persistente, projeções e canal de invalidação estão disponíveis; testes unitários passam.
 
@@ -54,20 +54,20 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Escrever testes de integração inicialmente falhos para GET/PUT multipart, imagem com ETag, autorização, validação, revisão e retorno à reserva em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
-- [ ] T012 [P] [US1] Escrever testes Vitest inicialmente falhos da prévia, dimensões, recorte e permissões em `frontend/tests/battlemap-setup.spec.ts`
-- [ ] T013 [P] [US1] Escrever jornada Playwright inicialmente falha de publicação/substituição por mestre e visualização por jogador nos projetos desktop/Android em `frontend/tests/e2e/battlemap.spec.ts`
+- [X] T011 [P] [US1] Escrever testes de integração inicialmente falhos para GET/PUT multipart, imagem com ETag, autorização, validação, revisão e retorno à reserva em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
+- [X] T012 [P] [US1] Escrever testes Vitest inicialmente falhos da prévia, dimensões, recorte e permissões em `frontend/tests/battlemap-setup.spec.ts`
+- [X] T013 [P] [US1] Escrever jornada Playwright inicialmente falha de publicação/substituição por mestre e visualização por jogador nos projetos desktop/Android em `frontend/tests/e2e/battlemap.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Implementar publicação, substituição transacional, snapshot e leitura autorizada do binário em `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`
-- [ ] T015 [US1] Implementar endpoints GET/PUT multipart e GET da imagem conforme `contracts/openapi.yaml` em `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
-- [ ] T016 [US1] Registrar `BattlemapService`, mapear endpoints, aplicar limite de request e emitir invalidação após persistência em `backend/src/Companion.Api/Program.cs` e `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
-- [ ] T017 [P] [US1] Implementar cliente de snapshot, upload multipart e carregamento versionado da imagem em `frontend/app/composables/useCompanionApi.ts`
-- [ ] T018 [P] [US1] Criar formulário do mestre com validação e prévia de recorte/grid em `frontend/app/components/battlemap/BattlemapSetup.vue`
-- [ ] T019 [P] [US1] Criar renderização SVG somente leitura de imagem e linhas O(rows+columns) em `frontend/app/components/battlemap/BattlemapBoard.vue`
-- [ ] T020 [US1] Integrar carregamento, estado vazio, configuração do mestre e visualização do jogador em `frontend/app/app.vue` e `frontend/app/stores/campaign.ts`
-- [ ] T021 [US1] Estilizar formulário, visualizador base e estados de erro/carregamento responsivos em `frontend/app/assets/css/main.css`
+- [X] T014 [US1] Implementar publicação, substituição transacional, snapshot e leitura autorizada do binário em `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`
+- [X] T015 [US1] Implementar endpoints GET/PUT multipart e GET da imagem conforme `contracts/openapi.yaml` em `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
+- [X] T016 [US1] Registrar `BattlemapService`, mapear endpoints, aplicar limite de request e emitir invalidação após persistência em `backend/src/Companion.Api/Program.cs` e `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
+- [X] T017 [P] [US1] Implementar cliente de snapshot, upload multipart e carregamento versionado da imagem em `frontend/app/composables/useCompanionApi.ts`
+- [X] T018 [P] [US1] Criar formulário do mestre com validação e prévia de recorte/grid em `frontend/app/components/battlemap/BattlemapSetup.vue`
+- [X] T019 [P] [US1] Criar renderização SVG somente leitura de imagem e linhas O(rows+columns) em `frontend/app/components/battlemap/BattlemapBoard.vue`
+- [X] T020 [US1] Integrar carregamento, estado vazio, configuração do mestre e visualização do jogador em `frontend/app/app.vue` e `frontend/app/stores/campaign.ts`
+- [X] T021 [US1] Estilizar formulário, visualizador base e estados de erro/carregamento responsivos em `frontend/app/assets/css/main.css`
 
 **Checkpoint**: US1 funciona isoladamente e entrega um battlemap publicado/recuperável, ainda sem movimentação.
 
@@ -81,20 +81,20 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Estender testes unitários inicialmente falhos para reserva, movimento, versão concorrente e redução de grid em `backend/tests/Companion.UnitTests/BattlemapTests.cs`
-- [ ] T023 [P] [US2] Estender testes de integração inicialmente falhos para projeção tardia, dono/mestre, coordenadas inválidas, concorrência e persistência antes do evento em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
-- [ ] T024 [P] [US2] Escrever testes Vitest inicialmente falhos para arraste, seleção toque/teclado, rollback, pilha de pinos e bloqueio de terceiros em `frontend/tests/battlemap.spec.ts`
-- [ ] T025 [P] [US2] Estender Playwright com dois jogadores, arbitragem do mestre e célula compartilhada em desktop/Android em `frontend/tests/e2e/battlemap.spec.ts`
+- [X] T022 [P] [US2] Estender testes unitários inicialmente falhos para reserva, movimento, versão concorrente e redução de grid em `backend/tests/Companion.UnitTests/BattlemapTests.cs`
+- [X] T023 [P] [US2] Estender testes de integração inicialmente falhos para projeção tardia, dono/mestre, coordenadas inválidas, concorrência e persistência antes do evento em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
+- [X] T024 [P] [US2] Escrever testes Vitest inicialmente falhos para arraste, seleção toque/teclado, rollback, pilha de pinos e bloqueio de terceiros em `frontend/tests/battlemap.spec.ts`
+- [X] T025 [P] [US2] Estender Playwright com dois jogadores, arbitragem do mestre e célula compartilhada em desktop/Android em `frontend/tests/e2e/battlemap.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Implementar projeção de todos os jogadores, criação/atualização de posição e concorrência otimista em `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`
-- [ ] T027 [US2] Implementar PUT de posição com autorização de dono/mestre e resposta de snapshot em `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
-- [ ] T028 [P] [US2] Implementar pino focável, identificação, estado pendente e agrupamento em célula compartilhada em `frontend/app/components/battlemap/BattlemapToken.vue`
-- [ ] T029 [US2] Implementar hit testing, snap, arraste Pointer Events e fluxo selecionar-pino/selecionar-célula em `frontend/app/components/battlemap/BattlemapBoard.vue`
-- [ ] T030 [US2] Implementar comando otimista seguro, rollback, revisão de posição e mensagens de conflito em `frontend/app/stores/campaign.ts` e `frontend/app/composables/useCompanionApi.ts`
-- [ ] T031 [US2] Consumir `battlemap.invalidated`, refazer snapshot e preservar a imagem quando `imageRevision` não mudar em `frontend/app/composables/useCampaignRealtime.ts` e `frontend/app/stores/campaign.ts`
-- [ ] T032 [US2] Estilizar reserva, pinos, seleção, célula realçada, pilha e estados pendente/proibido em `frontend/app/assets/css/main.css`
+- [X] T026 [US2] Implementar projeção de todos os jogadores, criação/atualização de posição e concorrência otimista em `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`
+- [X] T027 [US2] Implementar PUT de posição com autorização de dono/mestre e resposta de snapshot em `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`
+- [X] T028 [P] [US2] Implementar pino focável, identificação, estado pendente e agrupamento em célula compartilhada em `frontend/app/components/battlemap/BattlemapToken.vue`
+- [X] T029 [US2] Implementar hit testing, snap, arraste Pointer Events e fluxo selecionar-pino/selecionar-célula em `frontend/app/components/battlemap/BattlemapBoard.vue`
+- [X] T030 [US2] Implementar comando otimista seguro, rollback, revisão de posição e mensagens de conflito em `frontend/app/stores/campaign.ts` e `frontend/app/composables/useCompanionApi.ts`
+- [X] T031 [US2] Consumir `battlemap.invalidated`, refazer snapshot e preservar a imagem quando `imageRevision` não mudar em `frontend/app/composables/useCampaignRealtime.ts` e `frontend/app/stores/campaign.ts`
+- [X] T032 [US2] Estilizar reserva, pinos, seleção, célula realçada, pilha e estados pendente/proibido em `frontend/app/assets/css/main.css`
 
 **Checkpoint**: US2 funciona contra battlemap semeado e, integrada à US1, permite posicionamento compartilhado completo.
 
@@ -108,17 +108,17 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Escrever testes Vitest inicialmente falhos para cálculo 36–44 px, limites de pan/zoom, ajuste total e preservação de coordenadas em `frontend/tests/battlemap-viewport.spec.ts`
-- [ ] T034 [P] [US3] Estender testes de realtime inicialmente falhos para desconexão, comando bloqueado, reentrada e refetch sem baixar imagem inalterada em `frontend/tests/realtime.spec.ts`
-- [ ] T035 [P] [US3] Estender Playwright para grids 1×1/100×100, ausência de overflow, orientação, pan/zoom, teclado e reconexão em `frontend/tests/e2e/battlemap.spec.ts`
+- [X] T033 [P] [US3] Escrever testes Vitest inicialmente falhos para cálculo 36–44 px, limites de pan/zoom, ajuste total e preservação de coordenadas em `frontend/tests/battlemap-viewport.spec.ts`
+- [X] T034 [P] [US3] Estender testes de realtime inicialmente falhos para desconexão, comando bloqueado, reentrada e refetch sem baixar imagem inalterada em `frontend/tests/realtime.spec.ts`
+- [X] T035 [P] [US3] Estender Playwright para grids 1×1/100×100, ausência de overflow, orientação, pan/zoom, teclado e reconexão em `frontend/tests/e2e/battlemap.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T036 [P] [US3] Implementar matriz de viewport, escala inicial alvo, clamp de pan/zoom, resize e comando ajustar mapa em `frontend/app/composables/useBattlemapViewport.ts`
-- [ ] T037 [US3] Integrar pan por fundo, pinch/wheel, zoom por botões, navegação de teclado e anúncio acessível em `frontend/app/components/battlemap/BattlemapBoard.vue`
-- [ ] T038 [US3] Bloquear movimentos offline, manter último snapshot seguro e sincronizar após reconexão em `frontend/app/stores/campaign.ts` e `frontend/app/composables/useCampaignRealtime.ts`
-- [ ] T039 [US3] Definir altura estável por breakpoint, overflow interno, touch-action, controles de 44 px e orientação móvel em `frontend/app/assets/css/main.css`
-- [ ] T040 [US3] Integrar controles de zoom/ajuste, status de coordenada e instruções por dispositivo em `frontend/app/components/battlemap/BattlemapBoard.vue` e `frontend/app/app.vue`
+- [X] T036 [P] [US3] Implementar matriz de viewport, escala inicial alvo, clamp de pan/zoom, resize e comando ajustar mapa em `frontend/app/composables/useBattlemapViewport.ts`
+- [X] T037 [US3] Integrar pan por fundo, pinch/wheel, zoom por botões, navegação de teclado e anúncio acessível em `frontend/app/components/battlemap/BattlemapBoard.vue`
+- [X] T038 [US3] Bloquear movimentos offline, manter último snapshot seguro e sincronizar após reconexão em `frontend/app/stores/campaign.ts` e `frontend/app/composables/useCampaignRealtime.ts`
+- [X] T039 [US3] Definir altura estável por breakpoint, overflow interno, touch-action, controles de 44 px e orientação móvel em `frontend/app/assets/css/main.css`
+- [X] T040 [US3] Integrar controles de zoom/ajuste, status de coordenada e instruções por dispositivo em `frontend/app/components/battlemap/BattlemapBoard.vue` e `frontend/app/app.vue`
 
 **Checkpoint**: Todas as histórias funcionam em desktop e Android, inclusive após desconexão/reconexão.
 
@@ -128,10 +128,17 @@ description: "Tarefas de implementação do battlemap com grid interativo"
 
 **Purpose**: Fechar segurança, desempenho, documentação e validação integral.
 
-- [ ] T041 [P] Adicionar casos de segurança para MIME/assinatura divergentes, nome malicioso, payload acima de 20 MB e acesso cruzado em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
-- [ ] T042 [P] Adicionar testes de regressão de renderização máxima com 202 linhas e 20 pinos em `frontend/tests/battlemap.spec.ts`
-- [ ] T043 Atualizar instruções e escopo funcional do battlemap em `README.md`
-- [ ] T044 Executar e registrar todos os cenários de `specs/003-battlemap-grid/quickstart.md`, corrigindo falhas antes de marcar a feature concluída
+- [X] T041 [P] Adicionar casos de segurança para MIME/assinatura divergentes, nome malicioso, payload acima de 20 MB e acesso cruzado em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
+- [X] T042 [P] Adicionar testes de regressão de renderização máxima com 202 linhas e 20 pinos em `frontend/tests/battlemap.spec.ts`
+- [X] T043 Atualizar instruções e escopo funcional do battlemap em `README.md`
+- [X] T044 Executar e registrar todos os cenários de `specs/003-battlemap-grid/quickstart.md`, corrigindo falhas antes de marcar a feature concluída
+
+## Phase 7: Correções de regressão
+
+- [X] T045 [P] Adicionar testes de regressão para preservar pan/zoom durante sincronização e projetar pinos de criaturas em `frontend/tests/battlemap.spec.ts` e `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`
+- [X] T046 Persistir e projetar posições de criaturas manuais, com controle exclusivo do mestre, em domínio, aplicação, API e infraestrutura
+- [X] T047 Preservar a instância do visualizador durante sincronizações em segundo plano no frontend
+- [X] T048 Gerar migration incremental e executar testes backend, frontend e typecheck
 
 ---
 
