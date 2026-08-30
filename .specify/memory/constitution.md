@@ -1,20 +1,15 @@
 <!--
 Sync Impact Report
-- Version change: template (unratified) -> 1.0.0
+- Version change: 1.0.0 -> 1.0.1
 - Modified principles:
-  - Placeholder principles -> I. Monólito modular e Clean Architecture
-  - Placeholder principles -> II. Servidor como autoridade do jogo
-  - Placeholder principles -> III. Experiência web responsiva e resiliente
-  - Placeholder principles -> IV. Qualidade verificável
-  - Placeholder principles -> V. Simplicidade operacional e evolução segura
+  - Fluxo de desenvolvimento e gates de qualidade -> autorização operacional local esclarecida
 - Added sections:
-  - Restrições de arquitetura e tecnologia
-  - Fluxo de desenvolvimento e gates de qualidade
+  - Autorização operacional local
 - Removed sections: none
 - Templates reviewed:
-  - ✅ .specify/templates/plan-template.md (Constitution Check is compatible)
-  - ✅ .specify/templates/spec-template.md (mandatory scenarios and criteria are compatible)
-  - ✅ .specify/templates/tasks-template.md (testing and cross-cutting phases are compatible)
+  - ✅ .specify/templates/plan-template.md (Constitution Check remains compatible)
+  - ✅ .specify/templates/spec-template.md (no product requirement change)
+  - ✅ .specify/templates/tasks-template.md (existing validation/deploy tasks remain compatible)
 - Follow-up TODOs: none
 -->
 
@@ -108,6 +103,15 @@ os testes relevantes passam e não existem placeholders ou decisões técnicas s
 registro. O plano MUST listar violações desta constituição na tabela de complexidade;
 uma violação sem justificativa bloqueia a implementação.
 
+## Autorização operacional local
+
+O agente está previamente autorizado a executar, sem solicitar nova confirmação do
+usuário, comandos Docker Compose de build, criação, recriação, inicialização,
+reinicialização, parada e consulta de saúde dos serviços locais deste repositório,
+quando necessários para implementar ou validar uma tarefa solicitada. Essa
+autorização é limitada ao ambiente local do Companion e não inclui remoção de
+volumes, exclusão de dados, publicação externa ou mudanças em infraestrutura remota.
+Aprovações obrigatórias impostas pela plataforma de execução continuam prevalecendo.
 ## Governance
 
 Esta constituição prevalece sobre convenções locais, planos e tarefas conflitantes.
@@ -121,4 +125,4 @@ Exceções temporárias MUST estar documentadas no plano da feature, possuir res
 e critério objetivo de remoção. O uso das skills do Spec Kit e o Constitution Check
 são os mecanismos oficiais de orientação e revisão do projeto.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-23 | **Last Amended**: 2026-08-23
+**Version**: 1.0.1 | **Ratified**: 2026-08-23 | **Last Amended**: 2026-08-29

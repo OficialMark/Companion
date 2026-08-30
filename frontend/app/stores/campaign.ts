@@ -55,7 +55,12 @@ export const useCampaignStore = defineStore('campaign', {
     async refresh() {
       if (!this.session) return
       try {
-        this.snapshot = await useCompanionApi().snapshot(this.session)
+        const next = await useCompanionApi().snapshot(this.session)
+        if (this.snapshot) {
+          this.updateActiveEncounter(next.activeEncounter)
+          next.activeEncounter = this.snapshot.activeEncounter
+        }
+        this.snapshot = next
         await this.refreshBattlemap()
         this.error = ''
       } catch (error) {
@@ -64,7 +69,24 @@ export const useCampaignStore = defineStore('campaign', {
         throw error
       }
     },
-    async refreshBattlemap() {
+    updateActiveEncounter(next: Encounter | null) {
+      if (!this.snapshot || !next || this.snapshot.activeEncounter?.id !== next.id) {
+        if (this.snapshot) this.snapshot.activeEncounter = next
+        return
+      }
+      const current = this.snapshot.activeEncounter
+      const currentById = new Map(current.combatants.map(combatant => [combatant.id, combatant]))
+      const combatants = next.combatants.map(combatant => {
+        const existing = currentById.get(combatant.id)
+        if (!existing) return combatant
+        Object.assign(existing, combatant)
+        return existing
+      })
+      current.status = next.status
+      current.round = next.round
+      current.currentTurnIndex = next.currentTurnIndex
+      current.combatants.splice(0, current.combatants.length, ...combatants)
+    },    async refreshBattlemap() {
       const encounter = this.snapshot?.activeEncounter
       if (!this.session || !encounter) {
         this.clearBattlemap()
@@ -144,7 +166,7 @@ export const useCampaignStore = defineStore('campaign', {
           this.snapshot.diceRolls = [roll, ...this.snapshot.diceRolls].slice(0, 50)
         }
       } else if (['EncounterStarted', 'CombatantAdded', 'CombatantUpdated', 'CombatantRemoved', 'InitiativeRolled', 'TurnAdvanced'].includes(event.type)) {
-        this.snapshot.activeEncounter = event.payload as Encounter
+        this.updateActiveEncounter(event.payload as Encounter)
         await this.refreshBattlemap()
       } else if (event.type === 'ParticipantUpdated') {
         const participant = event.payload as Participant

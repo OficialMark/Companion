@@ -9,7 +9,7 @@ function cancel() { open.value = false; roll.value = null; selected.value = []; 
 async function confirm() {
   if (!store.session || !encounter.value || !roll.value || selected.value.length === 0) return
   busy.value = true; error.value = ''; message.value = ''
-  try { const result = await api.resolveAttack(store.session, encounter.value.id, roll.value.id, selected.value, requestId.value); if (store.snapshot) store.snapshot.activeEncounter = result.encounter; message.value = `Ataque de ${result.attack.damage} aplicado.`; open.value = false; roll.value = null; selected.value = [] }
+  try { const result = await api.resolveAttack(store.session, encounter.value.id, roll.value.id, selected.value, requestId.value); store.updateActiveEncounter(result.encounter); message.value = `Ataque de ${result.attack.damage} aplicado.`; open.value = false; roll.value = null; selected.value = [] }
   catch (exception) { error.value = (exception as Error).message }
   finally { busy.value = false }
 }
