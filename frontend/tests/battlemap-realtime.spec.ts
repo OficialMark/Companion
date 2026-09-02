@@ -6,7 +6,7 @@ const moveBattlemapToken = vi.fn()
 vi.stubGlobal('useCompanionApi', () => ({ moveBattlemapToken }))
 
 const battlemap: BattlemapSnapshot = {
-  id: 'map', encounterId: 'encounter', columns: 10, rows: 10, revision: 'r1',
+  id: 'map', encounterId: 'encounter', columns: 10, rows: 10, isGridVisible: true, revision: 'r1',
   imageRevision: 'image-1', imageUrl: '/image', imageMediaType: 'image/png',
   imageFileName: 'map.png', updatedAt: new Date().toISOString(),
   tokens: [{ participantId: 'player', displayName: 'Lia', initials: 'L', colorKey: 1, column: 1, row: 1, positionVersion: 'v1' }]

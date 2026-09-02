@@ -7,6 +7,7 @@ const snapshot: BattlemapSnapshot = {
   encounterId: 'encounter-1',
   columns: 100,
   rows: 100,
+  isGridVisible: true,
   revision: 'revision',
   imageRevision: 'image-revision',
   imageUrl: 'blob:test',
@@ -76,5 +77,22 @@ describe('BattlemapBoard', () => {
     await wrapper.get('[data-participant-id="player-0"]').trigger('click')
     expect(wrapper.emitted('move')).toBeFalsy()
     expect(wrapper.text()).toContain('Conexão necessária')
+  })
+  it('hides grid lines when the battlemap grid is invisible', () => {
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: { ...snapshot, isGridVisible: false }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(wrapper.findAll('[data-grid-line]')).toHaveLength(0)
+  })
+
+  it('moves a dragged pin to reserve when dropped outside the map', async () => {
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: { ...snapshot, columns: 10, rows: 10 }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    const surface = wrapper.get('[data-board-surface]')
+    vi.spyOn(surface.element, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 10, width: 400, height: 400 } as DOMRect)
+    await wrapper.get('[data-battlemap-token]').trigger('pointerdown')
+    await surface.trigger('pointerup')
+    expect(wrapper.emitted('move')).toContainEqual(['player-0', null, null])
   })
 })

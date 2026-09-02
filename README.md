@@ -7,7 +7,7 @@ Mesa web responsiva para campanhas de D&D, com campanhas por código, rolagem p�
 Pré-requisitos:
 
 - Docker Desktop no Windows ou Docker Engine com Compose
-- Porta TCP 3000 livre
+- Portas TCP 3636 (frontend) e 8080 (backend) livres
 - Pelo menos 2 GB de memória disponíveis para o SQL Server
 
 No PowerShell, a partir da raiz do projeto:
@@ -23,7 +23,7 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Quando os três serviços estiverem saudáveis, abra [http://localhost:3000](http://localhost:3000). O banco e a API ficam isolados na rede Docker; somente a aplicação web é publicada.
+Quando os três serviços estiverem saudáveis, abra [http://localhost:3636](http://localhost:3636). A API também fica disponível diretamente em `http://localhost:8080`; o banco permanece isolado na rede Docker.
 
 Para acompanhar a inicialização:
 
@@ -42,12 +42,12 @@ ipconfig
 Procure o adaptador Wi-Fi ou Ethernet em uso e anote o endereço, por exemplo `192.168.1.50`. No Android ou em outro computador conectado à mesma rede, abra:
 
 ```text
-http://192.168.1.50:3000
+http://192.168.1.50:3636
 ```
 
 O frontend utiliza caminhos relativos para API e SignalR. Portanto, não é necessário recompilar ao trocar `localhost` pelo IP LAN.
 
-Se a página não abrir, permita uma regra de entrada TCP para a porta 3000 no Firewall do Windows, limitada ao perfil de rede Privada. Não exponha a porta diretamente à internet; o MVP usa HTTP por ter como alvo redes privadas.
+Se a página não abrir, permita uma regra de entrada TCP para a porta 3636 no Firewall do Windows, limitada ao perfil de rede Privada. Libere também a porta 8080 somente se precisar acessar a API diretamente de outro dispositivo. Não exponha essas portas diretamente à internet; o MVP usa HTTP por ter como alvo redes privadas.
 
 ## Hamachi ou Radmin VPN
 
@@ -55,8 +55,8 @@ Depois de instalar e conectar os dispositivos à mesma rede virtual:
 
 1. Execute `ipconfig` e encontre o IPv4 do adaptador Hamachi ou Radmin.
 2. Confirme que os dispositivos conseguem alcançar esse IP.
-3. Permita TCP 3000 no firewall também para o perfil atribuído ao adaptador VPN.
-4. Acesse `http://<ip-da-vpn>:3000`.
+3. Permita TCP 3636 no firewall também para o perfil atribuído ao adaptador VPN.
+4. Acesse `http://<ip-da-vpn>:3636`.
 
 O Compose continua igual porque publica em `0.0.0.0`. A segurança, o roteamento e o controle de membros da VPN permanecem sob responsabilidade do administrador da rede.
 

@@ -54,6 +54,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ImageRevision")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsGridVisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("Rows")
                         .HasColumnType("int");
 

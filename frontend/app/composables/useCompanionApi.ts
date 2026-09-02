@@ -54,11 +54,12 @@ export function useCompanionApi() {
     nextTurn: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/next-turn`, { method: 'POST' }, session.participantToken),
     endEncounter: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/end`, { method: 'POST' }, session.participantToken),
     getBattlemap: (session: Session, encounterId: string) => request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, {}, session.participantToken),
-    configureBattlemap: (session: Session, encounterId: string, image: File, columns: number, rows: number, expectedRevision: string | null) => {
+    configureBattlemap: (session: Session, encounterId: string, image: File, columns: number, rows: number, isGridVisible: boolean, expectedRevision: string | null) => {
       const form = new FormData()
       form.append('image', image)
       form.append('columns', String(columns))
       form.append('rows', String(rows))
+      form.append('isGridVisible', String(isGridVisible))
       if (expectedRevision) form.append('expectedRevision', expectedRevision)
       return request<ReplaceBattlemapResult>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, { method: 'PUT', body: form }, session.participantToken)
     },

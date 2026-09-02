@@ -122,6 +122,7 @@ public sealed class BattlemapConfiguration : IEntityTypeConfiguration<Battlemap>
         builder.Property(x => x.ImageContent).HasColumnType("varbinary(max)").IsRequired();
         builder.Property(x => x.ImageMediaType).HasMaxLength(32).IsRequired();
         builder.Property(x => x.ImageFileName).HasMaxLength(255).IsRequired();
+        builder.Property(x => x.IsGridVisible).HasDefaultValue(true);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => x.EncounterId).IsUnique();
         builder.HasOne<Encounter>().WithOne().HasForeignKey<Battlemap>(x => x.EncounterId).OnDelete(DeleteBehavior.Cascade);

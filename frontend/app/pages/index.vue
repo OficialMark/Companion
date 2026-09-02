@@ -22,7 +22,7 @@ async function battlemapConfigured() {
   await store.refreshBattlemap()
 }
 
-async function moveBattlemapToken(participantId: string, column: number, row: number) {
+async function moveBattlemapToken(participantId: string, column: number | null, row: number | null) {
   await store.moveBattlemapToken(participantId, column, row)
 }
 async function leave() {

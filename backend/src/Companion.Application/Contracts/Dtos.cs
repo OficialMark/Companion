@@ -18,8 +18,9 @@ public sealed record ConfigureBattlemapRequest(
     string ImageFileName,
     int Columns,
     int Rows,
+    bool IsGridVisible,
     string? ExpectedRevision);
-public sealed record MoveBattlemapTokenRequest(int Column, int Row, string? ExpectedPositionVersion);
+public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -96,6 +97,7 @@ public sealed record BattlemapSnapshotDto(
     Guid EncounterId,
     int Columns,
     int Rows,
+    bool IsGridVisible,
     string Revision,
     Guid ImageRevision,
     string ImageUrl,

@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
   online: boolean
   pendingParticipantId?: string | null
 }>(), { pendingParticipantId: null })
-const emit = defineEmits<{ move: [participantId: string, column: number, row: number] }>()
+const emit = defineEmits<{ move: [participantId: string, column: number | null, row: number | null] }>()
 
 const columns = computed(() => props.battlemap.columns)
 const rows = computed(() => props.battlemap.rows)
@@ -59,9 +59,13 @@ function cellFromEvent(event: MouseEvent | PointerEvent) {
   }
 }
 
+function isInsideMap(column: number, row: number) {
+  return column >= 0 && column < columns.value && row >= 0 && row < rows.value
+}
+
 function commitCell(column: number, row: number) {
   if (!props.online || !selectedParticipantId.value) return
-  if (column < 0 || column >= columns.value || row < 0 || row >= rows.value) return
+  if (!isInsideMap(column, row)) return
   cursor.column = column
   cursor.row = row
   emit('move', selectedParticipantId.value, column, row)
@@ -108,6 +112,11 @@ function pointerUp(event: PointerEvent) {
     const cell = cellFromEvent(event)
     selectedParticipantId.value = dragParticipantId.value
     dragParticipantId.value = null
+    if (!isInsideMap(cell.column, cell.row)) {
+      emit('move', selectedParticipantId.value, null, null)
+      selectedParticipantId.value = null
+      return
+    }
     commitCell(cell.column, cell.row)
   }
   panPointer.active = false
@@ -198,6 +207,7 @@ onBeforeUnmount(() => observer?.disconnect())
         />
         <rect class="battlemap-boundary" :width="mapWidth" :height="mapHeight" />
         <line
+          v-if="battlemap.isGridVisible"
           v-for="line in verticalLines"
           :key="`v-${line}`"
           data-grid-line
@@ -208,6 +218,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :y2="mapHeight"
         />
         <line
+          v-if="battlemap.isGridVisible"
           v-for="line in horizontalLines"
           :key="`h-${line}`"
           data-grid-line

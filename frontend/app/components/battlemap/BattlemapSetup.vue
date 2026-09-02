@@ -7,6 +7,7 @@ const store = useCampaignStore()
 const api = useCompanionApi()
 const columns = ref(props.battlemap?.columns ?? 20)
 const rows = ref(props.battlemap?.rows ?? 15)
+const isGridVisible = ref(props.battlemap?.isGridVisible ?? true)
 const file = ref<File | null>(null)
 const previewUrl = ref('')
 const busy = ref(false)
@@ -36,7 +37,7 @@ async function submit() {
   busy.value = true
   try {
     await api.configureBattlemap(
-      store.session, props.encounterId, file.value, columns.value, rows.value,
+      store.session, props.encounterId, file.value, columns.value, rows.value, isGridVisible.value,
       props.battlemap?.revision ?? null)
     emit('configured')
   } catch (exception) {
@@ -64,10 +65,14 @@ onBeforeUnmount(() => {
       <label>Linhas do grid
         <input v-model.number="rows" aria-label="Linhas do grid" type="number" min="1" max="100" required>
       </label>
+      <label class="battlemap-grid-visibility">
+        <input v-model="isGridVisible" type="checkbox">
+        Exibir grid sobre o mapa
+      </label>
     </div>
     <div v-if="previewUrl" class="battlemap-preview" :style="{ aspectRatio: `${columns} / ${rows}` }">
       <img :src="previewUrl" alt="Prévia do mapa selecionado">
-      <span class="battlemap-preview-grid" :style="{ '--columns': columns, '--rows': rows }" />
+      <span v-if="isGridVisible" class="battlemap-preview-grid" :style="{ '--columns': columns, '--rows': rows }" />
     </div>
     <p class="field-hint">PNG, JPEG ou WebP de até 20 MB. A prévia mostra o recorte final.</p>
     <p v-if="error" class="form-error" role="alert">{{ error }}</p>

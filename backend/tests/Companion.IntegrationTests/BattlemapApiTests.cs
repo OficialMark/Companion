@@ -127,6 +127,28 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
     }
 
     [Fact]
+    public async Task Hidden_grid_is_persisted_and_token_can_return_to_reserve()
+    {
+        var master = await CreateCampaign("battlemap-hidden-grid");
+        var player = await Join(master.PlayerCode, "Dara");
+        var encounter = await CreateEncounter(master);
+        var configured = await Configure(
+            master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10, isGridVisible: false);
+        var configuredResult = (await configured.Content.ReadFromJsonAsync<ReplaceBattlemapResultDto>(JsonOptions))!;
+        Assert.False(configuredResult.Battlemap.IsGridVisible);
+
+        var moved = await Move(player, encounter.Id, player.ParticipantId, 3, 4, null);
+        var movedSnapshot = (await moved.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var positioned = Assert.Single(movedSnapshot.Tokens, item => item.ParticipantId == player.ParticipantId);
+
+        var removed = await Move(player, encounter.Id, player.ParticipantId, null, null, positioned.PositionVersion);
+        removed.EnsureSuccessStatusCode();
+        var reserveSnapshot = (await removed.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var reserveToken = Assert.Single(reserveSnapshot.Tokens, item => item.ParticipantId == player.ParticipantId);
+        Assert.Null(reserveToken.Column);
+        Assert.Null(reserveToken.Row);
+    }
+    [Fact]
     public async Task Reducing_grid_returns_outside_tokens_to_reserve()
     {
         var master = await CreateCampaign("battlemap-resize");
@@ -169,7 +191,8 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
         string fileName,
         int columns,
         int rows,
-        string? expectedRevision = null)
+        string? expectedRevision = null,
+        bool isGridVisible = true)
     {
         var content = new MultipartFormDataContent();
         var image = new ByteArrayContent(bytes);
@@ -177,6 +200,7 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
         content.Add(image, "image", fileName);
         content.Add(new StringContent(columns.ToString()), "columns");
         content.Add(new StringContent(rows.ToString()), "rows");
+        content.Add(new StringContent(isGridVisible.ToString()), "isGridVisible");
         if (expectedRevision is not null) content.Add(new StringContent(expectedRevision), "expectedRevision");
         var request = new HttpRequestMessage(
             HttpMethod.Put,
@@ -189,8 +213,8 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
         SessionResponse session,
         Guid encounterId,
         Guid participantId,
-        int column,
-        int row,
+        int? column,
+        int? row,
         string? expectedPositionVersion) =>
         Client.SendAsync(Authenticated(
             HttpMethod.Put,

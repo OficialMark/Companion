@@ -34,6 +34,8 @@ public static class BattlemapEndpoints
             if (!int.TryParse(form["columns"], out var columns) ||
                 !int.TryParse(form["rows"], out var rows))
                 throw new AppException(AppErrorKind.Validation, "Informe linhas e colunas inteiras.");
+            var isGridVisible = !bool.TryParse(form["isGridVisible"], out var parsedGridVisibility) ||
+                parsedGridVisibility;
             if (image.Length > 20 * 1024 * 1024)
                 return Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, detail: "A imagem excede 20 MB.");
             await using var stream = image.OpenReadStream();
@@ -50,6 +52,7 @@ public static class BattlemapEndpoints
                     image.FileName,
                     columns,
                     rows,
+                    isGridVisible,
                     string.IsNullOrWhiteSpace(expectedRevision) ? null : expectedRevision),
                 ct);
             return result.Created

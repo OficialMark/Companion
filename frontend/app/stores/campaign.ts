@@ -112,7 +112,7 @@ export const useCampaignStore = defineStore('campaign', {
         this.battlemapLoading = false
       }
     },
-    async moveBattlemapToken(participantId: string, column: number, row: number) {
+    async moveBattlemapToken(participantId: string, column: number | null, row: number | null) {
       if (!this.session || !this.battlemap) return
       if (this.connection !== 'online') {
         this.error = 'Conexão necessária para mover pinos.'

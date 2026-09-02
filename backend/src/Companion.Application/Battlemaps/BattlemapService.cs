@@ -70,6 +70,7 @@ public sealed class BattlemapService(
                     request.ImageFileName,
                     request.Columns,
                     request.Rows,
+                    request.IsGridVisible,
                     now);
                 db.Add(battlemap);
             }
@@ -82,6 +83,7 @@ public sealed class BattlemapService(
                     request.ImageFileName,
                     request.Columns,
                     request.Rows,
+                    request.IsGridVisible,
                     now);
                 var outside = db.BattlemapTokenPositions
                     .Where(x => x.BattlemapId == battlemap.Id)
@@ -130,13 +132,12 @@ public sealed class BattlemapService(
 
         var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounterId)
             ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
-        try
+        if (request.Column.HasValue != request.Row.HasValue)
+            throw new AppException(AppErrorKind.Validation, "Informe coluna e linha juntas ou remova ambas.");
+        if (request.Column.HasValue)
         {
-            battlemap.ValidateCoordinate(request.Column, request.Row);
-        }
-        catch (ArgumentOutOfRangeException exception)
-        {
-            throw new AppException(AppErrorKind.Validation, exception.Message);
+            try { battlemap.ValidateCoordinate(request.Column.Value, request.Row!.Value); }
+            catch (ArgumentOutOfRangeException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         }
 
         var position = participant is not null
@@ -145,13 +146,26 @@ public sealed class BattlemapService(
             : db.BattlemapTokenPositions.SingleOrDefault(x =>
                 x.BattlemapId == battlemap.Id && x.CombatantId == tokenId);
         var now = timeProvider.GetUtcNow();
+        if (!request.Column.HasValue)
+        {
+            if (position is not null)
+            {
+                EnsureRevision(request.ExpectedPositionVersion, position.Version, "A posição do pino mudou. Atualize o mapa.");
+                db.Remove(position);
+                await db.SaveChangesAsync(cancellationToken);
+                var reserveSnapshot = ToSnapshot(campaignId, battlemap);
+                await notifier.BattlemapInvalidatedAsync(campaignId, encounterId, reserveSnapshot.Revision, cancellationToken);
+                return reserveSnapshot;
+            }
+            return ToSnapshot(campaignId, battlemap);
+        }
         if (position is null)
         {
             if (!string.IsNullOrWhiteSpace(request.ExpectedPositionVersion))
                 throw new AppException(AppErrorKind.Conflict, "A posição do pino mudou. Atualize o mapa.");
             position = participant is not null
-                ? new BattlemapTokenPosition(Guid.NewGuid(), battlemap.Id, tokenId, request.Column, request.Row, now)
-                : BattlemapTokenPosition.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId, request.Column, request.Row, now);
+                ? new BattlemapTokenPosition(Guid.NewGuid(), battlemap.Id, tokenId, request.Column.Value, request.Row!.Value, now)
+                : BattlemapTokenPosition.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId, request.Column.Value, request.Row!.Value, now);
             db.Add(position);
         }
         else
@@ -160,7 +174,7 @@ public sealed class BattlemapService(
                 request.ExpectedPositionVersion,
                 position.Version,
                 "A posição do pino mudou. Atualize o mapa.");
-            position.Move(request.Column, request.Row, now);
+            position.Move(request.Column.Value, request.Row!.Value, now);
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -221,6 +235,7 @@ public sealed class BattlemapService(
             battlemap.EncounterId,
             battlemap.Columns,
             battlemap.Rows,
+            battlemap.IsGridVisible,
             DtoMapper.Revision(battlemap.Version),
             battlemap.ImageRevision,
             $"/api/campaigns/{campaignId}/encounters/{battlemap.EncounterId}/battlemap/image?revision={battlemap.ImageRevision}",

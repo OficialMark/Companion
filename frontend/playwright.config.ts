@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 45_000,
   workers: 4,
-  use: { baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000', trace: 'retain-on-failure' },
+  use: { baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3636', trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], channel: 'msedge' } },
     { name: 'android', use: { ...devices['Pixel 7'], channel: 'msedge' } }

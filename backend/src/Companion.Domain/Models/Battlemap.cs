@@ -16,12 +16,13 @@ public sealed class Battlemap
         string imageFileName,
         int columns,
         int rows,
+        bool isGridVisible,
         DateTimeOffset createdAt)
     {
         Id = id;
         EncounterId = encounterId;
         CreatedAt = createdAt;
-        ApplyImage(imageContent, imageMediaType, imageFileName, columns, rows, createdAt);
+        ApplyImage(imageContent, imageMediaType, imageFileName, columns, rows, isGridVisible, createdAt);
     }
 
     public Guid Id { get; private set; }
@@ -32,6 +33,7 @@ public sealed class Battlemap
     public Guid ImageRevision { get; private set; }
     public int Columns { get; private set; }
     public int Rows { get; private set; }
+    public bool IsGridVisible { get; private set; } = true;
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public byte[] Version { get; private set; } = [];
@@ -42,8 +44,9 @@ public sealed class Battlemap
         string imageFileName,
         int columns,
         int rows,
+        bool isGridVisible,
         DateTimeOffset updatedAt) =>
-        ApplyImage(imageContent, imageMediaType, imageFileName, columns, rows, updatedAt);
+        ApplyImage(imageContent, imageMediaType, imageFileName, columns, rows, isGridVisible, updatedAt);
 
     public void ValidateCoordinate(int column, int row)
     {
@@ -62,6 +65,7 @@ public sealed class Battlemap
         string imageFileName,
         int columns,
         int rows,
+        bool isGridVisible,
         DateTimeOffset updatedAt)
     {
         if (imageContent.Length is < 1 or > MaxImageBytes)
@@ -82,6 +86,7 @@ public sealed class Battlemap
         ImageFileName = safeName;
         Columns = columns;
         Rows = rows;
+        IsGridVisible = isGridVisible;
         ImageRevision = Guid.NewGuid();
         UpdatedAt = updatedAt;
     }

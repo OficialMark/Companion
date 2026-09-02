@@ -90,6 +90,7 @@ export interface BattlemapSnapshot {
   encounterId: string
   columns: number
   rows: number
+  isGridVisible: boolean
   revision: string
   imageRevision: string
   imageUrl: string
@@ -99,7 +100,7 @@ export interface BattlemapSnapshot {
   tokens: BattlemapToken[]
 }
 export interface ReplaceBattlemapResult { battlemap: BattlemapSnapshot; returnedToReserve: string[] }
-export interface MoveBattlemapTokenRequest { column: number; row: number; expectedPositionVersion: string | null }
+export interface MoveBattlemapTokenRequest { column: number | null; row: number | null; expectedPositionVersion: string | null }
 export interface BattlemapInvalidationEvent { encounterId: string; revision: string }
 export interface CampaignEvent<T = unknown> {
   eventId: string
