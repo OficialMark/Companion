@@ -31,6 +31,14 @@
 .battlemap-token text { fill: #fff8e9; font-weight: 800; pointer-events: none; }
 .battlemap-token.selected .token-ring, .battlemap-token:focus .token-ring { stroke: #ffd36d; }
 .battlemap-token.pending { opacity: .55; }
+.battlemap-token .token-turn-ring { fill: none; stroke: #5ce1c4; stroke-width: 3.5; vector-effect: non-scaling-stroke; animation: token-turn-pulse 1.6s ease-in-out infinite; }
+@keyframes token-turn-pulse {
+  0%, 100% { stroke-opacity: .55; stroke-width: 3.5; }
+  50% { stroke-opacity: 1; stroke-width: 4.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battlemap-token .token-turn-ring { animation: none; stroke-opacity: .9; }
+}
 .battlemap-token.token-color-1 > circle:first-child { fill: #356f91; }
 .battlemap-token.token-color-2 > circle:first-child { fill: #3c8069; }
 .battlemap-token.token-color-3 > circle:first-child { fill: #8a6730; }

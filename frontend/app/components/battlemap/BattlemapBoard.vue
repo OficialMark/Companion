@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BattlemapSnapshot, BattlemapToken } from '~/types/campaign'
+import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus } from '~/types/campaign'
 import { useBattlemapViewport } from '~/composables/useBattlemapViewport'
 import { useAttackAreas, type AttackAreaDraft } from '~/composables/useAttackAreas'
 import { attackAreaGeometry } from '~/utils/attackAreaGeometry'
@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<{
   isMaster: boolean
   online: boolean
   pendingParticipantId?: string | null
-}>(), { pendingParticipantId: null })
+  combatants?: Combatant[]
+  encounterStatus?: EncounterStatus | null
+}>(), { pendingParticipantId: null, combatants: () => [], encounterStatus: null })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
@@ -44,6 +46,19 @@ const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 
 function controllable(token: BattlemapToken) {
   return props.isMaster || (!token.isCreature && token.participantId === props.currentParticipantId)
+}
+
+// A creature token's `participantId` field actually holds its Combatant.id (see
+// BattlemapService.ToSnapshot); a player token's `participantId` matches
+// Combatant.participantId. Both cases are covered by checking either field.
+const currentTurnTokenId = computed(() => {
+  if (props.encounterStatus !== 'Active') return null
+  const current = props.combatants.find(item => item.isCurrent)
+  if (!current) return null
+  return current.participantId ?? current.id
+})
+function isCurrentTurn(token: BattlemapToken) {
+  return currentTurnTokenId.value !== null && currentTurnTokenId.value === token.participantId
 }
 
 const attackAreas = useAttackAreas()
@@ -385,6 +400,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :selected="selectedParticipantId === token.participantId"
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
+          :is-current-turn="isCurrentTurn(token)"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />

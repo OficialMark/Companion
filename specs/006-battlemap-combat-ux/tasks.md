@@ -29,8 +29,8 @@ Web app existente: `backend/src/Companion.{Domain,Application,Infrastructure,Api
 
 **Purpose**: Confirmar pontos de extensão antes de tocar qualquer entidade/serviço
 
-- [ ] T001 Revisar `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`, `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`, `frontend/app/components/battlemap/BattlemapBoard.vue`, `frontend/app/components/battlemap/BattlemapToken.vue` e `frontend/app/components/battlemap/AttackAreaPanel.vue` (sem alterar nada ainda), anotando os pontos exatos de extensão descritos em `plan.md`/`data-model.md` (ex.: `ResolveTokenForMutation`, `ToSnapshot`, `tokenOrigin`, `stackOffset`).
-- [ ] T002 [P] Rodar a suíte atual como baseline: `dotnet test backend/tests/Companion.UnitTests`, `dotnet test backend/tests/Companion.IntegrationTests` e `pnpm --dir frontend test`, confirmando que tudo passa antes de qualquer mudança.
+- [X] T001 Revisar `backend/src/Companion.Application/Battlemaps/BattlemapService.cs`, `backend/src/Companion.Api/Endpoints/BattlemapEndpoints.cs`, `frontend/app/components/battlemap/BattlemapBoard.vue`, `frontend/app/components/battlemap/BattlemapToken.vue` e `frontend/app/components/battlemap/AttackAreaPanel.vue` (sem alterar nada ainda), anotando os pontos exatos de extensão descritos em `plan.md`/`data-model.md` (ex.: `ResolveTokenForMutation`, `ToSnapshot`, `tokenOrigin`, `stackOffset`).
+- [X] T002 [P] Rodar a suíte atual como baseline: `dotnet test backend/tests/Companion.UnitTests` (60/60), `dotnet test backend/tests/Companion.IntegrationTests` (24/24) e `vitest run` no frontend (67/67), confirmando que tudo passa antes de qualquer mudança. Nota: exigiu corrigir `global.json` (rollForward, ver commit separado) e gerar `.nuxt/` local (`nuxt prepare`) neste worktree.
 
 ---
 
@@ -50,13 +50,13 @@ Web app existente: `backend/src/Companion.{Domain,Application,Infrastructure,Api
 
 ### Tests for User Story 1
 
-- [ ] T003 [P] [US1] Teste de componente em `frontend/tests/battlemap.spec.ts`: dado um `battlemap.tokens` e um `activeEncounter.combatants` com um `isCurrent: true`, a função/computed de destaque de turno identifica o token correto (para token de personagem via `participantId`, e para token de criatura via `combatant.id === token.participantId`, conforme `research.md`); retorna nenhum destaque quando `activeEncounter.status !== 'Active'` ou quando não há `activeEncounter`.
+- [X] T003 [P] [US1] Teste de componente em `frontend/tests/battlemap.spec.ts`: dado um `battlemap.tokens` e um `activeEncounter.combatants` com um `isCurrent: true`, a função/computed de destaque de turno identifica o token correto (para token de personagem via `participantId`, e para token de criatura via `combatant.id === token.participantId`, conforme `research.md`); retorna nenhum destaque quando `activeEncounter.status !== 'Active'` ou quando não há `activeEncounter`.
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Adicionar uma função/computed `currentTurnTokenId` (ou equivalente) em `frontend/app/components/battlemap/BattlemapBoard.vue`, cruzando `store.snapshot?.activeEncounter?.combatants` (campos `isCurrent`, `participantId`, `id`) com `battlemap.tokens[].participantId`, respeitando a semântica dupla desse campo (participante ou id de combatente/criatura) e retornando `null` fora do estado `Active`.
-- [ ] T005 [US1] Passar uma prop `is-current-turn` para `BattlemapTokenMarker` em `BattlemapBoard.vue` (a partir de T004); em `frontend/app/components/battlemap/BattlemapToken.vue`, renderizar um anel/destaque distinto (ex.: `<circle class="token-turn-ring">` com stroke/animação) quando a prop for verdadeira, sem interferir nas classes já existentes (`selected`, `pending`, `token-color-N`).
-- [ ] T006 [P] [US1] Estilizar o destaque de turno em `frontend/app/assets/css/battlemap.css` (ou `<style>` de `BattlemapToken.vue`), garantindo contraste visível tanto contra o token selecionado/pendente quanto em qualquer `colorKey`, e legibilidade em células pequenas (mobile/zoom reduzido).
+- [X] T004 [US1] Adicionar uma função/computed `currentTurnTokenId` (ou equivalente) em `frontend/app/components/battlemap/BattlemapBoard.vue`, cruzando `store.snapshot?.activeEncounter?.combatants` (campos `isCurrent`, `participantId`, `id`) com `battlemap.tokens[].participantId`, respeitando a semântica dupla desse campo (participante ou id de combatente/criatura) e retornando `null` fora do estado `Active`.
+- [X] T005 [US1] Passar uma prop `is-current-turn` para `BattlemapTokenMarker` em `BattlemapBoard.vue` (a partir de T004); em `frontend/app/components/battlemap/BattlemapToken.vue`, renderizar um anel/destaque distinto (ex.: `<circle class="token-turn-ring">` com stroke/animação) quando a prop for verdadeira, sem interferir nas classes já existentes (`selected`, `pending`, `token-color-N`).
+- [X] T006 [P] [US1] Estilizar o destaque de turno em `frontend/app/assets/css/battlemap.css` (ou `<style>` de `BattlemapToken.vue`), garantindo contraste visível tanto contra o token selecionado/pendente quanto em qualquer `colorKey`, e legibilidade em células pequenas (mobile/zoom reduzido).
 
 **Checkpoint**: US1 funcional e testável de forma independente — nenhuma dependência de backend ou de outra story.
 

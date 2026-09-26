@@ -136,6 +136,8 @@ onBeforeUnmount(() => {
               :is-master="store.isMaster"
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
+              :combatants="store.snapshot.activeEncounter?.combatants ?? []"
+              :encounter-status="store.snapshot.activeEncounter?.status ?? null"
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"

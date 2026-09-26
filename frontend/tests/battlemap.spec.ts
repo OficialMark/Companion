@@ -1,6 +1,20 @@
 import { mount } from '@vue/test-utils'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
-import type { BattlemapSnapshot } from '~/types/campaign'
+import type { BattlemapSnapshot, Combatant } from '~/types/campaign'
+
+function combatant(overrides: Partial<Combatant> = {}): Combatant {
+  return {
+    id: 'combatant-1',
+    participantId: null,
+    name: 'Combatant',
+    initiativeModifier: 0,
+    initiative: null,
+    creationOrder: 0,
+    isCurrent: false,
+    currentHitPoints: null,
+    ...overrides
+  }
+}
 
 const snapshot: BattlemapSnapshot = {
   id: 'map-1',
@@ -115,5 +129,87 @@ describe('BattlemapBoard', () => {
       new MouseEvent('pointerup', { bubbles: true, cancelable: true, clientX: -500, clientY: -500 }))
     await nextTick()
     expect(wrapper.emitted('move')).toContainEqual(['player-0', null, null])
+  })
+
+  it('highlights the token whose turn is current, and only during an active encounter', async () => {
+    const combatants = [
+      combatant({ id: 'c1', participantId: 'player-0', isCurrent: true }),
+      combatant({ id: 'c2', participantId: 'player-1', isCurrent: false })
+    ]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).toContain('current-turn')
+    expect(wrapper.get('[data-participant-id="player-1"]').classes()).not.toContain('current-turn')
+  })
+
+  it('moves the turn highlight when the current combatant changes', async () => {
+    const combatants = [
+      combatant({ id: 'c1', participantId: 'player-0', isCurrent: true }),
+      combatant({ id: 'c2', participantId: 'player-1', isCurrent: false })
+    ]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    await wrapper.setProps({
+      combatants: [
+        combatant({ id: 'c1', participantId: 'player-0', isCurrent: false }),
+        combatant({ id: 'c2', participantId: 'player-1', isCurrent: true })
+      ]
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).not.toContain('current-turn')
+    expect(wrapper.get('[data-participant-id="player-1"]').classes()).toContain('current-turn')
+  })
+
+  it('shows no turn highlight outside an active encounter', () => {
+    const combatants = [combatant({ id: 'c1', participantId: 'player-0', isCurrent: true })]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Preparing'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).not.toContain('current-turn')
+  })
+
+  it('resolves a creature token turn highlight via the combatant id, not participantId', () => {
+    const creatureMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'goblin-1', displayName: 'Goblin', initials: 'G', colorKey: 3, column: 0, row: 0, positionVersion: 'v1', isCreature: true }]
+    }
+    const combatants = [combatant({ id: 'goblin-1', participantId: null, isCurrent: true })]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: creatureMap,
+        imageSource: 'blob:test',
+        currentParticipantId: 'master',
+        isMaster: true,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="goblin-1"]').classes()).toContain('current-turn')
   })
 })
