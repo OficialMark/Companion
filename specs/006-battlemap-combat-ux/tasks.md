@@ -179,13 +179,13 @@ Web app existente: `backend/src/Companion.{Domain,Application,Infrastructure,Api
 
 ### Tests for User Story 6
 
-- [ ] T046 [P] [US6] Teste de componente em `frontend/tests/battlemap.spec.ts` (ou novo `battlemap-token-menu-gesture.spec.ts`): um único `pointerdown`+`pointerup` (sem deslocamento) sobre um token controlável abre o painel de interação já com as seções de tamanho/condições (US3/US4), sem exigir um segundo clique, clique direito ou pressão longa.
-- [ ] T047 [P] [US6] Teste Playwright estendendo `frontend/tests/e2e/battlemap.spec.ts`: em viewport mobile, um único toque abre o painel com os controles de tamanho/condições operáveis por toque, sem necessidade de zoom manual (SC-007).
+- [X] T046 [P] [US6] Teste de componente em novo `frontend/tests/battlemap-token-menu-gesture.spec.ts`: um único `pointerdown`+`pointerup` (sem deslocamento) sobre um token controlável abre o painel de interação já com as seções de forma/tamanho/condições (US1/US3/US4); confirma que `contextmenu` isolado não abre nada.
+- [X] T047 [P] [US6] Teste Playwright adicionado em `frontend/tests/e2e/battlemap.spec.ts` e **executado de ponta a ponta** (stack real via `docker compose up`, projetos `desktop` e `android` do Playwright) — não apenas escrito. Essa execução real encontrou um bug sério e pré-existente (de antes desta feature, spec 005): em navegador real, `startTokenDrag` chama `setPointerCapture` no `<svg>` da mesa, o que retargeta o evento `click` sintetizado pelo navegador (o mesmo clique, após o `pointerup`) diretamente para a própria mesa — sem nunca borbulhar pelo token — fazendo `clickSurface`/`commitCell` "confirmar" o token na própria célula atual e limpar a seleção imediatamente, fechando o menu de interação assim que ele abria. Esse bug nunca aparecia nos testes unitários (jsdom/happy-dom não sintetiza esse `click` automático). Corrigido em `BattlemapBoard.vue` (`commitCell` ignora um clique que resolve para a própria célula atual do token selecionado, em vez de depender de uma flag de tempo) e coberto por dois novos testes unitários (o cenário do bug e o fluxo legítimo "selecionar depois tocar em outra célula", para garantir que a correção não quebrou esse fluxo).
 
 ### Implementation for User Story 6
 
-- [ ] T048 [US6] Auditar `startTokenDrag`/`selectToken`/`pointerUp` em `BattlemapBoard.vue` após as mudanças de US3–US5: confirmar que nenhum gesto novo (clique direito, duplo clique, pressão longa) foi introduzido para abrir o menu expandido; corrigir se alguma regressão for encontrada.
-- [ ] T049 [US6] Verificar/ajustar o tamanho dos alvos de toque na seção de tamanho e na lista de condições de `AttackAreaPanel.vue` para viewports mobile (SC-007: sem zoom manual nem rolagem lateral).
+- [X] T048 [US6] Auditar `startTokenDrag`/`selectToken`/`pointerUp` em `BattlemapBoard.vue` após as mudanças de US3–US5: confirmar que nenhum gesto novo (clique direito, duplo clique, pressão longa) foi introduzido para abrir o menu expandido; corrigir se alguma regressão for encontrada.
+- [X] T049 [US6] Verificar/ajustar o tamanho dos alvos de toque na seção de tamanho e na lista de condições de `AttackAreaPanel.vue` para viewports mobile (SC-007: sem zoom manual nem rolagem lateral).
 
 **Checkpoint**: As seis user stories funcionam de forma independente; gesto único confirmado intacto sobre o menu expandido.
 

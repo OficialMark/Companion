@@ -91,6 +91,7 @@
   .attack-area-panel { max-height: 33svh; }
   .attack-area-shape { flex: 1 1 auto; justify-content: center; }
   .token-size-option { flex: 1 1 auto; }
+  .token-condition-option { flex: 1 1 auto; justify-content: center; }
 }
 
 @media (max-width: 680px) {

@@ -185,6 +185,17 @@ function isInsideMap(column: number, row: number) {
 function commitCell(column: number, row: number) {
   if (!props.online || !selectedParticipantId.value) return
   if (!isInsideMap(column, row)) return
+  // A click resolving to the selected token's OWN current cell is never a
+  // real destination choice — it is either the browser's click event
+  // auto-synthesized right after this same tap's pointerup (setPointerCapture
+  // in startTokenDrag retargets it onto the surface, bypassing the token
+  // entirely), or a pointless self-click. Either way, committing it would
+  // immediately clear the selection that this same tap just set, closing the
+  // interaction panel before the user can use it. Ignoring it here (instead
+  // of a timing-based suppression flag) leaves genuinely different
+  // destination clicks — the documented select-then-tap-elsewhere flow —
+  // completely unaffected.
+  if (selectedToken.value?.column === column && selectedToken.value?.row === row) return
   cursor.column = column
   cursor.row = row
   emit('move', selectedParticipantId.value, column, row)

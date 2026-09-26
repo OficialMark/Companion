@@ -51,6 +51,7 @@ const emit = defineEmits<{
     @keydown.enter.prevent="emit('select', token)"
     @keydown.space.prevent="emit('select', token)"
     @pointerdown.stop="emit('dragstart', $event, token)"
+    @click.stop
   >
     <circle
       v-if="isCurrentTurn"
