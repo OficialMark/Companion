@@ -18,6 +18,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Battlemap> Battlemaps => Set<Battlemap>();
     public DbSet<BattlemapTokenPosition> BattlemapTokenPositions => Set<BattlemapTokenPosition>();
     public DbSet<AttackArea> AttackAreas => Set<AttackArea>();
+    public DbSet<BattlemapTokenAppearance> TokenAppearances => Set<BattlemapTokenAppearance>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -30,6 +31,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<Battlemap> ICompanionDbContext.Battlemaps => Battlemaps;
     IQueryable<BattlemapTokenPosition> ICompanionDbContext.BattlemapTokenPositions => BattlemapTokenPositions;
     IQueryable<AttackArea> ICompanionDbContext.AttackAreas => AttackAreas;
+    IQueryable<BattlemapTokenAppearance> ICompanionDbContext.TokenAppearances => TokenAppearances;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -44,6 +46,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(BattlemapTokenPosition position) => BattlemapTokenPositions.Remove(position);
     void ICompanionDbContext.Add(AttackArea area) => AttackAreas.Add(area);
     void ICompanionDbContext.Remove(AttackArea area) => AttackAreas.Remove(area);
+    void ICompanionDbContext.Add(BattlemapTokenAppearance appearance) => TokenAppearances.Add(appearance);
+    void ICompanionDbContext.Remove(BattlemapTokenAppearance appearance) => TokenAppearances.Remove(appearance);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

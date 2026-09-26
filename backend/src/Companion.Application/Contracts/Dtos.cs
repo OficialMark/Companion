@@ -22,6 +22,7 @@ public sealed record ConfigureBattlemapRequest(
     string? ExpectedRevision);
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
+public sealed record SetTokenAppearanceRequest(int FootprintSize, IReadOnlyList<string> StatusConditions);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -102,7 +103,11 @@ public sealed record BattlemapTokenDto(
     int? Row,
     string? PositionVersion,
     bool IsCreature = false,
-    AttackAreaDto? AttackArea = null);
+    AttackAreaDto? AttackArea = null,
+    int FootprintSize = 1,
+    IReadOnlyList<string>? StatusConditions = null,
+    bool IsMarker = false,
+    Guid? OwnerParticipantId = null);
 public sealed record BattlemapSnapshotDto(
     Guid Id,
     Guid EncounterId,

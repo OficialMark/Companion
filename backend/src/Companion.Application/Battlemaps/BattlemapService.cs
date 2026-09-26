@@ -249,6 +249,45 @@ public sealed class BattlemapService(
         return snapshot;
     }
 
+    public async Task<BattlemapSnapshotDto> SetTokenAppearanceAsync(
+        Guid campaignId,
+        Guid encounterId,
+        Guid tokenId,
+        string token,
+        SetTokenAppearanceRequest request,
+        CancellationToken cancellationToken)
+    {
+        var (encounter, battlemap, participant, combatant) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+
+        var conditions = request.StatusConditions.Select(name =>
+            Enum.TryParse<StatusCondition>(name, ignoreCase: true, out var parsed)
+                ? parsed
+                : throw new AppException(AppErrorKind.Validation, $"Condição de status inválida: {name}.")).ToList();
+
+        var existing = participant is not null
+            ? db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
+            : db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId);
+
+        try
+        {
+            var appearance = existing ?? (participant is not null
+                ? BattlemapTokenAppearance.ForParticipant(Guid.NewGuid(), battlemap.Id, tokenId)
+                : BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId));
+            appearance.SetFootprintSize(request.FootprintSize);
+            appearance.SetStatusConditions(conditions);
+            if (existing is null) db.Add(appearance);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        var snapshot = ToSnapshot(campaignId, battlemap);
+        await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
+        return snapshot;
+    }
+
     private (Encounter Encounter, Battlemap Battlemap, Participant? Participant, Combatant? Combatant) ResolveTokenForMutation(
         Guid campaignId, Guid encounterId, Guid tokenId, string token)
     {
@@ -289,6 +328,13 @@ public sealed class BattlemapService(
             .ToDictionary(x => x.ParticipantId!.Value);
         var creatureAreas = areas.Where(x => x.CombatantId.HasValue)
             .ToDictionary(x => x.CombatantId!.Value);
+        var appearances = db.TokenAppearances
+            .Where(x => x.BattlemapId == battlemap.Id)
+            .ToArray();
+        var playerAppearances = appearances.Where(x => x.ParticipantId.HasValue)
+            .ToDictionary(x => x.ParticipantId!.Value);
+        var creatureAppearances = appearances.Where(x => x.CombatantId.HasValue)
+            .ToDictionary(x => x.CombatantId!.Value);
         var playerTokens = db.Participants
             .Where(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player)
             .OrderBy(x => x.CreatedAt)
@@ -297,6 +343,7 @@ public sealed class BattlemapService(
             {
                 playerPositions.TryGetValue(participant.Id, out var position);
                 playerAreas.TryGetValue(participant.Id, out var area);
+                playerAppearances.TryGetValue(participant.Id, out var appearance);
                 return new BattlemapTokenDto(
                     participant.Id,
                     participant.DisplayName,
@@ -305,7 +352,9 @@ public sealed class BattlemapService(
                     position?.Column,
                     position?.Row,
                     position is null ? null : DtoMapper.Revision(position.Version),
-                    AttackArea: area is null ? null : ToDto(area));
+                    AttackArea: area is null ? null : ToDto(area),
+                    FootprintSize: appearance?.FootprintSize ?? 1,
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
             });
         var creatureTokens = db.Combatants
             .Where(x => x.EncounterId == battlemap.EncounterId && x.ParticipantId == null)
@@ -315,6 +364,7 @@ public sealed class BattlemapService(
             {
                 creaturePositions.TryGetValue(combatant.Id, out var position);
                 creatureAreas.TryGetValue(combatant.Id, out var area);
+                creatureAppearances.TryGetValue(combatant.Id, out var appearance);
                 return new BattlemapTokenDto(
                     combatant.Id,
                     combatant.Name,
@@ -323,8 +373,10 @@ public sealed class BattlemapService(
                     position?.Column,
                     position?.Row,
                     position is null ? null : DtoMapper.Revision(position.Version),
-                    true,
-                    area is null ? null : ToDto(area));
+                    IsCreature: true,
+                    AttackArea: area is null ? null : ToDto(area),
+                    FootprintSize: appearance?.FootprintSize ?? 1,
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
             });
         var tokens = playerTokens.Concat(creatureTokens).ToArray();
         return new BattlemapSnapshotDto(

@@ -1,5 +1,6 @@
 using Companion.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Companion.Infrastructure.Persistence;
@@ -143,6 +144,41 @@ public sealed class BattlemapTokenPositionConfiguration : IEntityTypeConfigurati
         builder.ToTable(table => table.HasCheckConstraint(
             "CK_BattlemapTokenPositions_Owner",
             "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)"));
+        builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class BattlemapTokenAppearanceConfiguration : IEntityTypeConfiguration<BattlemapTokenAppearance>
+{
+    public void Configure(EntityTypeBuilder<BattlemapTokenAppearance> builder)
+    {
+        builder.ToTable("BattlemapTokenAppearances");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Version).IsRowVersion();
+        var statusConditions = builder.Property(x => x.StatusConditions)
+            .HasField("_statusConditions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasConversion(
+                list => string.Join(',', list),
+                csv => string.IsNullOrEmpty(csv)
+                    ? new List<StatusCondition>()
+                    : csv.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<StatusCondition>).ToList())
+            .HasColumnName("StatusConditions")
+            .HasMaxLength(128);
+        statusConditions.Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<StatusCondition>>(
+            (left, right) => (left ?? Array.Empty<StatusCondition>()).SequenceEqual(right ?? Array.Empty<StatusCondition>()),
+            value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),
+            value => value.ToList()));
+        builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.MarkerId }).IsUnique().HasFilter("[MarkerId] IS NOT NULL");
+        builder.ToTable(table => table.HasCheckConstraint(
+            "CK_BattlemapTokenAppearances_Owner",
+            "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1"));
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
