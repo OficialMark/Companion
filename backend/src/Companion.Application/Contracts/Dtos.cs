@@ -23,6 +23,7 @@ public sealed record ConfigureBattlemapRequest(
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
 public sealed record SetTokenAppearanceRequest(int FootprintSize, IReadOnlyList<string> StatusConditions);
+public sealed record CreateMarkerRequest(string Label);
 
 public sealed record SessionResponse(
     Guid CampaignId,

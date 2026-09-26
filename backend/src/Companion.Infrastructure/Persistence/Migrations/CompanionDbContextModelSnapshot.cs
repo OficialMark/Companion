@@ -40,6 +40,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int?>("DirectionDegrees")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("MarkerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("ParticipantId")
                         .HasColumnType("uniqueidentifier");
 
@@ -75,13 +78,17 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[CombatantId] IS NOT NULL");
 
+                    b.HasIndex("BattlemapId", "MarkerId")
+                        .IsUnique()
+                        .HasFilter("[MarkerId] IS NOT NULL");
+
                     b.HasIndex("BattlemapId", "ParticipantId")
                         .IsUnique()
                         .HasFilter("[ParticipantId] IS NOT NULL");
 
                     b.ToTable("AttackAreas", null, t =>
                         {
-                            t.HasCheckConstraint("CK_AttackAreas_Owner", "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)");
+                            t.HasCheckConstraint("CK_AttackAreas_Owner", "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1");
                         });
                 });
 
@@ -140,6 +147,35 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Battlemaps", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.BattlemapMarker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BattlemapId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("OwnerParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BattlemapId");
+
+                    b.HasIndex("OwnerParticipantId");
+
+                    b.ToTable("BattlemapMarkers", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.BattlemapTokenAppearance", b =>
@@ -214,6 +250,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CombatantId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("MarkerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("ParticipantId")
                         .HasColumnType("uniqueidentifier");
 
@@ -241,13 +280,17 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[CombatantId] IS NOT NULL");
 
+                    b.HasIndex("BattlemapId", "MarkerId")
+                        .IsUnique()
+                        .HasFilter("[MarkerId] IS NOT NULL");
+
                     b.HasIndex("BattlemapId", "ParticipantId")
                         .IsUnique()
                         .HasFilter("[ParticipantId] IS NOT NULL");
 
                     b.ToTable("BattlemapTokenPositions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_BattlemapTokenPositions_Owner", "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)");
+                            t.HasCheckConstraint("CK_BattlemapTokenPositions_Owner", "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + (CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1");
                         });
                 });
 
@@ -562,6 +605,21 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .WithOne()
                         .HasForeignKey("Companion.Domain.Models.Battlemap", "EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.BattlemapMarker", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Battlemap", null)
+                        .WithMany()
+                        .HasForeignKey("BattlemapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

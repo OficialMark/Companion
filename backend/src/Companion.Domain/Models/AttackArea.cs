@@ -11,12 +11,13 @@ public sealed class AttackArea
 
     private AttackArea() { }
 
-    private AttackArea(Guid id, Guid battlemapId, Guid? participantId, Guid? combatantId, DateTimeOffset createdAt)
+    private AttackArea(Guid id, Guid battlemapId, Guid? participantId, Guid? combatantId, Guid? markerId, DateTimeOffset createdAt)
     {
         Id = id;
         BattlemapId = battlemapId;
         ParticipantId = participantId;
         CombatantId = combatantId;
+        MarkerId = markerId;
         CreatedAt = createdAt;
     }
 
@@ -24,6 +25,7 @@ public sealed class AttackArea
     public Guid BattlemapId { get; private set; }
     public Guid? ParticipantId { get; private set; }
     public Guid? CombatantId { get; private set; }
+    public Guid? MarkerId { get; private set; }
     public AttackAreaShape Shape { get; private set; }
     public int Radius { get; private set; }
     public int? Width { get; private set; }
@@ -36,7 +38,7 @@ public sealed class AttackArea
         Guid id, Guid battlemapId, Guid participantId,
         AttackAreaShape shape, int radius, int? width, int? directionDegrees, DateTimeOffset now)
     {
-        var area = new AttackArea(id, battlemapId, participantId, null, now);
+        var area = new AttackArea(id, battlemapId, participantId, null, null, now);
         area.Apply(shape, radius, width, directionDegrees, now);
         return area;
     }
@@ -45,7 +47,16 @@ public sealed class AttackArea
         Guid id, Guid battlemapId, Guid combatantId,
         AttackAreaShape shape, int radius, int? width, int? directionDegrees, DateTimeOffset now)
     {
-        var area = new AttackArea(id, battlemapId, null, combatantId, now);
+        var area = new AttackArea(id, battlemapId, null, combatantId, null, now);
+        area.Apply(shape, radius, width, directionDegrees, now);
+        return area;
+    }
+
+    public static AttackArea ForMarker(
+        Guid id, Guid battlemapId, Guid markerId,
+        AttackAreaShape shape, int radius, int? width, int? directionDegrees, DateTimeOffset now)
+    {
+        var area = new AttackArea(id, battlemapId, null, null, markerId, now);
         area.Apply(shape, radius, width, directionDegrees, now);
         return area;
     }
