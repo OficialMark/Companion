@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
-import type { DiceRoll } from '~/types/campaign'
+import type { DiceRoll, StatusCondition } from '~/types/campaign'
 import { useGameMode } from '~/composables/useGameMode'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
@@ -40,6 +40,15 @@ async function commitAttackArea(tokenId: string, draft: { shape: 'Circle' | 'Squ
 }
 async function removeAttackArea(tokenId: string) {
   await store.removeAttackArea(tokenId)
+}
+async function commitTokenAppearance(tokenId: string, draft: { footprintSize: number; statusConditions: StatusCondition[] }) {
+  await store.setTokenAppearance(tokenId, draft.footprintSize, draft.statusConditions)
+}
+async function createMarker(label: string) {
+  await store.createMarker(label)
+}
+async function removeMarker(markerId: string) {
+  await store.removeMarker(markerId)
 }
 async function leave() {
   await realtime.disconnect()
@@ -136,9 +145,15 @@ onBeforeUnmount(() => {
               :is-master="store.isMaster"
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
+              :combatants="store.snapshot.activeEncounter?.combatants ?? []"
+              :encounter-status="store.snapshot.activeEncounter?.status ?? null"
+              :participants="store.snapshot.participants"
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"
+              @token-appearance-commit="commitTokenAppearance"
+              @create-marker="createMarker"
+              @marker-remove="removeMarker"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
             <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>

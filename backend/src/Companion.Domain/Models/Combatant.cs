@@ -11,9 +11,10 @@ public sealed class Combatant
         int initiativeModifier,
         int creationOrder,
         Guid? participantId = null,
-        int? currentHitPoints = null)
+        int? currentHitPoints = null,
+        int? maxHitPoints = null)
     {
-        Validate(name, initiativeModifier, currentHitPoints);
+        Validate(name, initiativeModifier, currentHitPoints, maxHitPoints);
         Id = id;
         EncounterId = encounterId;
         Name = name.Trim();
@@ -21,6 +22,7 @@ public sealed class Combatant
         CreationOrder = creationOrder;
         ParticipantId = participantId;
         CurrentHitPoints = currentHitPoints;
+        MaxHitPoints = maxHitPoints;
     }
 
     public Guid Id { get; private set; }
@@ -30,17 +32,19 @@ public sealed class Combatant
     public int InitiativeModifier { get; private set; }
     public int? Initiative { get; private set; }
     public int? CurrentHitPoints { get; private set; }
+    public int? MaxHitPoints { get; private set; }
     public int CreationOrder { get; private set; }
     public byte[] Version { get; private set; } = [];
 
     public void SetInitiative(int d20) => Initiative = checked(d20 + InitiativeModifier);
 
-    public void Update(string name, int initiativeModifier, int? currentHitPoints = null)
+    public void Update(string name, int initiativeModifier, int? currentHitPoints = null, int? maxHitPoints = null)
     {
-        Validate(name, initiativeModifier, currentHitPoints ?? CurrentHitPoints);
+        Validate(name, initiativeModifier, currentHitPoints ?? CurrentHitPoints, maxHitPoints ?? MaxHitPoints);
         Name = name.Trim();
         InitiativeModifier = initiativeModifier;
         if (currentHitPoints.HasValue) CurrentHitPoints = currentHitPoints;
+        if (maxHitPoints.HasValue) MaxHitPoints = maxHitPoints;
         Initiative = null;
     }
 
@@ -66,7 +70,7 @@ public sealed class Combatant
         return new DamageApplication(Id, before, after, before - after);
     }
 
-    private static void Validate(string name, int initiativeModifier, int? currentHitPoints)
+    private static void Validate(string name, int initiativeModifier, int? currentHitPoints, int? maxHitPoints)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 60)
         {
@@ -79,6 +83,10 @@ public sealed class Combatant
         if (currentHitPoints is < 0 or > 99_999)
         {
             throw new ArgumentOutOfRangeException(nameof(currentHitPoints), "A vida deve estar entre 0 e 99999.");
+        }
+        if (maxHitPoints is < 0 or > 99_999)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxHitPoints), "A vida máxima deve estar entre 0 e 99999.");
         }
     }
 }

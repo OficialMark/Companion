@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type {
   AttackAreaShape, BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
-  DamageAppliedEvent, DiceRoll, Encounter, Participant, Session
+  DamageAppliedEvent, DiceRoll, Encounter, Participant, Session, StatusCondition
 } from '~/types/campaign'
 
 const SESSION_KEY = 'companion.session.v1'
@@ -154,6 +154,38 @@ export const useCampaignStore = defineStore('campaign', {
       if (!this.session || !this.battlemap) return
       try {
         this.battlemap = await useCompanionApi().removeAttackArea(this.session, this.battlemap.encounterId, tokenId)
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async setTokenAppearance(tokenId: string, footprintSize: number, statusConditions: StatusCondition[]) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().setTokenAppearance(
+          this.session,
+          this.battlemap.encounterId,
+          tokenId,
+          { footprintSize, statusConditions }
+        )
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async createMarker(label: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().createMarker(this.session, this.battlemap.encounterId, { label })
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async removeMarker(markerId: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().removeMarker(this.session, this.battlemap.encounterId, markerId)
         this.error = ''
       } catch (error) {
         this.error = (error as Error).message

@@ -9,6 +9,9 @@ public static class DtoMapper
     public static EncounterDto ToDto(Encounter encounter, Participant observer) =>
         ToDto(encounter, observer.Id, observer.Role == ParticipantRole.Master);
 
+    // A vida (atual e máxima) de qualquer combatente é visível a todos os participantes
+    // (FR-009a da spec 006-battlemap-combat-ux) — os parâmetros de observador seguem
+    // existindo por compatibilidade com os call sites, mas não filtram mais o HP.
     public static EncounterDto ToDto(Encounter encounter, Guid? observerParticipantId, bool includeAllHitPoints)
     {
         var ordered = encounter.Combatants
@@ -23,8 +26,9 @@ public static class DtoMapper
             x.Initiative,
             x.CreationOrder,
             encounter.Status == EncounterStatus.Active && encounter.CurrentTurnIndex == index,
-            includeAllHitPoints || x.ParticipantId == observerParticipantId ? x.CurrentHitPoints : null,
-            x.CurrentHitPoints == 0)).ToArray();
+            x.CurrentHitPoints,
+            x.CurrentHitPoints == 0,
+            x.MaxHitPoints)).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }
 

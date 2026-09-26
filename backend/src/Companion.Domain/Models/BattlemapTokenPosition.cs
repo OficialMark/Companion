@@ -22,6 +22,7 @@ public sealed class BattlemapTokenPosition
     public Guid BattlemapId { get; private set; }
     public Guid? ParticipantId { get; private set; }
     public Guid? CombatantId { get; private set; }
+    public Guid? MarkerId { get; private set; }
     public int Column { get; private set; }
     public int Row { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -40,6 +41,24 @@ public sealed class BattlemapTokenPosition
             Id = id,
             BattlemapId = battlemapId,
             CombatantId = combatantId
+        };
+        position.Move(column, row, updatedAt);
+        return position;
+    }
+
+    public static BattlemapTokenPosition ForMarker(
+        Guid id,
+        Guid battlemapId,
+        Guid markerId,
+        int column,
+        int row,
+        DateTimeOffset updatedAt)
+    {
+        var position = new BattlemapTokenPosition
+        {
+            Id = id,
+            BattlemapId = battlemapId,
+            MarkerId = markerId
         };
         position.Move(column, row, updatedAt);
         return position;

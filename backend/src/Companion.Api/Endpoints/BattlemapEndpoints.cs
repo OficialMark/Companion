@@ -110,6 +110,38 @@ public static class BattlemapEndpoints
             Results.Ok(await service.RemoveAttackAreaAsync(
                 campaignId, encounterId, tokenId, Token(request), ct)));
 
+        group.MapPut("/tokens/{tokenId:guid}/appearance", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid tokenId,
+            SetTokenAppearanceRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.SetTokenAppearanceAsync(
+                campaignId, encounterId, tokenId, Token(request), body, ct)));
+
+        group.MapPost("/markers", async (
+            Guid campaignId,
+            Guid encounterId,
+            CreateMarkerRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Created(
+                $"/api/campaigns/{campaignId}/encounters/{encounterId}/battlemap",
+                await service.CreateMarkerAsync(campaignId, encounterId, Token(request), body, ct)));
+
+        group.MapDelete("/markers/{markerId:guid}", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid markerId,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.RemoveMarkerAsync(
+                campaignId, encounterId, markerId, Token(request), ct)));
+
         return endpoints;
     }
 

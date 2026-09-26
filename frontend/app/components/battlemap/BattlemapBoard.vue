@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { BattlemapSnapshot, BattlemapToken } from '~/types/campaign'
+import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus, Participant } from '~/types/campaign'
 import { useBattlemapViewport } from '~/composables/useBattlemapViewport'
 import { useAttackAreas, type AttackAreaDraft } from '~/composables/useAttackAreas'
+import { useTokenAppearance, type TokenAppearanceDraft } from '~/composables/useTokenAppearance'
 import { attackAreaGeometry } from '~/utils/attackAreaGeometry'
 import BattlemapTokenMarker from './BattlemapToken.vue'
 import AttackAreaPanel from './AttackAreaPanel.vue'
@@ -13,12 +14,26 @@ const props = withDefaults(defineProps<{
   isMaster: boolean
   online: boolean
   pendingParticipantId?: string | null
-}>(), { pendingParticipantId: null })
+  combatants?: Combatant[]
+  encounterStatus?: EncounterStatus | null
+  participants?: Participant[]
+}>(), { pendingParticipantId: null, combatants: () => [], encounterStatus: null, participants: () => [] })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
   'attack-area-remove': [tokenId: string]
+  'token-appearance-commit': [tokenId: string, draft: TokenAppearanceDraft]
+  'create-marker': [label: string]
+  'marker-remove': [markerId: string]
 }>()
+
+const newMarkerLabel = ref('')
+function submitNewMarker() {
+  const label = newMarkerLabel.value.trim()
+  if (!label) return
+  emit('create-marker', label)
+  newMarkerLabel.value = ''
+}
 
 const columns = computed(() => props.battlemap.columns)
 const rows = computed(() => props.battlemap.rows)
@@ -43,18 +58,68 @@ const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 
 function controllable(token: BattlemapToken) {
-  return props.isMaster || (!token.isCreature && token.participantId === props.currentParticipantId)
+  if (props.isMaster) return true
+  if (token.isMarker) return token.ownerParticipantId === props.currentParticipantId
+  return !token.isCreature && token.participantId === props.currentParticipantId
+}
+
+// A creature token's `participantId` field actually holds its Combatant.id (see
+// BattlemapService.ToSnapshot); a player token's `participantId` matches
+// Combatant.participantId. Both cases are covered by checking either field.
+const currentTurnTokenId = computed(() => {
+  if (props.encounterStatus !== 'Active') return null
+  const current = props.combatants.find(item => item.isCurrent)
+  if (!current) return null
+  return current.participantId ?? current.id
+})
+function isCurrentTurn(token: BattlemapToken) {
+  return currentTurnTokenId.value !== null && currentTurnTokenId.value === token.participantId
+}
+
+// Resolved client-side (not carried on BattlemapTokenDto) so it stays in sync with
+// HP mutations, which broadcast via EncounterInvalidated/ParticipantsChanged, not
+// BattlemapInvalidated. See specs/006-battlemap-combat-ux/data-model.md.
+// Memoized as a computed lookup map (instead of a per-call linear scan) since the
+// template reads it twice per token (current/max), for every token, every render.
+const healthByTokenId = computed(() => {
+  const map = new Map<string, { current: number | null; max: number | null }>()
+  const combatantsByTokenId = new Map(props.combatants.map(item => [item.participantId ?? item.id, item]))
+  const participantsById = new Map(props.participants.map(item => [item.id, item]))
+  for (const token of props.battlemap.tokens) {
+    if (token.isMarker) continue
+    const combatant = combatantsByTokenId.get(token.participantId)
+    if (combatant) {
+      if (combatant.maxHitPoints != null) map.set(token.participantId, { current: combatant.currentHitPoints, max: combatant.maxHitPoints })
+      continue
+    }
+    const participant = participantsById.get(token.participantId)
+    if (participant?.maxHitPoints != null) map.set(token.participantId, { current: participant.currentHitPoints, max: participant.maxHitPoints })
+  }
+  return map
+})
+function healthFor(token: BattlemapToken): { current: number | null; max: number | null } | null {
+  return healthByTokenId.value.get(token.participantId) ?? null
 }
 
 const attackAreas = useAttackAreas()
+const tokenAppearance = useTokenAppearance()
 const attackAreaMaxRadius = computed(() => Math.max(columns.value, rows.value))
 const activeAttackAreaToken = computed(() =>
   selectedToken.value && controllable(selectedToken.value) ? selectedToken.value : null)
 
+function footprintSize(token: BattlemapToken) {
+  return token.footprintSize ?? 1
+}
+
+// A token spanning N cells (footprintSize) is anchored at its stored
+// column/row (top-left cell) but visually centered over its whole N×N span,
+// so its attack area and stacking offset originate from the middle of the
+// creature, not from the corner cell (FR-012).
 function tokenOrigin(token: BattlemapToken) {
+  const span = footprintSize(token)
   return {
-    x: (token.column! + .5) * viewport.cellSize.value,
-    y: (token.row! + .5) * viewport.cellSize.value
+    x: (token.column! + span / 2) * viewport.cellSize.value,
+    y: (token.row! + span / 2) * viewport.cellSize.value
   }
 }
 
@@ -83,7 +148,10 @@ function selectTokenForArea(token: BattlemapToken) {
 }
 
 function closeAttackAreaPanel() {
-  if (selectedParticipantId.value) attackAreas.clearPreview(selectedParticipantId.value)
+  if (selectedParticipantId.value) {
+    attackAreas.clearPreview(selectedParticipantId.value)
+    tokenAppearance.clearPreview(selectedParticipantId.value)
+  }
   selectedParticipantId.value = null
 }
 
@@ -94,6 +162,7 @@ function selectToken(token: BattlemapToken) {
   if (selectedParticipantId.value === token.participantId) {
     selectedParticipantId.value = null
     attackAreas.clearPreview(token.participantId)
+    tokenAppearance.clearPreview(token.participantId)
     return
   }
   selectedParticipantId.value = token.participantId
@@ -124,10 +193,22 @@ function isInsideMap(column: number, row: number) {
 function commitCell(column: number, row: number) {
   if (!props.online || !selectedParticipantId.value) return
   if (!isInsideMap(column, row)) return
+  // A click resolving to the selected token's OWN current cell is never a
+  // real destination choice — it is either the browser's click event
+  // auto-synthesized right after this same tap's pointerup (setPointerCapture
+  // in startTokenDrag retargets it onto the surface, bypassing the token
+  // entirely), or a pointless self-click. Either way, committing it would
+  // immediately clear the selection that this same tap just set, closing the
+  // interaction panel before the user can use it. Ignoring it here (instead
+  // of a timing-based suppression flag) leaves genuinely different
+  // destination clicks — the documented select-then-tap-elsewhere flow —
+  // completely unaffected.
+  if (selectedToken.value?.column === column && selectedToken.value?.row === row) return
   cursor.column = column
   cursor.row = row
   emit('move', selectedParticipantId.value, column, row)
   attackAreas.clearPreview(selectedParticipantId.value)
+  tokenAppearance.clearPreview(selectedParticipantId.value)
   selectedParticipantId.value = null
 }
 
@@ -221,6 +302,7 @@ function pointerUp(event: PointerEvent) {
       if (!isInsideMap(cell.column, cell.row)) {
         emit('move', tokenId, null, null)
         attackAreas.clearPreview(tokenId)
+        tokenAppearance.clearPreview(tokenId)
         selectedParticipantId.value = null
       } else {
         commitCell(cell.column, cell.row)
@@ -255,6 +337,7 @@ function keydown(event: KeyboardEvent) {
 }
 
 function stackOffset(token: BattlemapToken) {
+  if (footprintSize(token) > 1) return { x: 0, y: 0 }
   const sameCell = positionedTokens.value.filter(item => item.column === token.column && item.row === token.row)
   const index = sameCell.findIndex(item => item.participantId === token.participantId)
   const distance = Math.min(10, viewport.cellSize.value * .2)
@@ -262,6 +345,12 @@ function stackOffset(token: BattlemapToken) {
     x: ((index % 2) - .5) * distance,
     y: (Math.floor(index / 2) - .5) * distance
   }
+}
+
+function tokenCenter(token: BattlemapToken) {
+  const origin = tokenOrigin(token)
+  const offset = stackOffset(token)
+  return { x: origin.x + offset.x, y: origin.y + offset.y }
 }
 
 onMounted(() => {
@@ -379,12 +468,16 @@ onBeforeUnmount(() => observer?.disconnect())
           v-for="token in positionedTokens"
           :key="token.participantId"
           :token="token"
-          :x="(token.column! + .5) * viewport.cellSize.value + stackOffset(token).x"
-          :y="(token.row! + .5) * viewport.cellSize.value + stackOffset(token).y"
+          :x="tokenCenter(token).x"
+          :y="tokenCenter(token).y"
           :size="viewport.cellSize.value"
+          :footprint-size="footprintSize(token)"
           :selected="selectedParticipantId === token.participantId"
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
+          :is-current-turn="isCurrentTurn(token)"
+          :current-hit-points="healthFor(token)?.current ?? null"
+          :max-hit-points="healthFor(token)?.max ?? null"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />
@@ -396,9 +489,14 @@ onBeforeUnmount(() => observer?.disconnect())
       :draft="attackAreas.draftFor(activeAttackAreaToken)"
       :has-existing="Boolean(activeAttackAreaToken.attackArea)"
       :max-radius="attackAreaMaxRadius"
+      :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
+      :is-marker="Boolean(activeAttackAreaToken.isMarker)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
+      @appearance-change="draft => tokenAppearance.preview(activeAttackAreaToken!.participantId, draft)"
+      @appearance-commit="draft => emit('token-appearance-commit', activeAttackAreaToken!.participantId, draft)"
+      @remove-token="emit('marker-remove', activeAttackAreaToken!.participantId)"
       @close="closeAttackAreaPanel"
     />
 
@@ -415,6 +513,17 @@ onBeforeUnmount(() => observer?.disconnect())
         @click="selectToken(token)"
       >{{ token.initials }} <span>{{ token.displayName }}</span></button>
     </div>
+    <form class="battlemap-new-marker" aria-label="Inserir token representativo" @submit.prevent="submitNewMarker">
+      <input
+        v-model="newMarkerLabel"
+        data-new-marker-label
+        type="text"
+        maxlength="40"
+        placeholder="Nome do token (ex.: Lobo invocado)"
+        :disabled="!online"
+      >
+      <button data-new-marker-submit class="button ghost" type="submit" :disabled="!online || !newMarkerLabel.trim()" @click.prevent="submitNewMarker">Inserir token</button>
+    </form>
     <p class="battlemap-status" aria-live="polite">
       <template v-if="!online">Conexão necessária para mover pinos.</template>
       <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>

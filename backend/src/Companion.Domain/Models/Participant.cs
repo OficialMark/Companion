@@ -33,10 +33,11 @@ public sealed class Participant
     public DateTimeOffset CreatedAt { get; private set; }
     public int? InitiativeModifier { get; private set; }
     public int? CurrentHitPoints { get; private set; }
+    public int? MaxHitPoints { get; private set; }
 
-    public void UpdateInitiativeModifier(int? modifier) => UpdateCombatProfile(modifier, CurrentHitPoints);
+    public void UpdateInitiativeModifier(int? modifier) => UpdateCombatProfile(modifier, CurrentHitPoints, MaxHitPoints);
 
-    public void UpdateCombatProfile(int? initiativeModifier, int? currentHitPoints)
+    public void UpdateCombatProfile(int? initiativeModifier, int? currentHitPoints, int? maxHitPoints = null)
     {
         if (initiativeModifier is < -100 or > 100)
         {
@@ -48,7 +49,13 @@ public sealed class Participant
             throw new ArgumentOutOfRangeException(nameof(currentHitPoints), "A vida deve estar entre 0 e 99999.");
         }
 
+        if (maxHitPoints is < 0 or > 99_999)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxHitPoints), "A vida máxima deve estar entre 0 e 99999.");
+        }
+
         InitiativeModifier = initiativeModifier;
         CurrentHitPoints = currentHitPoints;
+        MaxHitPoints = maxHitPoints;
     }
 }

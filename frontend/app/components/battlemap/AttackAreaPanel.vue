@@ -1,19 +1,45 @@
 <script setup lang="ts">
 import type { AttackAreaDraft } from '~/composables/useAttackAreas'
-import type { AttackAreaShape } from '~/types/campaign'
+import { STATUS_CONDITION_OPTIONS, type TokenAppearanceDraft } from '~/composables/useTokenAppearance'
+import type { AttackAreaShape, StatusCondition } from '~/types/campaign'
 
 const props = withDefaults(defineProps<{
   draft: AttackAreaDraft
   hasExisting: boolean
   maxRadius?: number
-}>(), { maxRadius: 20 })
+  appearanceDraft?: TokenAppearanceDraft
+  isMarker?: boolean
+}>(), { maxRadius: 20, appearanceDraft: () => ({ footprintSize: 1, statusConditions: [] }), isMarker: false })
 
 const emit = defineEmits<{
   change: [draft: AttackAreaDraft]
   commit: [draft: AttackAreaDraft]
   remove: []
   close: []
+  'appearance-change': [draft: TokenAppearanceDraft]
+  'appearance-commit': [draft: TokenAppearanceDraft]
+  'remove-token': []
 }>()
+
+const footprintSizes = [1, 2, 3, 4, 5]
+
+function selectFootprintSize(footprintSize: number) {
+  const next: TokenAppearanceDraft = { ...props.appearanceDraft, footprintSize }
+  emit('appearance-change', next)
+  emit('appearance-commit', next)
+}
+
+const statusConditionOptions = STATUS_CONDITION_OPTIONS
+
+function toggleStatusCondition(condition: StatusCondition) {
+  const active = props.appearanceDraft.statusConditions.includes(condition)
+  const statusConditions = active
+    ? props.appearanceDraft.statusConditions.filter(item => item !== condition)
+    : [...props.appearanceDraft.statusConditions, condition]
+  const next: TokenAppearanceDraft = { ...props.appearanceDraft, statusConditions }
+  emit('appearance-change', next)
+  emit('appearance-commit', next)
+}
 
 const shapes: Array<{ value: AttackAreaShape; label: string; icon: string }> = [
   { value: 'Circle', label: 'Círculo', icon: '◯' },
@@ -94,8 +120,34 @@ function onSliderChange() {
       </label>
     </template>
 
+    <div class="token-size-options" role="group" aria-label="Tamanho do token">
+      <button
+        v-for="size in footprintSizes"
+        :key="size"
+        type="button"
+        class="token-size-option"
+        :class="{ selected: appearanceDraft.footprintSize === size }"
+        :aria-pressed="appearanceDraft.footprintSize === size"
+        @click="selectFootprintSize(size)"
+      >{{ size }}x{{ size }}</button>
+    </div>
+
+    <div class="token-condition-options" role="group" aria-label="Condições de status">
+      <button
+        v-for="option in statusConditionOptions"
+        :key="option.value"
+        type="button"
+        class="token-condition-option"
+        :data-condition="option.value"
+        :class="{ selected: appearanceDraft.statusConditions.includes(option.value) }"
+        :aria-pressed="appearanceDraft.statusConditions.includes(option.value)"
+        @click="toggleStatusCondition(option.value)"
+      ><span aria-hidden="true">{{ option.abbreviation }}</span>{{ option.label }}</button>
+    </div>
+
     <div class="attack-area-actions">
-      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover</button>
+      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover área</button>
+      <button v-if="isMarker" class="button ghost danger marker-remove-button" type="button" @click="emit('remove-token'); emit('close')">Remover token</button>
       <button class="button primary" type="button" @click="emit('close')">Concluir</button>
     </div>
   </div>
