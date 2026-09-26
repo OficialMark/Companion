@@ -173,6 +173,24 @@ export const useCampaignStore = defineStore('campaign', {
         this.error = (error as Error).message
       }
     },
+    async createMarker(label: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().createMarker(this.session, this.battlemap.encounterId, { label })
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async removeMarker(markerId: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().removeMarker(this.session, this.battlemap.encounterId, markerId)
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
     async applyEvent(event: CampaignEvent) {
       if (event.type === 'CampaignDeleted') {
         this.clearSession()

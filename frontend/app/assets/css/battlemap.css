@@ -63,6 +63,9 @@
 .reserve-token.selected { border-color: var(--gold); color: var(--gold); }
 .reserve-token:disabled { opacity: .45; cursor: not-allowed; }
 .battlemap-status { min-height: 36px; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+.battlemap-new-marker { display: flex; gap: 8px; flex-wrap: wrap; }
+.battlemap-new-marker input { flex: 1 1 200px; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; background: rgba(255,255,255,.04); color: var(--ink); }
+.battlemap-new-marker .button { min-height: 44px; }
 
 .attack-area-shape-drawing { fill: rgba(215,174,93,.22); stroke: #ffd36d; stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
 .attack-area-shape-drawing.interactive { pointer-events: auto; cursor: pointer; }

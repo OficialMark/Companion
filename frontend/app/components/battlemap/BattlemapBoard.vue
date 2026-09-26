@@ -23,7 +23,17 @@ const emit = defineEmits<{
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
   'attack-area-remove': [tokenId: string]
   'token-appearance-commit': [tokenId: string, draft: TokenAppearanceDraft]
+  'create-marker': [label: string]
+  'marker-remove': [markerId: string]
 }>()
+
+const newMarkerLabel = ref('')
+function submitNewMarker() {
+  const label = newMarkerLabel.value.trim()
+  if (!label) return
+  emit('create-marker', label)
+  newMarkerLabel.value = ''
+}
 
 const columns = computed(() => props.battlemap.columns)
 const rows = computed(() => props.battlemap.rows)
@@ -48,7 +58,9 @@ const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 
 function controllable(token: BattlemapToken) {
-  return props.isMaster || (!token.isCreature && token.participantId === props.currentParticipantId)
+  if (props.isMaster) return true
+  if (token.isMarker) return token.ownerParticipantId === props.currentParticipantId
+  return !token.isCreature && token.participantId === props.currentParticipantId
 }
 
 // A creature token's `participantId` field actually holds its Combatant.id (see
@@ -459,11 +471,13 @@ onBeforeUnmount(() => observer?.disconnect())
       :has-existing="Boolean(activeAttackAreaToken.attackArea)"
       :max-radius="attackAreaMaxRadius"
       :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
+      :is-marker="Boolean(activeAttackAreaToken.isMarker)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
       @appearance-change="draft => tokenAppearance.preview(activeAttackAreaToken!.participantId, draft)"
       @appearance-commit="draft => emit('token-appearance-commit', activeAttackAreaToken!.participantId, draft)"
+      @remove-token="emit('marker-remove', activeAttackAreaToken!.participantId)"
       @close="closeAttackAreaPanel"
     />
 
@@ -480,6 +494,17 @@ onBeforeUnmount(() => observer?.disconnect())
         @click="selectToken(token)"
       >{{ token.initials }} <span>{{ token.displayName }}</span></button>
     </div>
+    <form class="battlemap-new-marker" aria-label="Inserir token representativo" @submit.prevent="submitNewMarker">
+      <input
+        v-model="newMarkerLabel"
+        data-new-marker-label
+        type="text"
+        maxlength="40"
+        placeholder="Nome do token (ex.: Lobo invocado)"
+        :disabled="!online"
+      >
+      <button data-new-marker-submit class="button ghost" type="submit" :disabled="!online || !newMarkerLabel.trim()" @click.prevent="submitNewMarker">Inserir token</button>
+    </form>
     <p class="battlemap-status" aria-live="polite">
       <template v-if="!online">Conexão necessária para mover pinos.</template>
       <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>

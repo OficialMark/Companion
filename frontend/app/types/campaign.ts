@@ -112,6 +112,9 @@ export interface SetTokenAppearanceRequest {
   footprintSize: number
   statusConditions: StatusCondition[]
 }
+export interface CreateMarkerRequest {
+  label: string
+}
 export interface BattlemapSnapshot {
   id: string
   encounterId: string

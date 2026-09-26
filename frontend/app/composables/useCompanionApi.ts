@@ -1,6 +1,6 @@
 import type {
   AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceRoll, Encounter,
-  MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session, SetAttackAreaRequest, SetTokenAppearanceRequest
+  CreateMarkerRequest, MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session, SetAttackAreaRequest, SetTokenAppearanceRequest
 } from '~/types/campaign'
 import { createUuid } from '~/utils/createUuid'
 
@@ -71,6 +71,10 @@ export function useCompanionApi() {
       request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/tokens/${tokenId}/attack-area`, { method: 'DELETE' }, session.participantToken),
     setTokenAppearance: (session: Session, encounterId: string, tokenId: string, body: SetTokenAppearanceRequest) =>
       request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/tokens/${tokenId}/appearance`, { method: 'PUT', body: JSON.stringify(body) }, session.participantToken),
+    createMarker: (session: Session, encounterId: string, body: CreateMarkerRequest) =>
+      request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/markers`, { method: 'POST', body: JSON.stringify(body) }, session.participantToken),
+    removeMarker: (session: Session, encounterId: string, markerId: string) =>
+      request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/markers/${markerId}`, { method: 'DELETE' }, session.participantToken),
     battlemapImage,
     listAdminCampaigns: (adminKey: string) => request<AdminCampaign[]>('/admin/campaigns', { headers: { 'X-Admin-Key': adminKey } }),
     deleteAdminCampaign: (adminKey: string, campaignId: string) => request<void>(`/admin/campaigns/${campaignId}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } })

@@ -8,7 +8,8 @@ const props = withDefaults(defineProps<{
   hasExisting: boolean
   maxRadius?: number
   appearanceDraft?: TokenAppearanceDraft
-}>(), { maxRadius: 20, appearanceDraft: () => ({ footprintSize: 1, statusConditions: [] }) })
+  isMarker?: boolean
+}>(), { maxRadius: 20, appearanceDraft: () => ({ footprintSize: 1, statusConditions: [] }), isMarker: false })
 
 const emit = defineEmits<{
   change: [draft: AttackAreaDraft]
@@ -17,6 +18,7 @@ const emit = defineEmits<{
   close: []
   'appearance-change': [draft: TokenAppearanceDraft]
   'appearance-commit': [draft: TokenAppearanceDraft]
+  'remove-token': []
 }>()
 
 const footprintSizes = [1, 2, 3, 4, 5]
@@ -151,7 +153,8 @@ function onSliderChange() {
     </div>
 
     <div class="attack-area-actions">
-      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover</button>
+      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover área</button>
+      <button v-if="isMarker" class="button ghost danger marker-remove-button" type="button" @click="emit('remove-token'); emit('close')">Remover token</button>
       <button class="button primary" type="button" @click="emit('close')">Concluir</button>
     </div>
   </div>

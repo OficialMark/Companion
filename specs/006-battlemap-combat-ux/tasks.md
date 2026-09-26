@@ -151,19 +151,19 @@ Web app existente: `backend/src/Companion.{Domain,Application,Infrastructure,Api
 
 ### Tests for User Story 5
 
-- [ ] T036 [P] [US5] Teste de domínio em `backend/tests/Companion.UnitTests/BattlemapTests.cs` (ou novo `BattlemapMarkerTests.cs`): `BattlemapMarker.Label` aceita 1–40 caracteres e rejeita fora do intervalo.
-- [ ] T037 [P] [US5] Teste de integração em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`: `POST markers` cria um token no snapshot (`isMarker: true`, sem HP); `DELETE markers/{markerId}` remove o marcador e sua posição/área/aparência associadas; em `BattlemapSecurityApiTests.cs`: mover/configurar/remover um marcador de outro dono (sem ser mestre) retorna `403`.
-- [ ] T038 [P] [US5] Teste de componente em `frontend/tests/battlemap.spec.ts`: um token de marcador é renderizado como os demais (posição/tamanho/condições) mas nunca exibe barra de vida; o controle "Inserir token" cria um novo token na reserva pertencente ao participante atual.
+- [X] T036 [P] [US5] Teste de domínio em `backend/tests/Companion.UnitTests/BattlemapTests.cs` (ou novo `BattlemapMarkerTests.cs`): `BattlemapMarker.Label` aceita 1–40 caracteres e rejeita fora do intervalo.
+- [X] T037 [P] [US5] Implementado em `BattlemapApiTests.cs` (autorização coberta na mesma classe, não em `BattlemapSecurityApiTests.cs`): `POST markers` cria um token no snapshot (`isMarker: true`); `DELETE markers/{markerId}` remove o marcador e sua posição/área/aparência associadas; mover/configurar/remover marcador de outro dono (sem ser mestre) retorna `403`; mestre pode remover qualquer marcador.
+- [X] T038 [P] [US5] Teste de componente em `frontend/tests/battlemap-markers.spec.ts` (arquivo dedicado): controle de token de marcador (dono/mestre podem, terceiro não); `frontend/tests/battlemap.spec.ts` já cobre (US2) que um marcador nunca exibe barra de vida; controle "Inserir token" testado em `battlemap-markers.spec.ts`.
 
 ### Implementation for User Story 5
 
-- [ ] T039 [US5] Criar `backend/src/Companion.Domain/Models/BattlemapMarker.cs` (Id, BattlemapId, OwnerParticipantId, Label, ColorKey, CreatedAt), conforme `data-model.md`.
-- [ ] T040 [US5] Adicionar mapeamento EF Core + `DbSet<BattlemapMarker>` em `ModelConfigurations.cs`/`CompanionDbContext.cs`; adicionar coluna `MarkerId` (Guid?) a `backend/src/Companion.Domain/Models/BattlemapTokenPosition.cs` e `backend/src/Companion.Domain/Models/AttackArea.cs` (domínio + mapeamento EF); gerar migration `AddBattlemapMarkers`.
-- [ ] T041 [US5] Estender `ResolveTokenForMutation`/`MoveAsync`/`SetAttackAreaAsync`/`RemoveAttackAreaAsync`/`SetTokenAppearanceAsync` em `BattlemapService.cs` para resolver um `tokenId` também como marcador (autorização: `OwnerParticipantId` ou mestre) como terceiro caso ao lado de participante/combatente; incluir marcadores em `ToSnapshot` (`isMarker: true`, `ownerParticipantId`, sem campos de HP).
-- [ ] T042 [US5] Implementar `CreateMarkerAsync`/`RemoveMarkerAsync` em `BattlemapService.cs` (remoção em cascata de posição/área/aparência associadas ao `MarkerId`, FR-019); adicionar rotas `POST markers`/`DELETE markers/{markerId}` em `BattlemapEndpoints.cs`.
-- [ ] T043 [P] [US5] Adicionar `isMarker`/`ownerParticipantId` à interface `BattlemapToken` e criar os tipos de request/response de marcador em `frontend/app/types/campaign.ts`.
-- [ ] T044 [US5] Criar `frontend/app/composables/useBattlemapMarkers.ts` (criar/mover/remover marcador, estado pendente/otimista, mesmo padrão de `useAttackAreas.ts`).
-- [ ] T045 [US5] Adicionar um controle "Inserir token" em `frontend/app/components/battlemap/BattlemapBoard.vue` (próximo à reserva), chamando `useBattlemapMarkers`; garantir que `controllable(token)` em `BattlemapBoard.vue` trate o dono de um marcador (ou o mestre) como controlador, e qualquer outro participante como não-controlador.
+- [X] T039 [US5] Criar `backend/src/Companion.Domain/Models/BattlemapMarker.cs` (Id, BattlemapId, OwnerParticipantId, Label, ColorKey, CreatedAt), conforme `data-model.md`.
+- [X] T040 [US5] Adicionar mapeamento EF Core + `DbSet<BattlemapMarker>` em `ModelConfigurations.cs`/`CompanionDbContext.cs`; adicionar coluna `MarkerId` (Guid?) a `backend/src/Companion.Domain/Models/BattlemapTokenPosition.cs` e `backend/src/Companion.Domain/Models/AttackArea.cs` (domínio + mapeamento EF); gerar migration `AddBattlemapMarkers`.
+- [X] T041 [US5] Estender `ResolveTokenForMutation`/`MoveAsync`/`SetAttackAreaAsync`/`RemoveAttackAreaAsync`/`SetTokenAppearanceAsync` em `BattlemapService.cs` para resolver um `tokenId` também como marcador (autorização: `OwnerParticipantId` ou mestre) como terceiro caso ao lado de participante/combatente; incluir marcadores em `ToSnapshot` (`isMarker: true`, `ownerParticipantId`, sem campos de HP).
+- [X] T042 [US5] Implementar `CreateMarkerAsync`/`RemoveMarkerAsync` em `BattlemapService.cs` (remoção em cascata de posição/área/aparência associadas ao `MarkerId`, FR-019); adicionar rotas `POST markers`/`DELETE markers/{markerId}` em `BattlemapEndpoints.cs`.
+- [X] T043 [P] [US5] Adicionar `isMarker`/`ownerParticipantId` à interface `BattlemapToken` e criar os tipos de request/response de marcador em `frontend/app/types/campaign.ts`.
+- [X] T044 [US5] Criar `frontend/app/composables/useBattlemapMarkers.ts` (criar/mover/remover marcador, estado pendente/otimista, mesmo padrão de `useAttackAreas.ts`).
+- [X] T045 [US5] Adicionar um controle "Inserir token" em `frontend/app/components/battlemap/BattlemapBoard.vue` (próximo à reserva), chamando `useBattlemapMarkers`; garantir que `controllable(token)` em `BattlemapBoard.vue` trate o dono de um marcador (ou o mestre) como controlador, e qualquer outro participante como não-controlador.
 
 **Checkpoint**: US5 funcional e testável de forma independente, assumindo US3 já entregue.
 

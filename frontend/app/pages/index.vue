@@ -44,6 +44,12 @@ async function removeAttackArea(tokenId: string) {
 async function commitTokenAppearance(tokenId: string, draft: { footprintSize: number; statusConditions: StatusCondition[] }) {
   await store.setTokenAppearance(tokenId, draft.footprintSize, draft.statusConditions)
 }
+async function createMarker(label: string) {
+  await store.createMarker(label)
+}
+async function removeMarker(markerId: string) {
+  await store.removeMarker(markerId)
+}
 async function leave() {
   await realtime.disconnect()
   store.clearSession()
@@ -146,6 +152,8 @@ onBeforeUnmount(() => {
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"
               @token-appearance-commit="commitTokenAppearance"
+              @create-marker="createMarker"
+              @marker-remove="removeMarker"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
             <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>
