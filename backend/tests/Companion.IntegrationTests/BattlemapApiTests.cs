@@ -256,6 +256,31 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
     }
 
     [Fact]
+    public async Task Token_appearance_defaults_to_no_conditions_when_field_is_omitted()
+    {
+        var master = await CreateCampaign("appearance-omitted-conditions");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        (await Move(player, encounter.Id, player.ParticipantId, 3, 4, null)).EnsureSuccessStatusCode();
+
+        // Raw JSON body omitting "statusConditions" entirely (rather than the
+        // strongly-typed request helper, which always serializes every
+        // property) — this is what a client that forgets the field, or an
+        // older client version, would actually send.
+        var request = Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap/tokens/{player.ParticipantId}/appearance",
+            player, new { footprintSize = 2 });
+        var response = await Client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        var snapshot = (await response.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var token = Assert.Single(snapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal(2, token.FootprintSize);
+        Assert.Empty(token.StatusConditions!);
+    }
+
+    [Fact]
     public async Task Token_appearance_rejects_footprint_size_outside_one_to_five()
     {
         var master = await CreateCampaign("appearance-validation");

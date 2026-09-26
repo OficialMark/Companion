@@ -266,7 +266,7 @@ public sealed class BattlemapService(
     {
         var (encounter, battlemap, participant, combatant, marker) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
 
-        var conditions = request.StatusConditions.Select(name =>
+        var conditions = (request.StatusConditions ?? []).Select(name =>
             Enum.TryParse<StatusCondition>(name, ignoreCase: true, out var parsed)
                 ? parsed
                 : throw new AppException(AppErrorKind.Validation, $"Condição de status inválida: {name}.")).ToList();
