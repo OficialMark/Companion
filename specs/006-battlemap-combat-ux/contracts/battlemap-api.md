@@ -67,13 +67,13 @@ Remove um marcador e tudo associado a ele (posição, área de ataque, aparênci
   "isCreature": false,
   "isMarker": false,
   "ownerParticipantId": null,
-  "currentHitPoints": null,
-  "maxHitPoints": null,
   "footprintSize": 1,
   "statusConditions": [],
   "attackArea": null
 }
 ```
+
+> `BattlemapTokenDto` propositalmente **não** carrega `currentHitPoints`/`maxHitPoints` — ver data-model.md, seção "Resolução de vida do token". O cliente resolve a vida cruzando este token com `activeEncounter.combatants`/`participants`, que já chegam por outros canais de sincronização (`EncounterInvalidated`/`ParticipantsChanged`), evitando um segundo caminho de dados que ficaria dessincronizado do primeiro.
 
 ## `CombatantDto` / `ParticipantDto` — forma final (trecho alterado)
 

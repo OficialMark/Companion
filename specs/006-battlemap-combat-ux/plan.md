@@ -6,7 +6,7 @@
 
 ## Summary
 
-Estende o battlemap existente com cinco capacidades de combate: (1) destaque visual do token cujo turno está ativo, calculado no cliente a partir de dados de iniciativa já disponíveis; (2) barra de vida semi-transparente acima de cada token, exigindo um novo campo de vida máxima em `Participant`/`Combatant` e a remoção da regra de privacidade de HP hoje aplicada em `DtoMapper.ToDto` (decisão explícita da spec, FR-009a); (3) tamanho de token (1x1–5x5) e (4) condições de status, ambos guardados numa nova entidade por-token `BattlemapTokenAppearance` (mesmo padrão de `AttackArea`: uma linha opcional por token, ausência = tamanho 1x1 sem condições) e expostos no mesmo painel hoje usado para configurar área/projétil (`AttackAreaPanel.vue`); (5) tokens representativos adicionais controlados por jogadores, modelados como uma nova entidade leve `BattlemapMarker` que estende o padrão dual `ParticipantId?/CombatantId?` já usado por `BattlemapTokenPosition` e `AttackArea` para um terceiro slot `MarkerId?`. Toda mutação nova segue o padrão já estabelecido em `BattlemapService`: comando REST autenticado por `X-Participant-Token`, persistência via EF Core, e notificação `BattlemapInvalidatedAsync` (invalidar+refetch) via `CampaignHub`/`SignalRCampaignNotifier` — nenhum novo tipo de evento SignalR é necessário.
+Estende o battlemap existente com cinco capacidades de combate: (1) destaque visual do token cujo turno está ativo, calculado no cliente a partir de dados de iniciativa já disponíveis; (2) barra de vida semi-transparente acima de cada token, exigindo um novo campo de vida máxima em `Participant`/`Combatant`, a remoção da regra de privacidade de HP hoje aplicada em `DtoMapper.ToDto` (decisão explícita da spec, FR-009a), e — assim como o destaque de turno — resolvida inteiramente no cliente por junção com `activeEncounter.combatants`/`participants` já sincronizados, em vez de duplicada em `BattlemapTokenDto` (ver data-model.md, evita o token de vida ficar dessincronizado das mutações de HP, que hoje disparam `EncounterInvalidated`, não `BattlemapInvalidated`); (3) tamanho de token (1x1–5x5) e (4) condições de status, ambos guardados numa nova entidade por-token `BattlemapTokenAppearance` (mesmo padrão de `AttackArea`: uma linha opcional por token, ausência = tamanho 1x1 sem condições) e expostos no mesmo painel hoje usado para configurar área/projétil (`AttackAreaPanel.vue`); (5) tokens representativos adicionais controlados por jogadores, modelados como uma nova entidade leve `BattlemapMarker` que estende o padrão dual `ParticipantId?/CombatantId?` já usado por `BattlemapTokenPosition` e `AttackArea` para um terceiro slot `MarkerId?`. Toda mutação nova segue o padrão já estabelecido em `BattlemapService`: comando REST autenticado por `X-Participant-Token`, persistência via EF Core, e notificação `BattlemapInvalidatedAsync` (invalidar+refetch) via `CampaignHub`/`SignalRCampaignNotifier` — nenhum novo tipo de evento SignalR é necessário.
 
 ## Technical Context
 
@@ -76,7 +76,8 @@ backend/
 │   ├── Companion.Application/Contracts/
 │   │   ├── Abstractions.cs
 │   │   └── Dtos.cs                                # + MaxHitPoints em ParticipantDto/CombatantDto;
-│   │                                               #   + campos de HP/tamanho/condições em BattlemapTokenDto;
+│   │                                               #   + tamanho/condições/isMarker/ownerParticipantId em BattlemapTokenDto
+│   │                                               #   (sem HP — ver nota em data-model.md);
 │   │                                               #   + SetTokenAppearanceRequest, CreateMarkerRequest
 │   ├── Companion.Application/Contracts/
 │   │   └── DtoMapper.cs                           # remove filtro de HP por observador (FR-009a)
@@ -101,10 +102,12 @@ frontend/
 ├── app/
 │   ├── types/campaign.ts                          # + currentHitPoints/maxHitPoints/size/statusConditions/isMarker/ownerParticipantId em BattlemapToken; + StatusCondition; + SetTokenAppearanceRequest
 │   ├── components/battlemap/
-│   │   ├── BattlemapBoard.vue                      # destaque de turno (cruza combatants[].isCurrent com tokens),
+│   │   ├── BattlemapBoard.vue                      # destaque de turno E vida (cruza combatants[].isCurrent/HP e
+│   │   │                                            # participants[].HP com tokens — mesma junção local para os dois),
 │   │   │                                            # renderização com footprint (N células), botão "Inserir token",
 │   │   │                                            # encaminha appearance/marker para o composable/API
-│   │   ├── BattlemapToken.vue                       # + barra de HP, + anel de turno, + ícones de condição,
+│   │   ├── BattlemapToken.vue                       # + barra de HP (recebida via props resolvidas em BattlemapBoard),
+│   │   │                                            # + anel de turno, + ícones de condição,
 │   │   │                                            # raio derivado do tamanho (footprint) em vez de fixo
 │   │   └── AttackAreaPanel.vue                      # + seção de tamanho (1x1-5x5), + seção de condições de status
 │   ├── composables/

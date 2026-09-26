@@ -66,18 +66,22 @@ Adiciona `MarkerId` (`Guid?`) da mesma forma, para permitir que um marcador tamb
 
 - `ParticipantDto`: + `MaxHitPoints` (int?)
 - `CombatantDto`: + `MaxHitPoints` (int?); `CurrentHitPoints` deixa de ser condicional ao observador (FR-009a)
-- `BattlemapTokenDto`: + `CurrentHitPoints` (int?), `MaxHitPoints` (int?), `FootprintSize` (int, default 1), `StatusConditions` (string[]), `IsMarker` (bool, default false), `OwnerParticipantId` (Guid?, preenchido apenas para marcadores, para autorização no cliente)
+- `BattlemapTokenDto`: + `FootprintSize` (int, default 1), `StatusConditions` (string[]), `IsMarker` (bool, default false), `OwnerParticipantId` (Guid?, preenchido apenas para marcadores, para autorização no cliente) — **sem** campos de HP (ver nota abaixo)
 - Novo `SetTokenAppearanceRequest(int FootprintSize, IReadOnlyList<string> StatusConditions)`
 - Novo `CreateMarkerRequest(string Label)`
 - Novo `BattlemapMarkerDto` — na prática representado como mais um `BattlemapTokenDto` com `IsMarker = true`, para que o frontend trate participantes/criaturas/marcadores de forma uniforme (mesma lista `battlemap.tokens`)
 
-## Resolução de "vida do token" em `BattlemapService.ToSnapshot`
+## Resolução de "vida do token" — client-side, não no DTO do battlemap
 
-Para cada token na lista final:
+**Decisão revisada (achado da análise pré-implementação)**: `BattlemapTokenDto` NÃO carrega HP. `Combatant.UpdateHitPoints`/`ApplyDamage` disparam `EncounterInvalidatedAsync` (refetch do encontro), não `BattlemapInvalidatedAsync` (refetch do battlemap) — se a vida fosse duplicada em `BattlemapTokenDto`, ela ficaria desatualizada até a próxima mutação *do battlemap* (mover, área, aparência), violando FR-007/SC-003 (atualização em até 3s).
 
-1. Se existe um `Combatant` no encontro atual ligado a esse token (via `ParticipantId` para pinos de jogador, ou o próprio `Combatant` para criaturas), usar `Combatant.CurrentHitPoints`/`MaxHitPoints`.
-2. Caso contrário (jogador ainda não entrou na iniciativa deste encontro), usar `Participant.CurrentHitPoints`/`MaxHitPoints` como baseline.
-3. Marcadores nunca têm vida (campos `null`, barra de vida não exibida — FR-009).
+Em vez disso, o frontend resolve a vida de um token com o mesmo tipo de junção local já usado para o destaque de turno (US1):
+
+1. Buscar, em `store.snapshot.activeEncounter.combatants`, o combatente ligado a esse token (`participantId` para pino de jogador, ou `id` do combatente para criatura — mesma semântica de `participantId` do token usada em `research.md`). Se encontrado, usar `combatant.currentHitPoints`/`maxHitPoints`.
+2. Caso contrário (jogador ainda sem `Combatant` no encontro atual), buscar em `store.snapshot.participants` o participante correspondente e usar `participant.currentHitPoints`/`maxHitPoints` como baseline.
+3. Marcadores nunca casam com nenhum combatente/participante — resolução retorna "sem vida", barra de vida não exibida (FR-009), sem regra especial de exclusão necessária.
+
+Como `activeEncounter.combatants` e `participants` já são sincronizados em tempo real por eventos existentes (`EncounterInvalidated`, `ParticipantsChanged`), a barra de vida se mantém atualizada automaticamente, sem exigir nenhuma mudança de contrato do battlemap.
 
 ## Regras de autorização (reaproveitando `ResolveTokenForMutation`)
 
