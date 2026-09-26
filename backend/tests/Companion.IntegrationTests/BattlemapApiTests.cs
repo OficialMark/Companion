@@ -168,6 +168,79 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
         Assert.Null(Assert.Single(result.Battlemap.Tokens, x => x.ParticipantId == player.ParticipantId).Column);
     }
 
+    [Fact]
+    public async Task Owner_and_master_can_set_attack_area_but_other_player_cannot()
+    {
+        var master = await CreateCampaign("attack-area-auth");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var other = await Join(master.PlayerCode, "Borin");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        (await Move(player, encounter.Id, player.ParticipantId, 3, 4, null)).EnsureSuccessStatusCode();
+
+        var ownerSet = await SetAttackArea(player, encounter.Id, player.ParticipantId, "Circle", 3, null, null);
+        ownerSet.EnsureSuccessStatusCode();
+        var snapshot = (await ownerSet.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var token = Assert.Single(snapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.NotNull(token.AttackArea);
+        Assert.Equal("Circle", token.AttackArea!.Shape);
+        Assert.Equal(3, token.AttackArea.Radius);
+
+        var forbidden = await SetAttackArea(other, encounter.Id, player.ParticipantId, "Circle", 2, null, null);
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+
+        var masterSet = await SetAttackArea(master, encounter.Id, player.ParticipantId, "Cone", 5, 2, 90);
+        masterSet.EnsureSuccessStatusCode();
+        var masterSnapshot = (await masterSet.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var updatedToken = Assert.Single(masterSnapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal("Cone", updatedToken.AttackArea!.Shape);
+        Assert.Equal(2, updatedToken.AttackArea.Width);
+        Assert.Equal(90, updatedToken.AttackArea.DirectionDegrees);
+    }
+
+    [Fact]
+    public async Task Removing_attack_area_is_idempotent_and_master_can_configure_creature_tokens()
+    {
+        var master = await CreateCampaign("attack-area-remove");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        var added = await Client.SendAsync(Authenticated(
+            HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants",
+            master,
+            new AddCombatantRequest("Goblin", 2, 8)));
+        added.EnsureSuccessStatusCode();
+        var encounterDto = (await added.Content.ReadFromJsonAsync<EncounterDto>(JsonOptions))!;
+        var creature = Assert.Single(encounterDto.Combatants, x => x.ParticipantId is null);
+
+        var set = await SetAttackArea(master, encounter.Id, creature.Id, "Square", 4, null, null);
+        set.EnsureSuccessStatusCode();
+        var snapshot = (await set.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        Assert.NotNull(Assert.Single(snapshot.Tokens, x => x.ParticipantId == creature.Id).AttackArea);
+
+        var removed = await RemoveAttackArea(master, encounter.Id, creature.Id);
+        removed.EnsureSuccessStatusCode();
+        var afterRemove = (await removed.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        Assert.Null(Assert.Single(afterRemove.Tokens, x => x.ParticipantId == creature.Id).AttackArea);
+
+        var removedAgain = await RemoveAttackArea(master, encounter.Id, creature.Id);
+        removedAgain.EnsureSuccessStatusCode();
+    }
+
+    private Task<HttpResponseMessage> SetAttackArea(
+        SessionResponse session, Guid encounterId, Guid tokenId, string shape, int radius, int? width, int? directionDegrees) =>
+        Client.SendAsync(Authenticated(
+            HttpMethod.Put,
+            $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/tokens/{tokenId}/attack-area",
+            session,
+            new SetAttackAreaRequest(shape, radius, width, directionDegrees)));
+
+    private Task<HttpResponseMessage> RemoveAttackArea(SessionResponse session, Guid encounterId, Guid tokenId) =>
+        Client.SendAsync(Authenticated(
+            HttpMethod.Delete,
+            $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/tokens/{tokenId}/attack-area",
+            session));
+
     private async Task<EncounterDto> CreateEncounter(SessionResponse session)
     {
         var response = await Client.SendAsync(Authenticated(

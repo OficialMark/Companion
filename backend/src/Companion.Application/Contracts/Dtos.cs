@@ -21,6 +21,7 @@ public sealed record ConfigureBattlemapRequest(
     bool IsGridVisible,
     string? ExpectedRevision);
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
+public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -83,6 +84,13 @@ public sealed record CombatAttackDto(
 public sealed record AttackResultDto(CombatAttackDto Attack, EncounterDto Encounter);
 public sealed record EncounterInvalidationDto(Guid EncounterId);
 public sealed record BattlemapInvalidationDto(Guid EncounterId, string Revision);
+public sealed record AttackAreaDto(
+    Guid Id,
+    string Shape,
+    int Radius,
+    int? Width,
+    int? DirectionDegrees,
+    DateTimeOffset UpdatedAt);
 public sealed record BattlemapTokenDto(
     Guid ParticipantId,
     string DisplayName,
@@ -91,7 +99,8 @@ public sealed record BattlemapTokenDto(
     int? Column,
     int? Row,
     string? PositionVersion,
-    bool IsCreature = false);
+    bool IsCreature = false,
+    AttackAreaDto? AttackArea = null);
 public sealed record BattlemapSnapshotDto(
     Guid Id,
     Guid EncounterId,

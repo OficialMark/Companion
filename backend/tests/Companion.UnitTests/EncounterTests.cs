@@ -22,6 +22,23 @@ public sealed class EncounterTests
     }
 
     [Fact]
+    public void Adding_a_combatant_after_removing_a_non_last_one_does_not_reuse_creation_order()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var first = encounter.AddCombatant(Guid.NewGuid(), "Primeiro", 0, currentHitPoints: 10);
+        var second = encounter.AddCombatant(Guid.NewGuid(), "Segundo", 0, currentHitPoints: 10);
+        var third = encounter.AddCombatant(Guid.NewGuid(), "Terceiro", 0, currentHitPoints: 10);
+
+        encounter.RemoveCombatant(second.Id);
+        var fourth = encounter.AddCombatant(Guid.NewGuid(), "Quarto", 0, currentHitPoints: 10);
+
+        var creationOrders = encounter.Combatants.Select(x => x.CreationOrder).ToArray();
+        Assert.Equal(creationOrders.Length, creationOrders.Distinct().Count());
+        Assert.True(fourth.CreationOrder > third.CreationOrder);
+        Assert.Equal(0, first.CreationOrder);
+    }
+
+    [Fact]
     public void Advance_after_last_combatant_increments_round()
     {
         var encounter = ActiveEncounter(2);

@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import type { AnimatedDie } from '~/utils/diceAnimation'
+import { hasStandardShape } from '~/utils/diceAnimation'
 
 const props = defineProps<{ dice: AnimatedDie[]; settled: boolean; totals: number[] }>()
-const tick = ref(0)
+// Purely cosmetic spin shown before the server-authoritative result settles
+// (`die.value`) — randomized per tick so the animation doesn't cycle through
+// a fixed, predictable sequence of faces.
+const spinFaces = ref<Record<string, number>>({})
 let timer: ReturnType<typeof setInterval> | undefined
+
+function randomizeSpin() {
+  const next: Record<string, number> = {}
+  for (const die of props.dice) next[die.id] = Math.floor(Math.random() * die.faces) + 1
+  spinFaces.value = next
+}
 
 function visibleValue(die: AnimatedDie, index: number) {
   if (props.settled && die.value !== undefined) return die.value
-  return ((tick.value * 7 + index * 11) % die.faces) + 1
+  return spinFaces.value[die.id] ?? ((index % die.faces) + 1)
 }
 
-onMounted(() => { timer = setInterval(() => { tick.value += 1 }, 75) })
+watch(() => props.dice, randomizeSpin, { immediate: true })
+onMounted(() => { timer = setInterval(randomizeSpin, 75) })
 onBeforeUnmount(() => { if (timer) clearInterval(timer) })
 </script>
 
@@ -26,7 +37,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
         :data-die="`d${die.faces}`"
       >
         <div class="die-flight">
-          <div class="poly-die" :class="`poly-die-d${die.faces}`">
+          <div class="poly-die" :class="hasStandardShape(die.faces) ? `poly-die-d${die.faces}` : 'poly-die-generic'">
             <span class="die-face die-face-top">{{ visibleValue(die, index) }}</span>
             <span class="die-face die-face-left">{{ ((visibleValue(die, index) + index) % die.faces) + 1 }}</span>
             <span class="die-face die-face-right">{{ ((visibleValue(die, index) + index + 1) % die.faces) + 1 }}</span>

@@ -14,6 +14,7 @@ public interface ICompanionDbContext
     IQueryable<CombatAttackTarget> CombatAttackTargets { get; }
     IQueryable<Battlemap> Battlemaps { get; }
     IQueryable<BattlemapTokenPosition> BattlemapTokenPositions { get; }
+    IQueryable<AttackArea> AttackAreas { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
@@ -26,6 +27,8 @@ public interface ICompanionDbContext
     void Add(Battlemap battlemap);
     void Add(BattlemapTokenPosition position);
     void Remove(BattlemapTokenPosition position);
+    void Add(AttackArea area);
+    void Remove(AttackArea area);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }

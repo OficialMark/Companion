@@ -75,6 +75,21 @@ export interface CampaignSnapshot {
   activeEncounter: Encounter | null
 }
 export interface DamageAppliedEvent { encounterId: string; targets: Array<{ combatantId: string; damageApplied: number }> }
+export type AttackAreaShape = 'Circle' | 'Square' | 'Cone' | 'Cylinder'
+export interface AttackArea {
+  id: string
+  shape: AttackAreaShape
+  radius: number
+  width: number | null
+  directionDegrees: number | null
+  updatedAt: string
+}
+export interface SetAttackAreaRequest {
+  shape: AttackAreaShape
+  radius: number
+  width: number | null
+  directionDegrees: number | null
+}
 export interface BattlemapToken {
   participantId: string
   displayName: string
@@ -84,6 +99,7 @@ export interface BattlemapToken {
   row: number | null
   positionVersion: string | null
   isCreature?: boolean
+  attackArea?: AttackArea | null
 }
 export interface BattlemapSnapshot {
   id: string

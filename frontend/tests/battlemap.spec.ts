@@ -38,9 +38,22 @@ describe('BattlemapBoard', () => {
     const wrapper = mount(BattlemapBoard, {
       props: { battlemap: { ...snapshot, columns: 10, rows: 10 }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
     })
-    await wrapper.get('[data-participant-id="player-0"]').trigger('click')
+    const token = wrapper.get('[data-participant-id="player-0"]')
+    await token.trigger('pointerdown')
+    await token.trigger('pointerup')
     await wrapper.get('[data-board-surface]').trigger('click', { clientX: 120, clientY: 120 })
     expect(wrapper.emitted('move')).toBeTruthy()
+  })
+
+  it('keeps a token selected after a plain tap (press and release without dragging)', async () => {
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: { ...snapshot, columns: 10, rows: 10 }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    const token = wrapper.get('[data-participant-id="player-0"]')
+    await token.trigger('pointerdown')
+    await token.trigger('pointerup')
+    expect(wrapper.emitted('move')).toBeFalsy()
+    expect(wrapper.text()).toContain('Selecione a célula de destino para Player 0')
   })
 
   it('preserves zoom when a synchronized snapshot updates token positions', async () => {
@@ -74,7 +87,9 @@ describe('BattlemapBoard', () => {
     const wrapper = mount(BattlemapBoard, {
       props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: false }
     })
-    await wrapper.get('[data-participant-id="player-0"]').trigger('click')
+    const token = wrapper.get('[data-participant-id="player-0"]')
+    await token.trigger('pointerdown')
+    await token.trigger('pointerup')
     expect(wrapper.emitted('move')).toBeFalsy()
     expect(wrapper.text()).toContain('Conexão necessária')
   })
@@ -91,8 +106,14 @@ describe('BattlemapBoard', () => {
     })
     const surface = wrapper.get('[data-board-surface]')
     vi.spyOn(surface.element, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 10, width: 400, height: 400 } as DOMRect)
-    await wrapper.get('[data-battlemap-token]').trigger('pointerdown')
-    await surface.trigger('pointerup')
+    // Built natively (not via .trigger's options merge) because jsdom's MouseEvent
+    // defines clientX/clientY as getter-only own properties post-construction.
+    wrapper.get('[data-battlemap-token]').element.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 20, clientY: 20 }))
+    await nextTick()
+    surface.element.dispatchEvent(
+      new MouseEvent('pointerup', { bubbles: true, cancelable: true, clientX: -500, clientY: -500 }))
+    await nextTick()
     expect(wrapper.emitted('move')).toContainEqual(['player-0', null, null])
   })
 })

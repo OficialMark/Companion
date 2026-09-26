@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
+import type { DiceRoll } from '~/types/campaign'
+import { useGameMode } from '~/composables/useGameMode'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
+const gameMode = useGameMode()
 const loading = ref(true)
+const pendingAttackRoll = ref<DiceRoll | null>(null)
+const damageModalOpen = ref(false)
+
+function onQuickRolledD20(roll: DiceRoll) { pendingAttackRoll.value = roll }
+function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
+function onAttackDismissed() { pendingAttackRoll.value = null }
+function onDamageSettled() { damageModalOpen.value = false }
 
 async function activate() {
   if (!store.session) { loading.value = false; return }
@@ -24,6 +34,12 @@ async function battlemapConfigured() {
 
 async function moveBattlemapToken(participantId: string, column: number | null, row: number | null) {
   await store.moveBattlemapToken(participantId, column, row)
+}
+async function commitAttackArea(tokenId: string, draft: { shape: 'Circle' | 'Square' | 'Cone' | 'Cylinder'; radius: number; width: number | null; directionDegrees: number | null }) {
+  await store.setAttackArea(tokenId, draft.shape, draft.radius, draft.width, draft.directionDegrees)
+}
+async function removeAttackArea(tokenId: string) {
+  await store.removeAttackArea(tokenId)
 }
 async function leave() {
   await realtime.disconnect()
@@ -73,6 +89,7 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <div class="top-actions">
+        <GameModeToggle />
         <ConnectionStatus :status="store.connection" />
         <button class="icon-button" type="button" title="Sair da campanha" aria-label="Sair da campanha" @click="leave">↗</button>
       </div>
@@ -84,19 +101,20 @@ onBeforeUnmount(() => {
       <button class="button primary" type="button" @click="activate">Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
-      <section class="welcome-row">
+      <section v-if="!gameMode.active.value" class="welcome-row">
         <div><p class="eyebrow">Bem-vindo à mesa</p><h1>{{ store.session.displayName }}</h1></div>
         <p v-if="store.connection === 'offline'" class="offline-warning" role="alert">Comandos pausados até a conexão voltar.</p>
       </section>
 
-      <section v-if="store.isMaster && store.session.masterCode" class="master-code-panel">
+      <section v-if="!gameMode.active.value && store.isMaster && store.session.masterCode" class="master-code-panel">
         <p><strong>Código reservado do mestre</strong> — guarde e não compartilhe com jogadores.</p>
         <details><summary>Mostrar código</summary><span class="code-badge">{{ store.session.masterCode }}</span></details>
       </section>
 
       <div class="dashboard-grid">
         <div class="main-column">
-          <DiceRoller />
+          <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+          <DiceRoller v-else />
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
             <div class="panel-heading">
               <div><p class="eyebrow">Cena compartilhada</p><h2 id="battlemap-title">Battlemap</h2></div>
@@ -119,21 +137,35 @@ onBeforeUnmount(() => {
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
               @move="moveBattlemapToken"
+              @attack-area-commit="commitAttackArea"
+              @attack-area-remove="removeAttackArea"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
             <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>
             <p v-if="store.error && store.battlemap" class="form-error" role="alert">{{ store.error }}</p>
           </section>
-          <EncounterSetup />
+          <EncounterSetup v-if="!gameMode.active.value" />
           <InitiativeTracker />
           <CombatAttack />
         </div>
         <div class="side-column">
-          <ParticipantsPanel :participants="store.snapshot.participants" />
+          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" />
           <RollHistory :rolls="store.snapshot.diceRolls" />
         </div>
       </div>
       <InitiativeModifier />
     </div>
+
+    <AttackConfirmModal
+      v-if="pendingAttackRoll"
+      :roll="pendingAttackRoll"
+      @hit="onAttackHit"
+      @dismissed="onAttackDismissed"
+    />
+    <DamageRollModal
+      v-if="damageModalOpen"
+      @resolved="onDamageSettled"
+      @cancelled="onDamageSettled"
+    />
   </main>
 </template>

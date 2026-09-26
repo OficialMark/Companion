@@ -26,7 +26,6 @@ const emit = defineEmits<{
     role="button"
     :tabindex="controllable ? 0 : -1"
     :aria-label="`${token.displayName}, coluna ${(token.column ?? 0) + 1}, linha ${(token.row ?? 0) + 1}`"
-    @click.stop="emit('select', token)"
     @keydown.enter.prevent="emit('select', token)"
     @keydown.space.prevent="emit('select', token)"
     @pointerdown.stop="emit('dragstart', $event, token)"

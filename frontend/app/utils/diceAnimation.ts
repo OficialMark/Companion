@@ -4,8 +4,13 @@ export type AnimatedDieFace = typeof ANIMATED_DICE_FACES[number]
 
 export interface AnimatedDie {
   id: string
-  faces: AnimatedDieFace
+  faces: number
   value?: number
+}
+
+/** Whether `faces` has a dedicated polyhedron shape, vs. the generic fallback visual. */
+export function hasStandardShape(faces: number): faces is AnimatedDieFace {
+  return standardFaces.has(faces)
 }
 
 interface RollTerm { expression: string; values: number[] }
@@ -18,7 +23,7 @@ export function diceWithResults(dice: AnimatedDie[], results: RollResult[]): Ani
     for (const term of result.terms) {
       const match = term.expression.match(/d(\d+)$/i)
       const faces = Number.parseInt(match?.[1] ?? '', 10)
-      if (!animatedFaces.has(faces)) continue
+      if (!Number.isSafeInteger(faces)) continue
       valuesByFaces.set(faces, [...(valuesByFaces.get(faces) ?? []), ...term.values])
     }
   }
@@ -26,9 +31,9 @@ export function diceWithResults(dice: AnimatedDie[], results: RollResult[]): Ani
   return dice.map((die) => ({ ...die, value: valuesByFaces.get(die.faces)?.shift() }))
 }
 
-const animatedFaces = new Set<number>(ANIMATED_DICE_FACES)
+const standardFaces = new Set<number>(ANIMATED_DICE_FACES)
 
-/** Expands supported dice terms, including `#` repetitions, into visual dice. */
+/** Expands dice terms, including `#` repetitions, into visual dice for any valid face count. */
 export function diceForAnimation(expression: string): AnimatedDie[] {
   const compact = expression.replace(/\s+/g, '')
   const repeatMatch = compact.match(/^(?:(\d+)#)?(.+)$/i)
@@ -44,11 +49,11 @@ export function diceForAnimation(expression: string): AnimatedDie[] {
   while ((match = termPattern.exec(repeatMatch[2] ?? '')) !== null) {
     const count = Number.parseInt(match[2] || '1', 10)
     const faces = Number.parseInt(match[3] ?? '', 10)
-    if (!Number.isSafeInteger(count) || count < 1 || !animatedFaces.has(faces)) continue
+    if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(faces) || faces < 2) continue
 
     const total = Math.min(count * repetitions, 100 - dice.length)
     for (let index = 0; index < total; index += 1) {
-      dice.push({ id: `${match.index}-${faces}-${index}`, faces: faces as AnimatedDieFace })
+      dice.push({ id: `${match.index}-${faces}-${index}`, faces })
     }
   }
 

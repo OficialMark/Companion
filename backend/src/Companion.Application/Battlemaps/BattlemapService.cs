@@ -95,6 +95,8 @@ public sealed class BattlemapService(
                     returnedToReserve.Add(position.ParticipantId ?? position.CombatantId!.Value);
                     db.Remove(position);
                 }
+                foreach (var area in db.AttackAreas.Where(x => x.BattlemapId == battlemap.Id).ToArray())
+                    db.Remove(area);
             }
         }
         catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
@@ -183,6 +185,90 @@ public sealed class BattlemapService(
             campaignId, encounterId, snapshot.Revision, cancellationToken);
         return snapshot;
     }
+    public async Task<BattlemapSnapshotDto> SetAttackAreaAsync(
+        Guid campaignId,
+        Guid encounterId,
+        Guid tokenId,
+        string token,
+        SetAttackAreaRequest request,
+        CancellationToken cancellationToken)
+    {
+        var (encounter, battlemap, participant, combatant) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+
+        if (!Enum.TryParse<AttackAreaShape>(request.Shape, ignoreCase: true, out var shape))
+            throw new AppException(AppErrorKind.Validation, "Formato de área inválido.");
+
+        var now = timeProvider.GetUtcNow();
+        var existing = participant is not null
+            ? db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
+            : db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId);
+
+        try
+        {
+            if (existing is null)
+            {
+                var area = participant is not null
+                    ? AttackArea.ForParticipant(Guid.NewGuid(), battlemap.Id, tokenId, shape, request.Radius, request.Width, request.DirectionDegrees, now)
+                    : AttackArea.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId, shape, request.Radius, request.Width, request.DirectionDegrees, now);
+                db.Add(area);
+            }
+            else
+            {
+                existing.Update(shape, request.Radius, request.Width, request.DirectionDegrees, now);
+            }
+        }
+        catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        var snapshot = ToSnapshot(campaignId, battlemap);
+        await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
+        return snapshot;
+    }
+
+    public async Task<BattlemapSnapshotDto> RemoveAttackAreaAsync(
+        Guid campaignId,
+        Guid encounterId,
+        Guid tokenId,
+        string token,
+        CancellationToken cancellationToken)
+    {
+        var (encounter, battlemap, participant, _) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+
+        var existing = participant is not null
+            ? db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
+            : db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId);
+        if (existing is null) return ToSnapshot(campaignId, battlemap);
+
+        db.Remove(existing);
+        await db.SaveChangesAsync(cancellationToken);
+        var snapshot = ToSnapshot(campaignId, battlemap);
+        await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
+        return snapshot;
+    }
+
+    private (Encounter Encounter, Battlemap Battlemap, Participant? Participant, Combatant? Combatant) ResolveTokenForMutation(
+        Guid campaignId, Guid encounterId, Guid tokenId, string token)
+    {
+        var actor = authorization.Require(campaignId, token);
+        var encounter = RequireEncounter(campaignId, encounterId);
+        var participant = db.Participants.SingleOrDefault(x =>
+            x.CampaignId == campaignId && x.Id == tokenId && x.Role == ParticipantRole.Player);
+        var combatant = participant is null
+            ? db.Combatants.SingleOrDefault(x => x.EncounterId == encounter.Id && x.Id == tokenId && x.ParticipantId == null)
+            : null;
+        if (participant is null && combatant is null)
+            throw new AppException(AppErrorKind.NotFound, "O pino não foi encontrado.");
+        if (actor.Role != ParticipantRole.Master && participant?.Id != actor.Id)
+            throw new AppException(AppErrorKind.Forbidden, "Você só pode configurar a área do próprio pino.");
+
+        var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounterId)
+            ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
+        return (encounter, battlemap, participant, combatant);
+    }
+
     private Encounter RequireEncounter(Guid campaignId, Guid encounterId) =>
         db.Encounters.SingleOrDefault(x => x.Id == encounterId && x.CampaignId == campaignId)
         ?? throw new AppException(AppErrorKind.NotFound, "Encontro não encontrado.");
@@ -196,6 +282,13 @@ public sealed class BattlemapService(
             .ToDictionary(x => x.ParticipantId!.Value);
         var creaturePositions = positions.Where(x => x.CombatantId.HasValue)
             .ToDictionary(x => x.CombatantId!.Value);
+        var areas = db.AttackAreas
+            .Where(x => x.BattlemapId == battlemap.Id)
+            .ToArray();
+        var playerAreas = areas.Where(x => x.ParticipantId.HasValue)
+            .ToDictionary(x => x.ParticipantId!.Value);
+        var creatureAreas = areas.Where(x => x.CombatantId.HasValue)
+            .ToDictionary(x => x.CombatantId!.Value);
         var playerTokens = db.Participants
             .Where(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player)
             .OrderBy(x => x.CreatedAt)
@@ -203,6 +296,7 @@ public sealed class BattlemapService(
             .Select(participant =>
             {
                 playerPositions.TryGetValue(participant.Id, out var position);
+                playerAreas.TryGetValue(participant.Id, out var area);
                 return new BattlemapTokenDto(
                     participant.Id,
                     participant.DisplayName,
@@ -210,7 +304,8 @@ public sealed class BattlemapService(
                     DtoMapper.ColorKey(participant.Id),
                     position?.Column,
                     position?.Row,
-                    position is null ? null : DtoMapper.Revision(position.Version));
+                    position is null ? null : DtoMapper.Revision(position.Version),
+                    AttackArea: area is null ? null : ToDto(area));
             });
         var creatureTokens = db.Combatants
             .Where(x => x.EncounterId == battlemap.EncounterId && x.ParticipantId == null)
@@ -219,6 +314,7 @@ public sealed class BattlemapService(
             .Select(combatant =>
             {
                 creaturePositions.TryGetValue(combatant.Id, out var position);
+                creatureAreas.TryGetValue(combatant.Id, out var area);
                 return new BattlemapTokenDto(
                     combatant.Id,
                     combatant.Name,
@@ -227,7 +323,8 @@ public sealed class BattlemapService(
                     position?.Column,
                     position?.Row,
                     position is null ? null : DtoMapper.Revision(position.Version),
-                    true);
+                    true,
+                    area is null ? null : ToDto(area));
             });
         var tokens = playerTokens.Concat(creatureTokens).ToArray();
         return new BattlemapSnapshotDto(
@@ -244,6 +341,14 @@ public sealed class BattlemapService(
             battlemap.UpdatedAt,
             tokens);
     }
+    private static AttackAreaDto ToDto(AttackArea area) => new(
+        area.Id,
+        area.Shape.ToString(),
+        area.Radius,
+        area.Width,
+        area.DirectionDegrees,
+        area.UpdatedAt);
+
     private static void EnsureRevision(string? supplied, byte[] current, string message)
     {
         if (string.IsNullOrWhiteSpace(supplied) ||

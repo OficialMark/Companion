@@ -95,6 +95,8 @@ public sealed class EncounterService(
         var encounter = Load(campaignId, encounterId);
         var positions = db.BattlemapTokenPositions.Where(x => x.CombatantId == combatantId).ToArray();
         foreach (var position in positions) db.Remove(position);
+        var areas = db.AttackAreas.Where(x => x.CombatantId == combatantId).ToArray();
+        foreach (var area in areas) db.Remove(area);
         try { encounter.RemoveCombatant(combatantId); }
         catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
         { throw new AppException(AppErrorKind.Validation, exception.Message); }

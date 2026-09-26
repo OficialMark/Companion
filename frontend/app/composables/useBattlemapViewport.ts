@@ -43,12 +43,13 @@ export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
   }
 
   function fit() {
-    cellSize.value = Math.max(4, Math.min(
+    cellSize.value = Math.max(12, Math.min(
       viewportWidth.value / Math.max(columns.value, 1),
       viewportHeight.value / Math.max(rows.value, 1)
     ))
     pan.x = 0
     pan.y = 0
+    clamp()
   }
 
   function zoom(multiplier: number, anchorX = viewportWidth.value / 2, anchorY = viewportHeight.value / 2) {

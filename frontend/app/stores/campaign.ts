@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type {
-  BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
+  AttackAreaShape, BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
   DamageAppliedEvent, DiceRoll, Encounter, Participant, Session
 } from '~/types/campaign'
 
@@ -134,6 +134,29 @@ export const useCampaignStore = defineStore('campaign', {
         if ((error as Error & { status?: number }).status === 409) await this.refreshBattlemap()
       } finally {
         this.pendingBattlemapTokenId = null
+      }
+    },
+    async setAttackArea(tokenId: string, shape: AttackAreaShape, radius: number, width: number | null, directionDegrees: number | null) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().setAttackArea(
+          this.session,
+          this.battlemap.encounterId,
+          tokenId,
+          { shape, radius, width, directionDegrees }
+        )
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async removeAttackArea(tokenId: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().removeAttackArea(this.session, this.battlemap.encounterId, tokenId)
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
       }
     },
     async applyEvent(event: CampaignEvent) {

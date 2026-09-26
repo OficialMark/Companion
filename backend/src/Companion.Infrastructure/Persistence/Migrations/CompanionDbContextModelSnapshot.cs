@@ -22,6 +22,69 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Companion.Domain.Models.AttackArea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BattlemapId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CombatantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DirectionDegrees")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Radius")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Shape")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BattlemapId");
+
+                    b.HasIndex("CombatantId");
+
+                    b.HasIndex("ParticipantId");
+
+                    b.HasIndex("BattlemapId", "CombatantId")
+                        .IsUnique()
+                        .HasFilter("[CombatantId] IS NOT NULL");
+
+                    b.HasIndex("BattlemapId", "ParticipantId")
+                        .IsUnique()
+                        .HasFilter("[ParticipantId] IS NOT NULL");
+
+                    b.ToTable("AttackAreas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AttackAreas_Owner", "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Companion.Domain.Models.Battlemap", b =>
                 {
                     b.Property<Guid>("Id")
@@ -409,6 +472,25 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("CampaignId", "DisplayName");
 
                     b.ToTable("Participants", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.AttackArea", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Battlemap", null)
+                        .WithMany()
+                        .HasForeignKey("BattlemapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Companion.Domain.Models.Combatant", null)
+                        .WithMany()
+                        .HasForeignKey("CombatantId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.Battlemap", b =>

@@ -35,7 +35,8 @@ public sealed class Encounter
         {
             throw new InvalidOperationException("Este participante já está na iniciativa.");
         }
-        var combatant = new Combatant(id, Id, name, modifier, _combatants.Count, participantId, currentHitPoints);
+        var nextCreationOrder = _combatants.Count == 0 ? 0 : _combatants.Max(x => x.CreationOrder) + 1;
+        var combatant = new Combatant(id, Id, name, modifier, nextCreationOrder, participantId, currentHitPoints);
         _combatants.Add(combatant);
         return combatant;
     }

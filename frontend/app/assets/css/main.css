@@ -83,7 +83,7 @@ input:hover, input:focus { border-color: rgba(215,174,93,.45); background: rgba(
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
 .panel-heading h2, .panel > h2 { margin: 0; font-size: 1.7rem; }
 .count-pill, .round-pill { padding: 7px 11px; }
-.dice-presets { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+.dice-presets { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
 .die-button { min-width: 44px; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.025); color: #d9ced1; font-size: .76rem; font-weight: 700; cursor: pointer; }
 .die-button:hover:not(:disabled) { border-color: rgba(215,174,93,.5); color: var(--gold); background: rgba(215,174,93,.07); }
 .dice-animation { position: relative; min-height: 224px; display: grid; place-items: center; align-content: center; gap: 8px; margin: 0 0 16px; overflow: hidden; border: 1px solid rgba(215,174,93,.2); border-radius: 14px; background: radial-gradient(ellipse at 50% 76%, rgba(142,52,81,.22), transparent 48%), linear-gradient(rgba(10,8,10,.15), rgba(10,8,10,.34)); }
@@ -112,6 +112,7 @@ input:hover, input:focus { border-color: rgba(215,174,93,.45); background: rgba(
 .poly-die-d12 { clip-path: polygon(50% 0, 88% 12%, 100% 47%, 80% 88%, 50% 100%, 20% 88%, 0 47%, 12% 12%); background: linear-gradient(125deg, #b67bd0 0 34%, #75468c 35% 68%, #482656 69%); }
 .poly-die-d20 { clip-path: polygon(50% 0, 94% 25%, 100% 67%, 72% 100%, 28% 100%, 0 67%, 6% 25%); background: linear-gradient(125deg, #e08464 0 32%, #a34932 33% 66%, #65291d 67%); }
 .poly-die-d100 { clip-path: polygon(50% 0, 79% 9%, 97% 35%, 91% 73%, 65% 100%, 35% 100%, 9% 73%, 3% 35%, 21% 9%); background: linear-gradient(125deg, #d7ae5d 0 30%, #8e3451 31% 64%, #442330 65%); }
+.poly-die-generic { clip-path: polygon(50% 0, 93% 25%, 85% 79%, 50% 100%, 15% 79%, 7% 25%); background: linear-gradient(125deg, #8f9bb3 0 32%, #5b6680 33% 66%, #333a4a 67%); }
 @keyframes die-fall {
   0% { transform: translate3d(var(--die-x), -68px, 72px) scale(.78); }
   48% { transform: translate3d(0, 0, 0) scale(1); }
@@ -281,3 +282,16 @@ input:hover, input:focus { border-color: rgba(215,174,93,.45); background: rgba(
 
 .initiative-list li.defeated { border-color: rgba(222, 68, 91, .58); background: linear-gradient(90deg, rgba(151, 24, 48, .34), rgba(111, 18, 37, .14)); box-shadow: inset 4px 0 0 rgba(238, 73, 99, .72); }
 .initiative-list li.defeated.current { border-color: rgba(242, 95, 116, .78); background: linear-gradient(90deg, rgba(169, 27, 53, .42), rgba(130, 42, 43, .16)); }
+
+/* Modo Jogo */
+.quick-dice-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.quick-dice-buttons .die-button { font-size: 1rem; }
+.quick-dice-modifier { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px; }
+.quick-dice-modifier-value { min-width: 48px; text-align: center; font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+.quick-dice-modifier .button { min-height: 40px; min-width: 40px; padding: 0; }
+
+.modal-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
+.modal-panel { width: min(420px, 100%); max-height: 90vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 18px; padding: clamp(18px, 3vw, 28px); background: rgba(42,34,41,.97); box-shadow: 0 20px 60px rgba(0,0,0,.4); display: grid; gap: 14px; }
+.attack-confirm-modal .button-row { margin-top: 0; }
+.damage-roll-modal { width: min(560px, 95vw); }
+.modal-panel .dice-panel { border-color: rgba(215,174,93,.18); background: rgba(0,0,0,.08); box-shadow: none; padding: clamp(14px, 2.4vw, 22px); }

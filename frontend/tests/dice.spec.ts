@@ -1,9 +1,11 @@
 import { mount } from '@vue/test-utils'
 import DiceRoller from '~/components/DiceRoller.vue'
 import RollHistory from '~/components/RollHistory.vue'
+import QuickDiceRoller from '~/components/QuickDiceRoller.vue'
 import { createUuid } from '~/utils/createUuid'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
 import DiceRollAnimation from '~/components/DiceRollAnimation.vue'
+import { useQuickRollModifier } from '~/composables/useQuickRollModifier'
 
 const campaignStore: { session: null | Record<string, string>; connection: string; snapshot: null | { diceRolls: Record<string, unknown>[] } } = {
   session: null,
@@ -28,11 +30,30 @@ describe('DiceRoller', () => {
     expect(createUuid()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
   })
 
-  it('expands every supported die in compound and repeated expressions', () => {
+  it('expands every die in compound and repeated expressions, including non-standard faces', () => {
     const dice = diceForAnimation('2#2d4+d6+d8+d10+d12+d20+d100+1d7')
     expect(dice.map(die => die.faces)).toEqual([
-      4, 4, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 20, 20, 100, 100
+      4, 4, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 20, 20, 100, 100, 7, 7
     ])
+  })
+
+  it('regression: a non-standard die (e.g. d27) still produces an animated die instead of being dropped', () => {
+    const dice = diceForAnimation('1d27')
+    expect(dice.map(die => die.faces)).toEqual([27])
+  })
+
+  it('regression: a standard die mixed with a non-standard one animates both terms', () => {
+    const dice = diceForAnimation('1d20+1d27')
+    expect(dice.map(die => die.faces)).toEqual([20, 27])
+  })
+
+  it('applies the generic fallback shape to non-standard faces and keeps the dedicated shape for standard ones', () => {
+    const dice = diceForAnimation('1d20+1d27')
+    const wrapper = mount(DiceRollAnimation, { props: { dice, settled: false, totals: [] } })
+    expect(wrapper.find('[data-die="d20"] .poly-die').classes()).toContain('poly-die-d20')
+    expect(wrapper.find('[data-die="d27"] .poly-die').classes()).toContain('poly-die-generic')
+    expect(wrapper.find('[data-die="d27"] .poly-die').classes()).not.toContain('poly-die-d27')
+    wrapper.unmount()
   })
 
   it('renders one animated object for each expanded die', () => {
@@ -107,5 +128,64 @@ describe('DiceRoller', () => {
     expect(wrapper.text()).toContain('#2')
     expect(wrapper.text()).toContain('2d3 [1, 2]')
     expect(wrapper.text()).toContain('1d8 [8]')
+  })
+})
+
+describe('useQuickRollModifier', () => {
+  afterEach(() => { const modifier = useQuickRollModifier(); modifier.value.value = 0 })
+
+  it('increments and decrements, allowing positive, negative and zero values', () => {
+    const modifier = useQuickRollModifier()
+    modifier.increment(); modifier.increment(); modifier.increment()
+    expect(modifier.value.value).toBe(3)
+    modifier.decrement(); modifier.decrement(); modifier.decrement(); modifier.decrement()
+    expect(modifier.value.value).toBe(-1)
+  })
+
+  it('formats the roll expression for each quick die using the current modifier', () => {
+    const modifier = useQuickRollModifier()
+    expect(modifier.expressionFor(20)).toBe('1d20')
+    modifier.increment(); modifier.increment(); modifier.increment()
+    expect(modifier.expressionFor(20)).toBe('1d20+3')
+    expect(modifier.expressionFor(8)).toBe('1d8+3')
+    modifier.decrement(); modifier.decrement(); modifier.decrement(); modifier.decrement(); modifier.decrement()
+    expect(modifier.expressionFor(6)).toBe('1d6-2')
+  })
+})
+
+describe('QuickDiceRoller', () => {
+  afterEach(() => {
+    const modifier = useQuickRollModifier(); modifier.value.value = 0
+    campaignStore.session = null; campaignStore.snapshot = null
+    rollDice.mockReset(); revealDiceRoll.mockReset()
+  })
+
+  it('applies the current modifier automatically and keeps it across consecutive rolls', async () => {
+    vi.useFakeTimers()
+    campaignStore.session = { campaignId: 'campaign-1' }
+    campaignStore.snapshot = { diceRolls: [] }
+    const d8Result = { id: 'roll-1', total: 11, results: [{ terms: [{ expression: '1d8', values: [8] }] }] }
+    const d20Result = { id: 'roll-2', total: 23, results: [{ terms: [{ expression: '1d20', values: [20] }] }] }
+    rollDice.mockResolvedValueOnce(d8Result).mockResolvedValueOnce(d20Result)
+    revealDiceRoll.mockResolvedValueOnce(d8Result).mockResolvedValueOnce(d20Result)
+    const modifier = useQuickRollModifier(); modifier.increment(); modifier.increment(); modifier.increment()
+
+    const wrapper = mount(QuickDiceRoller, {
+      global: { stubs: { DiceRollAnimation: true } }
+    })
+
+    try {
+      await wrapper.findAll('.die-button')[1]!.trigger('click')
+      await vi.runAllTimersAsync()
+      expect(rollDice).toHaveBeenNthCalledWith(1, campaignStore.session, '1d8+3', false)
+
+      await wrapper.findAll('.die-button')[0]!.trigger('click')
+      await vi.runAllTimersAsync()
+      expect(rollDice).toHaveBeenNthCalledWith(2, campaignStore.session, '1d20+3', false)
+      expect(wrapper.emitted('rolled-d20')?.[0]).toEqual([d20Result])
+    } finally {
+      wrapper.unmount()
+      vi.useRealTimers()
+    }
   })
 })

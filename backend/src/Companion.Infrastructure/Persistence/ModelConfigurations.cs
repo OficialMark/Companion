@@ -147,3 +147,23 @@ public sealed class BattlemapTokenPositionConfiguration : IEntityTypeConfigurati
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
     }
 }
+
+public sealed class AttackAreaConfiguration : IEntityTypeConfiguration<AttackArea>
+{
+    public void Configure(EntityTypeBuilder<AttackArea> builder)
+    {
+        builder.ToTable("AttackAreas");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Shape).HasConversion<string>().HasMaxLength(16).IsRequired();
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => x.BattlemapId);
+        builder.ToTable(table => table.HasCheckConstraint(
+            "CK_AttackAreas_Owner",
+            "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)"));
+        builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+    }
+}

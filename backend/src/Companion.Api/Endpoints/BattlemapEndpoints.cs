@@ -89,6 +89,27 @@ public static class BattlemapEndpoints
             Results.Ok(await service.MoveAsync(
                 campaignId, encounterId, tokenId, Token(request), body, ct)));
 
+        group.MapPut("/tokens/{tokenId:guid}/attack-area", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid tokenId,
+            SetAttackAreaRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.SetAttackAreaAsync(
+                campaignId, encounterId, tokenId, Token(request), body, ct)));
+
+        group.MapDelete("/tokens/{tokenId:guid}/attack-area", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid tokenId,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.RemoveAttackAreaAsync(
+                campaignId, encounterId, tokenId, Token(request), ct)));
+
         return endpoints;
     }
 
