@@ -24,6 +24,14 @@ const healthRatio = computed(() => {
   const current = props.currentHitPoints ?? 0
   return Math.min(1, Math.max(0, current / props.maxHitPoints))
 })
+
+const conditionAbbreviations: Record<string, string> = {
+  Stunned: 'ATD', Restrained: 'IMO', Blinded: 'CEG', Poisoned: 'VEN', Invisible: 'INV', Prone: 'CAI'
+}
+const conditionLabels: Record<string, string> = {
+  Stunned: 'Atordoado', Restrained: 'Imobilizado', Blinded: 'Cego', Poisoned: 'Envenenado', Invisible: 'Invisível', Prone: 'Caído'
+}
+const statusConditions = computed(() => props.token.statusConditions ?? [])
 const emit = defineEmits<{
   select: [token: BattlemapToken]
   dragstart: [event: PointerEvent, token: BattlemapToken]
@@ -69,5 +77,17 @@ const emit = defineEmits<{
       <rect data-health-fill class="health-fill" :width="`${Math.round(healthRatio * 100)}%`" height="100" />
     </svg>
     <text text-anchor="middle" dominant-baseline="central" :font-size="effectiveSize * .28">{{ token.initials }}</text>
+    <g
+      v-for="(condition, index) in statusConditions"
+      :key="condition"
+      data-status-condition
+      class="token-condition-badge"
+      :aria-label="conditionLabels[condition] ?? condition"
+      role="img"
+      :transform="`translate(${(index - (statusConditions.length - 1) / 2) * effectiveSize * .38} ${effectiveSize * .58})`"
+    >
+      <circle :r="effectiveSize * .17" />
+      <text text-anchor="middle" dominant-baseline="central" :font-size="effectiveSize * .13">{{ conditionAbbreviations[condition] ?? condition.slice(0, 3).toUpperCase() }}</text>
+    </g>
   </g>
 </template>

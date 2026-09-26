@@ -98,6 +98,39 @@ describe('AttackAreaPanel', () => {
     await wrapper.findAll('.token-size-option')[1]!.trigger('click')
     expect(wrapper.emitted('appearance-commit')?.[0]?.[0]).toEqual({ footprintSize: 2, statusConditions: ['Stunned'] })
   })
+
+  it('shows all 6 status condition options, none selected by default', () => {
+    const wrapper = mount(AttackAreaPanel, {
+      props: { draft: { shape: 'Circle', radius: 2, width: null, directionDegrees: null }, hasExisting: false }
+    })
+    expect(wrapper.findAll('.token-condition-option')).toHaveLength(6)
+    expect(wrapper.findAll('.token-condition-option.selected')).toHaveLength(0)
+  })
+
+  it('marking a condition emits appearance-commit with it added, preserving the size', async () => {
+    const wrapper = mount(AttackAreaPanel, {
+      props: {
+        draft: { shape: 'Circle', radius: 2, width: null, directionDegrees: null },
+        hasExisting: false,
+        appearanceDraft: { footprintSize: 3, statusConditions: [] }
+      }
+    })
+    await wrapper.get('[data-condition="Stunned"]').trigger('click')
+    expect(wrapper.emitted('appearance-commit')?.[0]?.[0]).toEqual({ footprintSize: 3, statusConditions: ['Stunned'] })
+  })
+
+  it('unmarking an already-marked condition emits appearance-commit without it', async () => {
+    const wrapper = mount(AttackAreaPanel, {
+      props: {
+        draft: { shape: 'Circle', radius: 2, width: null, directionDegrees: null },
+        hasExisting: false,
+        appearanceDraft: { footprintSize: 1, statusConditions: ['Stunned', 'Blinded'] }
+      }
+    })
+    expect(wrapper.get('[data-condition="Stunned"]').classes()).toContain('selected')
+    await wrapper.get('[data-condition="Stunned"]').trigger('click')
+    expect(wrapper.emitted('appearance-commit')?.[0]?.[0]).toEqual({ footprintSize: 1, statusConditions: ['Blinded'] })
+  })
 })
 
 describe('BattlemapBoard attack areas', () => {

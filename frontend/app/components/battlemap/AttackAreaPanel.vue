@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AttackAreaDraft } from '~/composables/useAttackAreas'
 import type { TokenAppearanceDraft } from '~/composables/useTokenAppearance'
-import type { AttackAreaShape } from '~/types/campaign'
+import type { AttackAreaShape, StatusCondition } from '~/types/campaign'
 
 const props = withDefaults(defineProps<{
   draft: AttackAreaDraft
@@ -23,6 +23,25 @@ const footprintSizes = [1, 2, 3, 4, 5]
 
 function selectFootprintSize(footprintSize: number) {
   const next: TokenAppearanceDraft = { ...props.appearanceDraft, footprintSize }
+  emit('appearance-change', next)
+  emit('appearance-commit', next)
+}
+
+const statusConditionOptions: Array<{ value: StatusCondition; label: string; abbreviation: string }> = [
+  { value: 'Stunned', label: 'Atordoado', abbreviation: 'ATD' },
+  { value: 'Restrained', label: 'Imobilizado', abbreviation: 'IMO' },
+  { value: 'Blinded', label: 'Cego', abbreviation: 'CEG' },
+  { value: 'Poisoned', label: 'Envenenado', abbreviation: 'VEN' },
+  { value: 'Invisible', label: 'Invisível', abbreviation: 'INV' },
+  { value: 'Prone', label: 'Caído', abbreviation: 'CAI' }
+]
+
+function toggleStatusCondition(condition: StatusCondition) {
+  const active = props.appearanceDraft.statusConditions.includes(condition)
+  const statusConditions = active
+    ? props.appearanceDraft.statusConditions.filter(item => item !== condition)
+    : [...props.appearanceDraft.statusConditions, condition]
+  const next: TokenAppearanceDraft = { ...props.appearanceDraft, statusConditions }
   emit('appearance-change', next)
   emit('appearance-commit', next)
 }
@@ -116,6 +135,19 @@ function onSliderChange() {
         :aria-pressed="appearanceDraft.footprintSize === size"
         @click="selectFootprintSize(size)"
       >{{ size }}x{{ size }}</button>
+    </div>
+
+    <div class="token-condition-options" role="group" aria-label="Condições de status">
+      <button
+        v-for="option in statusConditionOptions"
+        :key="option.value"
+        type="button"
+        class="token-condition-option"
+        :data-condition="option.value"
+        :class="{ selected: appearanceDraft.statusConditions.includes(option.value) }"
+        :aria-pressed="appearanceDraft.statusConditions.includes(option.value)"
+        @click="toggleStatusCondition(option.value)"
+      ><span aria-hidden="true">{{ option.abbreviation }}</span>{{ option.label }}</button>
     </div>
 
     <div class="attack-area-actions">

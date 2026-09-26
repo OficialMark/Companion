@@ -127,15 +127,15 @@ Web app existente: `backend/src/Companion.{Domain,Application,Infrastructure,Api
 
 ### Tests for User Story 4
 
-- [ ] T030 [P] [US4] Teste de domínio em `backend/tests/Companion.UnitTests/BattlemapTokenAppearanceTests.cs`: `StatusConditions` aceita múltiplos valores válidos do enum e rejeita um nome desconhecido.
-- [ ] T031 [P] [US4] Teste de integração em `backend/tests/Companion.IntegrationTests/BattlemapApiTests.cs`: `PUT tokens/{tokenId}/appearance` com `statusConditions` persiste e retorna a lista; autorização igual a T020.
-- [ ] T032 [P] [US4] Teste de componente em `frontend/tests/battlemap.spec.ts`: a lista de condições em `AttackAreaPanel.vue` alterna marcação/desmarcação e emite o payload correto; `BattlemapToken.vue` renderiza um ícone por condição ativa sem sobrepor a barra de vida (T017) nem o anel de turno (T005).
+- [X] T030 [P] [US4] Já coberto por `BattlemapTokenAppearanceTests.cs` (T019, criado junto com a entidade): `Accepts_multiple_distinct_status_conditions`/`Clearing_status_conditions_empties_the_list`.
+- [X] T031 [P] [US4] Já coberto por `BattlemapApiTests.cs` (T020/backend de T026, que já implementou os dois campos juntos): `Owner_and_master_can_set_token_appearance_but_other_player_cannot` persiste/retorna `statusConditions`; `Token_appearance_rejects_footprint_size_outside_one_to_five` cobre nome de condição desconhecido → 400.
+- [X] T032 [P] [US4] Teste de componente em `frontend/tests/battlemap.spec.ts`: a lista de condições em `AttackAreaPanel.vue` alterna marcação/desmarcação e emite o payload correto; `BattlemapToken.vue` renderiza um ícone por condição ativa sem sobrepor a barra de vida (T017) nem o anel de turno (T005).
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Ligar a persistência de `StatusConditions` em `SetTokenAppearanceAsync` (`BattlemapService.cs`, estende T026): validar/parsear a lista do enum, persistir como string delimitada, incluir em `ToSnapshot`.
-- [ ] T034 [US4] Adicionar uma seção de condições (múltipla escolha) em `AttackAreaPanel.vue`, reaproveitando `useTokenAppearance.ts` (T028) para enviar `statusConditions` junto com `footprintSize`.
-- [ ] T035 [US4] Renderizar os ícones/símbolos de condição junto ao token em `BattlemapToken.vue` (fileira compacta de badges), um por `StatusCondition` ativo, posicionados para não cobrir a barra de vida nem o anel de turno.
+- [X] T033 [US4] Já implementado junto com T026 (o endpoint foi construído desde o início com os dois campos, `footprintSize` e `statusConditions`, para não exigir uma segunda migration).
+- [X] T034 [US4] Adicionada seção de condições (múltipla escolha) em `AttackAreaPanel.vue`, reaproveitando `useTokenAppearance.ts` (T028) para enviar `statusConditions` junto com `footprintSize`.
+- [X] T035 [US4] Renderizados badges de condição junto ao token em `BattlemapToken.vue` (abreviação de 3 letras em círculo, uma por `StatusCondition` ativo), posicionados abaixo do token para não cobrir a barra de vida nem o anel de turno.
 
 **Checkpoint**: US4 funcional e testável de forma independente, assumindo US3 já entregue.
 

@@ -279,4 +279,20 @@ describe('BattlemapBoard', () => {
     const bigRadius = Number(big.get('[data-participant-id="ogre-1"] circle').attributes('r'))
     expect(bigRadius).toBeCloseTo(smallRadius * 3, 5)
   })
+
+  it('renders one badge per active status condition, and none when there are no conditions', () => {
+    const conditionMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'player-0', displayName: 'Lia', initials: 'LI', colorKey: 0, column: 2, row: 2, positionVersion: 'v1', statusConditions: ['Stunned', 'Blinded'] }]
+    }
+    const withConditions = mount(BattlemapBoard, {
+      props: { battlemap: conditionMap, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(withConditions.findAll('[data-participant-id="player-0"] [data-status-condition]')).toHaveLength(2)
+
+    const withoutConditions = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(withoutConditions.findAll('[data-participant-id="player-0"] [data-status-condition]')).toHaveLength(0)
+  })
 })
