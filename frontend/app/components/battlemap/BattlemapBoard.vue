@@ -2,6 +2,7 @@
 import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus, Participant } from '~/types/campaign'
 import { useBattlemapViewport } from '~/composables/useBattlemapViewport'
 import { useAttackAreas, type AttackAreaDraft } from '~/composables/useAttackAreas'
+import { useTokenAppearance, type TokenAppearanceDraft } from '~/composables/useTokenAppearance'
 import { attackAreaGeometry } from '~/utils/attackAreaGeometry'
 import BattlemapTokenMarker from './BattlemapToken.vue'
 import AttackAreaPanel from './AttackAreaPanel.vue'
@@ -21,6 +22,7 @@ const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
   'attack-area-remove': [tokenId: string]
+  'token-appearance-commit': [tokenId: string, draft: TokenAppearanceDraft]
 }>()
 
 const columns = computed(() => props.battlemap.columns)
@@ -80,14 +82,24 @@ function healthFor(token: BattlemapToken): { current: number | null; max: number
 }
 
 const attackAreas = useAttackAreas()
+const tokenAppearance = useTokenAppearance()
 const attackAreaMaxRadius = computed(() => Math.max(columns.value, rows.value))
 const activeAttackAreaToken = computed(() =>
   selectedToken.value && controllable(selectedToken.value) ? selectedToken.value : null)
 
+function footprintSize(token: BattlemapToken) {
+  return token.footprintSize ?? 1
+}
+
+// A token spanning N cells (footprintSize) is anchored at its stored
+// column/row (top-left cell) but visually centered over its whole N×N span,
+// so its attack area and stacking offset originate from the middle of the
+// creature, not from the corner cell (FR-012).
 function tokenOrigin(token: BattlemapToken) {
+  const span = footprintSize(token)
   return {
-    x: (token.column! + .5) * viewport.cellSize.value,
-    y: (token.row! + .5) * viewport.cellSize.value
+    x: (token.column! + span / 2) * viewport.cellSize.value,
+    y: (token.row! + span / 2) * viewport.cellSize.value
   }
 }
 
@@ -116,7 +128,10 @@ function selectTokenForArea(token: BattlemapToken) {
 }
 
 function closeAttackAreaPanel() {
-  if (selectedParticipantId.value) attackAreas.clearPreview(selectedParticipantId.value)
+  if (selectedParticipantId.value) {
+    attackAreas.clearPreview(selectedParticipantId.value)
+    tokenAppearance.clearPreview(selectedParticipantId.value)
+  }
   selectedParticipantId.value = null
 }
 
@@ -127,6 +142,7 @@ function selectToken(token: BattlemapToken) {
   if (selectedParticipantId.value === token.participantId) {
     selectedParticipantId.value = null
     attackAreas.clearPreview(token.participantId)
+    tokenAppearance.clearPreview(token.participantId)
     return
   }
   selectedParticipantId.value = token.participantId
@@ -161,6 +177,7 @@ function commitCell(column: number, row: number) {
   cursor.row = row
   emit('move', selectedParticipantId.value, column, row)
   attackAreas.clearPreview(selectedParticipantId.value)
+  tokenAppearance.clearPreview(selectedParticipantId.value)
   selectedParticipantId.value = null
 }
 
@@ -254,6 +271,7 @@ function pointerUp(event: PointerEvent) {
       if (!isInsideMap(cell.column, cell.row)) {
         emit('move', tokenId, null, null)
         attackAreas.clearPreview(tokenId)
+        tokenAppearance.clearPreview(tokenId)
         selectedParticipantId.value = null
       } else {
         commitCell(cell.column, cell.row)
@@ -288,6 +306,7 @@ function keydown(event: KeyboardEvent) {
 }
 
 function stackOffset(token: BattlemapToken) {
+  if (footprintSize(token) > 1) return { x: 0, y: 0 }
   const sameCell = positionedTokens.value.filter(item => item.column === token.column && item.row === token.row)
   const index = sameCell.findIndex(item => item.participantId === token.participantId)
   const distance = Math.min(10, viewport.cellSize.value * .2)
@@ -295,6 +314,12 @@ function stackOffset(token: BattlemapToken) {
     x: ((index % 2) - .5) * distance,
     y: (Math.floor(index / 2) - .5) * distance
   }
+}
+
+function tokenCenter(token: BattlemapToken) {
+  const origin = tokenOrigin(token)
+  const offset = stackOffset(token)
+  return { x: origin.x + offset.x, y: origin.y + offset.y }
 }
 
 onMounted(() => {
@@ -412,9 +437,10 @@ onBeforeUnmount(() => observer?.disconnect())
           v-for="token in positionedTokens"
           :key="token.participantId"
           :token="token"
-          :x="(token.column! + .5) * viewport.cellSize.value + stackOffset(token).x"
-          :y="(token.row! + .5) * viewport.cellSize.value + stackOffset(token).y"
+          :x="tokenCenter(token).x"
+          :y="tokenCenter(token).y"
           :size="viewport.cellSize.value"
+          :footprint-size="footprintSize(token)"
           :selected="selectedParticipantId === token.participantId"
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
@@ -432,9 +458,12 @@ onBeforeUnmount(() => observer?.disconnect())
       :draft="attackAreas.draftFor(activeAttackAreaToken)"
       :has-existing="Boolean(activeAttackAreaToken.attackArea)"
       :max-radius="attackAreaMaxRadius"
+      :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
+      @appearance-change="draft => tokenAppearance.preview(activeAttackAreaToken!.participantId, draft)"
+      @appearance-commit="draft => emit('token-appearance-commit', activeAttackAreaToken!.participantId, draft)"
       @close="closeAttackAreaPanel"
     />
 

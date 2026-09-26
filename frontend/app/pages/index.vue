@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
-import type { DiceRoll } from '~/types/campaign'
+import type { DiceRoll, StatusCondition } from '~/types/campaign'
 import { useGameMode } from '~/composables/useGameMode'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
@@ -40,6 +40,9 @@ async function commitAttackArea(tokenId: string, draft: { shape: 'Circle' | 'Squ
 }
 async function removeAttackArea(tokenId: string) {
   await store.removeAttackArea(tokenId)
+}
+async function commitTokenAppearance(tokenId: string, draft: { footprintSize: number; statusConditions: StatusCondition[] }) {
+  await store.setTokenAppearance(tokenId, draft.footprintSize, draft.statusConditions)
 }
 async function leave() {
   await realtime.disconnect()
@@ -142,6 +145,7 @@ onBeforeUnmount(() => {
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"
+              @token-appearance-commit="commitTokenAppearance"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
             <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>

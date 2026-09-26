@@ -12,7 +12,12 @@ const props = withDefaults(defineProps<{
   isCurrentTurn?: boolean
   currentHitPoints?: number | null
   maxHitPoints?: number | null
-}>(), { isCurrentTurn: false, currentHitPoints: null, maxHitPoints: null })
+  footprintSize?: number
+}>(), { isCurrentTurn: false, currentHitPoints: null, maxHitPoints: null, footprintSize: 1 })
+
+// The token's visual radius/text/bars all scale with its footprint (FR-012),
+// e.g. a 3x3 creature is drawn three cells wide, not squeezed into one.
+const effectiveSize = computed(() => props.size * props.footprintSize)
 
 const healthRatio = computed(() => {
   if (props.maxHitPoints == null || props.maxHitPoints <= 0) return null
@@ -42,27 +47,27 @@ const emit = defineEmits<{
     <circle
       v-if="isCurrentTurn"
       class="token-turn-ring"
-      :r="size * .49"
+      :r="effectiveSize * .49"
       role="img"
       :aria-label="`Turno de ${token.displayName}`"
     />
-    <circle :r="size * .37" />
-    <circle class="token-ring" :r="size * .43" />
+    <circle :r="effectiveSize * .37" />
+    <circle class="token-ring" :r="effectiveSize * .43" />
     <svg
       v-if="healthRatio !== null"
       class="battlemap-health-bar"
       role="img"
       :aria-label="`Vida: ${currentHitPoints ?? 0} de ${maxHitPoints}`"
-      :x="-size * .45"
-      :y="-size * .62"
-      :width="size * .9"
-      :height="size * .16"
+      :x="-effectiveSize * .45"
+      :y="-effectiveSize * .62"
+      :width="effectiveSize * .9"
+      :height="effectiveSize * .16"
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
     >
       <rect class="health-bg" width="100" height="100" />
       <rect data-health-fill class="health-fill" :width="`${Math.round(healthRatio * 100)}%`" height="100" />
     </svg>
-    <text text-anchor="middle" dominant-baseline="central" :font-size="size * .28">{{ token.initials }}</text>
+    <text text-anchor="middle" dominant-baseline="central" :font-size="effectiveSize * .28">{{ token.initials }}</text>
   </g>
 </template>

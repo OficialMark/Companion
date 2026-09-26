@@ -92,6 +92,7 @@ export interface SetAttackAreaRequest {
   width: number | null
   directionDegrees: number | null
 }
+export type StatusCondition = 'Stunned' | 'Restrained' | 'Blinded' | 'Poisoned' | 'Invisible' | 'Prone'
 export interface BattlemapToken {
   participantId: string
   displayName: string
@@ -104,6 +105,12 @@ export interface BattlemapToken {
   isMarker?: boolean
   ownerParticipantId?: string | null
   attackArea?: AttackArea | null
+  footprintSize?: number
+  statusConditions?: StatusCondition[]
+}
+export interface SetTokenAppearanceRequest {
+  footprintSize: number
+  statusConditions: StatusCondition[]
 }
 export interface BattlemapSnapshot {
   id: string

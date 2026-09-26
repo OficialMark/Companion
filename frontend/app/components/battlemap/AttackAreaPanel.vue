@@ -1,19 +1,31 @@
 <script setup lang="ts">
 import type { AttackAreaDraft } from '~/composables/useAttackAreas'
+import type { TokenAppearanceDraft } from '~/composables/useTokenAppearance'
 import type { AttackAreaShape } from '~/types/campaign'
 
 const props = withDefaults(defineProps<{
   draft: AttackAreaDraft
   hasExisting: boolean
   maxRadius?: number
-}>(), { maxRadius: 20 })
+  appearanceDraft?: TokenAppearanceDraft
+}>(), { maxRadius: 20, appearanceDraft: () => ({ footprintSize: 1, statusConditions: [] }) })
 
 const emit = defineEmits<{
   change: [draft: AttackAreaDraft]
   commit: [draft: AttackAreaDraft]
   remove: []
   close: []
+  'appearance-change': [draft: TokenAppearanceDraft]
+  'appearance-commit': [draft: TokenAppearanceDraft]
 }>()
+
+const footprintSizes = [1, 2, 3, 4, 5]
+
+function selectFootprintSize(footprintSize: number) {
+  const next: TokenAppearanceDraft = { ...props.appearanceDraft, footprintSize }
+  emit('appearance-change', next)
+  emit('appearance-commit', next)
+}
 
 const shapes: Array<{ value: AttackAreaShape; label: string; icon: string }> = [
   { value: 'Circle', label: 'Círculo', icon: '◯' },
@@ -93,6 +105,18 @@ function onSliderChange() {
         >
       </label>
     </template>
+
+    <div class="token-size-options" role="group" aria-label="Tamanho do token">
+      <button
+        v-for="size in footprintSizes"
+        :key="size"
+        type="button"
+        class="token-size-option"
+        :class="{ selected: appearanceDraft.footprintSize === size }"
+        :aria-pressed="appearanceDraft.footprintSize === size"
+        @click="selectFootprintSize(size)"
+      >{{ size }}x{{ size }}</button>
+    </div>
 
     <div class="attack-area-actions">
       <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover</button>

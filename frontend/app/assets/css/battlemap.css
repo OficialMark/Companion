@@ -73,9 +73,18 @@
 .attack-area-slider input[type="range"] { width: 100%; min-height: 32px; }
 .attack-area-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
+.token-size-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.token-size-option { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .78rem; }
+.token-size-option.selected { border-color: var(--gold); color: var(--gold); background: rgba(215,174,93,.12); }
+
+.token-condition-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.token-condition-option { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .78rem; }
+.token-condition-option.selected { border-color: #7fb8ff; color: #7fb8ff; background: rgba(127,184,255,.12); }
+
 @media (max-width: 680px) {
   .attack-area-panel { max-height: 33svh; }
   .attack-area-shape { flex: 1 1 auto; justify-content: center; }
+  .token-size-option { flex: 1 1 auto; }
 }
 
 @media (max-width: 680px) {

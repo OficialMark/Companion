@@ -263,4 +263,20 @@ describe('BattlemapBoard', () => {
     // A marker's token id ('marker-1') coincidentally matching a combatant id must not leak a health bar onto it.
     expect(wrapper.find('[data-participant-id="marker-1"] [data-health-fill]').exists()).toBe(false)
   })
+
+  it('renders a token proportionally larger for a bigger footprintSize', () => {
+    const bigMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'ogre-1', displayName: 'Ogro', initials: 'OG', colorKey: 4, column: 2, row: 2, positionVersion: 'v1', isCreature: true, footprintSize: 3 }]
+    }
+    const small = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    const big = mount(BattlemapBoard, {
+      props: { battlemap: bigMap, imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: true }
+    })
+    const smallRadius = Number(small.get('[data-participant-id="player-0"] circle').attributes('r'))
+    const bigRadius = Number(big.get('[data-participant-id="ogre-1"] circle').attributes('r'))
+    expect(bigRadius).toBeCloseTo(smallRadius * 3, 5)
+  })
 })
