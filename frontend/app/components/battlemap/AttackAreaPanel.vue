@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AttackAreaDraft } from '~/composables/useAttackAreas'
-import type { TokenAppearanceDraft } from '~/composables/useTokenAppearance'
+import { STATUS_CONDITION_OPTIONS, type TokenAppearanceDraft } from '~/composables/useTokenAppearance'
 import type { AttackAreaShape, StatusCondition } from '~/types/campaign'
 
 const props = withDefaults(defineProps<{
@@ -29,14 +29,7 @@ function selectFootprintSize(footprintSize: number) {
   emit('appearance-commit', next)
 }
 
-const statusConditionOptions: Array<{ value: StatusCondition; label: string; abbreviation: string }> = [
-  { value: 'Stunned', label: 'Atordoado', abbreviation: 'ATD' },
-  { value: 'Restrained', label: 'Imobilizado', abbreviation: 'IMO' },
-  { value: 'Blinded', label: 'Cego', abbreviation: 'CEG' },
-  { value: 'Poisoned', label: 'Envenenado', abbreviation: 'VEN' },
-  { value: 'Invisible', label: 'Invisível', abbreviation: 'INV' },
-  { value: 'Prone', label: 'Caído', abbreviation: 'CAI' }
-]
+const statusConditionOptions = STATUS_CONDITION_OPTIONS
 
 function toggleStatusCondition(condition: StatusCondition) {
   const active = props.appearanceDraft.statusConditions.includes(condition)

@@ -79,18 +79,26 @@ function isCurrentTurn(token: BattlemapToken) {
 // Resolved client-side (not carried on BattlemapTokenDto) so it stays in sync with
 // HP mutations, which broadcast via EncounterInvalidated/ParticipantsChanged, not
 // BattlemapInvalidated. See specs/006-battlemap-combat-ux/data-model.md.
+// Memoized as a computed lookup map (instead of a per-call linear scan) since the
+// template reads it twice per token (current/max), for every token, every render.
+const healthByTokenId = computed(() => {
+  const map = new Map<string, { current: number | null; max: number | null }>()
+  const combatantsByTokenId = new Map(props.combatants.map(item => [item.participantId ?? item.id, item]))
+  const participantsById = new Map(props.participants.map(item => [item.id, item]))
+  for (const token of props.battlemap.tokens) {
+    if (token.isMarker) continue
+    const combatant = combatantsByTokenId.get(token.participantId)
+    if (combatant) {
+      if (combatant.maxHitPoints != null) map.set(token.participantId, { current: combatant.currentHitPoints, max: combatant.maxHitPoints })
+      continue
+    }
+    const participant = participantsById.get(token.participantId)
+    if (participant?.maxHitPoints != null) map.set(token.participantId, { current: participant.currentHitPoints, max: participant.maxHitPoints })
+  }
+  return map
+})
 function healthFor(token: BattlemapToken): { current: number | null; max: number | null } | null {
-  if (token.isMarker) return null
-  const combatant = props.combatants.find(item => (item.participantId ?? item.id) === token.participantId)
-  if (combatant) {
-    if (combatant.maxHitPoints == null) return null
-    return { current: combatant.currentHitPoints, max: combatant.maxHitPoints }
-  }
-  const participant = props.participants.find(item => item.id === token.participantId)
-  if (participant?.maxHitPoints != null) {
-    return { current: participant.currentHitPoints, max: participant.maxHitPoints }
-  }
-  return null
+  return healthByTokenId.value.get(token.participantId) ?? null
 }
 
 const attackAreas = useAttackAreas()

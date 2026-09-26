@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { STATUS_CONDITION_OPTIONS } from '~/composables/useTokenAppearance'
 import type { BattlemapToken } from '~/types/campaign'
 
 const props = withDefaults(defineProps<{
@@ -25,12 +26,10 @@ const healthRatio = computed(() => {
   return Math.min(1, Math.max(0, current / props.maxHitPoints))
 })
 
-const conditionAbbreviations: Record<string, string> = {
-  Stunned: 'ATD', Restrained: 'IMO', Blinded: 'CEG', Poisoned: 'VEN', Invisible: 'INV', Prone: 'CAI'
-}
-const conditionLabels: Record<string, string> = {
-  Stunned: 'Atordoado', Restrained: 'Imobilizado', Blinded: 'Cego', Poisoned: 'Envenenado', Invisible: 'Invisível', Prone: 'Caído'
-}
+const conditionAbbreviations: Record<string, string> = Object.fromEntries(
+  STATUS_CONDITION_OPTIONS.map(option => [option.value, option.abbreviation]))
+const conditionLabels: Record<string, string> = Object.fromEntries(
+  STATUS_CONDITION_OPTIONS.map(option => [option.value, option.label]))
 const statusConditions = computed(() => props.token.statusConditions ?? [])
 const emit = defineEmits<{
   select: [token: BattlemapToken]
