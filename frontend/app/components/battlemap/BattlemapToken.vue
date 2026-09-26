@@ -10,7 +10,15 @@ const props = withDefaults(defineProps<{
   controllable: boolean
   pending: boolean
   isCurrentTurn?: boolean
-}>(), { isCurrentTurn: false })
+  currentHitPoints?: number | null
+  maxHitPoints?: number | null
+}>(), { isCurrentTurn: false, currentHitPoints: null, maxHitPoints: null })
+
+const healthRatio = computed(() => {
+  if (props.maxHitPoints == null || props.maxHitPoints <= 0) return null
+  const current = props.currentHitPoints ?? 0
+  return Math.min(1, Math.max(0, current / props.maxHitPoints))
+})
 const emit = defineEmits<{
   select: [token: BattlemapToken]
   dragstart: [event: PointerEvent, token: BattlemapToken]
@@ -40,6 +48,21 @@ const emit = defineEmits<{
     />
     <circle :r="size * .37" />
     <circle class="token-ring" :r="size * .43" />
+    <svg
+      v-if="healthRatio !== null"
+      class="battlemap-health-bar"
+      role="img"
+      :aria-label="`Vida: ${currentHitPoints ?? 0} de ${maxHitPoints}`"
+      :x="-size * .45"
+      :y="-size * .62"
+      :width="size * .9"
+      :height="size * .16"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+    >
+      <rect class="health-bg" width="100" height="100" />
+      <rect data-health-fill class="health-fill" :width="`${Math.round(healthRatio * 100)}%`" height="100" />
+    </svg>
     <text text-anchor="middle" dominant-baseline="central" :font-size="size * .28">{{ token.initials }}</text>
   </g>
 </template>

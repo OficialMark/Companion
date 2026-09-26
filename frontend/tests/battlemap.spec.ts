@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
-import type { BattlemapSnapshot, Combatant } from '~/types/campaign'
+import type { BattlemapSnapshot, Combatant, Participant } from '~/types/campaign'
 
 function combatant(overrides: Partial<Combatant> = {}): Combatant {
   return {
@@ -12,6 +12,20 @@ function combatant(overrides: Partial<Combatant> = {}): Combatant {
     creationOrder: 0,
     isCurrent: false,
     currentHitPoints: null,
+    maxHitPoints: null,
+    ...overrides
+  }
+}
+
+function participant(overrides: Partial<Participant> = {}): Participant {
+  return {
+    id: 'participant-1',
+    displayName: 'Participant',
+    role: 'Player',
+    isOnline: true,
+    initiativeModifier: null,
+    currentHitPoints: null,
+    maxHitPoints: null,
     ...overrides
   }
 }
@@ -211,5 +225,42 @@ describe('BattlemapBoard', () => {
       }
     })
     expect(wrapper.get('[data-participant-id="goblin-1"]').classes()).toContain('current-turn')
+  })
+
+  it('renders a health bar proportional to a combatant linked to the token', () => {
+    const combatants = [combatant({ id: 'c1', participantId: 'player-0', currentHitPoints: 15, maxHitPoints: 20 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, combatants }
+    })
+    const bar = wrapper.get('[data-participant-id="player-0"] [data-health-fill]')
+    expect(bar.attributes('width')).toBe('75%')
+  })
+
+  it('falls back to the participant baseline HP when no combatant is linked yet', () => {
+    const participants = [participant({ id: 'player-0', currentHitPoints: 5, maxHitPoints: 10 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, participants }
+    })
+    expect(wrapper.find('[data-participant-id="player-0"] [data-health-fill]').exists()).toBe(true)
+  })
+
+  it('shows no health bar when neither a combatant nor a participant provides a max HP', () => {
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(wrapper.find('[data-participant-id="player-0"] [data-health-fill]').exists()).toBe(false)
+  })
+
+  it('never shows a health bar for a marker token', () => {
+    const markerMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'marker-1', displayName: 'Lobo', initials: 'L', colorKey: 2, column: 0, row: 0, positionVersion: 'v1', isMarker: true, ownerParticipantId: 'player-0' }]
+    }
+    const combatants = [combatant({ id: 'marker-1', participantId: null, currentHitPoints: 5, maxHitPoints: 5 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: markerMap, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, combatants }
+    })
+    // A marker's token id ('marker-1') coincidentally matching a combatant id must not leak a health bar onto it.
+    expect(wrapper.find('[data-participant-id="marker-1"] [data-health-fill]').exists()).toBe(false)
   })
 })

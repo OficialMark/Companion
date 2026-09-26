@@ -5,11 +5,11 @@ namespace Companion.Application.Contracts;
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
 public sealed record RollDiceRequest(string Expression, bool Publish = true);
-public sealed record AddCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null);
-public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null);
+public sealed record AddCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
+public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
 public sealed record RollInitiativeRequest(Guid? CombatantId);
 public sealed record UpdateInitiativeModifierRequest(int? InitiativeModifier);
-public sealed record UpdateCombatProfileRequest(int? InitiativeModifier, int? CurrentHitPoints);
+public sealed record UpdateCombatProfileRequest(int? InitiativeModifier, int? CurrentHitPoints, int? MaxHitPoints = null);
 public sealed record UpdateHitPointsRequest(int CurrentHitPoints);
 public sealed record ResolveAttackRequest(Guid DiceRollId, IReadOnlyList<Guid> TargetCombatantIds);
 public sealed record ConfigureBattlemapRequest(
@@ -39,7 +39,8 @@ public sealed record ParticipantDto(
     ParticipantRole Role,
     bool IsOnline,
     int? InitiativeModifier,
-    int? CurrentHitPoints = null);
+    int? CurrentHitPoints = null,
+    int? MaxHitPoints = null);
 public sealed record DiceRollDto(
     Guid Id,
     Guid ParticipantId,
@@ -61,7 +62,8 @@ public sealed record CombatantDto(
     int CreationOrder,
     bool IsCurrent,
     int? CurrentHitPoints = null,
-    bool IsDefeated = false);
+    bool IsDefeated = false,
+    int? MaxHitPoints = null);
 public sealed record EncounterDto(
     Guid Id,
     EncounterStatus Status,

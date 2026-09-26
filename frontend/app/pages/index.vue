@@ -138,6 +138,7 @@ onBeforeUnmount(() => {
               :pending-participant-id="store.pendingBattlemapTokenId"
               :combatants="store.snapshot.activeEncounter?.combatants ?? []"
               :encounter-status="store.snapshot.activeEncounter?.status ?? null"
+              :participants="store.snapshot.participants"
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"

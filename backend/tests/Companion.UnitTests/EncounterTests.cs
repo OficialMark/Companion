@@ -146,6 +146,46 @@ public sealed class EncounterTests
     }
 
     [Fact]
+    public void Participant_validates_and_updates_max_hit_points()
+    {
+        var participant = new Participant(Guid.NewGuid(), Guid.NewGuid(), "Lia", ParticipantRole.Player, new byte[32], DateTimeOffset.UtcNow);
+        participant.UpdateCombatProfile(3, 12, 18);
+        Assert.Equal(12, participant.CurrentHitPoints);
+        Assert.Equal(18, participant.MaxHitPoints);
+        Assert.Throws<ArgumentOutOfRangeException>(() => participant.UpdateCombatProfile(3, 12, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => participant.UpdateCombatProfile(3, 12, 100_000));
+    }
+
+    [Fact]
+    public void Combatant_validates_and_updates_max_hit_points()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var combatant = encounter.AddCombatant(Guid.NewGuid(), "Lobo", 0, currentHitPoints: 10, maxHitPoints: 15);
+        Assert.Equal(15, combatant.MaxHitPoints);
+
+        encounter.UpdateCombatant(combatant.Id, "Lobo", 0, currentHitPoints: 12, maxHitPoints: 20);
+        Assert.Equal(20, combatant.MaxHitPoints);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            encounter.AddCombatant(Guid.NewGuid(), "Inválido", 0, currentHitPoints: 10, maxHitPoints: -1));
+    }
+
+    [Fact]
+    public void Rolling_initiative_copies_participant_max_hit_points_to_the_new_combatant()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var participant = new Participant(Guid.NewGuid(), Guid.NewGuid(), "Lia", ParticipantRole.Player, new byte[32], DateTimeOffset.UtcNow);
+        participant.UpdateCombatProfile(2, 14, 22);
+
+        var combatant = encounter.AddCombatant(
+            Guid.NewGuid(), participant.DisplayName, participant.InitiativeModifier ?? 0,
+            participant.Id, participant.CurrentHitPoints, participant.MaxHitPoints);
+
+        Assert.Equal(14, combatant.CurrentHitPoints);
+        Assert.Equal(22, combatant.MaxHitPoints);
+    }
+
+    [Fact]
     public void Cannot_start_with_missing_hit_points()
     {
         var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);

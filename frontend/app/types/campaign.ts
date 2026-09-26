@@ -19,6 +19,7 @@ export interface Participant {
   isOnline: boolean
   initiativeModifier: number | null
   currentHitPoints: number | null
+  maxHitPoints: number | null
 }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }
@@ -42,6 +43,7 @@ export interface Combatant {
   creationOrder: number
   isCurrent: boolean
   currentHitPoints: number | null
+  maxHitPoints: number | null
   isDefeated?: boolean
 }
 export interface Encounter {
@@ -99,6 +101,8 @@ export interface BattlemapToken {
   row: number | null
   positionVersion: string | null
   isCreature?: boolean
+  isMarker?: boolean
+  ownerParticipantId?: string | null
   attackArea?: AttackArea | null
 }
 export interface BattlemapSnapshot {

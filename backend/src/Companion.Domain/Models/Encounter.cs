@@ -28,7 +28,8 @@ public sealed class Encounter
         string name,
         int modifier,
         Guid? participantId = null,
-        int? currentHitPoints = null)
+        int? currentHitPoints = null,
+        int? maxHitPoints = null)
     {
         EnsurePreparing();
         if (participantId.HasValue && _combatants.Any(x => x.ParticipantId == participantId))
@@ -36,16 +37,16 @@ public sealed class Encounter
             throw new InvalidOperationException("Este participante já está na iniciativa.");
         }
         var nextCreationOrder = _combatants.Count == 0 ? 0 : _combatants.Max(x => x.CreationOrder) + 1;
-        var combatant = new Combatant(id, Id, name, modifier, nextCreationOrder, participantId, currentHitPoints);
+        var combatant = new Combatant(id, Id, name, modifier, nextCreationOrder, participantId, currentHitPoints, maxHitPoints);
         _combatants.Add(combatant);
         return combatant;
     }
 
-    public void UpdateCombatant(Guid combatantId, string name, int modifier, int? currentHitPoints = null)
+    public void UpdateCombatant(Guid combatantId, string name, int modifier, int? currentHitPoints = null, int? maxHitPoints = null)
     {
         var currentId = CurrentCombatantId();
         var combatant = FindCombatant(combatantId);
-        combatant.Update(name, modifier, currentHitPoints);
+        combatant.Update(name, modifier, currentHitPoints, maxHitPoints);
         RestoreCurrentTurn(currentId);
     }
 

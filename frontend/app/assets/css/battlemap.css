@@ -39,6 +39,9 @@
 @media (prefers-reduced-motion: reduce) {
   .battlemap-token .token-turn-ring { animation: none; stroke-opacity: .9; }
 }
+.battlemap-health-bar { overflow: visible; pointer-events: none; }
+.battlemap-health-bar .health-bg { fill: #1a1418; opacity: .55; rx: 6; }
+.battlemap-health-bar .health-fill { fill: #7fd858; opacity: .85; transition: width .2s ease; }
 .battlemap-token.token-color-1 > circle:first-child { fill: #356f91; }
 .battlemap-token.token-color-2 > circle:first-child { fill: #3c8069; }
 .battlemap-token.token-color-3 > circle:first-child { fill: #8a6730; }

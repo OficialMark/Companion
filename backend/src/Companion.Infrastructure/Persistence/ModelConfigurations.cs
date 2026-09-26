@@ -37,6 +37,7 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.TokenHash).HasMaxLength(32).IsRequired();
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10);
         builder.Property(x => x.CurrentHitPoints);
+        builder.Property(x => x.MaxHitPoints);
         builder.HasIndex(x => x.TokenHash).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);

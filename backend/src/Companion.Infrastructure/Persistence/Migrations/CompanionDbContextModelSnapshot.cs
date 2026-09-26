@@ -318,6 +318,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int>("InitiativeModifier")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MaxHitPoints")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(60)
@@ -452,6 +455,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(40)");
 
                     b.Property<int?>("InitiativeModifier")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxHitPoints")
                         .HasColumnType("int");
 
                     b.Property<string>("Role")

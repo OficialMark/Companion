@@ -56,7 +56,7 @@ public sealed class CampaignService(
         var campaign = db.Campaigns.FirstOrDefault(x => x.Id == campaignId)
             ?? throw new AppException(AppErrorKind.NotFound, "Campanha não encontrada.");
         var participantEntities = db.Participants.Where(x => x.CampaignId == campaignId).OrderBy(x => x.CreatedAt).AsEnumerable().ToArray();
-        var participants = participantEntities.Select(x => ToDto(x, x.Id == current.Id)).ToArray();
+        var participants = participantEntities.Select(ToDto).ToArray();
         var participantNames = participantEntities.ToDictionary(x => x.Id, x => x.DisplayName);
         var rolls = db.DiceRolls.Where(x => x.CampaignId == campaignId && x.RevealedAt != null)
             .OrderByDescending(x => x.CreatedAt).Take(50).AsEnumerable()
@@ -71,7 +71,7 @@ public sealed class CampaignService(
         }
         var playerCode = db.CampaignAccessCodes.First(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player).Code;
         return Task.FromResult(new CampaignSnapshot(new CampaignDto(campaign.Id, playerCode, campaign.Name),
-            ToDto(current, true), participants, rolls, encounterDto));
+            ToDto(current), participants, rolls, encounterDto));
     }
 
     public Task<ParticipantDto> UpdateInitiativeModifierAsync(
@@ -89,14 +89,15 @@ public sealed class CampaignService(
         try
         {
             participant.UpdateCombatProfile(request.InitiativeModifier,
-                preserveHitPoints ? participant.CurrentHitPoints : request.CurrentHitPoints);
+                preserveHitPoints ? participant.CurrentHitPoints : request.CurrentHitPoints,
+                preserveHitPoints ? participant.MaxHitPoints : request.MaxHitPoints);
         }
         catch (ArgumentOutOfRangeException exception)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
         await db.SaveChangesAsync(cancellationToken);
-        var ownerDto = ToDto(participant, true);
+        var ownerDto = ToDto(participant);
         await notifier.NotifyAsync(campaignId, "ParticipantUpdated", ToDto(participant), cancellationToken);
         return ownerDto;
     }
@@ -123,9 +124,10 @@ public sealed class CampaignService(
         return (selected[0], selected[1]);
     }
 
-    private ParticipantDto ToDto(Participant participant, bool includeHitPoints = false) =>
+    // Vida (atual e máxima) visível a todos os participantes (FR-009a) — não filtrada por observador.
+    private ParticipantDto ToDto(Participant participant) =>
         new(participant.Id, participant.DisplayName, participant.Role, presence.IsOnline(participant.Id),
-            participant.InitiativeModifier, includeHitPoints ? participant.CurrentHitPoints : null);
+            participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints);
 
     internal static DiceRollDto ToDto(DiceRoll roll, string displayName)
     {

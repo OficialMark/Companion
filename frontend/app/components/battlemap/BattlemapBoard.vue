@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus } from '~/types/campaign'
+import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus, Participant } from '~/types/campaign'
 import { useBattlemapViewport } from '~/composables/useBattlemapViewport'
 import { useAttackAreas, type AttackAreaDraft } from '~/composables/useAttackAreas'
 import { attackAreaGeometry } from '~/utils/attackAreaGeometry'
@@ -15,7 +15,8 @@ const props = withDefaults(defineProps<{
   pendingParticipantId?: string | null
   combatants?: Combatant[]
   encounterStatus?: EncounterStatus | null
-}>(), { pendingParticipantId: null, combatants: () => [], encounterStatus: null })
+  participants?: Participant[]
+}>(), { pendingParticipantId: null, combatants: () => [], encounterStatus: null, participants: () => [] })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
@@ -59,6 +60,23 @@ const currentTurnTokenId = computed(() => {
 })
 function isCurrentTurn(token: BattlemapToken) {
   return currentTurnTokenId.value !== null && currentTurnTokenId.value === token.participantId
+}
+
+// Resolved client-side (not carried on BattlemapTokenDto) so it stays in sync with
+// HP mutations, which broadcast via EncounterInvalidated/ParticipantsChanged, not
+// BattlemapInvalidated. See specs/006-battlemap-combat-ux/data-model.md.
+function healthFor(token: BattlemapToken): { current: number | null; max: number | null } | null {
+  if (token.isMarker) return null
+  const combatant = props.combatants.find(item => (item.participantId ?? item.id) === token.participantId)
+  if (combatant) {
+    if (combatant.maxHitPoints == null) return null
+    return { current: combatant.currentHitPoints, max: combatant.maxHitPoints }
+  }
+  const participant = props.participants.find(item => item.id === token.participantId)
+  if (participant?.maxHitPoints != null) {
+    return { current: participant.currentHitPoints, max: participant.maxHitPoints }
+  }
+  return null
 }
 
 const attackAreas = useAttackAreas()
@@ -401,6 +419,8 @@ onBeforeUnmount(() => observer?.disconnect())
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
           :is-current-turn="isCurrentTurn(token)"
+          :current-hit-points="healthFor(token)?.current ?? null"
+          :max-hit-points="healthFor(token)?.max ?? null"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />
