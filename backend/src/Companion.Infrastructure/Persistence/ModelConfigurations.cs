@@ -150,6 +150,7 @@ public sealed class BattlemapTokenPositionConfiguration : IEntityTypeConfigurati
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
     }
 }
 
@@ -198,6 +199,7 @@ public sealed class BattlemapTokenAppearanceConfiguration : IEntityTypeConfigura
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
     }
 }
 
@@ -221,5 +223,6 @@ public sealed class AttackAreaConfiguration : IEntityTypeConfiguration<AttackAre
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
     }
 }

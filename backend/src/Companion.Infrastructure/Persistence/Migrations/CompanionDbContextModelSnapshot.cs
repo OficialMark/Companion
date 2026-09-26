@@ -72,6 +72,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CombatantId");
 
+                    b.HasIndex("MarkerId");
+
                     b.HasIndex("ParticipantId");
 
                     b.HasIndex("BattlemapId", "CombatantId")
@@ -215,6 +217,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CombatantId");
 
+                    b.HasIndex("MarkerId");
+
                     b.HasIndex("ParticipantId");
 
                     b.HasIndex("BattlemapId", "CombatantId")
@@ -273,6 +277,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("BattlemapId");
 
                     b.HasIndex("CombatantId");
+
+                    b.HasIndex("MarkerId");
 
                     b.HasIndex("ParticipantId");
 
@@ -593,6 +599,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CombatantId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Companion.Domain.Models.BattlemapMarker", null)
+                        .WithMany()
+                        .HasForeignKey("MarkerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Companion.Domain.Models.Participant", null)
                         .WithMany()
                         .HasForeignKey("ParticipantId")
@@ -636,6 +647,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CombatantId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Companion.Domain.Models.BattlemapMarker", null)
+                        .WithMany()
+                        .HasForeignKey("MarkerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Companion.Domain.Models.Participant", null)
                         .WithMany()
                         .HasForeignKey("ParticipantId")
@@ -653,6 +669,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasOne("Companion.Domain.Models.Combatant", null)
                         .WithMany()
                         .HasForeignKey("CombatantId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.BattlemapMarker", null)
+                        .WithMany()
+                        .HasForeignKey("MarkerId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Companion.Domain.Models.Participant", null)
