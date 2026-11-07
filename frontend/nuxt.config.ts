@@ -2,8 +2,17 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   ssr: false,
   devtools: { enabled: true },
-  modules: ['@pinia/nuxt'],
-  css: ['~/assets/css/main.css', '~/assets/css/battlemap.css'],
+  modules: ['@pinia/nuxt', '@nuxt/icon'],
+  icon: {
+    // Icons are bundled into the client (Lucide set installed locally), so the
+    // static nginx build never needs the Iconify API or a server endpoint.
+    mode: 'svg',
+    class: 'icon',
+    size: '1.1em',
+    provider: 'none',
+    clientBundle: { scan: true, sizeLimitKb: 256 }
+  },
+  css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css'],
   runtimeConfig: {
     public: {
       apiBase: '/api',

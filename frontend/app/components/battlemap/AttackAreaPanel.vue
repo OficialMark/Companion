@@ -6,7 +6,8 @@ const props = withDefaults(defineProps<{
   draft: AttackAreaDraft
   hasExisting: boolean
   maxRadius?: number
-}>(), { maxRadius: 20 })
+  tokenName?: string
+}>(), { maxRadius: 20, tokenName: '' })
 
 const emit = defineEmits<{
   change: [draft: AttackAreaDraft]
@@ -15,11 +16,11 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const shapes: Array<{ value: AttackAreaShape; label: string; icon: string }> = [
-  { value: 'Circle', label: 'Círculo', icon: '◯' },
-  { value: 'Square', label: 'Quadrado', icon: '▢' },
-  { value: 'Cone', label: 'Cone', icon: '◣' },
-  { value: 'Cylinder', label: 'Feixe', icon: '▭' }
+const shapes: Array<{ value: AttackAreaShape; label: string; icon: string; iconClass?: string }> = [
+  { value: 'Circle', label: 'Círculo', icon: 'lucide:circle' },
+  { value: 'Square', label: 'Quadrado', icon: 'lucide:square' },
+  { value: 'Cone', label: 'Cone', icon: 'lucide:triangle', iconClass: 'rotate-cone' },
+  { value: 'Cylinder', label: 'Feixe', icon: 'lucide:rectangle-horizontal' }
 ]
 
 const isDirectional = computed(() => props.draft.shape === 'Cone' || props.draft.shape === 'Cylinder')
@@ -47,11 +48,16 @@ function onDirectionInput(event: Event) {
 function onSliderChange() {
   emit('commit', props.draft)
 }
+const blocks = (value: number | null) => `${value ?? 1} ${value === 1 ? 'bloco' : 'blocos'}`
 </script>
 
 <template>
   <div class="attack-area-panel" role="dialog" aria-label="Configurar área de ataque" @click.stop>
-    <div class="attack-area-shapes">
+    <div class="attack-area-header">
+      <p class="eyebrow"><Icon name="lucide:wand-sparkles" />Área de efeito{{ tokenName ? ` · ${tokenName}` : '' }}</p>
+      <button class="icon-button small" type="button" aria-label="Fechar painel de área" title="Fechar" @click="emit('close')"><Icon name="lucide:x" /></button>
+    </div>
+    <div class="attack-area-shapes" role="group" aria-label="Formato da área">
       <button
         v-for="shape in shapes"
         :key="shape.value"
@@ -60,11 +66,11 @@ function onSliderChange() {
         :class="{ selected: draft.shape === shape.value }"
         :aria-pressed="draft.shape === shape.value"
         @click="selectShape(shape.value)"
-      ><span aria-hidden="true">{{ shape.icon }}</span>{{ shape.label }}</button>
+      ><Icon :name="shape.icon" :class="shape.iconClass" />{{ shape.label }}</button>
     </div>
 
     <label class="attack-area-slider">
-      <span>{{ isDirectional ? 'Distância' : 'Raio' }}: {{ draft.radius }} {{ draft.radius === 1 ? 'bloco' : 'blocos' }}</span>
+      <span class="slider-label"><Icon name="lucide:radius" />{{ isDirectional ? 'Distância' : 'Raio' }}<strong>{{ blocks(draft.radius) }}</strong></span>
       <input
         type="range" min="1" :max="maxRadius" step="1"
         :value="draft.radius"
@@ -75,7 +81,7 @@ function onSliderChange() {
 
     <template v-if="isDirectional">
       <label class="attack-area-slider">
-        <span>Largura: {{ draft.width }} {{ draft.width === 1 ? 'bloco' : 'blocos' }}</span>
+        <span class="slider-label"><Icon name="lucide:move-horizontal" />Largura<strong>{{ blocks(draft.width) }}</strong></span>
         <input
           type="range" min="1" :max="maxRadius" step="1"
           :value="draft.width ?? 1"
@@ -84,7 +90,10 @@ function onSliderChange() {
         >
       </label>
       <label class="attack-area-slider">
-        <span>Direção: {{ draft.directionDegrees }}°</span>
+        <span class="slider-label">
+          <Icon name="lucide:compass" />Direção
+          <strong><Icon name="lucide:arrow-right" class="direction-arrow" :style="{ transform: `rotate(${draft.directionDegrees ?? 0}deg)` }" />{{ draft.directionDegrees }}°</strong>
+        </span>
         <input
           type="range" min="0" max="359" step="5"
           :value="draft.directionDegrees ?? 0"
@@ -95,8 +104,8 @@ function onSliderChange() {
     </template>
 
     <div class="attack-area-actions">
-      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')">Remover</button>
-      <button class="button primary" type="button" @click="emit('close')">Concluir</button>
+      <button v-if="hasExisting" class="button ghost danger" type="button" @click="emit('remove'); emit('close')"><Icon name="lucide:trash-2" />Remover</button>
+      <button class="button primary" type="button" @click="emit('close')"><Icon name="lucide:check" />Concluir</button>
     </div>
   </div>
 </template>

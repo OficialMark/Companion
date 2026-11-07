@@ -41,7 +41,7 @@ describe('BattlemapBoard', () => {
     const token = wrapper.get('[data-participant-id="player-0"]')
     await token.trigger('pointerdown')
     await token.trigger('pointerup')
-    await wrapper.get('[data-board-surface]').trigger('click', { clientX: 120, clientY: 120 })
+    await wrapper.get('[data-board-surface]').trigger('click', { clientX: 320, clientY: 170 })
     expect(wrapper.emitted('move')).toBeTruthy()
   })
 

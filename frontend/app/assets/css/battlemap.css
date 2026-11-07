@@ -1,83 +1,140 @@
 .battlemap-panel { min-width: 0; }
+
+/* Setup (master) */
 .battlemap-config { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.1); }
-.battlemap-config > summary { min-height: 48px; display: flex; align-items: center; padding: 0 14px; color: var(--gold); font-weight: 700; cursor: pointer; }
+.battlemap-config > summary { min-height: 48px; display: flex; align-items: center; gap: 9px; padding: 0 14px; color: var(--gold); font-weight: 700; cursor: pointer; list-style: none; }
+.battlemap-config > summary::-webkit-details-marker { display: none; }
+.battlemap-config > summary .summary-chevron { margin-left: auto; color: var(--muted); transition: transform .2s; }
+.battlemap-config[open] > summary .summary-chevron { transform: rotate(90deg); }
 .battlemap-setup { display: grid; gap: 14px; padding: 0 14px 16px; }
-.battlemap-setup h3 { margin: 4px 0 0; }
-.battlemap-fields { display: grid; grid-template-columns: minmax(0, 1fr) 110px 110px; gap: 10px; align-items: end; }
-.battlemap-fields input[type="file"] { padding: 10px; }
-.battlemap-grid-visibility { display: flex; align-items: center; gap: 8px; min-height: 44px; }
-.battlemap-grid-visibility input { width: auto; }
-.battlemap-preview { position: relative; width: min(100%, 520px); max-height: 300px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #100d10; }
-.battlemap-preview img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.battlemap-setup h3 { margin: 4px 0 0; font-size: 1rem; }
+.file-drop { position: relative; display: flex; align-items: center; gap: 14px; min-height: 76px; border: 1.5px dashed rgba(215,174,93,.38); border-radius: 12px; padding: 12px 16px; background: rgba(215,174,93,.04); cursor: pointer; transition: border-color .15s, background .15s; }
+.file-drop:hover, .file-drop:focus-within { border-color: var(--gold); background: rgba(215,174,93,.08); }
+.file-drop.has-file { border-style: solid; border-color: rgba(99,194,144,.4); background: rgba(99,194,144,.05); }
+/* The native input covers the whole card: native click, keyboard, drag-and-drop and validation keep working. */
+.file-drop input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; opacity: 0; cursor: pointer; }
+.file-drop-icon { width: 46px; height: 46px; flex: 0 0 46px; display: grid; place-items: center; border-radius: 12px; color: var(--gold); background: rgba(215,174,93,.1); }
+.file-drop.has-file .file-drop-icon { color: var(--green); background: rgba(99,194,144,.1); }
+.file-drop-text { min-width: 0; display: grid; gap: 3px; }
+.file-drop-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.file-drop-text small { color: var(--muted); font-size: .76rem; font-weight: 500; }
+.battlemap-fields { display: grid; grid-template-columns: 120px 120px minmax(0, 1fr); gap: 10px; align-items: end; }
+.switch-field { position: relative; min-height: 48px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.switch-field input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.switch-track { position: relative; width: 42px; height: 24px; flex: 0 0 42px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.08); transition: background .2s, border-color .2s; }
+.switch-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
+.switch-field input:checked + .switch-track { border-color: rgba(215,174,93,.5); background: rgba(215,174,93,.25); }
+.switch-field input:checked + .switch-track .switch-thumb { transform: translateX(18px); background: var(--gold); }
+.switch-field input:focus-visible + .switch-track { outline: 3px solid rgba(215,174,93,.55); outline-offset: 2px; }
+.battlemap-preview { position: relative; max-width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #100d10; }
+/* object-fit: fill mirrors the board: the full image always fills the grid area, never cropped. */
+.battlemap-preview img { width: 100%; height: 100%; display: block; object-fit: fill; }
 .battlemap-preview-grid { --columns: 20; --rows: 15; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, rgba(255,255,255,.38) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.38) 1px, transparent 1px); background-size: calc(100% / var(--columns)) calc(100% / var(--rows)); box-shadow: inset -1px -1px rgba(255,255,255,.38); }
+.battlemap-ratio-warning { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 6px 10px; border: 1px solid rgba(215,174,93,.4); border-radius: 10px; padding: 12px 14px; background: rgba(215,174,93,.07); color: var(--ink-soft); font-size: .84rem; }
+.battlemap-ratio-warning > .icon { margin-top: .15em; color: var(--gold); }
+.battlemap-ratio-warning p { margin: 0; line-height: 1.5; }
+.ratio-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
 .battlemap-shrink-warning { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid rgba(215,174,93,.5); border-radius: 10px; background: rgba(215,174,93,.08); color: var(--ink); font-size: .85rem; }
-.battlemap-shrink-warning ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.battlemap-shrink-warning p { display: flex; align-items: flex-start; gap: 8px; margin: 0; }
+.battlemap-shrink-warning p .icon { margin-top: .15em; color: var(--gold); }
+.battlemap-shrink-warning ul { margin: 0; padding-left: 32px; color: var(--muted); }
 .battlemap-setup-actions { display: flex; justify-content: flex-end; gap: 10px; }
-.battlemap-loading { height: 560px; display: grid; place-items: center; color: var(--muted); }
+.battlemap-loading { min-height: 320px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+.battlemap-loading .icon { color: var(--gold); }
+
+/* Board */
 .battlemap-shell { min-width: 0; display: grid; gap: 10px; }
-.battlemap-toolbar { min-height: 48px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.battlemap-toolbar .icon-button { flex: 0 0 44px; }
-.battlemap-toolbar > span { min-width: 58px; color: var(--muted); font-size: .78rem; text-align: center; }
-.battlemap-board { width: 100%; height: 560px; display: block; overflow: hidden; border: 1px solid rgba(215,174,93,.3); border-radius: 14px; background: #100d10; box-shadow: inset 0 0 35px rgba(0,0,0,.35); touch-action: none; cursor: grab; }
+.battlemap-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.toolbar-group { display: flex; align-items: center; gap: 6px; }
+.zoom-label { min-width: 58px; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: center; }
+/* Board height follows the map proportion (--map-ratio), clamped to a comfortable range. */
+.battlemap-board { width: 100%; height: auto; aspect-ratio: var(--map-ratio, 4 / 3); min-height: 320px; max-height: min(72svh, 680px); display: block; overflow: hidden; border: 1px solid rgba(215,174,93,.3); border-radius: 14px; background: #100d10; box-shadow: inset 0 0 35px rgba(0,0,0,.35); touch-action: none; cursor: grab; }
 .battlemap-board:active { cursor: grabbing; }
 .battlemap-board:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.battlemap-backdrop { fill: #0b090b; }
 .battlemap-boundary { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .battlemap-grid-line { stroke: rgba(255,255,255,.48); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
 .battlemap-cell-selection { fill: rgba(215,174,93,.25); stroke: #ffe3a2; stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+/* Token palette, shared by board tokens and reserve chips */
+.token-color-1 { --token-color: #356f91; }
+.token-color-2 { --token-color: #3c8069; }
+.token-color-3 { --token-color: #8a6730; }
+.token-color-4 { --token-color: #70458d; }
+.token-color-5 { --token-color: #a44d42; }
+.token-color-6 { --token-color: #3f668e; }
+.token-color-7 { --token-color: #6d7d38; }
+.token-color-8 { --token-color: #9a4770; }
+.token-color-9 { --token-color: #417f86; }
+.token-color-10 { --token-color: #77573e; }
+.token-color-11 { --token-color: #6655a0; }
+
 .battlemap-token { cursor: default; outline: none; }
 .battlemap-token.controllable { cursor: grab; }
-.battlemap-token > circle:first-child { fill: #8e3451; stroke: #fff8e9; stroke-width: 2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 3px 4px rgba(0,0,0,.65)); }
+.battlemap-token > circle:first-of-type { fill: var(--token-color, #8e3451); stroke: #fff8e9; stroke-width: 2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 3px 4px rgba(0,0,0,.65)); }
 .battlemap-token .token-ring { fill: none; stroke: transparent; stroke-width: 3; vector-effect: non-scaling-stroke; }
 .battlemap-token text { fill: #fff8e9; font-weight: 800; pointer-events: none; }
 .battlemap-token.selected .token-ring, .battlemap-token:focus .token-ring { stroke: #ffd36d; }
 .battlemap-token.pending { opacity: .55; }
-.battlemap-token.token-color-1 > circle:first-child { fill: #356f91; }
-.battlemap-token.token-color-2 > circle:first-child { fill: #3c8069; }
-.battlemap-token.token-color-3 > circle:first-child { fill: #8a6730; }
-.battlemap-token.token-color-4 > circle:first-child { fill: #70458d; }
-.battlemap-token.token-color-5 > circle:first-child { fill: #a44d42; }
-.battlemap-token.token-color-6 > circle:first-child { fill: #3f668e; }
-.battlemap-token.token-color-7 > circle:first-child { fill: #6d7d38; }
-.battlemap-token.token-color-8 > circle:first-child { fill: #9a4770; }
-.battlemap-token.token-color-9 > circle:first-child { fill: #417f86; }
-.battlemap-token.token-color-10 > circle:first-child { fill: #77573e; }
-.battlemap-token.token-color-11 > circle:first-child { fill: #6655a0; }
-.battlemap-reserve { min-height: 52px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border: 1px dashed var(--line); border-radius: 12px; padding: 8px; }
-.battlemap-reserve > span { padding: 0 6px; color: var(--muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-.reserve-token { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px; color: var(--ink); background: rgba(142,52,81,.2); cursor: pointer; }
-.reserve-token span { color: var(--muted); font-size: .75rem; }
-.reserve-token.selected { border-color: var(--gold); color: var(--gold); }
-.reserve-token:disabled { opacity: .45; cursor: not-allowed; }
-.battlemap-status { min-height: 36px; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+.battlemap-token.defeated > circle:first-of-type { fill: #4a3f45; stroke: #ff8aa0; stroke-dasharray: 4 3; }
+.battlemap-token.defeated text { fill: #cdbfc4; }
+.token-defeated-badge circle { fill: #b3213f; stroke: #fff8e9; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.token-defeated-badge path { fill: none; stroke: #fff8e9; stroke-width: 2; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 
+/* Reserve */
+.battlemap-reserve { min-height: 52px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border: 1px dashed var(--line); border-radius: 12px; padding: 8px; }
+.reserve-label { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0 6px; color: var(--muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.reserve-token { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px 0 4px; color: var(--ink); background: rgba(255,255,255,.03); cursor: pointer; transition: border-color .15s, background .15s; }
+.reserve-token:hover:not(:disabled) { border-color: var(--line-strong); }
+.reserve-initials { width: 32px; height: 32px; display: grid; place-items: center; border: 1.5px solid #fff8e9; border-radius: 50%; color: #fff8e9; background: var(--token-color, #8e3451); font-size: .72rem; font-weight: 800; }
+.reserve-name { color: var(--muted); font-size: .78rem; }
+.reserve-kind { color: #ff8aa0; }
+.reserve-token.defeated .reserve-initials { background: #4a3f45; border-color: #ff8aa0; border-style: dashed; }
+.reserve-token.selected { border-color: var(--gold); background: rgba(215,174,93,.1); }
+.reserve-token.selected .reserve-name { color: var(--gold); }
+.reserve-token:disabled { opacity: .45; cursor: not-allowed; }
+.battlemap-status { min-height: 36px; display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+.battlemap-status .status-icon { margin-top: .1em; color: var(--gold); }
+.battlemap-status.warning, .battlemap-status.warning .status-icon { color: var(--red-soft); }
+.battlemap-status.active { color: var(--gold-soft); }
+
+/* Attack areas */
 .attack-area-shape-drawing { fill: rgba(215,174,93,.22); stroke: #ffd36d; stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
 .attack-area-shape-drawing.interactive { pointer-events: auto; cursor: pointer; }
-
-.attack-area-panel { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid rgba(215,174,93,.4); border-radius: 12px; background: rgba(16,13,16,.92); max-height: 33svh; overflow-y: auto; }
-.attack-area-shapes { display: flex; flex-wrap: wrap; gap: 8px; }
-.attack-area-shape { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 0 14px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .82rem; }
-.attack-area-shape span { font-size: 1rem; }
+.attack-area-panel { display: grid; gap: 12px; padding: 12px 14px 14px; border: 1px solid rgba(215,174,93,.4); border-radius: 12px; background: rgba(16,13,16,.92); max-height: 46svh; overflow-y: auto; }
+.attack-area-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.attack-area-header .eyebrow { margin: 0; min-width: 0; letter-spacing: .1em; }
+.attack-area-shapes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.attack-area-shape { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .82rem; transition: border-color .15s, background .15s, color .15s; }
+.attack-area-shape:hover { border-color: var(--line-strong); }
+.attack-area-shape .icon { font-size: 1.05rem; }
+.attack-area-shape .rotate-cone { transform: rotate(90deg); }
 .attack-area-shape.selected { border-color: var(--gold); color: var(--gold); background: rgba(215,174,93,.12); }
 .attack-area-slider { display: grid; gap: 4px; font-size: .78rem; color: var(--muted); }
-.attack-area-slider input[type="range"] { width: 100%; min-height: 32px; }
+.slider-label { display: flex; align-items: center; gap: 6px; }
+.slider-label > .icon { color: var(--gold); }
+.slider-label strong { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+.direction-arrow { color: var(--gold); transition: transform .1s; }
+.attack-area-slider input[type="range"] { width: 100%; min-height: 32px; accent-color: var(--gold); }
 .attack-area-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 @media (max-width: 680px) {
-  .attack-area-panel { max-height: 33svh; }
-  .attack-area-shape { flex: 1 1 auto; justify-content: center; }
-}
-
-@media (max-width: 680px) {
   .battlemap-fields { grid-template-columns: 1fr 1fr; }
-  .battlemap-fields label:first-child { grid-column: 1 / -1; }
-  .battlemap-board, .battlemap-loading { height: min(58svh, 520px); min-height: 360px; }
-  .battlemap-toolbar .button { min-height: 44px; padding-inline: 12px; }
-  .battlemap-reserve { max-height: 126px; overflow-y: auto; }
+  .switch-field { grid-column: 1 / -1; min-height: 40px; }
+  .ratio-actions { grid-column: 1 / -1; }
+  .battlemap-setup { padding: 0 10px 14px; }
+  .battlemap-setup-actions .button { flex: 1 1 auto; }
+  .battlemap-board { min-height: 300px; max-height: 64svh; }
+  .battlemap-toolbar .button.compact { min-height: 44px; }
+  .battlemap-reserve { max-height: 132px; overflow-y: auto; }
   .reserve-token { min-height: 44px; }
+  .attack-area-shapes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .attack-area-actions .button { flex: 1 1 auto; }
 }
 
-@media (max-width: 420px) {
-  .battlemap-board, .battlemap-loading { height: 420px; min-height: 420px; }
-  .battlemap-toolbar { display: grid; grid-template-columns: 44px 54px 44px 1fr; }
-  .battlemap-toolbar .button:last-child { grid-column: 1 / -1; }
+@media (max-width: 440px) {
+  .battlemap-toolbar { justify-content: stretch; }
+  .toolbar-group { flex: 1 1 100%; justify-content: space-between; }
+  .toolbar-group .button.compact { flex: 1 1 0; }
+  .file-drop { gap: 10px; padding: 10px 12px; }
 }

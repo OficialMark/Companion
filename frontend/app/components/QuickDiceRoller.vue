@@ -31,16 +31,18 @@ async function roll(faces: QuickDieFaces) {
 </script>
 <template>
   <section class="panel dice-panel" aria-labelledby="quick-dice-title">
-    <div class="panel-heading"><div><p class="eyebrow">Modo Jogo</p><h2 id="quick-dice-title">Rolagem rápida</h2></div></div>
-    <div class="quick-dice-buttons" aria-label="Dados rápidos">
-      <button v-for="faces in dice" :key="faces" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" @click="roll(faces)">D{{ faces }}</button>
+    <div class="panel-heading"><div><p class="eyebrow"><Icon name="lucide:swords" />Modo Jogo</p><h2 id="quick-dice-title">Rolagem rápida</h2></div></div>
+    <div class="quick-dice-buttons" role="group" aria-label="Dados rápidos">
+      <button v-for="faces in dice" :key="faces" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" :title="faces === 20 ? 'Rolar d20 (ataque: pergunta se acertou)' : `Rolar d${faces}`" @click="roll(faces)">
+        <Icon :name="faces === 20 ? 'lucide:target' : 'lucide:dice-5'" class="die-button-icon" />D{{ faces }}
+      </button>
     </div>
-    <div class="quick-dice-modifier" aria-label="Modificador">
-      <button class="button ghost" type="button" :disabled="busy" aria-label="Diminuir modificador" @click="modifier.decrement()">-</button>
-      <span class="quick-dice-modifier-value">{{ modifier.value.value > 0 ? `+${modifier.value.value}` : modifier.value.value }}</span>
-      <button class="button ghost" type="button" :disabled="busy" aria-label="Aumentar modificador" @click="modifier.increment()">+</button>
+    <div class="quick-dice-modifier" role="group" aria-label="Modificador">
+      <button class="icon-button" type="button" :disabled="busy" aria-label="Diminuir modificador" title="Diminuir modificador" @click="modifier.decrement()"><Icon name="lucide:minus" /></button>
+      <span class="quick-dice-modifier-value" aria-live="polite"><small>Mod.</small>{{ modifier.value.value > 0 ? `+${modifier.value.value}` : modifier.value.value }}</span>
+      <button class="icon-button" type="button" :disabled="busy" aria-label="Aumentar modificador" title="Aumentar modificador" @click="modifier.increment()"><Icon name="lucide:plus" /></button>
     </div>
     <DiceRollAnimation v-if="rollingDice.length" :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
-    <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+    <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
   </section>
 </template>

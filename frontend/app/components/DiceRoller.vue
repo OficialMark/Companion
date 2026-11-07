@@ -5,7 +5,7 @@ import type { DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
 const props = withDefaults(defineProps<{ mode?: 'public' | 'attack' }>(), { mode: 'public' })
 const emit = defineEmits<{ rolled: [roll: DiceRoll] }>()
-const componentId = useId(); const titleId = `dice-title-`; const expressionId = `dice-expression-`
+const componentId = useId() ?? 'dice'; const titleId = `dice-title-${componentId}`; const expressionId = `dice-expression-${componentId}`
 const store = useCampaignStore(); const api = useCompanionApi(); const expression = ref('d20'); const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
 const presets = ['d20', '2d20', 'd12', 'd10', 'd8', 'd6', 'd4']; const rollingDuration = 750; const settlingDuration = 250; const resultHoldDuration = 1000
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
@@ -31,10 +31,23 @@ async function roll(value = expression.value) {
 </script>
 <template>
   <section class="panel dice-panel" :aria-labelledby="titleId">
-    <div class="panel-heading"><div><p class="eyebrow">{{ props.mode === 'attack' ? 'Dano' : 'Tente a sorte' }}</p><h2 :id="titleId">{{ props.mode === 'attack' ? 'Rolar ataque' : 'Rolar dados' }}</h2></div></div>
-    <div class="dice-presets" aria-label="Dados rápidos"><button v-for="preset in presets" :key="preset" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" @click="roll(preset)">{{ preset.toUpperCase() }}</button></div>
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow"><Icon :name="props.mode === 'attack' ? 'lucide:flame' : 'lucide:dices'" />{{ props.mode === 'attack' ? 'Dano' : 'Tente a sorte' }}</p>
+        <h2 :id="titleId">{{ props.mode === 'attack' ? 'Rolar ataque' : 'Rolar dados' }}</h2>
+      </div>
+    </div>
+    <div class="dice-presets" role="group" aria-label="Dados rápidos"><button v-for="preset in presets" :key="preset" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" :title="`Rolar ${preset}`" @click="roll(preset)">{{ preset.toUpperCase() }}</button></div>
     <DiceRollAnimation v-if="rollingDice.length" :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
-    <form class="roll-form" @submit.prevent="roll()"><label class="sr-only" :for="expressionId">Expressão de dados</label><input :id="expressionId" v-model="expression" maxlength="128" spellcheck="false" placeholder="2d6+3"><button class="button primary" type="submit" :disabled="busy || store.connection === 'offline'">{{ busy ? 'Rolando…' : 'Rolar' }}</button></form>
-    <p class="field-hint">{{ props.mode === 'attack' ? 'Use uma expressão com um único resultado, como 2d6+3.' : 'Exemplos: d20, 3#3d5+4, 2d3+4+2d8+3' }}</p><p v-if="error" class="form-error" role="alert">{{ error }}</p>
+    <form class="roll-form" @submit.prevent="roll()">
+      <label class="sr-only" :for="expressionId">Expressão de dados</label>
+      <div class="input-with-icon">
+        <Icon name="lucide:square-function" />
+        <input :id="expressionId" v-model="expression" maxlength="128" spellcheck="false" autocomplete="off" placeholder="2d6+3">
+      </div>
+      <button class="button primary" type="submit" :disabled="busy || store.connection === 'offline'"><Icon :name="busy ? 'lucide:loader-circle' : 'lucide:dices'" :class="{ spin: busy }" />{{ busy ? 'Rolando…' : 'Rolar' }}</button>
+    </form>
+    <p class="field-hint"><Icon name="lucide:info" />{{ props.mode === 'attack' ? 'Use uma expressão com um único resultado, como 2d6+3.' : 'Exemplos: d20, 3#3d5+4, 2d3+4+2d8+3' }}</p>
+    <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
   </section>
 </template>

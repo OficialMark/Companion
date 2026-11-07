@@ -13,7 +13,8 @@ const props = withDefaults(defineProps<{
   isMaster: boolean
   online: boolean
   pendingParticipantId?: string | null
-}>(), { pendingParticipantId: null })
+  defeatedIds?: string[]
+}>(), { pendingParticipantId: null, defeatedIds: () => [] })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
@@ -41,6 +42,10 @@ const selectedToken = computed(() =>
   props.battlemap.tokens.find(token => token.participantId === selectedParticipantId.value) ?? null)
 const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
+const defeatedSet = computed(() => new Set(props.defeatedIds))
+// The board follows the map proportion (within sensible height limits), so wide
+// maps don't leave a tall empty frame and tall maps get more vertical room.
+const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.value}` }))
 
 function controllable(token: BattlemapToken) {
   return props.isMaster || (!token.isCreature && token.participantId === props.currentParticipantId)
@@ -267,9 +272,13 @@ function stackOffset(token: BattlemapToken) {
 onMounted(() => {
   viewport.reset()
   if (surface.value && typeof ResizeObserver !== 'undefined') {
+    let measured = false
     observer = new ResizeObserver(entries => {
       const rect = entries[0]?.contentRect
-      if (rect) viewport.resize(rect.width, rect.height)
+      if (!rect) return
+      viewport.resize(rect.width, rect.height)
+      // First real measurement: pick the initial zoom from the actual board size.
+      if (!measured && rect.width > 0 && rect.height > 0) { measured = true; viewport.reset() }
     })
     observer.observe(surface.value)
   }
@@ -279,18 +288,23 @@ onBeforeUnmount(() => observer?.disconnect())
 
 <template>
   <div class="battlemap-shell">
-    <div class="battlemap-toolbar" aria-label="Controles do mapa">
-      <button class="icon-button" type="button" aria-label="Diminuir zoom" @click="viewport.zoom(1 / 1.2)">−</button>
-      <span>{{ Math.round(viewport.cellSize.value) }} px</span>
-      <button class="icon-button" type="button" aria-label="Aumentar zoom" @click="viewport.zoom(1.2)">+</button>
-      <button class="button ghost" type="button" @click="viewport.fit">Ajustar mapa</button>
-      <button class="button ghost" type="button" @click="viewport.reset">Escala 40 px</button>
+    <div class="battlemap-toolbar" role="toolbar" aria-label="Controles do mapa">
+      <div class="toolbar-group">
+        <button class="icon-button" type="button" aria-label="Diminuir zoom" title="Diminuir zoom" @click="viewport.zoom(1 / 1.2)"><Icon name="lucide:zoom-out" /></button>
+        <span class="zoom-label" :title="`${Math.round(viewport.cellSize.value)} px por célula`">{{ Math.round(viewport.cellSize.value) }} px</span>
+        <button class="icon-button" type="button" aria-label="Aumentar zoom" title="Aumentar zoom" @click="viewport.zoom(1.2)"><Icon name="lucide:zoom-in" /></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="button ghost compact" type="button" title="Mostrar o mapa inteiro" @click="viewport.fit"><Icon name="lucide:maximize" /><span>Ajustar mapa</span></button>
+        <button class="button ghost compact" type="button" title="Voltar à escala padrão de 40 px por célula" @click="viewport.defaultScale"><Icon name="lucide:rotate-ccw" /><span>Escala 40 px</span></button>
+      </div>
     </div>
 
     <svg
       ref="surface"
       data-board-surface
       class="battlemap-board"
+      :style="boardStyle"
       :viewBox="`0 0 ${viewport.viewportWidth.value} ${viewport.viewportHeight.value}`"
       role="application"
       tabindex="0"
@@ -303,23 +317,19 @@ onBeforeUnmount(() => observer?.disconnect())
       @wheel="wheel"
       @keydown="keydown"
     >
-      <defs>
-        <clipPath :id="`battlemap-clip-${battlemap.id}`">
-          <rect :width="mapWidth" :height="mapHeight" />
-        </clipPath>
-      </defs>
       <g :transform="`translate(${-viewport.pan.x} ${-viewport.pan.y})`">
+        <rect class="battlemap-backdrop" :width="mapWidth" :height="mapHeight" />
+        <!-- preserveAspectRatio="none": the whole image always fills the grid area and is
+             never cropped; the grid suggestion in BattlemapSetup keeps any stretch negligible. -->
         <image
           :href="imageSource"
           :width="mapWidth"
           :height="mapHeight"
-          preserveAspectRatio="xMidYMid slice"
-          :clip-path="`url(#battlemap-clip-${battlemap.id})`"
+          preserveAspectRatio="none"
         />
         <rect class="battlemap-boundary" :width="mapWidth" :height="mapHeight" />
         <line
-          v-if="battlemap.isGridVisible"
-          v-for="line in verticalLines"
+          v-for="line in (battlemap.isGridVisible ? verticalLines : [])"
           :key="`v-${line}`"
           data-grid-line
           class="battlemap-grid-line"
@@ -329,8 +339,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :y2="mapHeight"
         />
         <line
-          v-if="battlemap.isGridVisible"
-          v-for="line in horizontalLines"
+          v-for="line in (battlemap.isGridVisible ? horizontalLines : [])"
           :key="`h-${line}`"
           data-grid-line
           class="battlemap-grid-line"
@@ -385,6 +394,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :selected="selectedParticipantId === token.participantId"
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
+          :defeated="defeatedSet.has(token.participantId)"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />
@@ -396,29 +406,34 @@ onBeforeUnmount(() => observer?.disconnect())
       :draft="attackAreas.draftFor(activeAttackAreaToken)"
       :has-existing="Boolean(activeAttackAreaToken.attackArea)"
       :max-radius="attackAreaMaxRadius"
+      :token-name="activeAttackAreaToken.displayName"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
       @close="closeAttackAreaPanel"
     />
 
-    <div v-if="reserveTokens.length" class="battlemap-reserve" aria-label="Pinos na reserva">
-      <span>Reserva</span>
+    <div v-if="reserveTokens.length" class="battlemap-reserve" role="group" aria-label="Pinos na reserva">
+      <p class="reserve-label"><Icon name="lucide:package" />Reserva</p>
       <button
         v-for="token in reserveTokens"
         :key="token.participantId"
         :data-participant-id="token.participantId"
         class="reserve-token"
-        :class="{ selected: selectedParticipantId === token.participantId }"
+        :class="[{ selected: selectedParticipantId === token.participantId, defeated: defeatedSet.has(token.participantId) }, `token-color-${token.colorKey}`]"
         type="button"
         :disabled="!online || !controllable(token)"
+        :title="controllable(token) ? `Selecionar ${token.displayName} e escolher uma célula` : token.displayName"
         @click="selectToken(token)"
-      >{{ token.initials }} <span>{{ token.displayName }}</span></button>
+      ><span class="reserve-initials">{{ token.initials }}</span> <span class="reserve-name">{{ token.displayName }}</span><Icon v-if="defeatedSet.has(token.participantId)" name="lucide:skull" class="reserve-kind" /></button>
     </div>
-    <p class="battlemap-status" aria-live="polite">
-      <template v-if="!online">Conexão necessária para mover pinos.</template>
-      <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
-      <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.</template>
+    <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
+      <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />
+      <span>
+        <template v-if="!online">Conexão necessária para mover pinos.</template>
+        <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
+        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.</template>
+      </span>
     </p>
   </div>
 </template>

@@ -9,6 +9,7 @@ const busy = ref(false)
 const error = ref('')
 const createdSession = ref<Awaited<ReturnType<typeof api.createCampaign>> | null>(null)
 const revealMasterCode = ref(false)
+const copied = ref<'player' | 'master' | null>(null)
 
 async function submit() {
   busy.value = true
@@ -26,6 +27,13 @@ async function submit() {
   }
 }
 
+async function copy(kind: 'player' | 'master', value: string | null | undefined) {
+  if (!value || !navigator.clipboard) return
+  await navigator.clipboard.writeText(value)
+  copied.value = kind
+  setTimeout(() => { if (copied.value === kind) copied.value = null }, 1800)
+}
+
 function enterCreatedCampaign() {
   if (createdSession.value) store.setSession(createdSession.value)
 }
@@ -40,20 +48,26 @@ function enterCreatedCampaign() {
       <p class="lead">Dados e iniciativa compartilhados para sua campanha de D&amp;D.</p>
 
       <div class="segmented" role="tablist" aria-label="Acesso à campanha">
-        <button :class="{ active: mode === 'create' }" type="button" @click="mode = 'create'">Criar campanha</button>
-        <button :class="{ active: mode === 'join' }" type="button" @click="mode = 'join'">Entrar com código</button>
+        <button :class="{ active: mode === 'create' }" type="button" role="tab" :aria-selected="mode === 'create'" @click="mode = 'create'"><Icon name="lucide:plus" />Criar campanha</button>
+        <button :class="{ active: mode === 'join' }" type="button" role="tab" :aria-selected="mode === 'join'" @click="mode = 'join'"><Icon name="lucide:log-in" />Entrar com código</button>
       </div>
 
       <div v-if="createdSession" class="stack access-codes" aria-live="polite">
+        <span class="state-icon success" aria-hidden="true"><Icon name="lucide:circle-check" size="1.6rem" /></span>
         <h2>Mesa criada</h2>
         <p>Compartilhe apenas o código de jogador:</p>
-        <strong class="created-code">{{ createdSession.playerCode }}</strong>
-        <p>O código de mestre é reservado. Guarde-o para entrar como mestre em outro navegador.</p>
+        <button class="created-code" type="button" :title="copied === 'player' ? 'Copiado' : 'Copiar código de jogador'" @click="copy('player', createdSession.playerCode)">
+          {{ createdSession.playerCode }}<Icon :name="copied === 'player' ? 'lucide:check' : 'lucide:copy'" size="1.1rem" />
+        </button>
+        <p class="access-warning"><Icon name="lucide:shield-alert" />O código de mestre é reservado. Guarde-o para entrar como mestre em outro navegador.</p>
         <button class="button secondary wide" type="button" @click="revealMasterCode = !revealMasterCode">
+          <Icon :name="revealMasterCode ? 'lucide:eye-off' : 'lucide:eye'" />
           {{ revealMasterCode ? 'Ocultar código de mestre' : 'Revelar código de mestre' }}
         </button>
-        <strong v-if="revealMasterCode" class="created-code master-code">{{ createdSession.masterCode }}</strong>
-        <button class="button primary wide" type="button" @click="enterCreatedCampaign">Entrar como mestre</button>
+        <button v-if="revealMasterCode" class="created-code master-code" type="button" :title="copied === 'master' ? 'Copiado' : 'Copiar código de mestre'" @click="copy('master', createdSession.masterCode)">
+          {{ createdSession.masterCode }}<Icon :name="copied === 'master' ? 'lucide:check' : 'lucide:copy'" size="1.1rem" />
+        </button>
+        <button class="button primary wide" type="button" @click="enterCreatedCampaign"><Icon name="lucide:crown" />Entrar como mestre</button>
       </div>
       <form v-else class="stack" @submit.prevent="submit">
         <label v-if="mode === 'create'">
@@ -68,12 +82,13 @@ function enterCreatedCampaign() {
           Seu nome
           <input v-model="displayName" maxlength="40" required autocomplete="nickname" placeholder="Como será chamado na mesa">
         </label>
-        <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+        <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
         <button class="button primary wide" :disabled="busy" type="submit">
+          <Icon :name="busy ? 'lucide:loader-circle' : mode === 'create' ? 'lucide:sparkles' : 'lucide:door-open'" :class="{ spin: busy }" />
           {{ busy ? 'Preparando a mesa…' : mode === 'create' ? 'Criar e entrar' : 'Entrar na campanha' }}
         </button>
       </form>
-      <p class="access-note">Nenhuma conta é necessária. Sua sessão fica somente neste navegador.</p>
+      <p class="access-note"><Icon name="lucide:lock" />Nenhuma conta é necessária. Sua sessão fica somente neste navegador.</p>
     </section>
   </main>
 </template>
