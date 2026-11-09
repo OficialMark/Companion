@@ -11,4 +11,9 @@ describe('battlemap viewport math', () => {
     expect(clampPan(100, 100, 40, 800, 500, 5000, 5000)).toEqual({ x: 3200, y: 3500 })
     expect(clampPan(100, 100, 40, 800, 500, -5000, -5000)).toEqual({ x: 0, y: 0 })
   })
+
+  it('centers a map that is smaller than the viewport instead of pinning it to the corner', () => {
+    expect(clampPan(10, 10, 40, 800, 500, 0, 0)).toEqual({ x: -200, y: -50 })
+    expect(clampPan(10, 20, 40, 800, 500, 0, 9999)).toEqual({ x: -200, y: 300 })
+  })
 })

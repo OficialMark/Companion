@@ -1,0 +1,52 @@
+/* Dice roll animation (shared by DiceRoller and QuickDiceRoller) */
+.dice-animation { position: relative; min-height: 224px; display: grid; place-items: center; align-content: center; gap: 8px; margin: 0 0 16px; overflow: hidden; border: 1px solid rgba(215,174,93,.2); border-radius: 14px; background: radial-gradient(ellipse at 50% 76%, rgba(142,52,81,.22), transparent 48%), linear-gradient(rgba(10,8,10,.15), rgba(10,8,10,.34)); }
+.dice-animation::before { content: ''; position: absolute; inset: auto 7% 48px; height: 2px; background: linear-gradient(90deg, transparent, rgba(215,174,93,.22), transparent); }
+.dice-animation::after { content: ''; position: absolute; inset: auto 12% 48px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(12px); }
+.dice-animation p { z-index: 2; margin: 0; color: #f4d894; font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.dice-total { z-index: 3; min-height: 46px; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 5px 12px; border: 1px solid rgba(215,174,93,.3); border-radius: 999px; padding: 5px 18px; color: var(--muted); background: rgba(23,18,22,.9); box-shadow: 0 8px 26px rgba(0,0,0,.25); animation: total-reveal .22s ease-out both; }
+.dice-total span { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.dice-total strong { color: #fff8e9; font-family: 'Libre Caslon Display', Georgia, serif; font-size: 1.65rem; font-weight: 400; }
+.dice-stage { z-index: 1; width: 100%; height: 158px; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 8px; overflow-x: hidden; overflow-y: auto; padding: 22px 14px 20px; perspective: 760px; scrollbar-width: thin; scrollbar-color: rgba(187,84,117,.72) transparent; }
+.dice-stage::-webkit-scrollbar { width: 7px; }
+.dice-stage::-webkit-scrollbar-track { background: transparent; }
+.dice-stage::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(187,84,117,.72); }
+.die-scene { --die-size: clamp(46px, 8vw, 64px); position: relative; width: var(--die-size); height: 112px; flex: 0 0 var(--die-size); transform-style: preserve-3d; }
+.die-flight { position: absolute; bottom: -10px; width: var(--die-size); height: var(--die-size); transform-style: preserve-3d; animation: die-fall .75s cubic-bezier(.22,.68,.25,1) calc(var(--die-index) * 8ms) both; }
+.poly-die { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; clip-path: polygon(50% 0, 93% 25%, 85% 79%, 50% 100%, 15% 79%, 7% 25%); color: #fff8e9; background: linear-gradient(145deg, #d17391 0 28%, #8e3451 29% 61%, #4b1c2d 62%); filter: drop-shadow(0 9px 7px rgba(0,0,0,.5)); animation: die-tumble .22s linear calc(var(--die-index) * -43ms) infinite; }
+.poly-die::after { content: ''; position: absolute; inset: 4%; clip-path: inherit; border: 1px solid rgba(255,240,205,.34); transform: translateZ(12px); }
+.die-face { position: absolute; z-index: 2; display: grid; place-items: center; font-family: Georgia, serif; font-size: clamp(.72rem, 2vw, .95rem); font-weight: 700; text-shadow: 0 2px 3px rgba(0,0,0,.7); backface-visibility: hidden; }
+.die-face-top { inset: 7% 18% 45%; clip-path: polygon(50% 0, 100% 58%, 50% 100%, 0 58%); background: rgba(255,235,190,.16); transform: translateZ(19px) rotateX(-12deg); }
+.die-face-left { inset: 43% 48% 9% 12%; clip-path: polygon(0 0, 100% 18%, 100% 100%, 20% 72%); color: rgba(255,248,233,.72); transform: translateZ(10px) rotateY(-22deg); }
+.die-face-right { inset: 43% 12% 9% 48%; clip-path: polygon(0 18%, 100% 0, 80% 72%, 0 100%); color: rgba(255,248,233,.62); transform: translateZ(8px) rotateY(22deg); }
+.poly-die-d4 { clip-path: polygon(50% 2%, 96% 91%, 4% 91%); background: linear-gradient(125deg, #d7ae5d 0 35%, #916c2e 36% 68%, #5f431b 69%); }
+.poly-die-d6 { clip-path: polygon(18% 8%, 82% 8%, 96% 28%, 87% 90%, 22% 97%, 5% 72%, 5% 28%); background: linear-gradient(135deg, #c75b7e 0 34%, #8e3451 35% 66%, #542030 67%); }
+.poly-die-d8 { clip-path: polygon(50% 0, 96% 50%, 50% 100%, 4% 50%); background: linear-gradient(125deg, #69b9a6 0 36%, #347968 37% 68%, #1e4e43 69%); }
+.poly-die-d10 { clip-path: polygon(50% 0, 88% 18%, 100% 55%, 75% 100%, 25% 100%, 0 55%, 12% 18%); background: linear-gradient(135deg, #778fd0 0 34%, #465c9b 35% 67%, #283961 68%); }
+.poly-die-d12 { clip-path: polygon(50% 0, 88% 12%, 100% 47%, 80% 88%, 50% 100%, 20% 88%, 0 47%, 12% 12%); background: linear-gradient(125deg, #b67bd0 0 34%, #75468c 35% 68%, #482656 69%); }
+.poly-die-d20 { clip-path: polygon(50% 0, 94% 25%, 100% 67%, 72% 100%, 28% 100%, 0 67%, 6% 25%); background: linear-gradient(125deg, #e08464 0 32%, #a34932 33% 66%, #65291d 67%); }
+.poly-die-d100 { clip-path: polygon(50% 0, 79% 9%, 97% 35%, 91% 73%, 65% 100%, 35% 100%, 9% 73%, 3% 35%, 21% 9%); background: linear-gradient(125deg, #d7ae5d 0 30%, #8e3451 31% 64%, #442330 65%); }
+.poly-die-generic { clip-path: polygon(50% 0, 93% 25%, 85% 79%, 50% 100%, 15% 79%, 7% 25%); background: linear-gradient(125deg, #8f9bb3 0 32%, #5b6680 33% 66%, #333a4a 67%); }
+@keyframes die-fall {
+  0% { transform: translate3d(var(--die-x), -68px, 72px) scale(.78); }
+  48% { transform: translate3d(0, 0, 0) scale(1); }
+  62% { transform: translate3d(-4px, -42px, 28px) scale(.96); }
+  78% { transform: translate3d(0, 0, 0) scale(1); }
+  87% { transform: translate3d(4px, -15px, 10px) scale(.98); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes die-tumble { to { transform: rotateX(360deg) rotateY(540deg) rotateZ(360deg); } }
+@keyframes die-land {
+  0% { transform: rotateX(32deg) rotateY(-24deg) rotateZ(9deg) scale(.94); }
+  58% { transform: rotateX(-7deg) rotateY(5deg) rotateZ(-3deg) scale(1.04); }
+  100% { transform: rotateX(0) rotateY(0) rotateZ(0) scale(1); }
+}
+.die-scene.is-settled .die-flight { animation: none; transform: translate3d(0, 0, 0); }
+.die-scene.is-settled .poly-die { animation: die-land .25s cubic-bezier(.2,.9,.25,1) forwards; filter: drop-shadow(0 5px 4px rgba(0,0,0,.5)) drop-shadow(0 0 8px rgba(215,174,93,.18)); }
+.die-scene.is-settled .die-face-top { color: white; background: rgba(255,235,190,.24); }
+@keyframes total-reveal { from { opacity: 0; transform: translateY(5px) scale(.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 680px) {
+  .dice-animation { min-height: 232px; }
+  .dice-stage { max-height: 174px; gap: 4px; padding-inline: 8px; }
+  .die-scene { --die-size: 36px; height: 92px; }
+}

@@ -7,6 +7,7 @@ public interface ICompanionDbContext
     IQueryable<Campaign> Campaigns { get; }
     IQueryable<CampaignAccessCode> CampaignAccessCodes { get; }
     IQueryable<Participant> Participants { get; }
+    IQueryable<ParticipantAvatar> ParticipantAvatars { get; }
     IQueryable<DiceRoll> DiceRolls { get; }
     IQueryable<Encounter> Encounters { get; }
     IQueryable<Combatant> Combatants { get; }
@@ -19,6 +20,8 @@ public interface ICompanionDbContext
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
     void Add(Participant participant);
+    void Add(ParticipantAvatar avatar);
+    void Remove(ParticipantAvatar avatar);
     void Add(DiceRoll diceRoll);
     void Add(Encounter encounter);
     void Add(Combatant combatant);

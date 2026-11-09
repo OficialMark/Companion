@@ -17,12 +17,12 @@ async function save() {
 </script>
 <template>
   <section v-if="!store.isMaster" class="panel modifier-panel" aria-labelledby="modifier-title">
-    <div><p class="eyebrow">Seu personagem</p><h2 id="modifier-title">Perfil de combate</h2><p>O mestre usará estes valores ao preparar os jogadores online.</p></div>
+    <div><p class="eyebrow"><Icon name="lucide:user-round" />Seu personagem</p><h2 id="modifier-title">Perfil de combate</h2><p>O mestre usará estes valores ao preparar os jogadores online.</p></div>
     <form class="modifier-form" @submit.prevent="save">
-      <label class="combat-profile-field" for="own-initiative-modifier"><span>Modificador de iniciativa</span><input id="own-initiative-modifier" v-model.number="modifier" type="number" min="-100" max="100" placeholder="0"></label>
-      <label class="combat-profile-field" for="own-hit-points"><span>Vida</span><input id="own-hit-points" v-model.number="hitPoints" type="number" min="0" max="99999" step="1" placeholder="Não informada"></label>
-      <button class="button secondary" :disabled="busy || store.connection === 'offline'" type="submit">{{ busy ? 'Salvando…' : 'Salvar' }}</button>
+      <label class="combat-profile-field" for="own-initiative-modifier"><span class="label-with-icon"><Icon name="lucide:zap" />Modificador de iniciativa</span><input id="own-initiative-modifier" v-model.number="modifier" type="number" min="-100" max="100" placeholder="0"></label>
+      <label class="combat-profile-field" for="own-hit-points"><span class="label-with-icon"><Icon name="lucide:heart" />Vida</span><input id="own-hit-points" v-model.number="hitPoints" type="number" min="0" max="99999" step="1" placeholder="Não informada"></label>
+      <button class="button secondary" :disabled="busy || store.connection === 'offline'" type="submit"><Icon :name="busy ? 'lucide:loader-circle' : 'lucide:save'" :class="{ spin: busy }" />{{ busy ? 'Salvando…' : 'Salvar' }}</button>
     </form>
-    <p v-if="message" class="form-success" role="status">{{ message }}</p><p v-if="error" class="form-error" role="alert">{{ error }}</p>
+    <p v-if="message" class="form-success" role="status"><Icon name="lucide:circle-check" />{{ message }}</p><p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
   </section>
 </template>

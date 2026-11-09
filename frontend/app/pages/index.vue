@@ -46,10 +46,21 @@ async function leave() {
   store.clearSession()
 }
 
+const codeCopied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 async function copyCode() {
   const code = store.snapshot?.campaign.playerCode
-  if (code && navigator.clipboard) await navigator.clipboard.writeText(code)
+  if (!code || !navigator.clipboard) return
+  await navigator.clipboard.writeText(code)
+  codeCopied.value = true
+  if (copiedTimer) clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => { codeCopied.value = false }, 1800)
 }
+
+// Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
+const defeatedTokenIds = computed(() => (store.snapshot?.activeEncounter?.combatants ?? [])
+  .filter(combatant => combatant.isDefeated)
+  .flatMap(combatant => combatant.participantId ? [combatant.participantId, combatant.id] : [combatant.id]))
 
 function handleOffline() {
   store.connection = 'offline'
@@ -73,6 +84,7 @@ watch(() => store.session?.campaignId, async (current, previous) => {
 onBeforeUnmount(() => {
   window.removeEventListener('offline', handleOffline)
   window.removeEventListener('online', handleOnline)
+  if (copiedTimer) clearTimeout(copiedTimer)
   void realtime.disconnect()
 })
 </script>
@@ -81,47 +93,69 @@ onBeforeUnmount(() => {
   <CampaignAccess v-if="!store.session" />
   <main v-else class="app-shell">
     <header class="topbar">
-      <div class="brand-inline"><span class="mini-mark">20</span><strong>Companion</strong></div>
+      <div class="brand-inline"><span class="mini-mark" aria-hidden="true">20</span><strong>Companion</strong></div>
       <div v-if="store.snapshot" class="campaign-heading">
-        <span>{{ store.snapshot.campaign.name }}</span>
-        <button class="code-badge" type="button" title="Copiar código" @click="copyCode">
+        <span class="campaign-name" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span>
+        <button
+          class="code-badge"
+          :class="{ copied: codeCopied }"
+          type="button"
+          :title="codeCopied ? 'Código copiado' : 'Copiar código de jogador'"
+          :aria-label="`Código de jogador ${store.snapshot.campaign.playerCode}. ${codeCopied ? 'Copiado' : 'Copiar'}`"
+          @click="copyCode"
+        >
+          <Icon :name="codeCopied ? 'lucide:check' : 'lucide:copy'" />
           {{ store.snapshot.campaign.playerCode }}
         </button>
       </div>
       <div class="top-actions">
         <GameModeToggle />
         <ConnectionStatus :status="store.connection" />
-        <button class="icon-button" type="button" title="Sair da campanha" aria-label="Sair da campanha" @click="leave">↗</button>
+        <UserMenu @leave="leave" />
       </div>
     </header>
 
-    <div v-if="loading" class="loading-state" role="status">Abrindo a mesa…</div>
+    <div v-if="loading" class="loading-state" role="status">
+      <Icon name="lucide:loader-circle" class="spin" size="2rem" />
+      <span>Abrindo a mesa…</span>
+    </div>
     <div v-else-if="store.error && !store.snapshot" class="fatal-state">
+      <span class="state-icon danger"><Icon name="lucide:circle-alert" size="1.8rem" /></span>
       <h1>Não foi possível abrir a mesa</h1><p>{{ store.error }}</p>
-      <button class="button primary" type="button" @click="activate">Tentar novamente</button>
+      <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
       <section v-if="!gameMode.active.value" class="welcome-row">
         <div><p class="eyebrow">Bem-vindo à mesa</p><h1>{{ store.session.displayName }}</h1></div>
-        <p v-if="store.connection === 'offline'" class="offline-warning" role="alert">Comandos pausados até a conexão voltar.</p>
+        <p v-if="store.connection === 'offline'" class="offline-warning" role="alert">
+          <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
+        </p>
       </section>
 
       <section v-if="!gameMode.active.value && store.isMaster && store.session.masterCode" class="master-code-panel">
+        <span class="master-code-icon" aria-hidden="true"><Icon name="lucide:key-round" /></span>
         <p><strong>Código reservado do mestre</strong> — guarde e não compartilhe com jogadores.</p>
-        <details><summary>Mostrar código</summary><span class="code-badge">{{ store.session.masterCode }}</span></details>
+        <details>
+          <summary><Icon name="lucide:eye" />Mostrar código</summary>
+          <span class="code-badge">{{ store.session.masterCode }}</span>
+        </details>
       </section>
 
-      <div class="dashboard-grid">
+      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
           <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
             <div class="panel-heading">
-              <div><p class="eyebrow">Cena compartilhada</p><h2 id="battlemap-title">Battlemap</h2></div>
-              <span v-if="store.battlemap" class="count-pill">{{ store.battlemap.columns }} × {{ store.battlemap.rows }}</span>
+              <div><p class="eyebrow"><Icon name="lucide:map" />Cena compartilhada</p><h2 id="battlemap-title">Battlemap</h2></div>
+              <span v-if="store.battlemap" class="count-pill" title="Colunas × linhas"><Icon name="lucide:grid-3x3" />{{ store.battlemap.columns }} × {{ store.battlemap.rows }}</span>
             </div>
             <details v-if="store.isMaster" class="battlemap-config" :open="!store.battlemap">
-              <summary>{{ store.battlemap ? 'Substituir mapa' : 'Adicionar mapa' }}</summary>
+              <summary>
+                <Icon :name="store.battlemap ? 'lucide:image-up' : 'lucide:image-plus'" />
+                <span>{{ store.battlemap ? 'Substituir mapa' : 'Adicionar mapa' }}</span>
+                <Icon name="lucide:chevron-right" class="summary-chevron" />
+              </summary>
               <BattlemapSetup
                 :encounter-id="store.snapshot.activeEncounter.id"
                 :battlemap="store.battlemap"
@@ -136,20 +170,27 @@ onBeforeUnmount(() => {
               :is-master="store.isMaster"
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
+              :defeated-ids="defeatedTokenIds"
+              :avatars="store.avatarUrls"
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"
             />
-            <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">Sincronizando battlemap…</div>
-            <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">O mestre ainda não publicou um battlemap.</div>
-            <p v-if="store.error && store.battlemap" class="form-error" role="alert">{{ store.error }}</p>
+            <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">
+              <Icon name="lucide:loader-circle" class="spin" size="1.6rem" />Sincronizando battlemap…
+            </div>
+            <div v-else-if="!store.battlemap && !store.isMaster" class="empty-state">
+              <span class="state-icon"><Icon name="lucide:map" size="1.6rem" /></span>
+              <p>O mestre ainda não publicou um battlemap.</p>
+            </div>
+            <p v-if="store.error && store.battlemap" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ store.error }}</p>
           </section>
           <EncounterSetup v-if="!gameMode.active.value" />
           <InitiativeTracker />
           <CombatAttack />
         </div>
         <div class="side-column">
-          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" />
+          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           <RollHistory :rolls="store.snapshot.diceRolls" />
         </div>
       </div>

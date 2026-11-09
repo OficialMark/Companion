@@ -437,6 +437,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AvatarRevision")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("CampaignId")
                         .HasColumnType("uniqueidentifier");
 
@@ -472,6 +475,31 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("CampaignId", "DisplayName");
 
                     b.ToTable("Participants", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.ParticipantAvatar", b =>
+                {
+                    b.Property<Guid>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("Revision")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("ParticipantId");
+
+                    b.ToTable("ParticipantAvatars", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.AttackArea", b =>
@@ -609,6 +637,15 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasOne("Companion.Domain.Models.Campaign", null)
                         .WithMany()
                         .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.ParticipantAvatar", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithOne()
+                        .HasForeignKey("Companion.Domain.Models.ParticipantAvatar", "ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

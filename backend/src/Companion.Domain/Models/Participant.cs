@@ -33,6 +33,10 @@ public sealed class Participant
     public DateTimeOffset CreatedAt { get; private set; }
     public int? InitiativeModifier { get; private set; }
     public int? CurrentHitPoints { get; private set; }
+    /// <summary>Revision of the current profile photo; null when the participant has none.</summary>
+    public Guid? AvatarRevision { get; private set; }
+
+    public void SetAvatarRevision(Guid? revision) => AvatarRevision = revision;
 
     public void UpdateInitiativeModifier(int? modifier) => UpdateCombatProfile(modifier, CurrentHitPoints);
 

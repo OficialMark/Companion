@@ -43,6 +43,18 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
     }
 }
 
+public sealed class ParticipantAvatarConfiguration : IEntityTypeConfiguration<ParticipantAvatar>
+{
+    public void Configure(EntityTypeBuilder<ParticipantAvatar> builder)
+    {
+        builder.ToTable("ParticipantAvatars");
+        builder.HasKey(x => x.ParticipantId);
+        builder.Property(x => x.Content).HasColumnType("varbinary(max)").IsRequired();
+        builder.Property(x => x.MediaType).HasMaxLength(32).IsRequired();
+        builder.HasOne<Participant>().WithOne().HasForeignKey<ParticipantAvatar>(x => x.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public sealed class DiceRollConfiguration : IEntityTypeConfiguration<DiceRoll>
 {
     public void Configure(EntityTypeBuilder<DiceRoll> builder)

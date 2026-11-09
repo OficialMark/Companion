@@ -4,7 +4,8 @@ export interface Pan { x: number; y: number }
 
 export function initialCellSize(columns: number, rows: number, width: number, height: number) {
   const fit = Math.min(width / Math.max(columns, 1), height / Math.max(rows, 1))
-  return fit >= 36 && fit <= 44 ? fit : 40
+  // Show the whole map on open whenever cells stay readable (>= 16px); otherwise use the 40px default.
+  return fit >= 16 && fit <= 44 ? fit : 40
 }
 
 export function clampPan(
@@ -16,9 +17,13 @@ export function clampPan(
   x: number,
   y: number
 ): Pan {
-  const maxX = Math.max(0, columns * cellSize - viewportWidth)
-  const maxY = Math.max(0, rows * cellSize - viewportHeight)
-  return { x: Math.min(maxX, Math.max(0, x)), y: Math.min(maxY, Math.max(0, y)) }
+  const mapWidth = columns * cellSize
+  const mapHeight = rows * cellSize
+  // When the map is smaller than the viewport on an axis, center it instead of
+  // pinning it to the top-left corner (negative pan = empty margin before the map).
+  const axis = (value: number, map: number, view: number) =>
+    map <= view ? -(view - map) / 2 : Math.min(map - view, Math.max(0, value))
+  return { x: axis(x, mapWidth, viewportWidth), y: axis(y, mapHeight, viewportHeight) }
 }
 
 export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
@@ -37,6 +42,13 @@ export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
   function reset() {
     cellSize.value = initialCellSize(
       columns.value, rows.value, viewportWidth.value, viewportHeight.value)
+    pan.x = 0
+    pan.y = 0
+    clamp()
+  }
+
+  function defaultScale() {
+    cellSize.value = 40
     pan.x = 0
     pan.y = 0
     clamp()
@@ -76,5 +88,5 @@ export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
 
   watch([columns, rows], reset)
 
-  return { viewportWidth, viewportHeight, cellSize, pan, reset, fit, zoom, moveBy, resize, clamp }
+  return { viewportWidth, viewportHeight, cellSize, pan, reset, defaultScale, fit, zoom, moveBy, resize, clamp }
 }
