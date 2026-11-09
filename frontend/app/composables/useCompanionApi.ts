@@ -35,6 +35,19 @@ export function useCompanionApi() {
     return response.blob()
   }
 
+  async function participantAvatar(session: Session, participantId: string, revision: string) {
+    const headers = new Headers({ 'X-Participant-Token': session.participantToken })
+    const response = await fetch(`${config.public.apiBase}/campaigns/${session.campaignId}/participants/${participantId}/avatar?revision=${encodeURIComponent(revision)}`, { headers })
+    if (!response.ok) throw await problem(response)
+    return response.blob()
+  }
+
+  function uploadAvatar(session: Session, image: Blob, fileName = 'avatar.webp') {
+    const form = new FormData()
+    form.append('image', image, fileName)
+    return request<Participant>(`/campaigns/${session.campaignId}/participants/me/avatar`, { method: 'PUT', body: form }, session.participantToken)
+  }
+
   return {
     createCampaign: (campaignName: string, displayName: string) => request<Session>('/campaigns', { method: 'POST', body: JSON.stringify({ campaignName, displayName }) }),
     joinCampaign: (code: string, displayName: string) => request<Session>('/campaigns/join', { method: 'POST', body: JSON.stringify({ code, displayName }) }),
@@ -70,6 +83,9 @@ export function useCompanionApi() {
     removeAttackArea: (session: Session, encounterId: string, tokenId: string) =>
       request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/tokens/${tokenId}/attack-area`, { method: 'DELETE' }, session.participantToken),
     battlemapImage,
+    participantAvatar,
+    uploadAvatar,
+    removeAvatar: (session: Session) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/avatar`, { method: 'DELETE' }, session.participantToken),
     listAdminCampaigns: (adminKey: string) => request<AdminCampaign[]>('/admin/campaigns', { headers: { 'X-Admin-Key': adminKey } }),
     deleteAdminCampaign: (adminKey: string, campaignId: string) => request<void>(`/admin/campaigns/${campaignId}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } })
   }

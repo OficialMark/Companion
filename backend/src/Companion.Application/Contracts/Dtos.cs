@@ -39,7 +39,9 @@ public sealed record ParticipantDto(
     ParticipantRole Role,
     bool IsOnline,
     int? InitiativeModifier,
-    int? CurrentHitPoints = null);
+    int? CurrentHitPoints = null,
+    Guid? AvatarRevision = null);
+public sealed record ParticipantAvatarDto(byte[] Content, string MediaType, Guid Revision);
 public sealed record DiceRollDto(
     Guid Id,
     Guid ParticipantId,

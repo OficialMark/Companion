@@ -10,13 +10,18 @@ const props = withDefaults(defineProps<{
   controllable: boolean
   pending: boolean
   defeated?: boolean
-}>(), { defeated: false })
+  /** Profile photo URL; replaces the initials inside the token circle. */
+  photo?: string | null
+}>(), { defeated: false, photo: null })
 const emit = defineEmits<{
   select: [token: BattlemapToken]
   dragstart: [event: PointerEvent, token: BattlemapToken]
 }>()
 // Small corner badge marking defeated (0 HP) combatants; drawn in SVG so it scales with zoom.
 const badge = computed(() => Math.max(7, props.size * .17))
+const radius = computed(() => props.size * .37)
+// Unique per token so several photo tokens can share one <svg>.
+const clipId = computed(() => `token-photo-${props.token.participantId}`)
 </script>
 
 <template>
@@ -34,9 +39,20 @@ const badge = computed(() => Math.max(7, props.size * .17))
     @pointerdown.stop="emit('dragstart', $event, token)"
   >
     <title>{{ token.displayName }}{{ defeated ? ' — caído' : '' }}</title>
-    <circle :r="size * .37" />
+    <circle :r="radius" />
+    <template v-if="photo">
+      <clipPath :id="clipId"><circle :r="radius" /></clipPath>
+      <image
+        class="token-photo"
+        :href="photo"
+        :x="-radius" :y="-radius" :width="radius * 2" :height="radius * 2"
+        preserveAspectRatio="xMidYMid slice"
+        :clip-path="`url(#${clipId})`"
+      />
+      <circle class="token-photo-border" :r="radius" />
+    </template>
     <circle class="token-ring" :r="size * .43" />
-    <text text-anchor="middle" dominant-baseline="central" :font-size="size * .28">{{ token.initials }}</text>
+    <text v-if="!photo" text-anchor="middle" dominant-baseline="central" :font-size="size * .28">{{ token.initials }}</text>
     <g v-if="defeated" class="token-defeated-badge" :transform="`translate(${size * .27} ${-size * .27})`">
       <circle :r="badge" />
       <path :d="`M ${-badge * .45} ${-badge * .45} L ${badge * .45} ${badge * .45} M ${badge * .45} ${-badge * .45} L ${-badge * .45} ${badge * .45}`" />

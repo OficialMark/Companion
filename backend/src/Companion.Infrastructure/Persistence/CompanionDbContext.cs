@@ -10,6 +10,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignAccessCode> CampaignAccessCodes => Set<CampaignAccessCode>();
     public DbSet<Participant> Participants => Set<Participant>();
+    public DbSet<ParticipantAvatar> ParticipantAvatars => Set<ParticipantAvatar>();
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<Combatant> Combatants => Set<Combatant>();
@@ -22,6 +23,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
     IQueryable<Participant> ICompanionDbContext.Participants => Participants;
+    IQueryable<ParticipantAvatar> ICompanionDbContext.ParticipantAvatars => ParticipantAvatars;
     IQueryable<DiceRoll> ICompanionDbContext.DiceRolls => DiceRolls;
     IQueryable<Encounter> ICompanionDbContext.Encounters => Encounters;
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
@@ -34,6 +36,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
     void ICompanionDbContext.Add(Participant participant) => Participants.Add(participant);
+    void ICompanionDbContext.Add(ParticipantAvatar avatar) => ParticipantAvatars.Add(avatar);
+    void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
     void ICompanionDbContext.Add(Encounter encounter) => Encounters.Add(encounter);
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);

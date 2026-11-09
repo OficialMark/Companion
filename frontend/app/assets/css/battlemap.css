@@ -78,6 +78,10 @@
 .battlemap-token.pending { opacity: .55; }
 .battlemap-token.defeated > circle:first-of-type { fill: #4a3f45; stroke: #ff8aa0; stroke-dasharray: 4 3; }
 .battlemap-token.defeated text { fill: #cdbfc4; }
+.battlemap-token .token-photo { pointer-events: none; }
+.battlemap-token .token-photo-border { fill: none; stroke: #fff8e9; stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
+.battlemap-token.defeated .token-photo { filter: grayscale(1) brightness(.6); }
+.battlemap-token.defeated .token-photo-border { stroke: #ff8aa0; stroke-dasharray: 4 3; }
 .token-defeated-badge circle { fill: #b3213f; stroke: #fff8e9; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .token-defeated-badge path { fill: none; stroke: #fff8e9; stroke-width: 2; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 
@@ -87,6 +91,8 @@
 .reserve-token { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px 0 4px; color: var(--ink); background: rgba(255,255,255,.03); cursor: pointer; transition: border-color .15s, background .15s; }
 .reserve-token:hover:not(:disabled) { border-color: var(--line-strong); }
 .reserve-initials { width: 32px; height: 32px; display: grid; place-items: center; border: 1.5px solid #fff8e9; border-radius: 50%; color: #fff8e9; background: var(--token-color, #8e3451); font-size: .72rem; font-weight: 800; }
+.reserve-initials.has-photo { overflow: hidden; background: #1b1519; }
+.reserve-initials img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .reserve-name { color: var(--muted); font-size: .78rem; }
 .reserve-kind { color: #ff8aa0; }
 .reserve-token.defeated .reserve-initials { background: #4a3f45; border-color: #ff8aa0; border-style: dashed; }

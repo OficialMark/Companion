@@ -111,9 +111,7 @@ onBeforeUnmount(() => {
       <div class="top-actions">
         <GameModeToggle />
         <ConnectionStatus :status="store.connection" />
-        <button class="icon-button" type="button" title="Sair da campanha" aria-label="Sair da campanha" @click="leave">
-          <Icon name="lucide:log-out" />
-        </button>
+        <UserMenu @leave="leave" />
       </div>
     </header>
 
@@ -173,6 +171,7 @@ onBeforeUnmount(() => {
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
               :defeated-ids="defeatedTokenIds"
+              :avatars="store.avatarUrls"
               @move="moveBattlemapToken"
               @attack-area-commit="commitAttackArea"
               @attack-area-remove="removeAttackArea"
@@ -191,7 +190,7 @@ onBeforeUnmount(() => {
           <CombatAttack />
         </div>
         <div class="side-column">
-          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" />
+          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           <RollHistory :rolls="store.snapshot.diceRolls" />
         </div>
       </div>

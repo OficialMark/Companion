@@ -14,7 +14,9 @@ const props = withDefaults(defineProps<{
   online: boolean
   pendingParticipantId?: string | null
   defeatedIds?: string[]
-}>(), { pendingParticipantId: null, defeatedIds: () => [] })
+  /** participantId -> profile photo URL; player tokens with a photo show it instead of initials. */
+  avatars?: Record<string, string>
+}>(), { pendingParticipantId: null, defeatedIds: () => [], avatars: () => ({}) })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
@@ -43,6 +45,7 @@ const selectedToken = computed(() =>
 const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 const defeatedSet = computed(() => new Set(props.defeatedIds))
+const photoFor = (token: BattlemapToken) => token.isCreature ? null : props.avatars[token.participantId] ?? null
 // The board follows the map proportion (within sensible height limits), so wide
 // maps don't leave a tall empty frame and tall maps get more vertical room.
 const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.value}` }))
@@ -395,6 +398,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
           :defeated="defeatedSet.has(token.participantId)"
+          :photo="photoFor(token)"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />
@@ -425,7 +429,7 @@ onBeforeUnmount(() => observer?.disconnect())
         :disabled="!online || !controllable(token)"
         :title="controllable(token) ? `Selecionar ${token.displayName} e escolher uma célula` : token.displayName"
         @click="selectToken(token)"
-      ><span class="reserve-initials">{{ token.initials }}</span> <span class="reserve-name">{{ token.displayName }}</span><Icon v-if="defeatedSet.has(token.participantId)" name="lucide:skull" class="reserve-kind" /></button>
+      ><span class="reserve-initials" :class="{ 'has-photo': photoFor(token) }"><img v-if="photoFor(token)" :src="photoFor(token)!" alt="" draggable="false"><template v-else>{{ token.initials }}</template></span> <span class="reserve-name">{{ token.displayName }}</span><Icon v-if="defeatedSet.has(token.participantId)" name="lucide:skull" class="reserve-kind" /></button>
     </div>
     <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
       <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />

@@ -19,6 +19,8 @@ export interface Participant {
   isOnline: boolean
   initiativeModifier: number | null
   currentHitPoints: number | null
+  /** Revision of the profile photo; null/undefined when the participant has none. */
+  avatarRevision?: string | null
 }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }

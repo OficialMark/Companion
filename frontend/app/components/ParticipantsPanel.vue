@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Participant } from '~/types/campaign'
-defineProps<{ participants: Participant[] }>()
+import UserAvatar from './UserAvatar.vue'
+withDefaults(defineProps<{ participants: Participant[]; avatars?: Record<string, string> }>(), { avatars: () => ({}) })
 </script>
 
 <template>
@@ -14,7 +15,7 @@ defineProps<{ participants: Participant[] }>()
     </div>
     <ul class="participant-list">
       <li v-for="participant in participants" :key="participant.id" :class="{ offline: !participant.isOnline }">
-        <span class="avatar" :class="{ master: participant.role === 'Master' }">{{ participant.displayName.slice(0, 1).toUpperCase() }}</span>
+        <UserAvatar :name="participant.displayName" :src="avatars[participant.id]" :master="participant.role === 'Master'" />
         <span class="participant-name">
           {{ participant.displayName }}
           <small class="role-label">
