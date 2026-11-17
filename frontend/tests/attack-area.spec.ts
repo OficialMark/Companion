@@ -51,9 +51,10 @@ describe('AttackAreaPanel', () => {
     })
     await wrapper.get('input[type="range"]').trigger('change')
     expect(wrapper.emitted('commit')).toBeTruthy()
-    await wrapper.get('.attack-area-actions .button.ghost.danger').trigger('click')
+    await wrapper.get('#token-panel-section-area .button.ghost.danger').trigger('click')
     expect(wrapper.emitted('remove')).toBeTruthy()
-    expect(wrapper.emitted('close')).toBeTruthy()
+    // Removing the area keeps the menu open (size/conditions are still a tab away).
+    expect(wrapper.emitted('close')).toBeFalsy()
   })
 
   it('selecting a shape emits change and commit immediately', async () => {
@@ -99,11 +100,11 @@ describe('AttackAreaPanel', () => {
     expect(wrapper.emitted('appearance-commit')?.[0]?.[0]).toEqual({ footprintSize: 2, statusConditions: ['Stunned'] })
   })
 
-  it('shows all 6 status condition options, none selected by default', () => {
+  it('shows all 18 status condition options, none selected by default', () => {
     const wrapper = mount(AttackAreaPanel, {
       props: { draft: { shape: 'Circle', radius: 2, width: null, directionDegrees: null }, hasExisting: false }
     })
-    expect(wrapper.findAll('.token-condition-option')).toHaveLength(6)
+    expect(wrapper.findAll('.token-condition-option')).toHaveLength(18)
     expect(wrapper.findAll('.token-condition-option.selected')).toHaveLength(0)
   })
 
@@ -193,7 +194,7 @@ describe('BattlemapBoard attack areas', () => {
     expect(panel.exists()).toBe(true)
     expect(panel.props('draft')).toEqual({ shape: 'Square', radius: 3, width: null, directionDegrees: null })
     expect(panel.props('hasExisting')).toBe(true)
-    await panel.get('.attack-area-actions .button.ghost.danger').trigger('click')
+    await panel.get('#token-panel-section-area .button.ghost.danger').trigger('click')
     expect(wrapper.emitted('attack-area-remove')?.[0]).toEqual(['player-0'])
   })
 })

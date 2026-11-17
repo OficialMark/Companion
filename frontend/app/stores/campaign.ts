@@ -11,6 +11,9 @@ export const useCampaignStore = defineStore('campaign', {
     session: null as Session | null,
     snapshot: null as CampaignSnapshot | null,
     battlemap: null as BattlemapSnapshot | null,
+    /** A fog PUT is in flight; later strokes are coalesced into fogQueued (latest wins). */
+    fogSaving: false,
+    fogQueued: undefined as string | null | undefined,
     battlemapImageSource: '' as string,
     battlemapLoading: false,
     pendingBattlemapTokenId: null as string | null,
@@ -212,6 +215,59 @@ export const useCampaignStore = defineStore('campaign', {
           tokenId,
           { footprintSize, statusConditions }
         )
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    /**
+     * Persists the fog mask. Saves are serialized: while one PUT is in flight, newer masks
+     * are coalesced and only the latest is sent next, so two quick strokes can never land
+     * on the server out of order (each PUT carries the whole mask, last write wins).
+     * On failure the server state wins (refetch) and the error is shown.
+     */
+    async setFog(mask: string | null) {
+      if (!this.session || !this.battlemap) return false
+      if (this.connection !== 'online') {
+        this.error = 'Conexão necessária para alterar a névoa.'
+        await this.refreshBattlemap().catch(() => {})
+        return false
+      }
+      if (this.fogSaving) {
+        this.fogQueued = mask
+        return true
+      }
+      this.fogSaving = true
+      try {
+        let next: string | null = mask
+        for (;;) {
+          const result = await useCompanionApi().setFog(this.session, this.battlemap.encounterId, next)
+          if (this.fogQueued === undefined) {
+            this.battlemap = result
+            break
+          }
+          next = this.fogQueued
+          this.fogQueued = undefined
+        }
+        this.error = ''
+        return true
+      } catch (error) {
+        this.error = `A névoa não foi salva: ${(error as Error).message}`
+        this.fogQueued = undefined
+        await this.refreshBattlemap().catch(() => {})
+        return false
+      } finally {
+        this.fogSaving = false
+      }
+    },
+    async setHitPointsVisibility(combatantId: string | null, hidden: boolean) {
+      const encounter = this.snapshot?.activeEncounter
+      if (!this.session || !encounter) return
+      try {
+        const next = combatantId
+          ? await useCompanionApi().setHitPointsVisibility(this.session, encounter.id, combatantId, hidden)
+          : await useCompanionApi().setAllHitPointsVisibility(this.session, encounter.id, hidden)
+        this.updateActiveEncounter(next)
         this.error = ''
       } catch (error) {
         this.error = (error as Error).message

@@ -30,6 +30,14 @@ function participant(overrides: Partial<Participant> = {}): Participant {
   }
 }
 
+/** jsdom has no PointerEvent: dispatch a MouseEvent carrying button/coords (+ pointerId). */
+async function pointer(target: { element: Element }, type: string, init: { button?: number; clientX?: number; clientY?: number; pointerId?: number } = {}) {
+  const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: init.button ?? 0, clientX: init.clientX ?? 0, clientY: init.clientY ?? 0 })
+  Object.defineProperty(event, 'pointerId', { value: init.pointerId ?? 1 })
+  target.element.dispatchEvent(event)
+  await nextTick()
+}
+
 const snapshot: BattlemapSnapshot = {
   id: 'map-1',
   encounterId: 'encounter-1',
@@ -67,9 +75,13 @@ describe('BattlemapBoard', () => {
       props: { battlemap: { ...snapshot, columns: 10, rows: 10 }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
     })
     const token = wrapper.get('[data-participant-id="player-0"]')
+    const surface = wrapper.get('[data-board-surface]')
     await token.trigger('pointerdown')
     await token.trigger('pointerup')
-    await wrapper.get('[data-board-surface]').trigger('click', { clientX: 320, clientY: 170 })
+    await surface.trigger('click', { clientX: 60, clientY: 60 }) // synthesized after the tap
+    await pointer(surface, 'pointerdown', { clientX: 320, clientY: 170, button: 0 })
+    await pointer(surface, 'pointerup', { clientX: 320, clientY: 170, button: 0 })
+    await surface.trigger('click', { clientX: 320, clientY: 170 })
     expect(wrapper.emitted('move')).toBeTruthy()
   })
 

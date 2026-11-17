@@ -1,21 +1,23 @@
+import { ref } from 'vue'
 import type { BattlemapToken, StatusCondition } from '~/types/campaign'
+
+export type TokenPanelTab = 'area' | 'token' | 'conditions'
+
+/**
+ * Last tab opened in the token menu, shared by every panel instance on purpose: after
+ * marking a condition on one token, the next token opens on the same tab (a master
+ * applying one spell to a group of creatures). Client-only UI state.
+ */
+export const tokenPanelTab = ref<TokenPanelTab>('area')
 
 export interface TokenAppearanceDraft {
   footprintSize: number
   statusConditions: StatusCondition[]
 }
 
-// Single source of truth for how a status condition is labeled/abbreviated,
-// shared by the token menu (AttackAreaPanel.vue) and the token badge itself
-// (BattlemapToken.vue) so the two never drift out of sync.
-export const STATUS_CONDITION_OPTIONS: Array<{ value: StatusCondition; label: string; abbreviation: string }> = [
-  { value: 'Stunned', label: 'Atordoado', abbreviation: 'ATD' },
-  { value: 'Restrained', label: 'Imobilizado', abbreviation: 'IMO' },
-  { value: 'Blinded', label: 'Cego', abbreviation: 'CEG' },
-  { value: 'Poisoned', label: 'Envenenado', abbreviation: 'VEN' },
-  { value: 'Invisible', label: 'Invisível', abbreviation: 'INV' },
-  { value: 'Prone', label: 'Caído', abbreviation: 'CAI' }
-]
+// Labels/icons/colors live in utils/statusConditions.ts (single source of truth for
+// the token menu and the board badges); re-exported here for existing imports.
+export { STATUS_CONDITIONS as STATUS_CONDITION_OPTIONS } from '~/utils/statusConditions'
 
 export function defaultAppearanceDraft(token?: BattlemapToken | null): TokenAppearanceDraft {
   return {

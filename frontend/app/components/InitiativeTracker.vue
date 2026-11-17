@@ -34,6 +34,11 @@ async function saveOwnHitPoints(combatantId: string) {
   const hitPoints = draft.hitPoints
   await run(async () => { store.snapshot!.activeEncounter = await api.updateHitPoints(store.session!, encounter.id, combatantId, hitPoints) })
 }
+const creatures = computed(() => (store.snapshot?.activeEncounter?.combatants ?? []).filter(item => !item.participantId))
+const allCreatureHitPointsHidden = computed(() => creatures.value.length > 0 && creatures.value.every(item => item.isHitPointsHidden))
+async function setHitPointsVisibility(combatantId: string | null, hidden: boolean) {
+  await run(() => store.setHitPointsVisibility(combatantId, hidden))
+}
 async function update(action: 'next' | 'end') {
   const encounter = store.snapshot?.activeEncounter; if (!store.session || !encounter) return
   await run(async () => {
@@ -96,6 +101,18 @@ async function update(action: 'next' | 'end') {
           <span v-if="combatant.isDefeated && store.isMaster && !gameMode.active.value" class="status-chip danger" title="Derrubado (0 de vida)"><Icon name="lucide:skull" />Caído</span>
           <span v-if="combatant.isCurrent" class="turn-marker"><Icon name="lucide:play" />Turno</span>
           <template v-if="store.isMaster">
+            <button
+              v-if="!combatant.participantId"
+              class="initiative-reroll hp-visibility-toggle"
+              :class="{ off: combatant.isHitPointsHidden }"
+              :disabled="busy"
+              type="button"
+              data-hp-visibility
+              :aria-pressed="!combatant.isHitPointsHidden"
+              :aria-label="combatant.isHitPointsHidden ? `Mostrar a vida de ${combatant.name} aos jogadores` : `Ocultar a vida de ${combatant.name} dos jogadores`"
+              :title="combatant.isHitPointsHidden ? 'Vida oculta aos jogadores (clique para mostrar)' : 'Vida visível aos jogadores (clique para ocultar)'"
+              @click="setHitPointsVisibility(combatant.id, !combatant.isHitPointsHidden)"
+            ><Icon :name="combatant.isHitPointsHidden ? 'lucide:eye-off' : 'lucide:eye'" /></button>
             <button class="initiative-reroll" :disabled="busy" type="button" :aria-label="`Rolar iniciativa novamente para ${combatant.name}`" title="Rolar iniciativa novamente" @click="reroll(combatant.id)"><Icon name="lucide:dices" /></button>
             <button class="initiative-reroll" :disabled="busy" type="button" :aria-label="`Salvar ${combatant.name}`" title="Salvar alterações" @click="saveCombatant(combatant.id)"><Icon name="lucide:check" /></button>
             <button class="initiative-reroll danger" :disabled="busy" type="button" :aria-label="`Remover ${combatant.name}`" title="Remover do combate" @click="removeCombatant(combatant.id)"><Icon name="lucide:trash-2" /></button>
@@ -106,6 +123,7 @@ async function update(action: 'next' | 'end') {
     <div v-if="store.isMaster && store.snapshot.activeEncounter.status === 'Active'" class="button-row">
       <button class="button primary" :disabled="busy" type="button" @click="update('next')"><Icon name="lucide:skip-forward" />Próximo turno</button>
       <button class="button ghost" :disabled="busy" type="button" @click="reroll()"><Icon name="lucide:dices" />Rolar todas novamente</button>
+      <button v-if="creatures.length" class="button ghost" :disabled="busy" type="button" data-hp-visibility-all :aria-pressed="allCreatureHitPointsHidden" @click="setHitPointsVisibility(null, !allCreatureHitPointsHidden)"><Icon :name="allCreatureHitPointsHidden ? 'lucide:eye' : 'lucide:eye-off'" />{{ allCreatureHitPointsHidden ? 'Mostrar HP das criaturas' : 'Ocultar HP das criaturas' }}</button>
       <button class="button ghost danger push-end" :disabled="busy" type="button" @click="update('end')"><Icon name="lucide:flag" />Encerrar</button>
     </div>
     <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>

@@ -20,6 +20,14 @@ const snapshot: BattlemapSnapshot = {
   ]
 }
 
+/** jsdom has no PointerEvent: dispatch a MouseEvent carrying button/coords (+ pointerId). */
+async function pointer(target: { element: Element }, type: string, init: { button?: number; clientX?: number; clientY?: number; pointerId?: number } = {}) {
+  const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: init.button ?? 0, clientX: init.clientX ?? 0, clientY: init.clientY ?? 0 })
+  Object.defineProperty(event, 'pointerId', { value: init.pointerId ?? 1 })
+  target.element.dispatchEvent(event)
+  await nextTick()
+}
+
 // Regression guard (US6): after US3 (token size) and US4 (status conditions)
 // added sections to the same interaction panel that US1 already opened via a
 // single click/tap, a single pointerdown+pointerup (no drag, no second click,
@@ -38,7 +46,7 @@ describe('token interaction panel opens with a single click/tap, expanded sectio
     expect(panel.exists()).toBe(true)
     expect(panel.findAll('.attack-area-shape')).toHaveLength(4)
     expect(panel.findAll('.token-size-option')).toHaveLength(5)
-    expect(panel.findAll('.token-condition-option')).toHaveLength(6)
+    expect(panel.findAll('.token-condition-option')).toHaveLength(18)
   })
 
   it('does not require a right-click (contextmenu) to open the panel', async () => {
@@ -95,9 +103,16 @@ describe('token interaction panel opens with a single click/tap, expanded sectio
       props: { battlemap: { ...snapshot, columns: 10, rows: 10 }, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
     })
     const token = wrapper.get('[data-participant-id="player-0"]')
+    const surface = wrapper.get('[data-board-surface]')
     await token.trigger('pointerdown')
     await token.trigger('pointerup')
-    await wrapper.get('[data-board-surface]').trigger('click', { clientX: 320, clientY: 320 })
+    // The click the browser synthesizes after the token tap is swallowed...
+    await surface.trigger('click', { clientX: 100, clientY: 100 })
+    expect(wrapper.emitted('move')).toBeFalsy()
+    // ...a real destination click (always preceded by its own pointerdown) moves.
+    await pointer(surface, 'pointerdown', { clientX: 320, clientY: 320, button: 0 })
+    await pointer(surface, 'pointerup', { clientX: 320, clientY: 320, button: 0 })
+    await surface.trigger('click', { clientX: 320, clientY: 320 })
     expect(wrapper.emitted('move')).toBeTruthy()
   })
 })

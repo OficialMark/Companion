@@ -88,6 +88,12 @@ export function useCompanionApi() {
       request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/markers`, { method: 'POST', body: JSON.stringify(body) }, session.participantToken),
     removeMarker: (session: Session, encounterId: string, markerId: string) =>
       request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/markers/${markerId}`, { method: 'DELETE' }, session.participantToken),
+    setFog: (session: Session, encounterId: string, mask: string | null) =>
+      request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/fog`, { method: 'PUT', body: JSON.stringify({ mask }) }, session.participantToken),
+    setHitPointsVisibility: (session: Session, encounterId: string, combatantId: string, hidden: boolean) =>
+      request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/combatants/${combatantId}/hit-points-visibility`, { method: 'PUT', body: JSON.stringify({ hidden }) }, session.participantToken),
+    setAllHitPointsVisibility: (session: Session, encounterId: string, hidden: boolean) =>
+      request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/hit-points-visibility`, { method: 'PUT', body: JSON.stringify({ hidden }) }, session.participantToken),
     battlemapImage,
     participantAvatar,
     uploadAvatar,

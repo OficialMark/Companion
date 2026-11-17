@@ -29,6 +29,9 @@ const impactedTokens = computed(() => {
 })
 
 watch([columns, rows, file], () => { pendingConfirmation.value = false })
+// The fog bitset is tied to the grid shape; the server discards it when the grid changes (spec 007, FR-026).
+const fogWillReset = computed(() => Boolean(props.battlemap?.fogMask) &&
+  (columns.value !== props.battlemap?.columns || rows.value !== props.battlemap?.rows))
 
 const clampGrid = (value: number) => Math.max(1, Math.min(MAX_GRID, Math.round(value)))
 
@@ -118,7 +121,7 @@ async function submit() {
     error.value = 'Conexão necessária para publicar o battlemap.'
     return
   }
-  if (impactedTokens.value.length > 0 && !pendingConfirmation.value) {
+  if ((impactedTokens.value.length > 0 || fogWillReset.value) && !pendingConfirmation.value) {
     pendingConfirmation.value = true
     return
   }
@@ -193,8 +196,9 @@ onBeforeUnmount(() => {
     </p>
 
     <div v-if="pendingConfirmation" class="battlemap-shrink-warning" role="alert">
-      <p><Icon name="lucide:triangle-alert" /><span><strong>{{ impactedTokens.length }} pino{{ impactedTokens.length > 1 ? 's' : '' }}</strong> {{ impactedTokens.length > 1 ? 'ficam' : 'fica' }} fora do novo grid e {{ impactedTokens.length > 1 ? 'voltarão' : 'voltará' }} para a reserva:</span></p>
-      <ul>
+      <p v-if="fogWillReset" data-fog-reset-warning><Icon name="lucide:cloud-off" /><span>O grid mudou: <strong>a névoa atual será removida</strong> e o mapa ficará todo revelado.</span></p>
+      <p v-if="impactedTokens.length"><Icon name="lucide:triangle-alert" /><span><strong>{{ impactedTokens.length }} pino{{ impactedTokens.length > 1 ? 's' : '' }}</strong> {{ impactedTokens.length > 1 ? 'ficam' : 'fica' }} fora do novo grid e {{ impactedTokens.length > 1 ? 'voltarão' : 'voltará' }} para a reserva:</span></p>
+      <ul v-if="impactedTokens.length">
         <li v-for="token in impactedTokens" :key="token.participantId">{{ token.displayName }}</li>
       </ul>
     </div>

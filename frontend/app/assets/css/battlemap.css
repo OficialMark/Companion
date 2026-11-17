@@ -145,14 +145,85 @@
 .token-size-option { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .78rem; }
 .token-size-option.selected { border-color: var(--gold); color: var(--gold); background: rgba(215,174,93,.12); }
 
-.token-condition-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.token-condition-option { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px; background: rgba(255,255,255,.04); color: var(--ink); cursor: pointer; font-size: .78rem; }
-.token-condition-option.selected { border-color: #7fb8ff; color: #7fb8ff; background: rgba(127,184,255,.12); }
+/* Token menu tabs (spec 007) */
+.token-panel-title { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.token-panel-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.token-panel-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.18); }
+.token-panel-tab { position: relative; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; padding: 0 8px; background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; font-weight: 650; transition: background .15s, color .15s; }
+.token-panel-tab:hover { color: var(--ink); }
+.token-panel-tab.selected { color: var(--gold); background: rgba(215,174,93,.14); box-shadow: inset 0 0 0 1px rgba(215,174,93,.35); }
+.token-panel-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.token-panel-tab-count { min-width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 999px; padding: 0 5px; background: var(--gold); color: #1b1519; font-size: .7rem; font-weight: 800; }
+.token-panel-section { display: grid; gap: 12px; }
+.token-panel-label { margin: 0; color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.token-panel-inline-action { justify-self: start; min-height: 44px; }
+
+/* Status conditions: icon chips in the menu, colored per condition */
+.token-condition-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 6px; }
+.token-condition-option { --condition-color: #7fb8ff; min-height: 44px; display: flex; align-items: center; gap: 8px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 4px 10px 4px 5px; background: rgba(255,255,255,.035); color: var(--ink-soft); cursor: pointer; font-size: .8rem; text-align: left; transition: border-color .15s, background .15s, color .15s; }
+.token-condition-option:hover { border-color: color-mix(in srgb, var(--condition-color) 55%, transparent); color: var(--ink); }
+.token-condition-option:focus-visible { outline: 2px solid var(--condition-color); outline-offset: 1px; }
+.token-condition-icon { width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center; border-radius: 50%; color: var(--condition-color); background: color-mix(in srgb, var(--condition-color) 14%, #1b1519); font-size: 1.05rem; transition: background .15s, color .15s; }
+.token-condition-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.token-condition-option.selected { border-color: var(--condition-color); color: var(--ink); background: color-mix(in srgb, var(--condition-color) 13%, transparent); font-weight: 650; }
+.token-condition-option.selected .token-condition-icon { color: #16110f; background: var(--condition-color); }
+
+/* HP visibility toggle (master, creatures) */
+.token-hp-toggle { min-height: 52px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; cursor: pointer; background: rgba(255,255,255,.03); }
+.token-hp-toggle input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--gold); cursor: pointer; }
+.token-hp-toggle-icon { flex: 0 0 auto; color: var(--green); font-size: 1.15rem; }
+.token-hp-toggle.off .token-hp-toggle-icon { color: var(--muted); }
+.token-hp-toggle span { display: grid; gap: 2px; min-width: 0; }
+.token-hp-toggle strong { font-size: .84rem; }
+.token-hp-toggle small { color: var(--muted); font-size: .74rem; }
+.token-hp-toggle:focus-within { border-color: var(--line-strong); }
+
+/* Board badges */
+.token-glyph { overflow: visible; pointer-events: none; }
+.token-glyph > svg, .token-glyph > .icon { width: 100%; height: 100%; display: block; }
+.token-condition-badge { --condition-color: #7fb8ff; pointer-events: none; }
+.token-condition-badge > circle { fill: #191418; stroke: var(--condition-color); stroke-width: 1.75; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
+.token-condition-badge .token-glyph { color: var(--condition-color); }
+.token-condition-badge.overflow > circle { stroke: var(--gold-soft); }
+.token-condition-badge.overflow text { fill: var(--gold-soft); font-weight: 800; }
+.token-hp-hidden { pointer-events: none; }
+.token-hp-hidden > circle { fill: #191418; stroke: var(--muted); stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.token-hp-hidden .token-glyph { color: var(--ink-soft); }
+.battlemap-health-bar.hidden-from-players .health-bg { stroke: var(--ink-soft); stroke-width: 6; stroke-dasharray: 10 8; opacity: .8; }
+.battlemap-health-bar .health-fill.mid { fill: #e7c35a; }
+.battlemap-health-bar .health-fill.low { fill: #ff6b6b; }
+.battlemap-token.fogged { opacity: .5; }
+.battlemap-token.fogged > .token-body { stroke-dasharray: 3 3; }
+
+/* Fog of war */
+.battlemap-fog { fill: #0c0a0d; pointer-events: none; }
+.battlemap-fog.master { fill-opacity: .55; stroke: rgba(207,232,255,.35); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.fog-rect-preview, .fog-brush-preview { fill: none; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.fog-rect-preview.cover, .fog-brush-preview.cover { stroke: #cfe8ff; fill: rgba(12,10,13,.35); }
+.fog-rect-preview.reveal, .fog-brush-preview.reveal { stroke: var(--gold-soft); fill: rgba(244,216,148,.12); }
+.battlemap-board.fog-editing, .battlemap-board.fog-editing:active { cursor: crosshair; }
+.battlemap-board.fog-editing .battlemap-token, .battlemap-board.fog-editing .attack-area-shape-drawing { pointer-events: none; }
+.fog-toolbar { display: grid; gap: 8px; padding: 10px; border: 1px solid rgba(207,232,255,.28); border-radius: 12px; background: rgba(16,13,16,.92); }
+.fog-toolbar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fog-toolbar-row .push-end { margin-left: auto; }
+.fog-segment { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.2); }
+.fog-option { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; padding: 0 12px; background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; font-weight: 650; }
+.fog-option.compact { padding: 0 9px; }
+.fog-option:hover { color: var(--ink); }
+.fog-option.selected { color: #cfe8ff; background: rgba(207,232,255,.14); box-shadow: inset 0 0 0 1px rgba(207,232,255,.4); }
+.fog-option[data-fog-mode="reveal"].selected { color: var(--gold-soft); background: rgba(244,216,148,.12); box-shadow: inset 0 0 0 1px rgba(244,216,148,.4); }
+.fog-option:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.fog-hint { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.fog-hint .icon { flex: 0 0 auto; margin-top: 2px; }
 
 @media (max-width: 680px) {
-  .attack-area-panel { max-height: 33svh; }
+  .attack-area-panel { max-height: 42svh; }
   .token-size-option { flex: 1 1 auto; }
-  .token-condition-option { flex: 1 1 auto; justify-content: center; }
+  .token-condition-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fog-toolbar-row > .button.compact { flex: 1 1 auto; min-height: 44px; }
+  .fog-toolbar-row .push-end { margin-left: 0; }
+  .fog-segment { flex: 1 1 100%; }
+  .fog-segment .fog-option { flex: 1 1 0; }
   .battlemap-fields { grid-template-columns: 1fr 1fr; }
   .switch-field { grid-column: 1 / -1; min-height: 40px; }
   .ratio-actions { grid-column: 1 / -1; }
@@ -167,6 +238,7 @@
 }
 
 @media (max-width: 440px) {
+  .fog-option-label-wide { display: none; }
   .battlemap-toolbar { justify-content: stretch; }
   .toolbar-group { flex: 1 1 100%; justify-content: space-between; }
   .toolbar-group .button.compact { flex: 1 1 0; }

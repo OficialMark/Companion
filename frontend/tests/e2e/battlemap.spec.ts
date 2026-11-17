@@ -89,7 +89,7 @@ test('single click/tap opens the token interaction panel with size and condition
   await expect(panel).toBeVisible()
   await expect(panel.locator('.attack-area-shape')).toHaveCount(4)
   await expect(panel.locator('.token-size-option')).toHaveCount(5)
-  await expect(panel.locator('.token-condition-option')).toHaveCount(6)
+  await expect(panel.locator('.token-condition-option')).toHaveCount(18)
 
   // SC-007: touch targets stay usable without manual zoom or horizontal scroll.
   const sizeButtonBox = await panel.locator('.token-size-option').first().boundingBox()

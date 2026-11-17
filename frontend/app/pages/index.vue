@@ -50,6 +50,12 @@ async function createMarker(label: string) {
 async function removeMarker(markerId: string) {
   await store.removeMarker(markerId)
 }
+async function commitFog(mask: string | null) {
+  await store.setFog(mask)
+}
+async function setHitPointsVisibility(combatantId: string | null, hidden: boolean) {
+  await store.setHitPointsVisibility(combatantId, hidden)
+}
 async function leave() {
   await realtime.disconnect()
   store.clearSession()
@@ -190,6 +196,9 @@ onBeforeUnmount(() => {
               @token-appearance-commit="commitTokenAppearance"
               @create-marker="createMarker"
               @marker-remove="removeMarker"
+              :fog-saving="store.fogSaving"
+              @fog-commit="commitFog"
+              @hit-points-visibility="setHitPointsVisibility"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">
               <Icon name="lucide:loader-circle" class="spin" size="1.6rem" />Sincronizando battlemap…
