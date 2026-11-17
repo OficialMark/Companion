@@ -9,6 +9,9 @@ public static class DtoMapper
     public static EncounterDto ToDto(Encounter encounter, Participant observer) =>
         ToDto(encounter, observer.Id, observer.Role == ParticipantRole.Master);
 
+    // A vida (atual e máxima) de qualquer combatente é visível a todos os participantes
+    // (FR-009a da spec 006-battlemap-combat-ux) — os parâmetros de observador seguem
+    // existindo por compatibilidade com os call sites, mas não filtram mais o HP.
     public static EncounterDto ToDto(Encounter encounter, Guid? observerParticipantId, bool includeAllHitPoints)
     {
         var ordered = encounter.Combatants
@@ -23,10 +26,19 @@ public static class DtoMapper
             x.Initiative,
             x.CreationOrder,
             encounter.Status == EncounterStatus.Active && encounter.CurrentTurnIndex == index,
-            includeAllHitPoints || x.ParticipantId == observerParticipantId ? x.CurrentHitPoints : null,
-            x.CurrentHitPoints == 0)).ToArray();
+            x.CurrentHitPoints,
+            x.CurrentHitPoints == 0,
+            x.MaxHitPoints)).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }
+
+    // Único ponto de montagem do ParticipantDto: o evento ParticipantsChanged (presença)
+    // substitui a lista inteira no cliente, então omitir HP/avatar aqui apagava a vida e a
+    // foto de todos sempre que alguém conectava ou desconectava.
+    public static ParticipantDto ToDto(Participant participant, bool isOnline) =>
+        new(participant.Id, participant.DisplayName, participant.Role, isOnline,
+            participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints,
+            participant.AvatarRevision);
 
     public static string Revision(byte[] version) =>
         version.Length == 0 ? string.Empty : Convert.ToBase64String(version);

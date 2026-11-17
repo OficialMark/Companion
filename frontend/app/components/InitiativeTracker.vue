@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useGameMode } from '~/composables/useGameMode'
 const store = useCampaignStore(); const api = useCompanionApi(); const gameMode = useGameMode(); const busy = ref(false); const error = ref('')
-const drafts = reactive<Record<string, { name: string; modifier: number; hitPoints: number | null }>>({})
-watch(() => store.snapshot?.activeEncounter?.combatants, (combatants) => { for (const combatant of combatants ?? []) drafts[combatant.id] = { name: combatant.name, modifier: combatant.initiativeModifier, hitPoints: combatant.currentHitPoints } }, { immediate: true, deep: true })
+const drafts = reactive<Record<string, { name: string; modifier: number; hitPoints: number | null; maxHitPoints: number | null }>>({})
+watch(() => store.snapshot?.activeEncounter?.combatants, (combatants) => { for (const combatant of combatants ?? []) drafts[combatant.id] = { name: combatant.name, modifier: combatant.initiativeModifier, hitPoints: combatant.currentHitPoints, maxHitPoints: combatant.maxHitPoints } }, { immediate: true, deep: true })
 
 function formatModifier(value: number) { return `${value >= 0 ? '+' : ''}${value}` }
+function hpText(current: number | null, max: number | null | undefined) { return max != null ? `Vida ${current}/${max}` : `Vida ${current}` }
 
 async function run(action: () => Promise<void>) {
   busy.value = true; error.value = ''
@@ -18,9 +19,9 @@ async function saveCombatant(combatantId: string) {
   const encounter = store.snapshot?.activeEncounter; const draft = drafts[combatantId]; const current = encounter?.combatants.find(item => item.id === combatantId)
   if (!store.session || !encounter || !draft || !current) return
   await run(async () => {
-    store.snapshot!.activeEncounter = encounter.status === 'Active' && draft.name === current.name && draft.modifier === current.initiativeModifier && draft.hitPoints !== null
+    store.snapshot!.activeEncounter = encounter.status === 'Active' && draft.name === current.name && draft.modifier === current.initiativeModifier && draft.hitPoints !== null && draft.maxHitPoints === current.maxHitPoints
       ? await api.updateHitPoints(store.session!, encounter.id, combatantId, draft.hitPoints)
-      : await api.updateCombatant(store.session!, encounter.id, combatantId, draft.name, draft.modifier, draft.hitPoints)
+      : await api.updateCombatant(store.session!, encounter.id, combatantId, draft.name, draft.modifier, draft.hitPoints, draft.maxHitPoints)
   })
 }
 async function removeCombatant(combatantId: string) {
@@ -64,13 +65,13 @@ async function update(action: 'next' | 'end') {
             <input :id="`own-combat-hit-points-${combatant.id}`" v-model.number="drafts[combatant.id]!.hitPoints" type="number" min="0" max="99999">
             <button class="initiative-reroll" :disabled="busy" type="button" :aria-label="`Salvar vida de ${combatant.name}`" title="Salvar vida" @click="saveOwnHitPoints(combatant.id)"><Icon name="lucide:check" /></button>
           </span>
-          <span v-else-if="combatant.currentHitPoints !== null" class="own-hit-points-readonly hp-chip"><Icon name="lucide:heart" />Vida {{ combatant.currentHitPoints }}</span>
+          <span v-else-if="combatant.currentHitPoints !== null" class="own-hit-points-readonly hp-chip"><Icon name="lucide:heart" />{{ hpText(combatant.currentHitPoints, combatant.maxHitPoints) }}</span>
         </span>
         <span v-else-if="gameMode.active.value" class="combatant-readonly combatant-info">
           <span class="combatant-name">{{ combatant.name }}<span v-if="combatant.isDefeated" class="status-chip danger" title="Derrubado (0 de vida)"><Icon name="lucide:skull" />Caído</span></span>
           <small class="combatant-stats">
             <span title="Modificador de iniciativa"><Icon name="lucide:zap" />Mod. {{ formatModifier(combatant.initiativeModifier) }}</span>
-            <span v-if="combatant.currentHitPoints !== null" class="hp-chip"><Icon name="lucide:heart" />Vida {{ combatant.currentHitPoints }}</span>
+            <span v-if="combatant.currentHitPoints !== null" class="hp-chip"><Icon name="lucide:heart" />{{ hpText(combatant.currentHitPoints, combatant.maxHitPoints) }}</span>
           </small>
         </span>
         <span v-else class="combatant-editor">
@@ -84,6 +85,10 @@ async function update(action: 'next' | 'end') {
           <label v-if="drafts[combatant.id]" class="inline-field hp-field" title="Vida">
             <Icon name="lucide:heart" />
             <input v-model.number="drafts[combatant.id]!.hitPoints" :aria-label="`Vida de ${combatant.name}`" type="number" min="0" max="99999">
+          </label>
+          <label v-if="drafts[combatant.id]" class="inline-field hp-field" title="Vida máxima">
+            <Icon name="lucide:heart-pulse" />
+            <input v-model.number="drafts[combatant.id]!.maxHitPoints" :aria-label="`Vida máxima de ${combatant.name}`" type="number" min="0" max="99999" placeholder="Máx.">
           </label>
         </span>
 

@@ -25,7 +25,7 @@ public sealed class SignalRCampaignNotifier(
     {
         var participants = db.Participants.Where(x => x.CampaignId == campaignId)
             .OrderBy(x => x.CreatedAt).AsEnumerable()
-            .Select(x => new ParticipantDto(x.Id, x.DisplayName, x.Role, presence.IsOnline(x.Id), x.InitiativeModifier))
+            .Select(x => DtoMapper.ToDto(x, presence.IsOnline(x.Id)))
             .ToArray();
         var message = new CampaignEvent(
             Guid.NewGuid(), campaignId, "ParticipantsChanged", timeProvider.GetUtcNow(), participants);

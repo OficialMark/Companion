@@ -130,11 +130,12 @@ public sealed class EncounterApiTests(CompanionApiFactory factory) : ApiTestBase
         Assert.NotNull(first.Attack.Targets.Single(x => x.CombatantId == playerTarget.Id).HitPointsAfter);
         Assert.Null(first.Attack.Targets.Single(x => x.CombatantId == goblinTarget.Id).HitPointsAfter);
         Assert.NotNull(first.Encounter.Combatants.Single(x => x.Id == playerTarget.Id).CurrentHitPoints);
-        Assert.Null(first.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).CurrentHitPoints);
+        // Vida exata visível a qualquer participante, inclusive de um alvo que não é seu (FR-009a).
+        Assert.Equal(0, first.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).CurrentHitPoints);
         Assert.True(first.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).IsDefeated);
     }
     [Fact]
-    public async Task Player_updates_only_own_hit_points_and_master_snapshot_sees_all()
+    public async Task Player_updates_only_own_hit_points_directly_but_sees_everyones_value()
     {
         var master = await CreateCampaign(Guid.NewGuid().ToString("N")[..6]);
         async Task<SessionResponse> Join(string name)
@@ -156,13 +157,44 @@ public sealed class EncounterApiTests(CompanionApiFactory factory) : ApiTestBase
             $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants/{firstCombatant.Id}/hit-points", first,
             new UpdateHitPointsRequest(17)));
         Assert.Equal(17, own.Combatants.Single(x => x.Id == firstCombatant.Id).CurrentHitPoints);
-        Assert.Null(own.Combatants.Single(x => x.Id == secondCombatant.Id).CurrentHitPoints);
+        // Vida exata de outro combatente visível mesmo a um jogador que não é dono nem mestre (FR-009a).
+        Assert.Equal(30, own.Combatants.Single(x => x.Id == secondCombatant.Id).CurrentHitPoints);
         var forbidden = await Client.SendAsync(Authenticated(HttpMethod.Put,
             $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants/{firstCombatant.Id}/hit-points", second,
             new UpdateHitPointsRequest(1)));
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
         var masterSnapshot = await Send<CampaignSnapshot>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/snapshot", master));
         Assert.All(masterSnapshot.ActiveEncounter!.Combatants, combatant => Assert.NotNull(combatant.CurrentHitPoints));
+    }
+
+    [Fact]
+    public async Task Max_hit_points_round_trips_through_setup_screen_and_creature_creation()
+    {
+        var master = await CreateCampaign(Guid.NewGuid().ToString("N")[..6]);
+        var response = await Client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(master.PlayerCode, "Jogador"));
+        var player = (await response.Content.ReadFromJsonAsync<SessionResponse>(JsonOptions))!;
+
+        var ownProfile = await Send<ParticipantDto>(Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/participants/me/combat-profile", player,
+            new UpdateCombatProfileRequest(1, 14, 22)));
+        Assert.Equal(14, ownProfile.CurrentHitPoints);
+        Assert.Equal(22, ownProfile.MaxHitPoints);
+
+        var encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants", master,
+            new AddCombatantRequest("Ogro", 0, 40, 55)));
+        var ogre = encounter.Combatants.Single(x => x.Name == "Ogro");
+        Assert.Equal(40, ogre.CurrentHitPoints);
+        Assert.Equal(55, ogre.MaxHitPoints);
+
+        var presence = Services.GetRequiredService<IPresenceTracker>();
+        presence.Connected(player.ParticipantId, $"maxhp-{Guid.NewGuid():N}");
+        encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/initiative", master, new RollInitiativeRequest(null)));
+        var playerCombatant = encounter.Combatants.Single(x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal(14, playerCombatant.CurrentHitPoints);
+        Assert.Equal(22, playerCombatant.MaxHitPoints);
     }
     private async Task<T> Send<T>(HttpRequestMessage request)
     {

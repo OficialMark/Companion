@@ -19,6 +19,7 @@ export interface Participant {
   isOnline: boolean
   initiativeModifier: number | null
   currentHitPoints: number | null
+  maxHitPoints: number | null
   /** Revision of the profile photo; null/undefined when the participant has none. */
   avatarRevision?: string | null
 }
@@ -44,6 +45,7 @@ export interface Combatant {
   creationOrder: number
   isCurrent: boolean
   currentHitPoints: number | null
+  maxHitPoints: number | null
   isDefeated?: boolean
 }
 export interface Encounter {
@@ -92,6 +94,7 @@ export interface SetAttackAreaRequest {
   width: number | null
   directionDegrees: number | null
 }
+export type StatusCondition = 'Stunned' | 'Restrained' | 'Blinded' | 'Poisoned' | 'Invisible' | 'Prone'
 export interface BattlemapToken {
   participantId: string
   displayName: string
@@ -101,7 +104,18 @@ export interface BattlemapToken {
   row: number | null
   positionVersion: string | null
   isCreature?: boolean
+  isMarker?: boolean
+  ownerParticipantId?: string | null
   attackArea?: AttackArea | null
+  footprintSize?: number
+  statusConditions?: StatusCondition[]
+}
+export interface SetTokenAppearanceRequest {
+  footprintSize: number
+  statusConditions: StatusCondition[]
+}
+export interface CreateMarkerRequest {
+  label: string
 }
 export interface BattlemapSnapshot {
   id: string

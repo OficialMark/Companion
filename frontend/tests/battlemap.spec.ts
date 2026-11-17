@@ -1,6 +1,34 @@
 import { mount } from '@vue/test-utils'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
-import type { BattlemapSnapshot } from '~/types/campaign'
+import type { BattlemapSnapshot, Combatant, Participant } from '~/types/campaign'
+
+function combatant(overrides: Partial<Combatant> = {}): Combatant {
+  return {
+    id: 'combatant-1',
+    participantId: null,
+    name: 'Combatant',
+    initiativeModifier: 0,
+    initiative: null,
+    creationOrder: 0,
+    isCurrent: false,
+    currentHitPoints: null,
+    maxHitPoints: null,
+    ...overrides
+  }
+}
+
+function participant(overrides: Partial<Participant> = {}): Participant {
+  return {
+    id: 'participant-1',
+    displayName: 'Participant',
+    role: 'Player',
+    isOnline: true,
+    initiativeModifier: null,
+    currentHitPoints: null,
+    maxHitPoints: null,
+    ...overrides
+  }
+}
 
 const snapshot: BattlemapSnapshot = {
   id: 'map-1',
@@ -115,5 +143,156 @@ describe('BattlemapBoard', () => {
       new MouseEvent('pointerup', { bubbles: true, cancelable: true, clientX: -500, clientY: -500 }))
     await nextTick()
     expect(wrapper.emitted('move')).toContainEqual(['player-0', null, null])
+  })
+
+  it('highlights the token whose turn is current, and only during an active encounter', async () => {
+    const combatants = [
+      combatant({ id: 'c1', participantId: 'player-0', isCurrent: true }),
+      combatant({ id: 'c2', participantId: 'player-1', isCurrent: false })
+    ]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).toContain('current-turn')
+    expect(wrapper.get('[data-participant-id="player-1"]').classes()).not.toContain('current-turn')
+  })
+
+  it('moves the turn highlight when the current combatant changes', async () => {
+    const combatants = [
+      combatant({ id: 'c1', participantId: 'player-0', isCurrent: true }),
+      combatant({ id: 'c2', participantId: 'player-1', isCurrent: false })
+    ]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    await wrapper.setProps({
+      combatants: [
+        combatant({ id: 'c1', participantId: 'player-0', isCurrent: false }),
+        combatant({ id: 'c2', participantId: 'player-1', isCurrent: true })
+      ]
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).not.toContain('current-turn')
+    expect(wrapper.get('[data-participant-id="player-1"]').classes()).toContain('current-turn')
+  })
+
+  it('shows no turn highlight outside an active encounter', () => {
+    const combatants = [combatant({ id: 'c1', participantId: 'player-0', isCurrent: true })]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: snapshot,
+        imageSource: 'blob:test',
+        currentParticipantId: 'player-0',
+        isMaster: false,
+        online: true,
+        combatants,
+        encounterStatus: 'Preparing'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="player-0"]').classes()).not.toContain('current-turn')
+  })
+
+  it('resolves a creature token turn highlight via the combatant id, not participantId', () => {
+    const creatureMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'goblin-1', displayName: 'Goblin', initials: 'G', colorKey: 3, column: 0, row: 0, positionVersion: 'v1', isCreature: true }]
+    }
+    const combatants = [combatant({ id: 'goblin-1', participantId: null, isCurrent: true })]
+    const wrapper = mount(BattlemapBoard, {
+      props: {
+        battlemap: creatureMap,
+        imageSource: 'blob:test',
+        currentParticipantId: 'master',
+        isMaster: true,
+        online: true,
+        combatants,
+        encounterStatus: 'Active'
+      }
+    })
+    expect(wrapper.get('[data-participant-id="goblin-1"]').classes()).toContain('current-turn')
+  })
+
+  it('renders a health bar proportional to a combatant linked to the token', () => {
+    const combatants = [combatant({ id: 'c1', participantId: 'player-0', currentHitPoints: 15, maxHitPoints: 20 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, combatants }
+    })
+    const bar = wrapper.get('[data-participant-id="player-0"] [data-health-fill]')
+    expect(bar.attributes('width')).toBe('75%')
+  })
+
+  it('falls back to the participant baseline HP when no combatant is linked yet', () => {
+    const participants = [participant({ id: 'player-0', currentHitPoints: 5, maxHitPoints: 10 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, participants }
+    })
+    expect(wrapper.find('[data-participant-id="player-0"] [data-health-fill]').exists()).toBe(true)
+  })
+
+  it('shows no health bar when neither a combatant nor a participant provides a max HP', () => {
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(wrapper.find('[data-participant-id="player-0"] [data-health-fill]').exists()).toBe(false)
+  })
+
+  it('never shows a health bar for a marker token', () => {
+    const markerMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'marker-1', displayName: 'Lobo', initials: 'L', colorKey: 2, column: 0, row: 0, positionVersion: 'v1', isMarker: true, ownerParticipantId: 'player-0' }]
+    }
+    const combatants = [combatant({ id: 'marker-1', participantId: null, currentHitPoints: 5, maxHitPoints: 5 })]
+    const wrapper = mount(BattlemapBoard, {
+      props: { battlemap: markerMap, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true, combatants }
+    })
+    // A marker's token id ('marker-1') coincidentally matching a combatant id must not leak a health bar onto it.
+    expect(wrapper.find('[data-participant-id="marker-1"] [data-health-fill]').exists()).toBe(false)
+  })
+
+  it('renders a token proportionally larger for a bigger footprintSize', () => {
+    const bigMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'ogre-1', displayName: 'Ogro', initials: 'OG', colorKey: 4, column: 2, row: 2, positionVersion: 'v1', isCreature: true, footprintSize: 3 }]
+    }
+    const small = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    const big = mount(BattlemapBoard, {
+      props: { battlemap: bigMap, imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: true }
+    })
+    const smallRadius = Number(small.get('[data-participant-id="player-0"] circle').attributes('r'))
+    const bigRadius = Number(big.get('[data-participant-id="ogre-1"] circle').attributes('r'))
+    expect(bigRadius).toBeCloseTo(smallRadius * 3, 5)
+  })
+
+  it('renders one badge per active status condition, and none when there are no conditions', () => {
+    const conditionMap = {
+      ...snapshot,
+      tokens: [{ participantId: 'player-0', displayName: 'Lia', initials: 'LI', colorKey: 0, column: 2, row: 2, positionVersion: 'v1', statusConditions: ['Stunned', 'Blinded'] }]
+    }
+    const withConditions = mount(BattlemapBoard, {
+      props: { battlemap: conditionMap, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(withConditions.findAll('[data-participant-id="player-0"] [data-status-condition]')).toHaveLength(2)
+
+    const withoutConditions = mount(BattlemapBoard, {
+      props: { battlemap: snapshot, imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(withoutConditions.findAll('[data-participant-id="player-0"] [data-status-condition]')).toHaveLength(0)
   })
 })
