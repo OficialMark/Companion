@@ -34,7 +34,18 @@ public sealed class Combatant
     public int? CurrentHitPoints { get; private set; }
     public int? MaxHitPoints { get; private set; }
     public int CreationOrder { get; private set; }
+    /// <summary>Master-controlled: when true, players do not receive this creature's hit points.</summary>
+    public bool IsHitPointsHidden { get; private set; }
     public byte[] Version { get; private set; } = [];
+
+    public bool IsCreature => ParticipantId is null;
+
+    public void SetHitPointsHidden(bool hidden)
+    {
+        if (hidden && !IsCreature)
+            throw new InvalidOperationException("A vida de personagens de jogadores é sempre visível.");
+        IsHitPointsHidden = hidden;
+    }
 
     public void SetInitiative(int d20) => Initiative = checked(d20 + InitiativeModifier);
 

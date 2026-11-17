@@ -95,6 +95,8 @@ public sealed class CombatantConfiguration : IEntityTypeConfiguration<Combatant>
         builder.ToTable("Combatants");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(60).IsRequired();
+        builder.Property(x => x.IsHitPointsHidden);
+        builder.Ignore(x => x.IsCreature);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.EncounterId, x.CreationOrder }).IsUnique();
         builder.HasIndex(x => new { x.EncounterId, x.ParticipantId }).IsUnique()
@@ -137,6 +139,8 @@ public sealed class BattlemapConfiguration : IEntityTypeConfiguration<Battlemap>
         builder.Property(x => x.ImageMediaType).HasMaxLength(32).IsRequired();
         builder.Property(x => x.ImageFileName).HasMaxLength(255).IsRequired();
         builder.Property(x => x.IsGridVisible).HasDefaultValue(true);
+        builder.Property(x => x.FogMask).HasColumnType($"varbinary({Battlemap.MaxFogMaskBytes})");
+        builder.Ignore(x => x.FogMaskLength);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => x.EncounterId).IsUnique();
         builder.HasOne<Encounter>().WithOne().HasForeignKey<Battlemap>(x => x.EncounterId).OnDelete(DeleteBehavior.Cascade);
@@ -195,7 +199,7 @@ public sealed class BattlemapTokenAppearanceConfiguration : IEntityTypeConfigura
                     ? new List<StatusCondition>()
                     : csv.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<StatusCondition>).ToList())
             .HasColumnName("StatusConditions")
-            .HasMaxLength(128);
+            .HasMaxLength(512);
         statusConditions.Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<StatusCondition>>(
             (left, right) => (left ?? Array.Empty<StatusCondition>()).SequenceEqual(right ?? Array.Empty<StatusCondition>()),
             value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),

@@ -109,6 +109,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("FogMask")
+                        .HasColumnType("varbinary(1250)");
+
                     b.Property<byte[]>("ImageContent")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -203,8 +206,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("StatusConditions")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
                         .HasColumnName("StatusConditions");
 
                     b.Property<byte[]>("Version")
@@ -423,6 +426,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("InitiativeModifier")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsHitPointsHidden")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("MaxHitPoints")
                         .HasColumnType("int");

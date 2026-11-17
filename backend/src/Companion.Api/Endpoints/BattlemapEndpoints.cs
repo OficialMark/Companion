@@ -121,6 +121,15 @@ public static class BattlemapEndpoints
             Results.Ok(await service.SetTokenAppearanceAsync(
                 campaignId, encounterId, tokenId, Token(request), body, ct)));
 
+        group.MapPut("/fog", async (
+            Guid campaignId,
+            Guid encounterId,
+            SetFogRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.SetFogAsync(campaignId, encounterId, Token(request), body, ct)));
+
         group.MapPost("/markers", async (
             Guid campaignId,
             Guid encounterId,

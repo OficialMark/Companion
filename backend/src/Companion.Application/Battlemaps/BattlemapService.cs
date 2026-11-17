@@ -18,11 +18,11 @@ public sealed class BattlemapService(
         string token,
         CancellationToken cancellationToken)
     {
-        authorization.Require(campaignId, token);
+        var observer = authorization.Require(campaignId, token);
         var encounter = RequireEncounter(campaignId, encounterId);
         var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id)
             ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
-        return Task.FromResult(ToSnapshot(campaignId, battlemap));
+        return Task.FromResult(ToSnapshot(campaignId, battlemap, observer));
     }
 
     public Task<BattlemapImageDto> GetImageAsync(
@@ -48,7 +48,7 @@ public sealed class BattlemapService(
         ConfigureBattlemapRequest request,
         CancellationToken cancellationToken)
     {
-        authorization.Require(campaignId, token, masterOnly: true);
+        var master = authorization.Require(campaignId, token, masterOnly: true);
         RequireEncounter(campaignId, encounterId);
         ValidateImage(request.ImageContent, request.ImageMediaType);
         var now = timeProvider.GetUtcNow();
@@ -105,7 +105,7 @@ public sealed class BattlemapService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, master);
         await notifier.BattlemapInvalidatedAsync(
             campaignId, encounterId, snapshot.Revision, cancellationToken);
         return new BattlemapConfigurationResult(
@@ -154,11 +154,11 @@ public sealed class BattlemapService(
                 EnsureRevision(request.ExpectedPositionVersion, position.Version, "A posição do pino mudou. Atualize o mapa.");
                 db.Remove(position);
                 await db.SaveChangesAsync(cancellationToken);
-                var reserveSnapshot = ToSnapshot(campaignId, battlemap);
+                var reserveSnapshot = ToSnapshot(campaignId, battlemap, actor);
                 await notifier.BattlemapInvalidatedAsync(campaignId, encounterId, reserveSnapshot.Revision, cancellationToken);
                 return reserveSnapshot;
             }
-            return ToSnapshot(campaignId, battlemap);
+            return ToSnapshot(campaignId, battlemap, actor);
         }
         if (position is null)
         {
@@ -181,7 +181,7 @@ public sealed class BattlemapService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
         await notifier.BattlemapInvalidatedAsync(
             campaignId, encounterId, snapshot.Revision, cancellationToken);
         return snapshot;
@@ -194,7 +194,7 @@ public sealed class BattlemapService(
         SetAttackAreaRequest request,
         CancellationToken cancellationToken)
     {
-        var (encounter, battlemap, participant, combatant, marker) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+        var (encounter, battlemap, participant, combatant, marker, actor) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
 
         if (!Enum.TryParse<AttackAreaShape>(request.Shape, ignoreCase: true, out var shape))
             throw new AppException(AppErrorKind.Validation, "Formato de área inválido.");
@@ -228,7 +228,7 @@ public sealed class BattlemapService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
     }
@@ -240,18 +240,18 @@ public sealed class BattlemapService(
         string token,
         CancellationToken cancellationToken)
     {
-        var (encounter, battlemap, participant, combatant, _) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+        var (encounter, battlemap, participant, combatant, _, actor) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
 
         var existing = participant is not null
             ? db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
             : combatant is not null
                 ? db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId)
                 : db.AttackAreas.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.MarkerId == tokenId);
-        if (existing is null) return ToSnapshot(campaignId, battlemap);
+        if (existing is null) return ToSnapshot(campaignId, battlemap, actor);
 
         db.Remove(existing);
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
     }
@@ -264,7 +264,7 @@ public sealed class BattlemapService(
         SetTokenAppearanceRequest request,
         CancellationToken cancellationToken)
     {
-        var (encounter, battlemap, participant, combatant, marker) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+        var (encounter, battlemap, participant, combatant, marker, actor) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
 
         var conditions = (request.StatusConditions ?? []).Select(name =>
             Enum.TryParse<StatusCondition>(name, ignoreCase: true, out var parsed)
@@ -294,7 +294,37 @@ public sealed class BattlemapService(
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
+        await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
+        return snapshot;
+    }
+
+    public async Task<BattlemapSnapshotDto> SetFogAsync(
+        Guid campaignId,
+        Guid encounterId,
+        string token,
+        SetFogRequest request,
+        CancellationToken cancellationToken)
+    {
+        var master = authorization.Require(campaignId, token, masterOnly: true);
+        var encounter = RequireEncounter(campaignId, encounterId);
+        var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id)
+            ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
+
+        byte[]? mask = null;
+        if (!string.IsNullOrEmpty(request.Mask))
+        {
+            // Bound the decode before allocating: base64 of the largest legal mask.
+            if (request.Mask.Length > (Battlemap.MaxFogMaskBytes + 2) / 3 * 4)
+                throw new AppException(AppErrorKind.Validation, "A névoa enviada é grande demais para o grid.");
+            try { mask = Convert.FromBase64String(request.Mask); }
+            catch (FormatException) { throw new AppException(AppErrorKind.Validation, "A névoa enviada é inválida."); }
+        }
+        try { battlemap.SetFog(mask); }
+        catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
+
+        await db.SaveChangesAsync(cancellationToken);
+        var snapshot = ToSnapshot(campaignId, battlemap, master);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
     }
@@ -323,7 +353,7 @@ public sealed class BattlemapService(
         db.Add(marker);
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
     }
@@ -350,12 +380,12 @@ public sealed class BattlemapService(
         db.Remove(marker);
 
         await db.SaveChangesAsync(cancellationToken);
-        var snapshot = ToSnapshot(campaignId, battlemap);
+        var snapshot = ToSnapshot(campaignId, battlemap, actor);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
     }
 
-    private (Encounter Encounter, Battlemap Battlemap, Participant? Participant, Combatant? Combatant, BattlemapMarker? Marker) ResolveTokenForMutation(
+    private (Encounter Encounter, Battlemap Battlemap, Participant? Participant, Combatant? Combatant, BattlemapMarker? Marker, Participant Actor) ResolveTokenForMutation(
         Guid campaignId, Guid encounterId, Guid tokenId, string token)
     {
         var actor = authorization.Require(campaignId, token);
@@ -368,7 +398,7 @@ public sealed class BattlemapService(
         if (!CanControl(actor, participant, marker))
             throw new AppException(AppErrorKind.Forbidden, "Você só pode configurar o próprio token.");
 
-        return (encounter, battlemap, participant, combatant, marker);
+        return (encounter, battlemap, participant, combatant, marker, actor);
     }
 
     private (Participant? Participant, Combatant? Combatant, BattlemapMarker? Marker) ResolveToken(
@@ -395,7 +425,7 @@ public sealed class BattlemapService(
         db.Encounters.SingleOrDefault(x => x.Id == encounterId && x.CampaignId == campaignId)
         ?? throw new AppException(AppErrorKind.NotFound, "Encontro não encontrado.");
 
-    private BattlemapSnapshotDto ToSnapshot(Guid campaignId, Battlemap battlemap)
+    private BattlemapSnapshotDto ToSnapshot(Guid campaignId, Battlemap battlemap, Participant observer)
     {
         var positions = db.BattlemapTokenPositions
             .Where(x => x.BattlemapId == battlemap.Id)
@@ -491,6 +521,23 @@ public sealed class BattlemapService(
                     OwnerParticipantId: marker.OwnerParticipantId);
             });
         var tokens = playerTokens.Concat(creatureTokens).Concat(markerTokens).ToArray();
+        if (observer.Role != ParticipantRole.Master && battlemap.FogMask is not null)
+        {
+            // Fog of war (spec 007, FR-021): the master's tokens (creatures and markers the
+            // master owns) whose whole footprint is fogged never leave the server for players,
+            // together with their attack areas. Player-owned tokens always stay visible.
+            var masterIds = db.Participants
+                .Where(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Master)
+                .Select(x => x.Id)
+                .ToHashSet();
+            tokens = tokens.Where(token =>
+            {
+                var ownedByMaster = token.IsCreature ||
+                    (token.IsMarker && token.OwnerParticipantId is { } owner && masterIds.Contains(owner));
+                if (!ownedByMaster || token.Column is null || token.Row is null) return true;
+                return !battlemap.IsAreaFogged(token.Column.Value, token.Row.Value, token.FootprintSize);
+            }).ToArray();
+        }
         return new BattlemapSnapshotDto(
             battlemap.Id,
             battlemap.EncounterId,
@@ -503,7 +550,8 @@ public sealed class BattlemapService(
             battlemap.ImageMediaType,
             battlemap.ImageFileName,
             battlemap.UpdatedAt,
-            tokens);
+            tokens,
+            battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
     private static AttackAreaDto ToDto(AttackArea area) => new(
         area.Id,

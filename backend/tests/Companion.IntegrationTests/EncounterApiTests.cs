@@ -128,11 +128,23 @@ public sealed class EncounterApiTests(CompanionApiFactory factory) : ApiTestBase
         Assert.Equal(first.Attack.Id, retry.Attack.Id);
         Assert.Equal(2, first.Attack.Targets.Count);
         Assert.NotNull(first.Attack.Targets.Single(x => x.CombatantId == playerTarget.Id).HitPointsAfter);
-        Assert.Null(first.Attack.Targets.Single(x => x.CombatantId == goblinTarget.Id).HitPointsAfter);
+        // Vida exata visível a qualquer participante enquanto o mestre não a oculta (spec 007, FR-011/FR-014),
+        // tanto no resultado do ataque quanto no encontro que vem junto.
+        Assert.Equal(0, first.Attack.Targets.Single(x => x.CombatantId == goblinTarget.Id).HitPointsAfter);
         Assert.NotNull(first.Encounter.Combatants.Single(x => x.Id == playerTarget.Id).CurrentHitPoints);
-        // Vida exata visível a qualquer participante, inclusive de um alvo que não é seu (FR-009a).
         Assert.Equal(0, first.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).CurrentHitPoints);
         Assert.True(first.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).IsDefeated);
+
+        // Com o HP do goblin oculto pelo mestre, o jogador não recebe mais os números, mas vê a derrota.
+        await Send<EncounterDto>(Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants/{goblinTarget.Id}/hit-points-visibility",
+            master, new SetHitPointsVisibilityRequest(true)));
+        var hiddenRetry = await Send<AttackResultDto>(AttackRequest());
+        Assert.Null(hiddenRetry.Attack.Targets.Single(x => x.CombatantId == goblinTarget.Id).HitPointsBefore);
+        Assert.Null(hiddenRetry.Attack.Targets.Single(x => x.CombatantId == goblinTarget.Id).HitPointsAfter);
+        Assert.NotNull(hiddenRetry.Attack.Targets.Single(x => x.CombatantId == playerTarget.Id).HitPointsAfter);
+        Assert.Null(hiddenRetry.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).CurrentHitPoints);
+        Assert.True(hiddenRetry.Encounter.Combatants.Single(x => x.Id == goblinTarget.Id).IsDefeated);
     }
     [Fact]
     public async Task Player_updates_only_own_hit_points_directly_but_sees_everyones_value()

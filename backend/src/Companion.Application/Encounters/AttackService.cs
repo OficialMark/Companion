@@ -76,7 +76,7 @@ public sealed class AttackService(
         {
             var combatant = combatants.GetValueOrDefault(combatantId)
                 ?? throw new AppException(AppErrorKind.Conflict, "O alvo do ataque não está mais no combate.");
-            var canSee = observer.Role == ParticipantRole.Master || combatant.ParticipantId == observer.Id;
+            var canSee = observer.Role == ParticipantRole.Master || combatant.ParticipantId == observer.Id || !combatant.IsHitPointsHidden;
             return new AttackTargetDto(combatant.Id, combatant.Name, damageApplied,
                 canSee ? before : null, canSee ? after : null);
         }

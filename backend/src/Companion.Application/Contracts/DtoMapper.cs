@@ -9,26 +9,31 @@ public static class DtoMapper
     public static EncounterDto ToDto(Encounter encounter, Participant observer) =>
         ToDto(encounter, observer.Id, observer.Role == ParticipantRole.Master);
 
-    // A vida (atual e máxima) de qualquer combatente é visível a todos os participantes
-    // (FR-009a da spec 006-battlemap-combat-ux) — os parâmetros de observador seguem
-    // existindo por compatibilidade com os call sites, mas não filtram mais o HP.
+    // Vida (atual e máxima) visível a todos (spec 006), exceto criaturas cujo HP o mestre
+    // ocultou (spec 007, FR-014): para quem não é mestre, o servidor não envia os números,
+    // só se a criatura está derrotada.
     public static EncounterDto ToDto(Encounter encounter, Guid? observerParticipantId, bool includeAllHitPoints)
     {
         var ordered = encounter.Combatants
             .OrderByDescending(x => x.Initiative ?? int.MinValue)
             .ThenBy(x => x.CreationOrder)
             .ToArray();
-        var combatants = ordered.Select((x, index) => new CombatantDto(
-            x.Id,
-            x.ParticipantId,
-            x.Name,
-            x.InitiativeModifier,
-            x.Initiative,
-            x.CreationOrder,
-            encounter.Status == EncounterStatus.Active && encounter.CurrentTurnIndex == index,
-            x.CurrentHitPoints,
-            x.CurrentHitPoints == 0,
-            x.MaxHitPoints)).ToArray();
+        var combatants = ordered.Select((x, index) =>
+        {
+            var hidden = x.IsHitPointsHidden && !includeAllHitPoints && x.ParticipantId != observerParticipantId;
+            return new CombatantDto(
+                x.Id,
+                x.ParticipantId,
+                x.Name,
+                x.InitiativeModifier,
+                x.Initiative,
+                x.CreationOrder,
+                encounter.Status == EncounterStatus.Active && encounter.CurrentTurnIndex == index,
+                hidden ? null : x.CurrentHitPoints,
+                x.CurrentHitPoints == 0,
+                hidden ? null : x.MaxHitPoints,
+                x.IsHitPointsHidden);
+        }).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }
 

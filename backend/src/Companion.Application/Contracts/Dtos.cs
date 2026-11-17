@@ -22,6 +22,8 @@ public sealed record ConfigureBattlemapRequest(
     string? ExpectedRevision);
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
+public sealed record SetFogRequest(string? Mask);
+public sealed record SetHitPointsVisibilityRequest(bool Hidden);
 public sealed record SetTokenAppearanceRequest(int FootprintSize, IReadOnlyList<string> StatusConditions);
 public sealed record CreateMarkerRequest(string Label);
 
@@ -67,7 +69,8 @@ public sealed record CombatantDto(
     bool IsCurrent,
     int? CurrentHitPoints = null,
     bool IsDefeated = false,
-    int? MaxHitPoints = null);
+    int? MaxHitPoints = null,
+    bool IsHitPointsHidden = false);
 public sealed record EncounterDto(
     Guid Id,
     EncounterStatus Status,
@@ -123,7 +126,8 @@ public sealed record BattlemapSnapshotDto(
     string ImageMediaType,
     string ImageFileName,
     DateTimeOffset UpdatedAt,
-    IReadOnlyList<BattlemapTokenDto> Tokens);
+    IReadOnlyList<BattlemapTokenDto> Tokens,
+    string? FogMask = null);
 public sealed record ReplaceBattlemapResultDto(
     BattlemapSnapshotDto Battlemap,
     IReadOnlyList<Guid> ReturnedToReserve);

@@ -88,6 +88,25 @@ public sealed class EncounterService(
         return DtoMapper.ToDto(encounter, participant);
     }
 
+    public Task<EncounterDto> SetHitPointsVisibilityAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token,
+        SetHitPointsVisibilityRequest request, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter =>
+        {
+            var combatant = encounter.Combatants.FirstOrDefault(x => x.Id == combatantId)
+                ?? throw new AppException(AppErrorKind.NotFound, "Combatente não encontrado.");
+            combatant.SetHitPointsHidden(request.Hidden);
+        }, cancellationToken);
+
+    public Task<EncounterDto> SetAllCreatureHitPointsVisibilityAsync(
+        Guid campaignId, Guid encounterId, string token,
+        SetHitPointsVisibilityRequest request, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter =>
+        {
+            foreach (var creature in encounter.Combatants.Where(x => x.IsCreature))
+                creature.SetHitPointsHidden(request.Hidden);
+        }, cancellationToken);
+
     public async Task<EncounterDto> RemoveCombatantAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken)
     {
