@@ -196,7 +196,7 @@
 .battlemap-token.fogged > .token-body { stroke-dasharray: 3 3; }
 
 /* Fog of war */
-.battlemap-fog { fill: #0c0a0d; pointer-events: none; }
+.battlemap-fog { pointer-events: none; }
 .battlemap-fog.master { fill-opacity: .55; stroke: rgba(207,232,255,.35); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .fog-rect-preview, .fog-brush-preview { fill: none; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .fog-rect-preview.cover, .fog-brush-preview.cover { stroke: #cfe8ff; fill: rgba(12,10,13,.35); }
@@ -239,6 +239,12 @@
 
 @media (max-width: 440px) {
   .fog-option-label-wide { display: none; }
+  .fog-toolbar { padding: 8px; gap: 6px; }
+  .fog-toolbar-actions { flex-wrap: nowrap; gap: 6px; }
+  .fog-toolbar-actions > .button.compact { flex: 1 1 0; min-width: 0; padding: 0 8px; font-size: .78rem; }
+  .fog-toolbar-actions > .button.fog-done { flex: 0 0 44px; padding: 0; justify-content: center; }
+  .fog-done-label { display: none; }
+  .fog-hint { font-size: .72rem; }
   .battlemap-toolbar { justify-content: stretch; }
   .toolbar-group { flex: 1 1 100%; justify-content: space-between; }
   .toolbar-group .button.compact { flex: 1 1 0; }

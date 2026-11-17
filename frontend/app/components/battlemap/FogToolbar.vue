@@ -44,13 +44,13 @@ const hint = computed(() => props.tool === 'rect'
           :title="`Pincel ${size}x${size}`"
           @click="emit('update:tool', 'brush'); emit('update:brushSize', size)"
         ><Icon name="lucide:brush" /><span>{{ size }}x{{ size }}</span></button>
-        <button type="button" role="radio" class="fog-option compact" data-fog-tool="rect" :class="{ selected: tool === 'rect' }" :aria-checked="tool === 'rect'" title="Retângulo" @click="emit('update:tool', 'rect')"><Icon name="lucide:square-dashed" /><span class="fog-option-label-wide">Retângulo</span></button>
+        <button type="button" role="radio" class="fog-option compact" data-fog-tool="rect" :class="{ selected: tool === 'rect' }" :aria-checked="tool === 'rect'" title="Retângulo" aria-label="Retângulo" @click="emit('update:tool', 'rect')"><Icon name="lucide:square-dashed" /><span class="fog-option-label-wide">Retângulo</span></button>
       </div>
     </div>
-    <div class="fog-toolbar-row">
+    <div class="fog-toolbar-row fog-toolbar-actions">
       <button type="button" class="button ghost compact" data-fog-cover-all :disabled="busy" @click="emit('cover-all')"><Icon name="lucide:cloud-fog" /><span>Cobrir tudo</span></button>
       <button type="button" class="button ghost compact" data-fog-reveal-all :disabled="busy" @click="emit('reveal-all')"><Icon name="lucide:sun-dim" /><span>Revelar tudo</span></button>
-      <button type="button" class="button primary compact push-end" data-fog-close @click="emit('close')"><Icon name="lucide:check" /><span>Concluir</span></button>
+      <button type="button" class="button primary compact push-end fog-done" data-fog-close aria-label="Concluir edição da névoa" title="Concluir (Esc)" @click="emit('close')"><Icon name="lucide:check" /><span class="fog-done-label">Concluir</span></button>
     </div>
     <p class="fog-hint"><Icon name="lucide:info" />{{ hint }}</p>
   </div>

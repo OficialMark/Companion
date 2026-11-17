@@ -34,6 +34,7 @@ function participant(overrides: Partial<Participant> = {}): Participant {
 async function pointer(target: { element: Element }, type: string, init: { button?: number; clientX?: number; clientY?: number; pointerId?: number } = {}) {
   const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: init.button ?? 0, clientX: init.clientX ?? 0, clientY: init.clientY ?? 0 })
   Object.defineProperty(event, 'pointerId', { value: init.pointerId ?? 1 })
+  Object.defineProperty(event, 'isPrimary', { value: (init.pointerId ?? 1) === 1 })
   target.element.dispatchEvent(event)
   await nextTick()
 }

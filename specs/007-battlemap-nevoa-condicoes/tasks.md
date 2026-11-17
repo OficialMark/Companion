@@ -110,7 +110,7 @@
 ## Phase 7: Polish & Cross-Cutting
 
 - [X] T044 Rodar `dotnet test`, `pnpm vitest run`, `pnpm nuxt typecheck`
-- [ ] T045 Revisão de usabilidade e responsividade no navegador (360, 768, 1280 px) seguindo `specs/007-battlemap-nevoa-condicoes/quickstart.md`, com correções
+- [X] T045 Revisão de usabilidade e responsividade no navegador (360, 768, 1280 px) seguindo `specs/007-battlemap-nevoa-condicoes/quickstart.md`, com correções
 - [X] T046 Atualizar `specs/006-battlemap-combat-ux/spec.md` (nota de que FR-009a foi substituído pela 007) e marcar tarefas concluídas
 
 ---

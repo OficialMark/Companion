@@ -10,7 +10,15 @@ export default defineNuxtConfig({
     class: 'icon',
     size: '1.1em',
     provider: 'none',
-    clientBundle: { scan: true, sizeLimitKb: 256 }
+    // .ts is scanned too: icon names living in plain modules (utils/statusConditions.ts)
+    // would otherwise be missing from the bundle and render as empty <svg>s.
+    clientBundle: {
+      scan: {
+        globInclude: ['**/*.{vue,ts,jsx,tsx}'],
+        globExclude: ['node_modules', 'dist', 'build', 'coverage', 'test', 'tests', '.*']
+      },
+      sizeLimitKb: 256
+    }
   },
   css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css'],
   runtimeConfig: {

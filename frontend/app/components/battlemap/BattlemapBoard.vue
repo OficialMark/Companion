@@ -84,6 +84,7 @@ const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.v
 
 // Fog of war (spec 007, US4). Players get an opaque layer; the master a translucent one.
 const fog = useFogOfWar(computed(() => props.battlemap.fogMask), columns, rows, computed(() => props.fogSaving))
+const fogPatternId = computed(() => `fog-pattern-${props.battlemap.id}`)
 const fogPathD = computed(() => maskPath(fog.mask.value, columns.value, rows.value, viewport.cellSize.value))
 const fogHover = ref<{ column: number; row: number } | null>(null)
 const fogBrushPreview = computed(() => {
@@ -347,6 +348,13 @@ function pointerDown(event: PointerEvent) {
   suppressSurfaceClick = false
   // A pan that ended without a click (right/middle button) must not swallow the next click.
   panPointer.moved = false
+  // A primary pointer going down means no other pointer is really active: drop entries
+  // whose pointerup was lost (released outside the window, focus change), so a stale
+  // one can never turn the next press into a "pinch" or leave a fog stroke hanging.
+  if (event.isPrimary !== false) {
+    activePointers.clear()
+    if (fog.stroking.value) commitFogStroke()
+  }
   activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
   surface.value?.setPointerCapture?.(event.pointerId)
   if (activePointers.size === 2) {
@@ -412,10 +420,7 @@ function pointerMove(event: PointerEvent) {
 function pointerUp(event: PointerEvent) {
   activePointers.delete(event.pointerId)
   if (activePointers.size < 2) pinchStartDistance = 0
-  if (fog.stroking.value) {
-    const mask = fog.end()
-    if (mask !== undefined) emit('fog-commit', mask)
-  }
+  if (fog.stroking.value) commitFogStroke()
   if (dragParticipantId.value) {
     suppressSurfaceClick = true
     const tokenId = dragParticipantId.value
@@ -440,6 +445,16 @@ function pointerUp(event: PointerEvent) {
     // by selectToken() in startTokenDrag — nothing further to commit here.
   }
   panPointer.active = false
+}
+
+function commitFogStroke() {
+  const mask = fog.end()
+  if (mask !== undefined) emit('fog-commit', mask)
+}
+
+/** Capture lost without a pointerup (e.g. window blur): finish what that pointer was doing. */
+function lostPointerCapture(event: PointerEvent) {
+  if (activePointers.has(event.pointerId)) pointerUp(event)
 }
 
 function pointerCancel(event: PointerEvent) {
@@ -571,6 +586,7 @@ onBeforeUnmount(() => observer?.disconnect())
       @pointermove="pointerMove"
       @pointerup="pointerUp"
       @pointercancel="pointerCancel"
+      @lostpointercapture="lostPointerCapture"
       @pointerleave="pointerLeave"
       @contextmenu.prevent
       @wheel="wheel"
@@ -607,11 +623,22 @@ onBeforeUnmount(() => observer?.disconnect())
           :x2="mapWidth"
           :y2="line * viewport.cellSize.value"
         />
+        <defs v-if="fogPathD">
+          <!-- Soft "cloud" texture so fog reads as unexplored map, not as the empty board around it. -->
+          <pattern :id="fogPatternId" patternUnits="userSpaceOnUse" width="64" height="64">
+            <rect width="64" height="64" fill="#1b1721" />
+            <circle cx="14" cy="18" r="16" fill="#25202d" opacity=".75" />
+            <circle cx="46" cy="40" r="20" fill="#221d2a" opacity=".7" />
+            <circle cx="56" cy="8" r="10" fill="#29233a" opacity=".5" />
+            <circle cx="20" cy="54" r="9" fill="#28223a" opacity=".45" />
+          </pattern>
+        </defs>
         <path
           v-if="fogPathD"
           data-fog-layer
           class="battlemap-fog"
           :class="{ master: isMaster }"
+          :fill="`url(#${fogPatternId})`"
           :d="fogPathD"
         />
         <rect

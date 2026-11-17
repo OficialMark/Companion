@@ -24,6 +24,7 @@ function creature(overrides: Partial<Combatant> = {}): Combatant {
 async function pointer(target: { element: Element }, type: string, init: { button?: number; clientX?: number; clientY?: number; pointerId?: number } = {}) {
   const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: init.button ?? 0, clientX: init.clientX ?? 0, clientY: init.clientY ?? 0 })
   Object.defineProperty(event, 'pointerId', { value: init.pointerId ?? 1 })
+  Object.defineProperty(event, 'isPrimary', { value: (init.pointerId ?? 1) === 1 })
   target.element.dispatchEvent(event)
   await nextTick()
 }
@@ -205,6 +206,22 @@ describe('US4: fog of war', () => {
     await pointer(surface, 'pointerup', { pointerId: 1 })
     expect(wrapper.emitted('fog-commit')).toBeFalsy()
     expect(wrapper.find('[data-fog-layer]').exists()).toBe(false)
+  })
+
+  it('a lost pointerup never leaves a stroke hanging: capture loss or the next press commits it', async () => {
+    const wrapper = board({ battlemap: map([lia]), isMaster: true, currentParticipantId: 'master' })
+    await wrapper.get('[data-fog-toggle]').trigger('click')
+    const surface = wrapper.get('[data-board-surface]')
+    await pointer(surface, 'pointerdown', { pointerId: 1, button: 0, ...clientOf(wrapper, 'player-0') })
+    await pointer(surface, 'lostpointercapture', { pointerId: 1 })
+    expect(wrapper.emitted('fog-commit')).toHaveLength(1)
+
+    await wrapper.get('[data-fog-mode="reveal"]').trigger('click')
+    await pointer(surface, 'pointerdown', { pointerId: 1, button: 0, ...clientOf(wrapper, 'player-0') })
+    // No pointerup for pointer 1 (released outside the window); the next primary press finishes it.
+    await pointer(surface, 'pointerdown', { pointerId: 1, button: 0, clientX: 0, clientY: 0 })
+    expect(wrapper.emitted('fog-commit')).toHaveLength(2)
+    expect(wrapper.emitted('fog-commit')![1]![0]).toBeNull() // the revealed cell was the only one covered
   })
 
   it('cover all / reveal all commit full and empty masks, Escape leaves fog mode', async () => {
