@@ -1,0 +1,14 @@
+{
+  "name": "companion-import-creatures",
+  "private": true,
+  "description": "Pocket DM creature importer. No dependencies. main points at the test file so `node --test scripts/import-creatures/` works on Node 22+ (directory arg resolved as a module) as well as Node 20 (directory scanned for *.test.mjs).",
+  "type": "module",
+  "main": "parse.test.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "import": "node import-pocketdm.mjs"
+  }
+}

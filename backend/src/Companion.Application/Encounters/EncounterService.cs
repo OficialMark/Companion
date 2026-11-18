@@ -1,3 +1,4 @@
+using Companion.Application.Creatures;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
 using Companion.Domain.Models;
@@ -106,6 +107,56 @@ public sealed class EncounterService(
             foreach (var creature in encounter.Combatants.Where(x => x.IsCreature))
                 creature.SetHitPointsHidden(request.Hidden);
         }, cancellationToken);
+
+    public const int MaxCreaturesPerAdd = 20;
+
+    /// <summary>
+    /// Adds 1-20 combatants from a library creature (spec 008, US4): numbered names, HP and
+    /// initiative from the sheet, linked to the creature, token footprint from its size.
+    /// Only while preparing, like any other combatant.
+    /// </summary>
+    public async Task<EncounterDto> AddCreaturesAsync(
+        Guid campaignId, Guid encounterId, string token, AddCreaturesToEncounterRequest request, CancellationToken cancellationToken)
+    {
+        var master = authorization.Require(campaignId, token, masterOnly: true);
+        if (request.Count is < 1 or > MaxCreaturesPerAdd)
+            throw new AppException(AppErrorKind.Validation, $"Adicione de 1 a {MaxCreaturesPerAdd} criaturas por vez.");
+        var encounter = Load(campaignId, encounterId);
+        if (encounter.Status != EncounterStatus.Preparing)
+            throw new AppException(AppErrorKind.Validation, "Criaturas só podem ser adicionadas durante a preparação do combate.");
+        var creature = db.Creatures.SingleOrDefault(x => x.Id == request.CreatureId && (x.CampaignId == null || x.CampaignId == campaignId))
+            ?? throw new AppException(AppErrorKind.NotFound, "Criatura não encontrada.");
+        if (creature.IsCompendium)
+            creature = db.Creatures.SingleOrDefault(x => x.CampaignId == campaignId && x.BaseCreatureId == creature.Id) ?? creature;
+
+        var names = CreatureNaming.Next(creature.Name, encounter.Combatants.Select(x => x.Name), request.Count, Combatant.MaxNameLength);
+        var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id);
+        try
+        {
+            foreach (var name in names)
+            {
+                var combatant = encounter.AddCombatant(Guid.NewGuid(), name, Math.Clamp(creature.InitiativeModifier, -100, 100),
+                    currentHitPoints: creature.HitPoints, maxHitPoints: creature.HitPoints);
+                combatant.LinkCreature(creature.Id);
+                db.Add(combatant);
+                if (battlemap is not null && creature.FootprintSize > 1)
+                {
+                    var appearance = BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemap.Id, combatant.Id);
+                    appearance.SetFootprintSize(creature.FootprintSize);
+                    db.Add(appearance);
+                }
+            }
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        if (battlemap is not null)
+            await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, DtoMapper.Revision(battlemap.Version), cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
+    }
 
     public async Task<EncounterDto> RemoveCombatantAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken)

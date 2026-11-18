@@ -64,6 +64,7 @@ public sealed class DiceRollConfiguration : IEntityTypeConfiguration<DiceRoll>
         builder.ToTable("DiceRolls");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Expression).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.Label).HasMaxLength(DiceRoll.MaxLabelLength);
         builder.Property(x => x.ValuesJson).IsRequired();
         builder.Property(x => x.RevealedAt);
         builder.HasIndex(x => new { x.ParticipantId, x.ClientRequestId }).IsUnique();
@@ -97,6 +98,7 @@ public sealed class CombatantConfiguration : IEntityTypeConfiguration<Combatant>
         builder.Property(x => x.Name).HasMaxLength(60).IsRequired();
         builder.Property(x => x.IsHitPointsHidden);
         builder.Ignore(x => x.IsCreature);
+        builder.HasOne<Creature>().WithMany().HasForeignKey(x => x.CreatureId).OnDelete(DeleteBehavior.NoAction);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.EncounterId, x.CreationOrder }).IsUnique();
         builder.HasIndex(x => new { x.EncounterId, x.ParticipantId }).IsUnique()
@@ -189,6 +191,7 @@ public sealed class BattlemapTokenAppearanceConfiguration : IEntityTypeConfigura
     {
         builder.ToTable("BattlemapTokenAppearances");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.LastRollAbility).HasMaxLength(3);
         builder.Property(x => x.Version).IsRowVersion();
         var statusConditions = builder.Property(x => x.StatusConditions)
             .HasField("_statusConditions")
@@ -240,5 +243,84 @@ public sealed class AttackAreaConfiguration : IEntityTypeConfiguration<AttackAre
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class CreatureConfiguration : IEntityTypeConfiguration<Creature>
+{
+    private static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web);
+
+    public void Configure(EntityTypeBuilder<Creature> builder)
+    {
+        builder.ToTable("Creatures");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Slug).HasMaxLength(120);
+        builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
+        builder.Property(x => x.NameEn).HasMaxLength(120);
+        builder.Property(x => x.SearchKey).HasMaxLength(260).IsRequired();
+        builder.Property(x => x.SourceBook).HasMaxLength(40).IsRequired();
+        builder.Property(x => x.SourceUrl).HasMaxLength(300);
+        builder.Property(x => x.Size).HasConversion<string>().HasMaxLength(12);
+        builder.Property(x => x.Type).HasMaxLength(80).IsRequired();
+        builder.Property(x => x.Alignment).HasMaxLength(80);
+        builder.Property(x => x.ArmorClassNote).HasMaxLength(120);
+        builder.Property(x => x.HitDice).HasMaxLength(40);
+        builder.Property(x => x.Speed).HasMaxLength(200);
+        foreach (var name in new[] { nameof(Creature.SavingThrows), nameof(Creature.Skills), nameof(Creature.DamageVulnerabilities),
+                     nameof(Creature.DamageResistances), nameof(Creature.DamageImmunities), nameof(Creature.ConditionImmunities),
+                     nameof(Creature.Senses), nameof(Creature.Languages) })
+            builder.Property<string?>(name).HasMaxLength(500);
+        builder.Property(x => x.ChallengeRating).HasMaxLength(10).IsRequired();
+        builder.Property(x => x.ChallengeValue).HasPrecision(6, 3);
+        builder.Property(x => x.LegendaryActionsIntro).HasMaxLength(2000);
+        builder.Property(x => x.Notes).HasMaxLength(Creature.MaxNotesLength);
+        builder.Property(x => x.ImageSourceUrl).HasMaxLength(400);
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.Ignore(x => x.IsCompendium);
+        builder.Ignore(x => x.FootprintSize);
+        builder.Ignore(x => x.InitiativeModifier);
+        var comparer = new ValueComparer<List<CreatureAction>>(
+            (left, right) => (left ?? new List<CreatureAction>()).SequenceEqual(right ?? new List<CreatureAction>()),
+            value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),
+            value => value.ToList());
+        foreach (var name in new[] { nameof(Creature.Traits), nameof(Creature.Actions), nameof(Creature.BonusActions),
+                     nameof(Creature.Reactions), nameof(Creature.LegendaryActions) })
+        {
+            builder.Property<List<CreatureAction>>(name)
+                .HasConversion(
+                    list => System.Text.Json.JsonSerializer.Serialize(list, Json),
+                    json => System.Text.Json.JsonSerializer.Deserialize<List<CreatureAction>>(json, Json) ?? new List<CreatureAction>())
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(comparer);
+        }
+        builder.HasIndex(x => x.Slug).IsUnique().HasFilter("[CampaignId] IS NULL AND [Slug] IS NOT NULL");
+        builder.HasIndex(x => new { x.CampaignId, x.BaseCreatureId }).IsUnique()
+            .HasFilter("[CampaignId] IS NOT NULL AND [BaseCreatureId] IS NOT NULL");
+        builder.HasIndex(x => new { x.CampaignId, x.SearchKey });
+        builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Creature>().WithMany().HasForeignKey(x => x.BaseCreatureId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class CreatureImageConfiguration : IEntityTypeConfiguration<CreatureImage>
+{
+    public void Configure(EntityTypeBuilder<CreatureImage> builder)
+    {
+        builder.ToTable("CreatureImages");
+        builder.HasKey(x => x.CreatureId);
+        builder.Property(x => x.Content).HasColumnType("varbinary(max)").IsRequired();
+        builder.Property(x => x.MediaType).HasMaxLength(32).IsRequired();
+        builder.HasOne<Creature>().WithOne().HasForeignKey<CreatureImage>(x => x.CreatureId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class SeedVersionConfiguration : IEntityTypeConfiguration<SeedVersion>
+{
+    public void Configure(EntityTypeBuilder<SeedVersion> builder)
+    {
+        builder.ToTable("SeedVersions");
+        builder.HasKey(x => x.Key);
+        builder.Property(x => x.Key).HasMaxLength(80);
+        builder.Property(x => x.Hash).HasMaxLength(64).IsRequired();
     }
 }

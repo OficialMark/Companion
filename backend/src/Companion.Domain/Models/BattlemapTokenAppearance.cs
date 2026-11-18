@@ -28,6 +28,25 @@ public sealed class BattlemapTokenAppearance
     public IReadOnlyList<StatusCondition> StatusConditions => _statusConditions;
     public byte[] Version { get; private set; } = [];
 
+    // Last roll configuration used for this token on this map (spec 008, US5).
+    public static readonly IReadOnlySet<int> RollDice = new HashSet<int> { 4, 6, 8, 10, 12, 20, 100 };
+    public int? LastRollCount { get; private set; }
+    public int? LastRollDie { get; private set; }
+    public string? LastRollAbility { get; private set; }
+    public int? LastRollBonus { get; private set; }
+
+    public void SetRollPreset(int count, int die, string? ability, int bonus)
+    {
+        if (count is < 1 or > 20) throw new ArgumentOutOfRangeException(nameof(count), "A quantidade de dados deve estar entre 1 e 20.");
+        if (!RollDice.Contains(die)) throw new ArgumentOutOfRangeException(nameof(die), "Dado inválido.");
+        if (ability is not null && !Ability.All.Contains(ability)) throw new ArgumentOutOfRangeException(nameof(ability), "Atributo inválido.");
+        if (bonus is < -20 or > 20) throw new ArgumentOutOfRangeException(nameof(bonus), "O adicional deve estar entre -20 e +20.");
+        LastRollCount = count;
+        LastRollDie = die;
+        LastRollAbility = ability;
+        LastRollBonus = bonus;
+    }
+
     public static BattlemapTokenAppearance ForParticipant(Guid id, Guid battlemapId, Guid participantId) =>
         new(id, battlemapId, participantId, null, null);
 

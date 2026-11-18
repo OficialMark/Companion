@@ -36,6 +36,12 @@ public sealed class Combatant
     public int CreationOrder { get; private set; }
     /// <summary>Master-controlled: when true, players do not receive this creature's hit points.</summary>
     public bool IsHitPointsHidden { get; private set; }
+    /// <summary>Library creature this combatant was created from (spec 008); null for manual ones.</summary>
+    public Guid? CreatureId { get; private set; }
+    public const int MaxNameLength = 60;
+
+    public void LinkCreature(Guid creatureId) => CreatureId = creatureId;
+    public void UnlinkCreature() => CreatureId = null;
     public byte[] Version { get; private set; } = [];
 
     public bool IsCreature => ParticipantId is null;
@@ -83,7 +89,7 @@ public sealed class Combatant
 
     private static void Validate(string name, int initiativeModifier, int? currentHitPoints, int? maxHitPoints)
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 60)
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > MaxNameLength)
         {
             throw new ArgumentException("O nome do combatente deve ter entre 1 e 60 caracteres.", nameof(name));
         }

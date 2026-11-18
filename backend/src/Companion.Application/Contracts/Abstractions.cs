@@ -18,6 +18,9 @@ public interface ICompanionDbContext
     IQueryable<AttackArea> AttackAreas { get; }
     IQueryable<BattlemapTokenAppearance> TokenAppearances { get; }
     IQueryable<BattlemapMarker> BattlemapMarkers { get; }
+    IQueryable<Creature> Creatures { get; }
+    IQueryable<CreatureImage> CreatureImages { get; }
+    IQueryable<SeedVersion> SeedVersions { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
@@ -38,6 +41,11 @@ public interface ICompanionDbContext
     void Remove(BattlemapTokenAppearance appearance);
     void Add(BattlemapMarker marker);
     void Remove(BattlemapMarker marker);
+    void Add(Creature creature);
+    void Remove(Creature creature);
+    void Add(CreatureImage image);
+    void Remove(CreatureImage image);
+    void Add(SeedVersion seedVersion);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }

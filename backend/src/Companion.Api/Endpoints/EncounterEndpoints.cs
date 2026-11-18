@@ -18,6 +18,11 @@ public static class EncounterEndpoints
             Results.Created($"/api/campaigns/{campaignId}/encounters/{encounterId}",
                 await service.AddCombatantAsync(campaignId, encounterId, Token(request), body, ct)));
 
+        group.MapPost("/{encounterId:guid}/creatures", async (
+            Guid campaignId, Guid encounterId, Companion.Application.Creatures.AddCreaturesToEncounterRequest body,
+            HttpRequest request, EncounterService service, CancellationToken ct) =>
+            Results.Ok(await service.AddCreaturesAsync(campaignId, encounterId, Token(request), body, ct)));
+
         group.MapPost("/{encounterId:guid}/initiative", async (
             Guid campaignId, Guid encounterId, RollInitiativeRequest? body, HttpRequest request,
             EncounterService service, CancellationToken ct) =>

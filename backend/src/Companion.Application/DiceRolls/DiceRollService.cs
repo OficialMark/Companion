@@ -56,10 +56,15 @@ public sealed class DiceRollService(
                 checked(terms.Sum(x => x.Subtotal) + expression.Modifier));
         }).ToArray();
         var first = results[0];
-        var roll = new DiceRoll(
-            Guid.NewGuid(), campaignId, participant.Id, requestId, expression.Normalized,
-            JsonSerializer.Serialize(results), expression.Modifier, first.Total, timeProvider.GetUtcNow(),
-            request.Publish ? timeProvider.GetUtcNow() : null);
+        DiceRoll roll;
+        try
+        {
+            roll = new DiceRoll(
+                Guid.NewGuid(), campaignId, participant.Id, requestId, expression.Normalized,
+                JsonSerializer.Serialize(results), expression.Modifier, first.Total, timeProvider.GetUtcNow(),
+                request.Publish ? timeProvider.GetUtcNow() : null, request.Label);
+        }
+        catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         db.Add(roll);
         await db.SaveChangesAsync(cancellationToken);
 

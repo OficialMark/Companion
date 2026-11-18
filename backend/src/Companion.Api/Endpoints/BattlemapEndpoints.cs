@@ -125,6 +125,16 @@ public static class BattlemapEndpoints
             Results.Ok(await service.SetTokenAppearanceAsync(
                 campaignId, encounterId, tokenId, Token(request), body, ct)));
 
+        group.MapPut("/tokens/{tokenId:guid}/roll-preset", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid tokenId,
+            SetRollPresetRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.SetRollPresetAsync(campaignId, encounterId, tokenId, Token(request), body, ct)));
+
         group.MapPut("/fog", async (
             Guid campaignId,
             Guid encounterId,

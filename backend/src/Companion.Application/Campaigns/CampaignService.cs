@@ -183,7 +183,7 @@ public sealed class CampaignService(
         var results = DeserializeResults(roll);
         var first = results[0];
         return new DiceRollDto(roll.Id, roll.ParticipantId, displayName, roll.Expression,
-            first.Terms.SelectMany(x => x.Values).ToArray(), first.Modifier, first.Total, results, roll.CreatedAt);
+            first.Terms.SelectMany(x => x.Values).ToArray(), first.Modifier, first.Total, results, roll.CreatedAt, roll.Label);
     }
 
     internal static IReadOnlyList<DiceRollResultDto> DeserializeResults(DiceRoll roll)

@@ -1,3 +1,5 @@
+using Companion.Application.Creatures;
+using Companion.Infrastructure.Creatures;
 using System.Text.Json.Serialization;
 using Companion.Api;
 using Companion.Api.Endpoints;
@@ -64,6 +66,10 @@ builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
 builder.Services.AddScoped<BattlemapService>();
 builder.Services.AddScoped<AttackService>();
+builder.Services.AddScoped<CreatureService>();
+builder.Services.AddScoped<CompendiumSeeder>();
+builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
+builder.Services.AddHttpClient<ICreatureImageSource, HttpCreatureImageSource>();
 
 var app = builder.Build();
 if (!app.Environment.IsEnvironment("Testing")) app.UseRateLimiter();
@@ -115,6 +121,7 @@ app.MapCampaignEndpoints();
 app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();
+app.MapCreatureEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 
@@ -122,6 +129,8 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
     await db.Database.MigrateAsync();
+    // Global creature compendium (spec 008): a no-op unless the embedded seed changed.
+    await scope.ServiceProvider.GetRequiredService<CompendiumSeeder>().SeedAsync();
 }
 
 await app.RunAsync();

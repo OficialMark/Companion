@@ -1,3 +1,4 @@
+using Companion.Application.Creatures;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
 using Companion.Domain.Models;
@@ -328,6 +329,38 @@ public sealed class BattlemapService(
         return snapshot;
     }
 
+    /// <summary>Remembers the last roll setup for a token on this map (spec 008, US5).</summary>
+    public async Task<BattlemapSnapshotDto> SetRollPresetAsync(
+        Guid campaignId,
+        Guid encounterId,
+        Guid tokenId,
+        string token,
+        SetRollPresetRequest request,
+        CancellationToken cancellationToken)
+    {
+        var (_, battlemap, participant, combatant, _, actor) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+        var appearance = participant is not null
+            ? db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
+            : combatant is not null
+                ? db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId)
+                : db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.MarkerId == tokenId);
+        if (appearance is null)
+        {
+            appearance = participant is not null
+                ? BattlemapTokenAppearance.ForParticipant(Guid.NewGuid(), battlemap.Id, tokenId)
+                : combatant is not null
+                    ? BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId)
+                    : BattlemapTokenAppearance.ForMarker(Guid.NewGuid(), battlemap.Id, tokenId);
+            db.Add(appearance);
+        }
+        var ability = string.IsNullOrWhiteSpace(request.Ability) ? null : request.Ability.Trim().ToLowerInvariant();
+        try { appearance.SetRollPreset(request.Count, request.Die, ability, request.Bonus); }
+        catch (ArgumentOutOfRangeException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
+        // Private to whoever rolls: no broadcast, nobody else's board changes.
+        await db.SaveChangesAsync(cancellationToken);
+        return ToSnapshot(campaignId, battlemap, actor);
+    }
+
     public async Task<BattlemapSnapshotDto> CreateMarkerAsync(
         Guid campaignId,
         Guid encounterId,
@@ -472,12 +505,19 @@ public sealed class BattlemapService(
                     position is null ? null : DtoMapper.Revision(position.Version),
                     AttackArea: area is null ? null : ToDto(area),
                     FootprintSize: appearance?.FootprintSize ?? 1,
-                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
+                    RollPreset: Preset(appearance));
             });
-        var creatureTokens = db.Combatants
+        var creatureCombatants = db.Combatants
             .Where(x => x.EncounterId == battlemap.EncounterId && x.ParticipantId == null)
             .OrderBy(x => x.CreationOrder)
+            .ToArray();
+        var linkedIds = creatureCombatants.Where(x => x.CreatureId != null).Select(x => x.CreatureId!.Value).Distinct().ToArray();
+        var linkedImages = db.Creatures.Where(x => linkedIds.Contains(x.Id))
+            .Select(x => new { x.Id, x.ImageRevision, x.ImageSourceUrl })
             .AsEnumerable()
+            .ToDictionary(x => x.Id, x => CreatureService.ImageUrl(campaignId, x.Id, x.ImageRevision, x.ImageSourceUrl));
+        var creatureTokens = creatureCombatants
             .Select(combatant =>
             {
                 creaturePositions.TryGetValue(combatant.Id, out var position);
@@ -494,7 +534,10 @@ public sealed class BattlemapService(
                     IsCreature: true,
                     AttackArea: area is null ? null : ToDto(area),
                     FootprintSize: appearance?.FootprintSize ?? 1,
-                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
+                    ImageUrl: combatant.CreatureId is { } creatureId ? linkedImages.GetValueOrDefault(creatureId) : null,
+                    CreatureId: combatant.CreatureId,
+                    RollPreset: Preset(appearance));
             });
         var markerTokens = db.BattlemapMarkers
             .Where(x => x.BattlemapId == battlemap.Id)
@@ -517,7 +560,8 @@ public sealed class BattlemapService(
                     FootprintSize: appearance?.FootprintSize ?? 1,
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
                     IsMarker: true,
-                    OwnerParticipantId: marker.OwnerParticipantId);
+                    OwnerParticipantId: marker.OwnerParticipantId,
+                    RollPreset: Preset(appearance));
             });
         var tokens = playerTokens.Concat(creatureTokens).Concat(markerTokens).ToArray();
         if (observer.Role != ParticipantRole.Master && battlemap.FogMask is not null)
@@ -552,6 +596,11 @@ public sealed class BattlemapService(
             tokens,
             battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
+    private static RollPresetDto? Preset(BattlemapTokenAppearance? appearance) =>
+        appearance?.LastRollDie is { } die
+            ? new RollPresetDto(appearance.LastRollCount ?? 1, die, appearance.LastRollAbility, appearance.LastRollBonus ?? 0)
+            : null;
+
     private static byte[]? DecodeFogMask(string? base64)
     {
         if (string.IsNullOrEmpty(base64)) return null;

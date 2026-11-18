@@ -32,7 +32,8 @@ public static class DtoMapper
                 hidden ? null : x.CurrentHitPoints,
                 x.CurrentHitPoints == 0,
                 hidden ? null : x.MaxHitPoints,
-                x.IsHitPointsHidden);
+                x.IsHitPointsHidden,
+                x.CreatureId);
         }).ToArray();
         return new EncounterDto(encounter.Id, encounter.Status, encounter.Round, encounter.CurrentTurnIndex, combatants);
     }
