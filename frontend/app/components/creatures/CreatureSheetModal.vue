@@ -84,7 +84,7 @@ const addMessage = ref('')
 const encounter = computed(() => campaign.snapshot?.activeEncounter ?? null)
 const addBlocked = computed(() =>
   !encounter.value ? 'Inicie a preparação de um combate para adicionar criaturas.'
-    : encounter.value.status !== 'Preparing' ? 'Criaturas entram durante a preparação do combate.'
+    : encounter.value.status === 'Ended' ? 'Este combate já terminou.'
       : campaign.connection === 'offline' ? 'Conexão necessária.' : '')
 async function addToCombat() {
   addBusy.value = true; addMessage.value = ''

@@ -83,6 +83,15 @@
 - [X] T042 Crítico frio (sub-agente sem contexto de construção) sobre o diff e a UI; corrigir os achados
 - [X] T043 Atualizar `README.md` (biblioteca, importador, atribuição) e marcar tarefas
 
+## Phase 9: Revisão do dono (catálogo onde o mestre adiciona tokens, reforços)
+
+Relato: "na hora de adicionar o token também não aparece esse catálogo". O catálogo só era alcançável pela aba Criaturas.
+
+- [X] T044 [US4] Catálogo no formulário "Combatentes" da preparação (modo Do catálogo / Manual) em `frontend/app/components/creatures/CreaturePicker.vue` e `frontend/app/components/EncounterSetup.vue`; testes em `frontend/tests/creature-picker.spec.ts` e `frontend/tests/encounter.spec.ts`
+- [X] T045 [US4] Botão "Do catálogo" ao lado de "Inserir token" no tabuleiro, só para o mestre, em `frontend/app/components/battlemap/BattlemapBoard.vue`; teste em `frontend/tests/battlemap-markers.spec.ts`
+- [X] T046 [US4] Reforços com o combate em andamento: `Encounter.AddReinforcement` (iniciativa rolada na entrada, turno e rodada preservados) em `backend/src/Companion.Domain/Models/Encounter.cs`, usado por `EncounterService.AddCreaturesAsync`; combate encerrado recusa com 400; testes em `EncounterTests.cs` e `CreatureApiTests.cs`
+- [X] T047 E2E `frontend/tests/e2e/creature-catalog.spec.ts` em 1280, 1024 e 375 px: aba, catálogo na preparação, névoa antes de publicar, jogadora vê o mapa coberto, reforço pelo tabuleiro, sem rolagem horizontal
+
 ## Dependencies
 
 Setup → Foundational → US1 e US2 (independentes da biblioteca) → US3 → US4 → US5 → Polish. T002 roda em paralelo a tudo até T039.

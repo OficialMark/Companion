@@ -121,7 +121,7 @@ Ao publicar ou substituir a imagem, a prévia já traz o editor de névoa: um ma
 
 A aba **Criaturas** (só para o mestre) traz o compêndio em português de 725 criaturas, com busca por nome em PT ou EN e filtros por tamanho, tipo, ND e origem. O mestre pode criar criaturas próprias e editar qualquer uma. Editar uma criatura do compêndio cria a versão daquela mesa, e é possível restaurar o original. A imagem enviada aparece nos tokens.
 
-Pela ficha, o mestre adiciona de 1 a 20 cópias ao combate em preparação (com nomes numerados, PV, iniciativa e tamanho do token), escreve anotações pessoais e rola para a criatura escolhendo quantidade, dado, atributo e um adicional. No mapa, o menu de um token de criatura tem **Ficha e rolagens**, e a última configuração de rolagem de cada token volta pré-selecionada.
+O mestre adiciona de 1 a 20 cópias ao combate pela ficha, pelo formulário "Combatentes" (modo Do catálogo) ou pelo botão "Do catálogo" ao lado de "Inserir token" no mapa, com nomes numerados, PV, iniciativa e tamanho do token. Com o combate em andamento, elas entram como reforços com iniciativa rolada, sem mudar o turno. Ele também escreve anotações pessoais e rola para a criatura escolhendo quantidade, dado, atributo e um adicional. No mapa, o menu de um token de criatura tem **Ficha e rolagens**, e a última configuração de rolagem de cada token volta pré-selecionada.
 
 O compêndio é semeado no primeiro startup da API a partir de `backend/src/Companion.Infrastructure/Persistence/Seed/creatures.pocketdm.json`, de forma idempotente. As imagens do compêndio são buscadas pelo servidor sob demanda e guardadas no banco.
 

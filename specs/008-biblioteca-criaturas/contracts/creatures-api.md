@@ -21,7 +21,7 @@ Todas as rotas usam `X-Participant-Token`. "Mestre" = 403 para jogador.
 
 ## Combate (mestre)
 
-`POST /api/campaigns/{c}/encounters/{e}/creatures` `{ creatureId, count }` (1-20) → `EncounterDto`. Só em `Preparing` (400 caso contrário). Emite `EncounterInvalidated` e `BattlemapInvalidated` (se há mapa).
+`POST /api/campaigns/{c}/encounters/{e}/creatures` `{ creatureId, count }` (1-20) → `EncounterDto`. Em `Preparing` entra como combatente comum; em `Active` entra como reforço com iniciativa rolada, sem mudar o turno; em `Ended` responde 400. Emite `EncounterInvalidated` e `BattlemapInvalidated` (se há mapa).
 
 ## Battlemap
 

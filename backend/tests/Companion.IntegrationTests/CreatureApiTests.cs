@@ -162,6 +162,41 @@ public sealed class CreatureApiTests(CompanionApiFactory factory) : ApiTestBase(
     }
 
     [Fact]
+    public async Task Creatures_can_join_a_running_combat_as_reinforcements_but_not_an_ended_one()
+    {
+        var master = await CreateCampaign("cr-reinf");
+        var encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        var goblin = (await Find(master, "goblin")).Id;
+        var url = $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/creatures";
+        await Send<EncounterDto>(Authenticated(HttpMethod.Post, url, master, new AddCreaturesToEncounterRequest(goblin, 1)));
+        await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/initiative", master, new RollInitiativeRequest(null)));
+        var started = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/start", master));
+        Assert.Equal("Active", started.Status.ToString());
+        // Hide every creature's HP, then move the turn to the last in the order so any newcomer
+        // sorting ahead would shift the index if the turn were not preserved.
+        await Send<EncounterDto>(Authenticated(HttpMethod.Put, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/hit-points-visibility", master, new SetHitPointsVisibilityRequest(true)));
+        var advanced = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/next-turn", master));
+        var currentBefore = advanced.Combatants.Single(x => x.IsCurrent).Id;
+
+        var reinforced = await Send<EncounterDto>(Authenticated(HttpMethod.Post, url, master, new AddCreaturesToEncounterRequest(goblin, 2)));
+        Assert.Equal(["Goblin", "Goblin 2", "Goblin 3"], reinforced.Combatants.Select(x => x.Name).OrderBy(x => x).ToArray());
+        Assert.All(reinforced.Combatants, x => Assert.NotNull(x.Initiative));
+        Assert.Equal("Active", reinforced.Status.ToString());
+        Assert.Equal(currentBefore, reinforced.Combatants.Single(x => x.IsCurrent).Id);
+        Assert.Equal(advanced.Round, reinforced.Round);
+        Assert.All(reinforced.Combatants, x => Assert.True(x.IsHitPointsHidden));
+
+        // The player never sees the newcomers' HP (joins after start so combat could begin without them).
+        var player = await Join(master, "Ayla");
+        var playerView = await Send<CampaignSnapshot>(Authenticated(HttpMethod.Get, $"/api/campaigns/{player.CampaignId}/snapshot", player));
+        Assert.All(playerView.ActiveEncounter!.Combatants.Where(x => x.CreatureId is not null), x => Assert.Null(x.CurrentHitPoints));
+
+        (await Client.SendAsync(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/end", master))).EnsureSuccessStatusCode();
+        var afterEnd = await Client.SendAsync(Authenticated(HttpMethod.Post, url, master, new AddCreaturesToEncounterRequest(goblin, 1)));
+        Assert.Equal(HttpStatusCode.BadRequest, afterEnd.StatusCode);
+    }
+
+    [Fact]
     public async Task Roll_preset_is_kept_per_token_and_roll_label_reaches_the_history()
     {
         var master = await CreateCampaign("cr-roll");

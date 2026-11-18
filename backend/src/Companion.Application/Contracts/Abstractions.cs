@@ -46,6 +46,8 @@ public interface ICompanionDbContext
     void Add(CreatureImage image);
     void Remove(CreatureImage image);
     void Add(SeedVersion seedVersion);
+    /// <summary>Forces an UPDATE of the encounter row so its rowversion changes (optimistic concurrency).</summary>
+    void MarkModified(Encounter encounter);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }

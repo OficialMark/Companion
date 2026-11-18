@@ -50,6 +50,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
     void ICompanionDbContext.Add(Encounter encounter) => Encounters.Add(encounter);
+    void ICompanionDbContext.MarkModified(Encounter encounter) => Entry(encounter).State = EntityState.Modified;
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);
     void ICompanionDbContext.Add(CombatAttack attack) => CombatAttacks.Add(attack);
     void ICompanionDbContext.Add(CombatAttackTarget target) => CombatAttackTargets.Add(target);

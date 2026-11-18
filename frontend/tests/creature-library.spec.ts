@@ -147,10 +147,14 @@ describe('creature sheet (spec 008, US4/US5)', () => {
     expect(api.addCreaturesToEncounter).toHaveBeenCalledWith(expect.anything(), 'e1', 'goblin', 3)
     expect(wrapper.text()).toContain('3 × Goblin entraram no combate')
 
+    // Reinforcements: still allowed while combat runs, refused once it ended.
     campaign.snapshot!.activeEncounter!.status = 'Active'
     await flushPromises()
+    expect(wrapper.get('[data-add-to-combat]').attributes('disabled')).toBeUndefined()
+    campaign.snapshot!.activeEncounter!.status = 'Ended'
+    await flushPromises()
     expect(wrapper.get('[data-add-to-combat]').attributes('disabled')).toBeDefined()
-    expect(wrapper.text()).toContain('durante a preparação')
+    expect(wrapper.text()).toContain('Este combate já terminou.')
     wrapper.unmount()
   })
 

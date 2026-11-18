@@ -42,6 +42,23 @@ public sealed class Encounter
         return combatant;
     }
 
+    /// <summary>
+    /// Adds a creature while combat is running (reinforcements). It enters with initiative already
+    /// rolled, and the turn stays with whoever had it, even when the newcomer sorts ahead of them.
+    /// </summary>
+    public Combatant AddReinforcement(Guid id, string name, int modifier, int currentHitPoints, int maxHitPoints, Func<int> rollD20)
+    {
+        if (Status != EncounterStatus.Active) throw new InvalidOperationException("O combate não está ativo.");
+        var currentId = CurrentCombatantId();
+        var nextCreationOrder = _combatants.Count == 0 ? 0 : _combatants.Max(x => x.CreationOrder) + 1;
+        var combatant = new Combatant(id, Id, name, modifier, nextCreationOrder, null, currentHitPoints, maxHitPoints);
+        combatant.SetInitiative(rollD20());
+        _combatants.Add(combatant);
+        if (currentId is null) CurrentTurnIndex = 0;
+        else RestoreCurrentTurn(currentId);
+        return combatant;
+    }
+
     public void UpdateCombatant(Guid combatantId, string name, int modifier, int? currentHitPoints = null, int? maxHitPoints = null)
     {
         var currentId = CurrentCombatantId();

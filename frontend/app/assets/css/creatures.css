@@ -162,3 +162,29 @@ body.modal-open { overflow: hidden; }
   .view-tabs { display: flex; }
   .view-tab { flex: 1 1 0; justify-content: center; }
 }
+
+/* Catalog picker inside combat preparation */
+.setup-mode { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.18); }
+.setup-mode .view-tab { padding: 0 14px; font-size: .86rem; }
+.creature-picker { display: grid; gap: 10px; }
+.creature-picker .creature-search { flex: none; }
+.creature-picker-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; transition: opacity .15s; }
+.creature-picker-list.loading { opacity: .55; }
+.creature-picker-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 14px; padding: 6px 8px 6px 6px; background: rgba(255,255,255,.03); }
+.creature-picker-info { flex: 1 1 auto; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; padding: 2px 4px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.creature-picker-info:hover { background: rgba(215,174,93,.06); }
+.creature-picker-info:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.creature-portrait.small { width: 44px; height: 44px; flex-basis: 44px; font-size: .8rem; }
+.creature-picker-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+.creature-picker .icon-button.small { width: 44px; height: 44px; flex-basis: 44px; }
+.creature-picker .roll-stepper-value { min-width: 30px; }
+.creature-picker .button.compact { min-height: 44px; }
+.creature-picker-done { color: #9be3bd; }
+@media (max-width: 560px) {
+  .creature-picker-row { flex-wrap: wrap; }
+  .creature-picker-info { flex-basis: 100%; }
+  .creature-picker-actions { flex: 1 1 100%; justify-content: space-between; }
+  .creature-picker-actions .button { flex: 1 1 auto; }
+  .setup-mode { display: flex; }
+  .setup-mode .view-tab { flex: 1 1 0; justify-content: center; }
+}

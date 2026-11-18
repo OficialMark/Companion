@@ -75,7 +75,9 @@ Na biblioteca (ou na ficha), o mestre toca "Adicionar ao combate" e escolhe quan
 **Acceptance Scenarios**:
 
 1. **Given** há um encontro em preparação, **When** o mestre adiciona N cópias de uma criatura, **Then** N combatentes são criados com nome numerado sem repetir números já usados, vida atual = vida máxima = PV da ficha, modificador = modificador de Destreza e tamanho do token pelo tamanho da criatura (Grande 2x2, Enorme 3x3, Imenso 4x4).
-2. **Given** não há encontro em preparação (nenhum combate ou combate já iniciado), **When** o mestre tenta adicionar, **Then** o botão explica o motivo e, sem combate, oferece atalho para iniciar a preparação.
+2. **Given** não há combate (ou ele já terminou), **When** o mestre tenta adicionar, **Then** o botão explica o motivo e, sem combate, oferece atalho para iniciar a preparação.
+3. **Given** o combate está em andamento, **When** o mestre adiciona N cópias (reforços), **Then** cada uma entra com iniciativa rolada (d20 + modificador) na ordem, sem mudar de quem é o turno nem a rodada.
+4. **Given** o mestre está no formulário "Combatentes" da preparação ou no tabuleiro (ao lado de "Inserir token"), **When** busca uma criatura, **Then** o mesmo catálogo aparece ali, com quantidade e botão Adicionar, sem precisar ir à aba Criaturas.
 3. **Given** a criatura tem imagem, **When** o token aparece no mapa ou na reserva, **Then** a imagem é exibida no lugar das iniciais.
 4. **Given** a ficha da criatura é editada depois, **When** os tokens já existentes são exibidos, **Then** a imagem atualizada aparece, mas a vida dos combatentes já criados não muda.
 
@@ -141,7 +143,7 @@ Tocando numa criatura do catálogo, ou num token de criatura no mapa (pelo menu 
 
 **Combate**
 
-- **FR-015**: O mestre DEVE poder adicionar de 1 a 20 cópias de uma criatura ao encontro em preparação (a mesma fase em que hoje se adicionam combatentes), com nome numerado único, vida atual e máxima pelos PV, modificador de iniciativa pela Destreza (ou pela iniciativa da ficha, quando houver) e tamanho do token pelo tamanho da criatura.
+- **FR-015**: O mestre DEVE poder adicionar de 1 a 20 cópias de uma criatura ao encontro em preparação ou em andamento (reforços entram com iniciativa rolada, sem mudar o turno), a partir da ficha, do formulário de combatentes ou do tabuleiro, com nome numerado único, vida atual e máxima pelos PV, modificador de iniciativa pela Destreza (ou pela iniciativa da ficha, quando houver) e tamanho do token pelo tamanho da criatura.
 - **FR-016**: Combatentes criados a partir da biblioteca DEVEM guardar o vínculo com a criatura de origem.
 - **FR-017**: Tokens de criaturas vinculadas a uma criatura com imagem DEVEM exibir a imagem no mapa e na reserva, para todos os participantes.
 
