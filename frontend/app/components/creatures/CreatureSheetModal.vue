@@ -105,6 +105,7 @@ async function startPreparation() {
 /** Every way out (Esc, ×, backdrop) asks before throwing away an edit in progress. */
 function requestClose() {
   if (creatures.editing && !window.confirm('Descartar as alterações da ficha?')) return
+  if (!creatures.editing && notesDirty.value && !window.confirm('Descartar as anotações não salvas?')) return
   creatures.close()
 }
 // A text selection that ends on the backdrop is not a click on it.
@@ -141,7 +142,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="modal-overlay creature-sheet-overlay" @pointerdown.self="pressedOnBackdrop = true" @click.self="pressedOnBackdrop && requestClose(); pressedOnBackdrop = false">
+  <div class="modal-overlay creature-sheet-overlay" @pointerdown="pressedOnBackdrop = $event.target === $event.currentTarget" @click.self="pressedOnBackdrop && requestClose(); pressedOnBackdrop = false">
     <div ref="dialog" class="creature-sheet" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" tabindex="-1" data-creature-sheet>
       <header class="creature-sheet-header">
         <span class="creature-portrait large" :class="{ 'has-image': portrait }">

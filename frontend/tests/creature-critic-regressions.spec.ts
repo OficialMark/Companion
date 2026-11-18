@@ -198,4 +198,18 @@ describe('critic regressions (spec 008)', () => {
     confirm.mockRestore()
     wrapper.unmount()
   })
+
+  it('round 3: a save answered after the sheet was closed does not reopen it', async () => {
+    const { creatures } = ready()
+    api.getCreature.mockResolvedValue(structuredClone(goblin))
+    api.listCreatures.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 24 })
+    let answer!: (value: Creature) => void
+    api.saveCreature.mockReturnValue(new Promise<Creature>(res => { answer = res }))
+    await creatures.open('goblin')
+    const saving = creatures.save({ ...structuredClone(goblin) })
+    creatures.close()
+    answer({ ...goblin, armorClass: 18 })
+    await saving
+    expect(creatures.sheet).toBeNull()
+  })
 })

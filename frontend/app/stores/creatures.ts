@@ -92,11 +92,16 @@ export const useCreatureStore = defineStore('creatures', {
       this.editing = false
     },
     /** Returns the saved sheet; refreshes the list so origin badges stay right. */
+    /** True while the sheet that started a request is still the open one. */
+    stillOpen(sequence: number) { return sequence === this.openSequence && this.sheet !== null },
     async save(fields: CreatureFields) {
+      const sequence = this.openSequence
       const current = this.sheet
       const body: SaveCreatureRequest = { ...fields, expectedRevision: current?.revision || null }
       const api = useCompanionApi()
       const saved = current?.id ? await api.saveCreature(this.session(), current.id, body) : await api.createCreature(this.session(), body)
+      void this.load()
+      if (!this.stillOpen(sequence)) return saved
       this.sheet = saved
       this.editing = false
       void this.load()
@@ -104,27 +109,35 @@ export const useCreatureStore = defineStore('creatures', {
     },
     async saveNotes(notes: string | null) {
       if (!this.sheet?.id) return
-      this.sheet = await useCompanionApi().saveCreatureNotes(this.session(), this.sheet.id, notes, this.sheet.revision || null)
+      const sequence = this.openSequence
+      const saved = await useCompanionApi().saveCreatureNotes(this.session(), this.sheet.id, notes, this.sheet.revision || null)
+      if (this.stillOpen(sequence)) this.sheet = saved
       void this.load()
     },
     /** Custom: deleted and the modal closes. Edited: back to the compendium original. */
     async remove() {
       if (!this.sheet?.id) return
+      const sequence = this.openSequence
       const restored = await useCompanionApi().deleteCreature(this.session(), this.sheet.id)
+      if (!this.stillOpen(sequence)) { void this.load(); return }
       if (restored) this.sheet = restored
       else this.close()
       void this.load()
     },
     async uploadImage(file: File) {
       if (!this.sheet?.id) return
-      this.sheet = await useCompanionApi().uploadCreatureImage(this.session(), this.sheet.id, file)
-      void useImageCacheStore().ensure(this.sheet.imageUrl)
+      const sequence = this.openSequence
+      const saved = await useCompanionApi().uploadCreatureImage(this.session(), this.sheet.id, file)
+      void useImageCacheStore().ensure(saved.imageUrl)
+      if (this.stillOpen(sequence)) this.sheet = saved
       void this.load()
       void useCampaignStore().refreshBattlemap().catch(() => {})
     },
     async removeImage() {
       if (!this.sheet?.id) return
-      this.sheet = await useCompanionApi().removeCreatureImage(this.session(), this.sheet.id)
+      const sequence = this.openSequence
+      const saved = await useCompanionApi().removeCreatureImage(this.session(), this.sheet.id)
+      if (this.stillOpen(sequence)) this.sheet = saved
       void this.load()
       void useCampaignStore().refreshBattlemap().catch(() => {})
     },
