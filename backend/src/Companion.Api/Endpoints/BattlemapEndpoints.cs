@@ -42,6 +42,8 @@ public static class BattlemapEndpoints
             using var buffer = new MemoryStream();
             await stream.CopyToAsync(buffer, ct);
             var expectedRevision = form["expectedRevision"].ToString();
+            var hasFogMask = form.ContainsKey("fogMask");
+            var fogMask = hasFogMask ? form["fogMask"].ToString() : null;
             var result = await service.ConfigureAsync(
                 campaignId,
                 encounterId,
@@ -53,7 +55,9 @@ public static class BattlemapEndpoints
                     columns,
                     rows,
                     isGridVisible,
-                    string.IsNullOrWhiteSpace(expectedRevision) ? null : expectedRevision),
+                    string.IsNullOrWhiteSpace(expectedRevision) ? null : expectedRevision,
+                    hasFogMask,
+                    fogMask),
                 ct);
             return result.Created
                 ? Results.Created($"/api/campaigns/{campaignId}/encounters/{encounterId}/battlemap", result.Result)

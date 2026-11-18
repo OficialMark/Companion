@@ -19,7 +19,12 @@ public sealed record ConfigureBattlemapRequest(
     int Columns,
     int Rows,
     bool IsGridVisible,
-    string? ExpectedRevision);
+    string? ExpectedRevision,
+    // Spec 008 (US2): fog drawn on the upload preview, applied in the same save as the image
+    // so no participant ever receives the new map uncovered. HasFogMask distinguishes
+    // "field absent" (legacy clients: keep current fog rules) from "empty" (fully revealed).
+    bool HasFogMask = false,
+    string? FogMask = null);
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
 public sealed record SetFogRequest(string? Mask);

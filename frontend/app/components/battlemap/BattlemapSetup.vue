@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { BattlemapSnapshot } from '~/types/campaign'
+import { encodeMask, fillMask } from '~/utils/fogMask'
+import FogPreview from './FogPreview.vue'
 
 const props = defineProps<{ encounterId: string; battlemap: BattlemapSnapshot | null }>()
 const emit = defineEmits<{ configured: [] }>()
@@ -14,6 +16,11 @@ const imageSize = ref<{ width: number; height: number } | null>(null)
 const busy = ref(false)
 const error = ref('')
 const pendingConfirmation = ref(false)
+// Fog drawn on the preview and sent with the image (spec 008, US2). A new map starts fully
+// covered; replacing an image keeps the current fog while the grid stays the same.
+const fogEnabled = ref(!props.battlemap || Boolean(props.battlemap.fogMask))
+const fogMask = ref<string | null>(props.battlemap ? props.battlemap.fogMask ?? null : encodeMask(fillMask(columns.value, rows.value, true)))
+const fogRestarted = ref(false)
 
 const MAX_GRID = 100
 const PREVIEW_MAX_WIDTH = 560
@@ -29,9 +36,23 @@ const impactedTokens = computed(() => {
 })
 
 watch([columns, rows, file], () => { pendingConfirmation.value = false })
-// The fog bitset is tied to the grid shape; the server discards it when the grid changes (spec 007, FR-026).
-const fogWillReset = computed(() => Boolean(props.battlemap?.fogMask) &&
-  (columns.value !== props.battlemap?.columns || rows.value !== props.battlemap?.rows))
+// The fog bitset is tied to the grid shape: on a grid change the drawn fog cannot be kept,
+// so it restarts fully covered (and the master is told).
+watch([columns, rows], ([nextColumns, nextRows], [previousColumns, previousRows]) => {
+  if (nextColumns === previousColumns && nextRows === previousRows) return
+  if (!validGridSize(nextColumns, nextRows)) return
+  const sameAsPublished = props.battlemap?.columns === nextColumns && props.battlemap?.rows === nextRows
+  // Only worth a notice when the master had shaped the fog (not the untouched full cover).
+  const hadCustomFog = validGridSize(previousColumns, previousRows) &&
+    fogMask.value !== encodeMask(fillMask(previousColumns, previousRows, true))
+  fogMask.value = sameAsPublished && props.battlemap?.fogMask !== undefined
+    ? props.battlemap.fogMask ?? null
+    : encodeMask(fillMask(nextColumns, nextRows, true))
+  fogRestarted.value = Boolean(previewUrl.value) && !sameAsPublished && hadCustomFog
+})
+function validGridSize(columns: number, rows: number) {
+  return Number.isInteger(columns) && Number.isInteger(rows) && columns >= 1 && rows >= 1 && columns <= MAX_GRID && rows <= MAX_GRID
+}
 
 const clampGrid = (value: number) => Math.max(1, Math.min(MAX_GRID, Math.round(value)))
 
@@ -121,7 +142,7 @@ async function submit() {
     error.value = 'Conexão necessária para publicar o battlemap.'
     return
   }
-  if ((impactedTokens.value.length > 0 || fogWillReset.value) && !pendingConfirmation.value) {
+  if (impactedTokens.value.length > 0 && !pendingConfirmation.value) {
     pendingConfirmation.value = true
     return
   }
@@ -129,7 +150,7 @@ async function submit() {
   try {
     await api.configureBattlemap(
       store.session, props.encounterId, file.value, columns.value, rows.value, isGridVisible.value,
-      props.battlemap?.revision ?? null)
+      props.battlemap?.revision ?? null, fogEnabled.value ? fogMask.value : null)
     pendingConfirmation.value = false
     emit('configured')
   } catch (exception) {
@@ -177,7 +198,16 @@ onBeforeUnmount(() => {
       </label>
     </div>
 
-    <div v-if="previewUrl" class="battlemap-preview" :style="previewStyle">
+    <label v-if="previewUrl" class="switch-field fog-publish-switch">
+      <input v-model="fogEnabled" data-fog-publish-toggle type="checkbox" role="switch">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb" /></span>
+      <span class="label-with-icon"><Icon name="lucide:cloud-fog" />Publicar com névoa (os jogadores só veem o que você revelar)</span>
+    </label>
+    <p v-if="previewUrl && fogEnabled && fogRestarted" class="field-hint" data-fog-restarted role="status">
+      <Icon name="lucide:info" />O grid mudou, então a névoa recomeçou cobrindo o mapa inteiro.
+    </p>
+    <FogPreview v-if="previewUrl && fogEnabled && validGrid" v-model="fogMask" :image-url="previewUrl" :columns="columns" :rows="rows" :is-grid-visible="isGridVisible" />
+    <div v-else-if="previewUrl" class="battlemap-preview" :style="previewStyle">
       <img :src="previewUrl" alt="Prévia do mapa selecionado">
       <span v-if="isGridVisible" class="battlemap-preview-grid" :style="{ '--columns': columns, '--rows': rows }" />
     </div>
@@ -196,7 +226,6 @@ onBeforeUnmount(() => {
     </p>
 
     <div v-if="pendingConfirmation" class="battlemap-shrink-warning" role="alert">
-      <p v-if="fogWillReset" data-fog-reset-warning><Icon name="lucide:cloud-off" /><span>O grid mudou: <strong>a névoa atual será removida</strong> e o mapa ficará todo revelado.</span></p>
       <p v-if="impactedTokens.length"><Icon name="lucide:triangle-alert" /><span><strong>{{ impactedTokens.length }} pino{{ impactedTokens.length > 1 ? 's' : '' }}</strong> {{ impactedTokens.length > 1 ? 'ficam' : 'fica' }} fora do novo grid e {{ impactedTokens.length > 1 ? 'voltarão' : 'voltará' }} para a reserva:</span></p>
       <ul v-if="impactedTokens.length">
         <li v-for="token in impactedTokens" :key="token.participantId">{{ token.displayName }}</li>

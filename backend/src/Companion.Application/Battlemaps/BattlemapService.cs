@@ -104,6 +104,13 @@ public sealed class BattlemapService(
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
 
+        if (request.HasFogMask)
+        {
+            // Same transaction as the image: the first snapshot anyone can read is already fogged.
+            try { battlemap.SetFog(DecodeFogMask(request.FogMask)); }
+            catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         var snapshot = ToSnapshot(campaignId, battlemap, master);
         await notifier.BattlemapInvalidatedAsync(
@@ -311,15 +318,7 @@ public sealed class BattlemapService(
         var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id)
             ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
 
-        byte[]? mask = null;
-        if (!string.IsNullOrEmpty(request.Mask))
-        {
-            // Bound the decode before allocating: base64 of the largest legal mask.
-            if (request.Mask.Length > (Battlemap.MaxFogMaskBytes + 2) / 3 * 4)
-                throw new AppException(AppErrorKind.Validation, "A névoa enviada é grande demais para o grid.");
-            try { mask = Convert.FromBase64String(request.Mask); }
-            catch (FormatException) { throw new AppException(AppErrorKind.Validation, "A névoa enviada é inválida."); }
-        }
+        var mask = DecodeFogMask(request.Mask);
         try { battlemap.SetFog(mask); }
         catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
 
@@ -553,6 +552,16 @@ public sealed class BattlemapService(
             tokens,
             battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
+    private static byte[]? DecodeFogMask(string? base64)
+    {
+        if (string.IsNullOrEmpty(base64)) return null;
+        // Bound the decode before allocating: base64 of the largest legal mask.
+        if (base64.Length > (Battlemap.MaxFogMaskBytes + 2) / 3 * 4)
+            throw new AppException(AppErrorKind.Validation, "A névoa enviada é grande demais para o grid.");
+        try { return Convert.FromBase64String(base64); }
+        catch (FormatException) { throw new AppException(AppErrorKind.Validation, "A névoa enviada é inválida."); }
+    }
+
     private static AttackAreaDto ToDto(AttackArea area) => new(
         area.Id,
         area.Shape.ToString(),

@@ -44,6 +44,16 @@ function conditionX(index: number) {
   return (index - (conditionSlots.value - 1) / 2) * step
 }
 const conditionY = computed(() => effectiveSize.value * .43)
+
+// Badge glyphs (spec 008, US1). The Lucide icon renders as a nested <svg> sized in `em`
+// (CSS width:100% does NOT apply to a nested svg), so sizing it with x/y/width/height
+// left the glyph a fixed 17.6 px anchored at the box corner: off-center at every zoom but
+// one. Instead the icon is pinned to its native 24-unit box (font-size 24px => 1em = 24
+// user units) and placed purely by transform, the same math that places the circle.
+const GLYPH_BOX = 24
+function glyphTransform(size: number) {
+  return `translate(${-size / 2} ${-size / 2}) scale(${size / GLYPH_BOX})`
+}
 const accessibleLabel = computed(() => {
   const parts = [props.token.displayName]
   if (props.defeated) parts.push('caído')
@@ -124,7 +134,7 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
     >
       <title>HP oculto aos jogadores</title>
       <circle :r="badge * .85" />
-      <svg class="token-glyph" :x="-badge * .55" :y="-badge * .55" :width="badge * 1.1" :height="badge * 1.1"><Icon name="lucide:eye-off" /></svg>
+      <g class="token-glyph" :transform="glyphTransform(badge * 1.1)"><Icon name="lucide:eye-off" :size="`${GLYPH_BOX}px`" /></g>
     </g>
     <g
       v-for="(condition, index) in conditionBadges.shown"
@@ -139,7 +149,7 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
     >
       <title>{{ statusConditionInfo(condition).label }}</title>
       <circle :r="conditionRadius" />
-      <svg class="token-glyph" :x="-conditionRadius * .62" :y="-conditionRadius * .62" :width="conditionRadius * 1.24" :height="conditionRadius * 1.24"><Icon :name="statusConditionInfo(condition).icon" /></svg>
+      <g class="token-glyph" :transform="glyphTransform(conditionRadius * 1.24)"><Icon :name="statusConditionInfo(condition).icon" :size="`${GLYPH_BOX}px`" /></g>
     </g>
     <g
       v-if="conditionBadges.overflow"

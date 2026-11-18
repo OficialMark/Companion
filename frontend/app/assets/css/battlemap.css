@@ -30,6 +30,12 @@
 /* object-fit: fill mirrors the board: the full image always fills the grid area, never cropped. */
 .battlemap-preview img { width: 100%; height: 100%; display: block; object-fit: fill; }
 .battlemap-preview-grid { --columns: 20; --rows: 15; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, rgba(255,255,255,.38) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.38) 1px, transparent 1px); background-size: calc(100% / var(--columns)) calc(100% / var(--rows)); box-shadow: inset -1px -1px rgba(255,255,255,.38); }
+/* Fog editor on the publish preview (spec 008, US2) */
+.fog-publish-switch { min-height: 44px; }
+.fog-preview { display: grid; gap: 8px; }
+.fog-preview-surface { display: block; height: auto; justify-self: center; border: 1px solid var(--line); border-radius: 12px; background: #100d10; touch-action: none; cursor: crosshair; user-select: none; }
+.fog-preview-status { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: .78rem; }
+.fog-preview-status .icon { color: #cfe8ff; }
 .battlemap-ratio-warning { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 6px 10px; border: 1px solid rgba(215,174,93,.4); border-radius: 10px; padding: 12px 14px; background: rgba(215,174,93,.07); color: var(--ink-soft); font-size: .84rem; }
 .battlemap-ratio-warning > .icon { margin-top: .15em; color: var(--gold); }
 .battlemap-ratio-warning p { margin: 0; line-height: 1.5; }
@@ -179,8 +185,9 @@
 .token-hp-toggle:focus-within { border-color: var(--line-strong); }
 
 /* Board badges */
-.token-glyph { overflow: visible; pointer-events: none; }
-.token-glyph > svg, .token-glyph > .icon { width: 100%; height: 100%; display: block; }
+.token-glyph { pointer-events: none; }
+/* The icon keeps its own 24-unit box; vertical-align from the global .icon rule is meaningless in SVG. */
+.token-glyph > svg { vertical-align: baseline; overflow: visible; }
 .token-condition-badge { --condition-color: #7fb8ff; pointer-events: none; }
 .token-condition-badge > circle { fill: #191418; stroke: var(--condition-color); stroke-width: 1.75; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
 .token-condition-badge .token-glyph { color: var(--condition-color); }

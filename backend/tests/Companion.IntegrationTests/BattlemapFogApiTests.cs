@@ -105,6 +105,54 @@ public sealed class BattlemapFogApiTests(CompanionApiFactory factory) : ApiTestB
         Assert.Null(result.Battlemap.FogMask);
     }
 
+    [Fact]
+    public async Task Publishing_a_new_map_with_fog_never_exposes_it_uncovered()
+    {
+        var master = await CreateCampaign("fog-publish");
+        var join = await Client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(master.PlayerCode, "Ayla"));
+        var player = (await join.Content.ReadFromJsonAsync<SessionResponse>(JsonOptions))!;
+        var created = await Client.SendAsync(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        var encounter = (await created.Content.ReadFromJsonAsync<EncounterDto>(JsonOptions))!;
+
+        var allCovered = Convert.ToBase64String(Enumerable.Repeat((byte)0xFF, 2).ToArray()); // 4x4 = 16 cells
+        var published = await Configure(master, encounter.Id, 4, 4, fogMask: allCovered);
+        Assert.Equal(HttpStatusCode.Created, published.StatusCode);
+        var result = (await published.Content.ReadFromJsonAsync<ReplaceBattlemapResultDto>(JsonOptions))!;
+        Assert.Equal(allCovered, result.Battlemap.FogMask);
+        // The very first state a player can read is the fogged one.
+        Assert.Equal(allCovered, (await GetBattlemap(player, encounter.Id)).FogMask);
+    }
+
+    [Fact]
+    public async Task Replacing_the_image_applies_the_preview_fog_and_rejects_a_mask_for_another_grid()
+    {
+        var (master, player, encounter, _) = await Arrange("fog-replace-preview");
+        var current = await GetBattlemap(master, encounter.Id);
+
+        var wrongGrid = await Configure(master, encounter.Id, 4, 4, current.Revision, fogMask: Convert.ToBase64String(new byte[9]));
+        Assert.Equal(HttpStatusCode.BadRequest, wrongGrid.StatusCode);
+        Assert.Null((await GetBattlemap(player, encounter.Id)).FogMask); // nothing was saved
+
+        var replaced = await Configure(master, encounter.Id, 4, 4, current.Revision, fogMask: Mask(4, 4, (1, 1)));
+        replaced.EnsureSuccessStatusCode();
+        Assert.Equal(Mask(4, 4, (1, 1)), (await GetBattlemap(player, encounter.Id)).FogMask);
+
+        // An empty fogMask field means "publish fully revealed".
+        var revision = (await GetBattlemap(master, encounter.Id)).Revision;
+        (await Configure(master, encounter.Id, 4, 4, revision, fogMask: "")).EnsureSuccessStatusCode();
+        Assert.Null((await GetBattlemap(player, encounter.Id)).FogMask);
+    }
+
+    [Fact]
+    public async Task Legacy_upload_without_fog_field_keeps_the_current_fog_on_the_same_grid()
+    {
+        var (master, _, encounter, _) = await Arrange("fog-legacy");
+        var fogged = await SetFog(master, encounter.Id, Mask(4, 4, (2, 2)));
+        var revision = (await fogged.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!.Revision;
+        (await Configure(master, encounter.Id, 4, 4, revision)).EnsureSuccessStatusCode();
+        Assert.Equal(Mask(4, 4, (2, 2)), (await GetBattlemap(master, encounter.Id)).FogMask);
+    }
+
     private static string Mask(int columns, int rows, params (int Column, int Row)[] cells)
     {
         var mask = new byte[(columns * rows + 7) / 8];
@@ -152,7 +200,7 @@ public sealed class BattlemapFogApiTests(CompanionApiFactory factory) : ApiTestB
             $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/tokens/{tokenId}/position", session,
             new MoveBattlemapTokenRequest(column, row, null)));
 
-    private Task<HttpResponseMessage> Configure(SessionResponse session, Guid encounterId, int columns, int rows, string? expectedRevision = null)
+    private Task<HttpResponseMessage> Configure(SessionResponse session, Guid encounterId, int columns, int rows, string? expectedRevision = null, string? fogMask = null)
     {
         var content = new MultipartFormDataContent();
         var image = new ByteArrayContent(TinyPng);
@@ -162,6 +210,7 @@ public sealed class BattlemapFogApiTests(CompanionApiFactory factory) : ApiTestB
         content.Add(new StringContent(rows.ToString()), "rows");
         content.Add(new StringContent("true"), "isGridVisible");
         if (expectedRevision is not null) content.Add(new StringContent(expectedRevision), "expectedRevision");
+        if (fogMask is not null) content.Add(new StringContent(fogMask), "fogMask");
         var request = new HttpRequestMessage(HttpMethod.Put,
             $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap") { Content = content };
         request.Headers.Add("X-Participant-Token", session.ParticipantToken);
