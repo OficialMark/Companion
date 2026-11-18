@@ -133,11 +133,13 @@ public sealed class CreatureService(
     {
         authorization.Require(campaignId, token, masterOnly: true);
         var now = timeProvider.GetUtcNow();
+        var createsCopy = ResolveForCampaign(campaignId, creatureId).IsCompendium;
         var target = EditableTarget(campaignId, creatureId, request.ExpectedRevision, now);
         try { target.SetNotes(request.Notes, now); }
         catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         await SaveConcurrentAsync(cancellationToken);
-        await NotifyLinkedAsync(campaignId, target, cancellationToken);
+        // Notes are invisible on boards; only a first edit (combatants relinked to the copy) matters.
+        if (createsCopy) await NotifyLinkedAsync(campaignId, target, cancellationToken);
         return ToDto(campaignId, target);
     }
 
@@ -288,13 +290,9 @@ public sealed class CreatureService(
         var candidates = encounterIds.Distinct().ToArray();
         var open = db.Encounters.Where(e => candidates.Contains(e.Id) && e.CampaignId == campaignId && e.Status != EncounterStatus.Ended)
             .Select(e => e.Id).ToArray();
+        // Clients re-read the encounter AND the board on EncounterInvalidated; one event is enough.
         foreach (var encounterId in open)
-        {
             await notifier.EncounterInvalidatedAsync(campaignId, encounterId, cancellationToken);
-            var battlemap = db.Battlemaps.Where(x => x.EncounterId == encounterId).Select(x => x.Version).SingleOrDefault();
-            if (battlemap is not null)
-                await notifier.BattlemapInvalidatedAsync(campaignId, encounterId, DtoMapper.Revision(battlemap), cancellationToken);
-        }
     }
 
     private Creature ImageOwner(Creature creature)

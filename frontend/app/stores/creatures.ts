@@ -80,6 +80,7 @@ export const useCreatureStore = defineStore('creatures', {
       }
     },
     newCreature() {
+      this.openSequence++ // a slower open() must not land on top of the blank sheet
       this.sheet = { ...blankCreature(), id: '', baseCreatureId: null, origin: 'Custom', sourceBook: 'Mesa', sourceUrl: null, imageUrl: null, hasImage: false, footprintSize: 1, initiativeModifier: 0, revision: '' }
       this.sheetToken = null
       this.editing = true

@@ -349,7 +349,7 @@ public sealed class BattlemapService(
             appearance = participant is not null
                 ? BattlemapTokenAppearance.ForParticipant(Guid.NewGuid(), battlemap.Id, tokenId)
                 : combatant is not null
-                    ? BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemap.Id, tokenId)
+                    ? NewCreatureAppearance(battlemap.Id, combatant)
                     : BattlemapTokenAppearance.ForMarker(Guid.NewGuid(), battlemap.Id, tokenId);
             db.Add(appearance);
         }
@@ -601,6 +601,21 @@ public sealed class BattlemapService(
             tokens,
             battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
+    /// <summary>
+    /// First appearance row of a creature token (e.g. created by a roll preset): it must start
+    /// at the linked sheet's size, or a 2x2 Ogre added before the map would shrink to 1x1.
+    /// </summary>
+    private BattlemapTokenAppearance NewCreatureAppearance(Guid battlemapId, Combatant combatant)
+    {
+        var appearance = BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemapId, combatant.Id);
+        if (combatant.CreatureId is { } creatureId)
+        {
+            var size = db.Creatures.Where(x => x.Id == creatureId).Select(x => (CreatureSize?)x.Size).SingleOrDefault();
+            appearance.SetFootprintSize(Footprint(size));
+        }
+        return appearance;
+    }
+
     private static int Footprint(CreatureSize? size) => size switch
     {
         CreatureSize.Large => 2,

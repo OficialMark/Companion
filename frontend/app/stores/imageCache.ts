@@ -26,7 +26,9 @@ export const useImageCacheStore = defineStore('imageCache', {
       const store = useCampaignStore()
       const session = store.session
       if (!session) return Promise.resolve()
-      const request = (async () => {
+      // Assigned right below; read only inside its own finally (after the assignment ran).
+      let request: Promise<void> | undefined = undefined
+      request = (async () => {
         try {
           const blob = await useCompanionApi().battlemapImage(session, apiPath)
           // The session may have ended (or changed) while the request was in flight.
@@ -35,13 +37,13 @@ export const useImageCacheStore = defineStore('imageCache', {
           delete this.failedAt[apiPath]
         } catch {
           // No image (404) or offline: callers fall back to initials until the retry window.
-          this.failedAt[apiPath] = Date.now()
+          if (store.session === session) this.failedAt[apiPath] = Date.now()
         } finally {
-          inflight.delete(apiPath)
+          if (inflight.get(apiPath) === request) inflight.delete(apiPath)
         }
       })()
-      inflight.set(apiPath, request)
-      return request
+      inflight.set(apiPath, request!)
+      return request!
     },
     clear() {
       for (const url of Object.values(this.urls)) URL.revokeObjectURL(url)

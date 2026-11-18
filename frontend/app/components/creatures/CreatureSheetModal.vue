@@ -102,13 +102,20 @@ async function startPreparation() {
   finally { addBusy.value = false }
 }
 
+/** Every way out (Esc, ×, backdrop) asks before throwing away an edit in progress. */
+function requestClose() {
+  if (creatures.editing && !window.confirm('Descartar as alterações da ficha?')) return
+  creatures.close()
+}
+// A text selection that ends on the backdrop is not a click on it.
+const pressedOnBackdrop = ref(false)
+
 // Dialog behavior: Esc closes, focus starts on close and stays inside. Listened on the document
 // so it still works after a click on plain text moved focus to <body>.
 function keydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     event.preventDefault()
-    if (creatures.editing && !window.confirm('Descartar as alterações da ficha?')) return
-    creatures.close()
+    requestClose()
     return
   }
   if (event.key !== 'Tab' || !dialog.value) return
@@ -134,7 +141,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="modal-overlay creature-sheet-overlay" @click.self="creatures.close()">
+  <div class="modal-overlay creature-sheet-overlay" @pointerdown.self="pressedOnBackdrop = true" @click.self="pressedOnBackdrop && requestClose(); pressedOnBackdrop = false">
     <div ref="dialog" class="creature-sheet" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" tabindex="-1" data-creature-sheet>
       <header class="creature-sheet-header">
         <span class="creature-portrait large" :class="{ 'has-image': portrait }">
@@ -151,11 +158,11 @@ onBeforeUnmount(() => {
             <span class="creature-badge subtle">ND {{ sheet.challengeRating }}</span>
           </p>
         </div>
-        <button ref="closeButton" class="icon-button" type="button" aria-label="Fechar ficha" title="Fechar (Esc)" @click="creatures.close()"><Icon name="lucide:x" /></button>
+        <button ref="closeButton" class="icon-button" type="button" aria-label="Fechar ficha" title="Fechar (Esc)" @click="requestClose()"><Icon name="lucide:x" /></button>
       </header>
 
       <div class="creature-sheet-body">
-        <CreatureEditor v-if="creatures.editing" />
+        <CreatureEditor v-if="creatures.editing" :key="sheet.id || 'new'" />
         <template v-else>
           <dl class="creature-quick-stats">
             <div><dt><Icon name="lucide:shield" />CA</dt><dd>{{ sheet.armorClass }}<small v-if="sheet.armorClassNote">{{ sheet.armorClassNote }}</small></dd></div>

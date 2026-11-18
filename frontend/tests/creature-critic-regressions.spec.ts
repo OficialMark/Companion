@@ -167,4 +167,35 @@ describe('critic regressions (spec 008)', () => {
     await wrapper.get('[aria-label="Colunas do grid"]').setValue('12')
     expect(wrapper.find('[data-fog-restarted]').exists()).toBe(true)
   })
+
+  it('round 2 N3: a slow open() never lands on the blank "Nova criatura" sheet', async () => {
+    const { creatures } = ready()
+    let slow!: (value: Creature) => void
+    api.getCreature.mockReturnValueOnce(new Promise<Creature>(res => { slow = res }))
+    const opening = creatures.open('goblin')
+    creatures.newCreature()
+    slow(structuredClone(goblin))
+    await opening
+    expect(creatures.sheet?.id).toBe('')
+    expect(creatures.editing).toBe(true)
+  })
+
+  it('round 2 N4: closing with x or the backdrop while editing asks first', async () => {
+    const { creatures } = ready()
+    api.getCreature.mockResolvedValue(structuredClone(goblin))
+    await creatures.open('goblin')
+    const wrapper = mount(CreatureSheetModal, { attachTo: document.body })
+    await flushPromises()
+    await wrapper.get('[data-edit-creature]').trigger('click')
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    await wrapper.get('[aria-label="Fechar ficha"]').trigger('click')
+    expect(confirm).toHaveBeenCalled()
+    expect(creatures.sheet).not.toBeNull()
+    confirm.mockReturnValue(true)
+    await wrapper.get('.creature-sheet-overlay').trigger('pointerdown')
+    await wrapper.get('.creature-sheet-overlay').trigger('click')
+    expect(creatures.sheet).toBeNull()
+    confirm.mockRestore()
+    wrapper.unmount()
+  })
 })

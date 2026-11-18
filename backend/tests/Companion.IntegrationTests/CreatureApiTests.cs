@@ -207,7 +207,6 @@ public sealed class CreatureApiTests(CompanionApiFactory factory) : ApiTestBase(
         var before = Factory.Notifications.For(master.CampaignId).Count;
         var copy = (await (await UploadImage(master, goblin, TinyPng, "image/png")).Content.ReadFromJsonAsync<CreatureDto>(JsonOptions))!;
         var afterUpload = Factory.Notifications.For(master.CampaignId).Skip(before).ToArray();
-        Assert.Contains(afterUpload, x => x.Type == "BattlemapInvalidated" && x.EncounterId == encounter.Id);
         Assert.Contains(afterUpload, x => x.Type == "EncounterInvalidated" && x.EncounterId == encounter.Id);
 
         // The token now points at the campaign copy (new image), and restoring points it back.
@@ -215,7 +214,7 @@ public sealed class CreatureApiTests(CompanionApiFactory factory) : ApiTestBase(
         Assert.Equal(copy.Id, board.Tokens.Single(x => x.CreatureId is not null).CreatureId);
         before = Factory.Notifications.For(master.CampaignId).Count;
         await Send<CreatureDto>(Authenticated(HttpMethod.Delete, $"/api/campaigns/{master.CampaignId}/creatures/{copy.Id}", master));
-        Assert.Contains(Factory.Notifications.For(master.CampaignId).Skip(before), x => x.Type == "BattlemapInvalidated");
+        Assert.Contains(Factory.Notifications.For(master.CampaignId).Skip(before), x => x.Type == "EncounterInvalidated");
         board = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap", master));
         Assert.Equal(goblin, board.Tokens.Single(x => x.CreatureId is not null).CreatureId);
     }
@@ -252,6 +251,12 @@ public sealed class CreatureApiTests(CompanionApiFactory factory) : ApiTestBase(
 
         var board = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap", master));
         Assert.All(board.Tokens.Where(x => x.CreatureId == ogre.Id), x => Assert.Equal(2, x.FootprintSize));
+
+        // Round-2 finding N1: the first roll preset creates the appearance row; it must keep 2x2.
+        var ogreToken = board.Tokens.First(x => x.CreatureId == ogre.Id).ParticipantId;
+        var afterPreset = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap/tokens/{ogreToken}/roll-preset", master, new SetRollPresetRequest(1, 20, "str", 0)));
+        Assert.Equal(2, afterPreset.Tokens.Single(x => x.ParticipantId == ogreToken).FootprintSize);
     }
 
     [Fact]

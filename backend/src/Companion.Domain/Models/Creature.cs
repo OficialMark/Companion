@@ -162,7 +162,14 @@ public sealed class Creature
         return copy;
     }
 
-    public void Update(CreatureStats stats, DateTimeOffset now) => Apply(stats, now);
+    public void Update(CreatureStats stats, DateTimeOffset now)
+    {
+        Validate(stats, now);
+        Apply(stats, now);
+    }
+
+    /// <summary>Runs every rule on a scratch instance, so a bad block never half-applies to this row.</summary>
+    private static void Validate(CreatureStats stats, DateTimeOffset now) => new Creature().Apply(stats, now);
 
     /// <summary>
     /// Re-seed of a compendium entry (only the seeder calls this). Returns true when the image
@@ -174,7 +181,8 @@ public sealed class Creature
         var book = SourceText(sourceBook);
         var url = Url(sourceUrl, 300);
         var image = Url(imageSourceUrl, 400);
-        Apply(stats, now); // validates first: a bad entry must not leave the row half-updated
+        Validate(stats, now); // a bad entry must not leave the tracked row half-updated
+        Apply(stats, now);
         SourceBook = book;
         SourceUrl = url;
         var imageChanged = ImageSourceUrl != image;

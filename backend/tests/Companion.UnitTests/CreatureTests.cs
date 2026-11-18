@@ -156,4 +156,17 @@ public sealed class CreatureTests
         Assert.Equal("SRD 5.2", creature.SourceBook);
         Assert.Equal("https://pocketdm.com.br/b.webp", creature.ImageSourceUrl);
     }
+
+    [Fact]
+    public void A_failed_refresh_or_update_leaves_every_stat_untouched()
+    {
+        // Round-2 finding N2: fields were assigned one by one and a late failure saved a mix.
+        var creature = Creature.ForCompendium(Guid.NewGuid(), "goblin", "SRD 5.1", null, null, Stats(name: "Goblin", dex: 14), DateTimeOffset.UtcNow);
+        var broken = Stats(name: "Goblin Renomeado", dex: 99);
+        Assert.ThrowsAny<ArgumentException>(() => creature.RefreshFromCompendium("SRD 5.1", null, null, broken, DateTimeOffset.UtcNow));
+        Assert.ThrowsAny<ArgumentException>(() => creature.Update(broken, DateTimeOffset.UtcNow));
+        Assert.Equal("Goblin", creature.Name);
+        Assert.Equal(14, creature.Dexterity);
+        Assert.StartsWith("goblin", creature.SearchKey);
+    }
 }
