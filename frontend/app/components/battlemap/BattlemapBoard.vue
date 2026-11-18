@@ -36,6 +36,7 @@ const emit = defineEmits<{
   'fog-commit': [mask: string | null]
   /** combatantId = null applies to every creature of the encounter. */
   'hit-points-visibility': [combatantId: string | null, hidden: boolean]
+  'open-creature-sheet': [tokenId: string, creatureId: string, name: string]
 }>()
 
 const newMarkerLabel = ref('')
@@ -77,7 +78,8 @@ const selectedToken = computed(() =>
 const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 const defeatedSet = computed(() => new Set(props.defeatedIds))
-const photoFor = (token: BattlemapToken) => token.isCreature ? null : props.avatars[token.participantId] ?? null
+// Players' photos and library creature images (spec 008) both arrive keyed by token id.
+const photoFor = (token: BattlemapToken) => props.avatars[token.participantId] ?? null
 // The board follows the map proportion (within sensible height limits), so wide
 // maps don't leave a tall empty frame and tall maps get more vertical room.
 const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.value}` }))
@@ -729,6 +731,8 @@ onBeforeUnmount(() => observer?.disconnect())
       :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
       :is-marker="Boolean(activeAttackAreaToken.isMarker)"
       :hit-points-hidden="panelHitPointsHidden(activeAttackAreaToken)"
+      :can-open-sheet="isMaster && Boolean(activeAttackAreaToken.creatureId)"
+      @open-sheet="emit('open-creature-sheet', activeAttackAreaToken!.participantId, activeAttackAreaToken!.creatureId!, activeAttackAreaToken!.displayName)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"

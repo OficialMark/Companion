@@ -17,12 +17,15 @@ const props = withDefaults(defineProps<{
    * null = not applicable (player characters, markers, or a creature without HP tracking).
    */
   hitPointsHidden?: boolean | null
+  /** Master on a creature token linked to the library (spec 008): shows "Ficha". */
+  canOpenSheet?: boolean
 }>(), {
   maxRadius: 20,
   tokenName: '',
   appearanceDraft: () => ({ footprintSize: 1, statusConditions: [] }),
   isMarker: false,
-  hitPointsHidden: null
+  hitPointsHidden: null,
+  canOpenSheet: false
 })
 
 const emit = defineEmits<{
@@ -34,6 +37,7 @@ const emit = defineEmits<{
   'appearance-commit': [draft: TokenAppearanceDraft]
   'remove-token': []
   'hit-points-visibility': [hidden: boolean]
+  'open-sheet': []
 }>()
 
 const tabs: Array<{ value: TokenPanelTab; label: string; icon: string }> = [
@@ -241,6 +245,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
     </section>
 
     <div class="attack-area-actions">
+      <button v-if="canOpenSheet" class="button secondary push-start" type="button" data-open-sheet @click="emit('open-sheet')"><Icon name="lucide:scroll-text" />Ficha e rolagens</button>
       <button class="button primary" type="button" @click="emit('close')"><Icon name="lucide:check" />Concluir</button>
     </div>
   </div>

@@ -3,6 +3,8 @@ import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
 import type { DiceRoll, StatusCondition } from '~/types/campaign'
 import { useGameMode } from '~/composables/useGameMode'
+import CreatureLibrary from '~/components/creatures/CreatureLibrary.vue'
+import CreatureSheetModal from '~/components/creatures/CreatureSheetModal.vue'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const gameMode = useGameMode()
@@ -73,6 +75,27 @@ async function copyCode() {
 }
 
 // Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
+// Master's tabs (spec 008): the table, or the creature library.
+const view = ref<'table' | 'creatures'>('table')
+const creatures = useCreatureStore()
+const images = useImageCacheStore()
+watch(() => store.isMaster, master => { if (!master) { view.value = 'table'; creatures.close() } })
+// Board photos: participants' avatars plus library images of creature tokens.
+watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
+  for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
+}, { immediate: true })
+const tokenPhotos = computed(() => {
+  const photos: Record<string, string> = { ...store.avatarUrls }
+  for (const token of store.battlemap?.tokens ?? []) {
+    const url = token.imageUrl ? images.urls[token.imageUrl] : undefined
+    if (url) photos[token.participantId] = url
+  }
+  return photos
+})
+function openCreatureSheet(tokenId: string, creatureId: string, name: string) {
+  void creatures.open(creatureId, { id: tokenId, name })
+}
+
 const defeatedTokenIds = computed(() => (store.snapshot?.activeEncounter?.combatants ?? [])
   .filter(combatant => combatant.isDefeated)
   .flatMap(combatant => combatant.participantId ? [combatant.participantId, combatant.id] : [combatant.id]))
@@ -156,7 +179,12 @@ onBeforeUnmount(() => {
         </details>
       </section>
 
-      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
+      <nav v-if="store.isMaster" class="view-tabs" role="tablist" aria-label="Áreas do mestre">
+        <button type="button" role="tab" class="view-tab" data-view="table" :class="{ selected: view === 'table' }" :aria-selected="view === 'table'" @click="view = 'table'"><Icon name="lucide:swords" />Mesa</button>
+        <button type="button" role="tab" class="view-tab" data-view="creatures" :class="{ selected: view === 'creatures' }" :aria-selected="view === 'creatures'" @click="view = 'creatures'"><Icon name="lucide:book-open" />Criaturas</button>
+      </nav>
+      <CreatureLibrary v-if="store.isMaster && view === 'creatures'" />
+      <div v-else class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
           <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
@@ -186,7 +214,7 @@ onBeforeUnmount(() => {
               :online="store.connection === 'online'"
               :pending-participant-id="store.pendingBattlemapTokenId"
               :defeated-ids="defeatedTokenIds"
-              :avatars="store.avatarUrls"
+              :avatars="tokenPhotos"
               :combatants="store.snapshot.activeEncounter?.combatants ?? []"
               :encounter-status="store.snapshot.activeEncounter?.status ?? null"
               :participants="store.snapshot.participants"
@@ -199,6 +227,7 @@ onBeforeUnmount(() => {
               :fog-saving="store.fogSaving"
               @fog-commit="commitFog"
               @hit-points-visibility="setHitPointsVisibility"
+              @open-creature-sheet="openCreatureSheet"
             />
             <div v-if="store.battlemapLoading" class="battlemap-loading" role="status">
               <Icon name="lucide:loader-circle" class="spin" size="1.6rem" />Sincronizando battlemap…
@@ -221,6 +250,7 @@ onBeforeUnmount(() => {
       <InitiativeModifier />
     </div>
 
+    <CreatureSheetModal v-if="store.isMaster && creatures.sheet" />
     <AttackConfirmModal
       v-if="pendingAttackRoll"
       :roll="pendingAttackRoll"

@@ -23,7 +23,7 @@ function time(value: string) {
     <ol v-else class="roll-list" aria-live="polite">
       <li v-for="roll in rolls" :key="roll.id">
         <div class="roll-meta">
-          <strong>{{ roll.displayName }}</strong>
+          <strong>{{ roll.displayName }}<span v-if="roll.label" class="roll-label" :title="`Rolagem para ${roll.label}`"><Icon name="lucide:skull" />{{ roll.label }}</span></strong>
           <span><Icon name="lucide:clock" />{{ time(roll.createdAt) }}</span>
         </div>
         <div class="roll-command">{{ roll.expression }}</div>

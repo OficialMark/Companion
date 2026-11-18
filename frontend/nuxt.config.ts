@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       sizeLimitKb: 256
     }
   },
-  css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css', '~/assets/css/creatures.css'],
   runtimeConfig: {
     public: {
       apiBase: '/api',
