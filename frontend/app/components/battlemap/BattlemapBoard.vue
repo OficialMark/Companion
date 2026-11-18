@@ -324,7 +324,12 @@ function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
   dragPointer.x = event.clientX
   dragPointer.y = event.clientY
   dragPointer.moved = false
-  surface.value?.setPointerCapture?.(event.pointerId)
+  capturePointer(event.pointerId)
+}
+
+/** Capture can fail when the pointer is already gone (touch races); dragging still works without it. */
+function capturePointer(pointerId: number) {
+  try { surface.value?.setPointerCapture?.(pointerId) } catch { /* not capturable */ }
 }
 
 function pointerDistance() {
@@ -358,7 +363,7 @@ function pointerDown(event: PointerEvent) {
     if (fog.stroking.value) commitFogStroke()
   }
   activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
-  surface.value?.setPointerCapture?.(event.pointerId)
+  capturePointer(event.pointerId)
   if (activePointers.size === 2) {
     // Second finger: pinch wins over painting/panning; an in-progress fog stroke is undone.
     if (fog.stroking.value) fog.cancel()

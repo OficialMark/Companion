@@ -54,7 +54,8 @@ function down(event: PointerEvent) {
     return
   }
   pointerId = event.pointerId
-  surface.value?.setPointerCapture?.(event.pointerId)
+  // Capture can fail if the pointer was already released (touch races); painting still works without it.
+  try { surface.value?.setPointerCapture?.(event.pointerId) } catch { /* not capturable */ }
   fog.begin(cellFrom(event))
 }
 function move(event: PointerEvent) {

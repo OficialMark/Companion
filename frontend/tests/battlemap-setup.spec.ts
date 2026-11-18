@@ -181,6 +181,19 @@ describe('BattlemapSetup', () => {
       expect(configureBattlemap.mock.calls[0]![7]).toBeNull()
     })
 
+    it('replacing a map that had no fog still starts the new image fully covered', async () => {
+      const battlemap = {
+        id: 'map-1', encounterId: 'encounter-1', columns: 4, rows: 4, isGridVisible: true,
+        revision: 'rev-1', imageRevision: 'img-1', imageUrl: 'blob:existing', imageMediaType: 'image/png' as const,
+        imageFileName: 'map.png', updatedAt: new Date().toISOString(), tokens: [], fogMask: null
+      }
+      const wrapper = mount(BattlemapSetup, { props: { encounterId: 'encounter-1', battlemap } })
+      await pickFile(wrapper)
+      expect((wrapper.get('[data-fog-publish-toggle]').element as HTMLInputElement).checked).toBe(true)
+      await wrapper.get('form').trigger('submit')
+      expect(configureBattlemap.mock.calls[0]![7]).toBe(covered(4, 4))
+    })
+
     it('replacing the image keeps the current fog on the same grid and restarts it (with a notice) on a new grid', async () => {
       const current = btoa(String.fromCharCode(0b00000101, 0)) // 4x4, cells 0 and 2 covered
       const battlemap = {

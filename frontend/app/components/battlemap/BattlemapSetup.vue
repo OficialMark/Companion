@@ -16,10 +16,11 @@ const imageSize = ref<{ width: number; height: number } | null>(null)
 const busy = ref(false)
 const error = ref('')
 const pendingConfirmation = ref(false)
-// Fog drawn on the preview and sent with the image (spec 008, US2). A new map starts fully
-// covered; replacing an image keeps the current fog while the grid stays the same.
-const fogEnabled = ref(!props.battlemap || Boolean(props.battlemap.fogMask))
-const fogMask = ref<string | null>(props.battlemap ? props.battlemap.fogMask ?? null : encodeMask(fillMask(columns.value, rows.value, true)))
+// Fog drawn on the preview and sent with the image (spec 008, US2). Safe by default: any new
+// image starts fully covered, so players never see a freshly uploaded map; replacing an image
+// keeps the map's current fog while the grid stays the same. The master can reveal or opt out.
+const fogEnabled = ref(true)
+const fogMask = ref<string | null>(props.battlemap?.fogMask ?? encodeMask(fillMask(columns.value, rows.value, true)))
 const fogRestarted = ref(false)
 
 const MAX_GRID = 100
@@ -45,8 +46,8 @@ watch([columns, rows], ([nextColumns, nextRows], [previousColumns, previousRows]
   // Only worth a notice when the master had shaped the fog (not the untouched full cover).
   const hadCustomFog = validGridSize(previousColumns, previousRows) &&
     fogMask.value !== encodeMask(fillMask(previousColumns, previousRows, true))
-  fogMask.value = sameAsPublished && props.battlemap?.fogMask !== undefined
-    ? props.battlemap.fogMask ?? null
+  fogMask.value = sameAsPublished && props.battlemap?.fogMask
+    ? props.battlemap.fogMask
     : encodeMask(fillMask(nextColumns, nextRows, true))
   fogRestarted.value = Boolean(previewUrl.value) && !sameAsPublished && hadCustomFog
 })

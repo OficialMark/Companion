@@ -65,8 +65,8 @@ body.modal-open { overflow: hidden; }
 .creature-add-message { flex: 1 1 100%; margin: 0; }
 
 .creature-quick-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0; }
-.creature-quick-stats div { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: rgba(255,255,255,.03); }
-.creature-quick-stats dt { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.creature-quick-stats div { min-width: 0; display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: rgba(255,255,255,.03); }
+.creature-quick-stats dt { min-width: 0; display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; color: var(--muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .creature-quick-stats dt .icon { color: var(--gold); }
 .creature-quick-stats dd { margin: 0; display: grid; font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .creature-quick-stats dd.text { font-size: .86rem; font-weight: 600; }
@@ -108,7 +108,7 @@ body.modal-open { overflow: hidden; }
 .roll-ability { flex-direction: column; gap: 0; min-width: 52px; line-height: 1.1; }
 .roll-ability small { color: var(--muted); font-size: .72rem; font-weight: 600; }
 .roll-ability.selected small { color: var(--gold-soft); }
-.roll-chip.shortcut { min-height: 36px; border-style: dashed; color: var(--gold-soft); }
+.roll-chip.shortcut { min-height: 40px; border-style: dashed; color: var(--gold-soft); }
 .roll-stepper { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 12px; padding: 4px; background: rgba(0,0,0,.18); }
 .roll-stepper-label { padding: 0 6px; color: var(--muted); font-size: .76rem; font-weight: 700; }
 .roll-stepper-value { min-width: 42px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -139,6 +139,7 @@ body.modal-open { overflow: hidden; }
 
 @media (pointer: coarse) {
   .creature-roll .icon-button.small, .creature-sheet .icon-button.small { width: 44px; height: 44px; flex-basis: 44px; }
+  .roll-chip.shortcut, .creature-sheet .button.compact, .creature-library .button.compact { min-height: 44px; }
 }
 
 @media (max-width: 680px) {
@@ -149,6 +150,8 @@ body.modal-open { overflow: hidden; }
   .creature-sheet-footer { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
   .creature-sheet-footer [data-edit-creature] { margin-left: 0; }
   .creature-quick-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .creature-quick-stats dt .icon { display: none; }
+  .roll-chip.shortcut, .creature-sheet .button.compact, .creature-library .button.compact { min-height: 44px; }
   .creature-abilities { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .creature-details div { grid-template-columns: 1fr; gap: 0; }
   .creature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
