@@ -560,9 +560,6 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int>("HitPoints")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("ImageFetchFailedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<Guid?>("ImageRevision")
                         .HasColumnType("uniqueidentifier");
 

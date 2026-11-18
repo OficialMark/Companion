@@ -18,6 +18,8 @@ public interface ICompendiumSeedSource
 /// SHA-256 matches the last applied one it is a no-op; otherwise it upserts by slug and marks
 /// entries that disappeared from the seed as removed (combatants may still point at them).
 /// </summary>
+public sealed record SeedResult(bool Applied, int Upserted, IReadOnlyList<string> Skipped);
+
 public sealed class CompendiumSeeder(ICompanionDbContext db, ICompendiumSeedSource source, TimeProvider timeProvider)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -25,28 +27,47 @@ public sealed class CompendiumSeeder(ICompanionDbContext db, ICompendiumSeedSour
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public async Task<int> SeedAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Invalid entries are skipped (and reported), never fatal: one bad row from a future import
+    /// must not keep the API from starting.
+    /// </summary>
+    public async Task<SeedResult> SeedAsync(CancellationToken cancellationToken = default)
     {
         var bytes = source.Read();
         var hash = Convert.ToHexString(SHA256.HashData(bytes));
         var version = db.SeedVersions.SingleOrDefault(x => x.Key == source.Key);
-        if (version?.Hash == hash) return 0;
+        if (version?.Hash == hash) return new SeedResult(false, 0, []);
 
         var seed = JsonSerializer.Deserialize<SeedFile>(bytes, Json)
             ?? throw new InvalidOperationException("Seed do compêndio vazio.");
         var now = timeProvider.GetUtcNow();
         var existing = db.Creatures.Where(x => x.CampaignId == null && x.Slug != null).ToDictionary(x => x.Slug!);
         var seen = new HashSet<string>(StringComparer.Ordinal);
+        var skipped = new List<string>();
         var changed = 0;
         foreach (var entry in seed.Creatures)
         {
-            if (!seen.Add(entry.Slug)) continue;
-            var stats = ToStats(entry);
-            if (existing.TryGetValue(entry.Slug, out var creature))
-                creature.RefreshFromCompendium(entry.SourceBook, entry.SourceUrl, entry.ImageUrl, stats, now);
-            else
-                db.Add(Creature.ForCompendium(Guid.NewGuid(), entry.Slug, entry.SourceBook, entry.SourceUrl, entry.ImageUrl, stats, now));
-            changed++;
+            if (string.IsNullOrWhiteSpace(entry.Slug) || !seen.Add(entry.Slug)) continue;
+            try
+            {
+                var stats = ToStats(entry);
+                if (existing.TryGetValue(entry.Slug, out var creature))
+                {
+                    if (creature.RefreshFromCompendium(entry.SourceBook, entry.SourceUrl, entry.ImageUrl, stats, now))
+                    {
+                        // New picture at the source: drop the cached one so the new one is fetched.
+                        var cached = db.CreatureImages.SingleOrDefault(x => x.CreatureId == creature.Id && x.FromSource);
+                        if (cached is not null) db.Remove(cached);
+                    }
+                }
+                else
+                    db.Add(Creature.ForCompendium(Guid.NewGuid(), entry.Slug, entry.SourceBook, entry.SourceUrl, entry.ImageUrl, stats, now));
+                changed++;
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NullReferenceException)
+            {
+                skipped.Add($"{entry.Slug}: {exception.Message}");
+            }
         }
         foreach (var (slug, creature) in existing)
             if (!seen.Contains(slug) && !creature.IsRemovedFromCompendium) creature.MarkRemovedFromCompendium(now);
@@ -54,10 +75,12 @@ public sealed class CompendiumSeeder(ICompanionDbContext db, ICompendiumSeedSour
         if (version is null) db.Add(new SeedVersion(source.Key, hash, now));
         else version.Update(hash, now);
         await db.SaveChangesAsync(cancellationToken);
-        return changed;
+        return new SeedResult(true, changed, skipped);
     }
 
-    internal static CreatureStats ToStats(SeedCreature x) => new(
+    internal static CreatureStats ToStats(SeedCreature x) => x.Abilities is null
+        ? throw new ArgumentException("Atributos ausentes.")
+        : new(
         DisplayName(x.Name, x.NameEn), x.NameEn, x.Size, x.Type, x.Alignment, x.ArmorClass, x.ArmorClassNote,
         Math.Max(1, x.HitPoints), x.HitDice, x.Speed, x.Initiative is null ? null : Math.Clamp(x.Initiative.Value, -20, 30),
         x.Abilities.Str, x.Abilities.Dex, x.Abilities.Con, x.Abilities.Int, x.Abilities.Wis, x.Abilities.Cha,

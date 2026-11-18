@@ -1,3 +1,5 @@
+using Companion.Api.Realtime;
+using Companion.Application.Contracts;
 using Companion.Application.Creatures;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,6 +16,9 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
 
     /// <summary>Stands in for pocketdm.com.br so tests never touch the network.</summary>
     public FakeCreatureImageSource ImageSource { get; } = new();
+
+    /// <summary>Every realtime notification the API emitted (the real SignalR notifier still runs).</summary>
+    public NotificationLog Notifications { get; } = new();
 
     public Task InitializeAsync() => _sqlServer.StartAsync();
     public new Task DisposeAsync() => _sqlServer.DisposeAsync().AsTask();
@@ -32,6 +37,9 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<ICreatureImageSource>();
             services.AddSingleton<ICreatureImageSource>(ImageSource);
+            services.RemoveAll<ICampaignNotifier>();
+            services.AddScoped<ICampaignNotifier>(provider => new RecordingCampaignNotifier(
+                ActivatorUtilities.CreateInstance<SignalRCampaignNotifier>(provider), Notifications));
         });
     }
 }
@@ -48,6 +56,27 @@ public sealed class FakeCreatureImageSource : ICreatureImageSource
         lock (_requests) _requests.Add(url);
         return Task.FromResult<(byte[] Content, string MediaType)?>(Available ? (Webp, "image/webp") : null);
     }
+}
+
+public sealed record NotificationEntry(Guid CampaignId, string Type, Guid? EncounterId);
+
+public sealed class NotificationLog
+{
+    private readonly List<NotificationEntry> _entries = [];
+    public void Add(NotificationEntry entry) { lock (_entries) _entries.Add(entry); }
+    public IReadOnlyList<NotificationEntry> For(Guid campaignId) { lock (_entries) return _entries.Where(x => x.CampaignId == campaignId).ToArray(); }
+}
+
+public sealed class RecordingCampaignNotifier(ICampaignNotifier inner, NotificationLog log) : ICampaignNotifier
+{
+    public Task NotifyAsync(Guid campaignId, string type, object payload, CancellationToken cancellationToken = default)
+    { log.Add(new(campaignId, type, null)); return inner.NotifyAsync(campaignId, type, payload, cancellationToken); }
+    public Task ParticipantsChangedAsync(Guid campaignId, CancellationToken cancellationToken = default)
+    { log.Add(new(campaignId, "ParticipantsChanged", null)); return inner.ParticipantsChangedAsync(campaignId, cancellationToken); }
+    public Task EncounterInvalidatedAsync(Guid campaignId, Guid encounterId, CancellationToken cancellationToken = default)
+    { log.Add(new(campaignId, "EncounterInvalidated", encounterId)); return inner.EncounterInvalidatedAsync(campaignId, encounterId, cancellationToken); }
+    public Task BattlemapInvalidatedAsync(Guid campaignId, Guid encounterId, string revision, CancellationToken cancellationToken = default)
+    { log.Add(new(campaignId, "BattlemapInvalidated", encounterId)); return inner.BattlemapInvalidatedAsync(campaignId, encounterId, revision, cancellationToken); }
 }
 
 [CollectionDefinition(Name)]

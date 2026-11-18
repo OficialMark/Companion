@@ -37,11 +37,23 @@ const isNew = computed(() => !sheet.value.id)
 function addEntry(list: CreatureAction[]) { list.push({ name: '', description: '' }) }
 function removeEntry(list: CreatureAction[], index: number) { list.splice(index, 1) }
 function emptyToNull(value: string | null) { return value?.trim() ? value.trim() : null }
+/** v-model.number gives '' for an emptied field; the API wants null (optional) or a number. */
+function optionalNumber(value: unknown) {
+  if (value === '' || value === null || value === undefined) return null
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.trunc(number) : null
+}
+const requiredNumbers: Array<[keyof CreatureFields, string]> = [
+  ['armorClass', 'CA'], ['hitPoints', 'PV'], ['strength', 'FOR'], ['dexterity', 'DES'], ['constitution', 'CON'],
+  ['intelligence', 'INT'], ['wisdom', 'SAB'], ['charisma', 'CAR']
+]
 function setText(key: keyof CreatureFields, value: string) { (form as unknown as Record<string, string>)[key] = value }
 
 async function save() {
   error.value = ''
   if (!form.name.trim()) { error.value = 'Dê um nome à criatura.'; return }
+  const missing = requiredNumbers.filter(([key]) => optionalNumber(form[key]) === null).map(([, label]) => label)
+  if (missing.length) { error.value = `Preencha: ${missing.join(', ')}.`; return }
   busy.value = true
   try {
     const payload: CreatureFields = {
@@ -50,6 +62,9 @@ async function save() {
       hitDice: emptyToNull(form.hitDice), speed: emptyToNull(form.speed),
       ...Object.fromEntries(textFields.map(([key]) => [key, emptyToNull(form[key] as string | null)])),
       legendaryActionsIntro: emptyToNull(form.legendaryActionsIntro), notes: emptyToNull(form.notes),
+      initiative: optionalNumber(form.initiative), experiencePoints: optionalNumber(form.experiencePoints),
+      proficiencyBonus: optionalNumber(form.proficiencyBonus),
+      ...Object.fromEntries(requiredNumbers.map(([key]) => [key, optionalNumber(form[key])])),
       traits: form.traits.filter(item => item.name.trim()), actions: form.actions.filter(item => item.name.trim()),
       bonusActions: form.bonusActions.filter(item => item.name.trim()), reactions: form.reactions.filter(item => item.name.trim()),
       legendaryActions: form.legendaryActions.filter(item => item.name.trim())

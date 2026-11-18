@@ -120,8 +120,12 @@ public sealed class Creature
     public string? LegendaryActionsIntro { get; private set; }
     public string? Notes { get; private set; }
     public string? ImageSourceUrl { get; private set; }
+    /// <summary>
+    /// Changes only when the master uploads or removes a picture. Lazily fetched compendium images
+    /// never touch this row: a participant's image read must not bump the concurrency token
+    /// (that produced false "changed in another tab" conflicts for the master).
+    /// </summary>
     public Guid? ImageRevision { get; private set; }
-    public DateTimeOffset? ImageFetchFailedAt { get; private set; }
     public bool IsRemovedFromCompendium { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -133,7 +137,8 @@ public sealed class Creature
         CreatureStats stats, DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(slug)) throw new ArgumentException("O identificador da criatura é obrigatório.", nameof(slug));
-        var creature = new Creature(id, null, null, slug.Trim(), sourceBook, sourceUrl, imageSourceUrl, now);
+        if (slug.Trim().Length > 120) throw new ArgumentException("O identificador da criatura deve ter no máximo 120 caracteres.", nameof(slug));
+        var creature = new Creature(id, null, null, slug.Trim(), SourceText(sourceBook), Url(sourceUrl, 300), Url(imageSourceUrl, 400), now);
         creature.Apply(stats, now);
         return creature;
     }
@@ -159,15 +164,23 @@ public sealed class Creature
 
     public void Update(CreatureStats stats, DateTimeOffset now) => Apply(stats, now);
 
-    /// <summary>Re-seed of a compendium entry (only the seeder calls this).</summary>
-    public void RefreshFromCompendium(string sourceBook, string? sourceUrl, string? imageSourceUrl, CreatureStats stats, DateTimeOffset now)
+    /// <summary>
+    /// Re-seed of a compendium entry (only the seeder calls this). Returns true when the image
+    /// source changed, so the caller drops the cached picture and the new one gets fetched.
+    /// </summary>
+    public bool RefreshFromCompendium(string sourceBook, string? sourceUrl, string? imageSourceUrl, CreatureStats stats, DateTimeOffset now)
     {
         if (!IsCompendium) throw new InvalidOperationException("Só criaturas do compêndio são atualizadas pelo seed.");
-        SourceBook = sourceBook;
-        SourceUrl = sourceUrl;
-        if (ImageSourceUrl != imageSourceUrl) { ImageSourceUrl = imageSourceUrl; ImageFetchFailedAt = null; }
+        var book = SourceText(sourceBook);
+        var url = Url(sourceUrl, 300);
+        var image = Url(imageSourceUrl, 400);
+        Apply(stats, now); // validates first: a bad entry must not leave the row half-updated
+        SourceBook = book;
+        SourceUrl = url;
+        var imageChanged = ImageSourceUrl != image;
+        ImageSourceUrl = image;
         IsRemovedFromCompendium = false;
-        Apply(stats, now);
+        return imageChanged;
     }
 
     public void MarkRemovedFromCompendium(DateTimeOffset now) { IsRemovedFromCompendium = true; UpdatedAt = now; }
@@ -187,12 +200,8 @@ public sealed class Creature
         ImageRevision = revision;
         // An explicit removal by the master must not be undone by a later lazy fetch.
         if (revision is null) ImageSourceUrl = null;
-        ImageFetchFailedAt = null;
         UpdatedAt = now;
     }
-
-    public void MarkImageFetched(Guid revision) { ImageRevision = revision; ImageFetchFailedAt = null; }
-    public void MarkImageFetchFailed(DateTimeOffset now) => ImageFetchFailedAt = now;
 
     public static int Modifier(int score) => (int)Math.Floor((score - 10) / 2.0);
 
@@ -271,11 +280,28 @@ public sealed class Creature
     {
         var text = value.Trim();
         var slash = text.IndexOf('/');
-        if (slash > 0 && int.TryParse(text[..slash], out var numerator) && int.TryParse(text[(slash + 1)..], out var denominator) && denominator > 0)
+        if (slash > 0 && int.TryParse(text[..slash], out var numerator) && int.TryParse(text[(slash + 1)..], out var denominator) &&
+            numerator >= 0 && denominator > 0 && (decimal)numerator / denominator <= 30)
             return Math.Round((decimal)numerator / denominator, 3);
         if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var number) && number is >= 0 and <= 30)
             return number;
         throw new ArgumentException($"ND inválido: {value}.", nameof(value));
+    }
+
+    private static string SourceText(string? value)
+    {
+        var trimmed = value?.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.Length > 40) throw new ArgumentException("A fonte da criatura deve ter de 1 a 40 caracteres.");
+        return trimmed;
+    }
+
+    private static string? Url(string? value, int max)
+    {
+        var trimmed = value?.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return null;
+        if (trimmed.Length > max || !Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+            throw new ArgumentException($"URL inválida: {trimmed}.");
+        return trimmed;
     }
 
     private static string Required(string? value, int max, string label)

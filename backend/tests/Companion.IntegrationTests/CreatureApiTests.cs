@@ -193,6 +193,85 @@ public sealed class CreatureApiTests(CompanionApiFactory factory) : ApiTestBase(
         Assert.Contains(snapshot.DiceRolls, x => x.Id == rolled.Id && x.Label == "Goblin 1");
     }
 
+    [Fact]
+    public async Task Changing_a_linked_creature_tells_every_board_to_refresh()
+    {
+        // Critic finding 1: image/sheet changes never reached other clients' boards.
+        var master = await CreateCampaign("cr-notify");
+        var encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        (await Configure(master, encounter.Id)).EnsureSuccessStatusCode();
+        var goblin = (await Find(master, "goblin")).Id;
+        await Send<EncounterDto>(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/creatures", master, new AddCreaturesToEncounterRequest(goblin, 1)));
+
+        var before = Factory.Notifications.For(master.CampaignId).Count;
+        var copy = (await (await UploadImage(master, goblin, TinyPng, "image/png")).Content.ReadFromJsonAsync<CreatureDto>(JsonOptions))!;
+        var afterUpload = Factory.Notifications.For(master.CampaignId).Skip(before).ToArray();
+        Assert.Contains(afterUpload, x => x.Type == "BattlemapInvalidated" && x.EncounterId == encounter.Id);
+        Assert.Contains(afterUpload, x => x.Type == "EncounterInvalidated" && x.EncounterId == encounter.Id);
+
+        // The token now points at the campaign copy (new image), and restoring points it back.
+        var board = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap", master));
+        Assert.Equal(copy.Id, board.Tokens.Single(x => x.CreatureId is not null).CreatureId);
+        before = Factory.Notifications.For(master.CampaignId).Count;
+        await Send<CreatureDto>(Authenticated(HttpMethod.Delete, $"/api/campaigns/{master.CampaignId}/creatures/{copy.Id}", master));
+        Assert.Contains(Factory.Notifications.For(master.CampaignId).Skip(before), x => x.Type == "BattlemapInvalidated");
+        board = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap", master));
+        Assert.Equal(goblin, board.Tokens.Single(x => x.CreatureId is not null).CreatureId);
+    }
+
+    [Fact]
+    public async Task A_participant_loading_the_image_never_bumps_the_masters_revision()
+    {
+        // Critic finding 2: the lazy fetch wrote the versioned row -> false 409 on the master's next save.
+        var master = await CreateCampaign("cr-rowversion");
+        var player = await Join(master, "Ayla");
+        var wolf = await Get(master, (await Find(master, "lobo")).Id);
+        var copy = await Send<CreatureDto>(Authenticated(HttpMethod.Put, $"/api/campaigns/{master.CampaignId}/creatures/{wolf.Id}/notes", master,
+            new SaveCreatureNotesRequest("caça em bando", wolf.Revision)));
+        Assert.NotNull(copy.ImageUrl);
+
+        (await Client.SendAsync(Authenticated(HttpMethod.Get, copy.ImageUrl!, player))).EnsureSuccessStatusCode();
+        (await Client.SendAsync(Authenticated(HttpMethod.Get, copy.ImageUrl!, player))).EnsureSuccessStatusCode();
+
+        var saved = await Client.SendAsync(Authenticated(HttpMethod.Put, $"/api/campaigns/{master.CampaignId}/creatures/{copy.Id}/notes", master,
+            new SaveCreatureNotesRequest("caça em bando, foge com 3 PV", copy.Revision)));
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+    }
+
+    [Fact]
+    public async Task Large_creatures_added_before_the_map_exists_still_occupy_their_size()
+    {
+        // Critic finding 4: no appearance row was created without a map, so an Ogre ended up 1x1.
+        var master = await CreateCampaign("cr-footprint");
+        var encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        var ogre = (await List(master, "?q=ogro&size=Large")).Items.First();
+        await Send<EncounterDto>(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/creatures", master, new AddCreaturesToEncounterRequest(ogre.Id, 2)));
+        (await Configure(master, encounter.Id)).EnsureSuccessStatusCode();
+
+        var board = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap", master));
+        Assert.All(board.Tokens.Where(x => x.CreatureId == ogre.Id), x => Assert.Equal(2, x.FootprintSize));
+    }
+
+    [Fact]
+    public async Task Players_never_see_the_masters_roll_presets()
+    {
+        var master = await CreateCampaign("cr-preset-privacy");
+        var player = await Join(master, "Ayla");
+        var encounter = await Send<EncounterDto>(Authenticated(HttpMethod.Post, $"/api/campaigns/{master.CampaignId}/encounters", master));
+        (await Configure(master, encounter.Id)).EnsureSuccessStatusCode();
+        var goblin = (await Find(master, "goblin")).Id;
+        var withGoblin = await Send<EncounterDto>(Authenticated(HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/creatures", master, new AddCreaturesToEncounterRequest(goblin, 1)));
+        var token = withGoblin.Combatants.Single().Id;
+        await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap/tokens/{token}/roll-preset", master, new SetRollPresetRequest(1, 20, "dex", 3)));
+
+        var playerBoard = await Send<BattlemapSnapshotDto>(Authenticated(HttpMethod.Get, $"/api/campaigns/{player.CampaignId}/encounters/{encounter.Id}/battlemap", player));
+        Assert.Null(playerBoard.Tokens.Single(x => x.ParticipantId == token).RollPreset);
+    }
+
     private CompanionApiFactory Factory { get; } = factory;
 
     private static SaveCreatureRequest Save(CreatureDto x) => new(

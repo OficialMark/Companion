@@ -67,12 +67,12 @@ export interface ActionRoll { kind: 'hit' | 'damage'; label: string; preset: Rol
  */
 export function parseActionRolls(description: string): ActionRoll[] {
   const rolls: ActionRoll[] = []
-  const hit = description.match(/([+-−]\s?\d+)\s+para\s+acertar/i) ?? description.match(/Ataque[^:.]*:\s*([+-−]\s?\d+)/i)
+  const hit = description.match(/([+\-−]\s?\d+)\s+para\s+acertar/i) ?? description.match(/Ataque[^:.]*:\s*([+\-−]\s?\d+)/i)
   if (hit) {
     const bonus = Number(hit[1]!.replace(/\s|−/g, match => (match === '−' ? '-' : '')))
     if (Number.isFinite(bonus)) rolls.push({ kind: 'hit', label: `Acerto ${formatModifier(bonus)}`, preset: clampPreset({ count: 1, die: 20, ability: null, bonus }) })
   }
-  const damage = description.match(/\((\d+)d(\d+)\s*(?:([+-−])\s*(\d+))?\)/i)
+  const damage = description.match(/\((\d+)d(\d+)\s*(?:([+\-−])\s*(\d+))?\)/i)
   if (damage) {
     const count = Number(damage[1]); const die = Number(damage[2])
     const bonus = damage[3] ? (damage[3] === '+' ? 1 : -1) * Number(damage[4]) : 0

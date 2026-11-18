@@ -4,6 +4,20 @@ using Companion.Domain.Models;
 
 namespace Companion.Application.Creatures;
 
+/// <summary>
+/// Process-wide backoff for compendium images that failed to load (single API instance per the
+/// constitution). Kept out of the database on purpose: a failed read must not write the
+/// versioned creature row.
+/// </summary>
+public sealed class CreatureImageBackoff
+{
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTimeOffset> _failures = new(StringComparer.Ordinal);
+    public static readonly TimeSpan RetryAfter = TimeSpan.FromHours(24);
+    public bool IsBlocked(string url, DateTimeOffset now) => _failures.TryGetValue(url, out var at) && now - at < RetryAfter;
+    public void Fail(string url, DateTimeOffset now) => _failures[url] = now;
+    public void Clear(string url) => _failures.TryRemove(url, out _);
+}
+
 /// <summary>Remote image fetch for compendium creatures (spec 008, research R5).</summary>
 public interface ICreatureImageSource
 {
@@ -20,10 +34,11 @@ public sealed class CreatureService(
     ICompanionDbContext db,
     ParticipantAuthorization authorization,
     ICreatureImageSource imageSource,
+    CreatureImageBackoff imageBackoff,
+    ICampaignNotifier notifier,
     TimeProvider timeProvider)
 {
     public const int MaxPageSize = 60;
-    private static readonly TimeSpan ImageRetryAfter = TimeSpan.FromHours(24);
 
     public CreaturePageDto List(Guid campaignId, string token, CreatureQuery query)
     {
@@ -110,6 +125,7 @@ public sealed class CreatureService(
         }
         catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         await SaveConcurrentAsync(cancellationToken);
+        await NotifyLinkedAsync(campaignId, target, cancellationToken);
         return ToDto(campaignId, target);
     }
 
@@ -121,6 +137,7 @@ public sealed class CreatureService(
         try { target.SetNotes(request.Notes, now); }
         catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         await SaveConcurrentAsync(cancellationToken);
+        await NotifyLinkedAsync(campaignId, target, cancellationToken);
         return ToDto(campaignId, target);
     }
 
@@ -133,15 +150,19 @@ public sealed class CreatureService(
             throw new AppException(AppErrorKind.Validation, "Criaturas do compêndio não podem ser excluídas; edite-as para criar a versão da mesa.");
 
         // Combatants keep fighting; an edited copy's combatants fall back to the original sheet.
+        var affectedEncounters = new HashSet<Guid>();
         foreach (var combatant in db.Combatants.Where(x => x.CreatureId == creature.Id).ToArray())
         {
+            affectedEncounters.Add(combatant.EncounterId);
             if (creature.BaseCreatureId is { } baseId) combatant.LinkCreature(baseId);
             else combatant.UnlinkCreature();
         }
         var image = db.CreatureImages.SingleOrDefault(x => x.CreatureId == creature.Id);
         if (image is not null) db.Remove(image);
         db.Remove(creature);
-        await db.SaveChangesAsync(cancellationToken);
+        await SaveConcurrentAsync(cancellationToken);
+        // Captured before saving: an unlinked custom creature's combatants no longer point at it.
+        await NotifyEncountersAsync(campaignId, affectedEncounters, cancellationToken);
 
         if (creature.BaseCreatureId is not { } originalId) return null;
         var original = db.Creatures.Single(x => x.Id == originalId);
@@ -166,7 +187,8 @@ public sealed class CreatureService(
         }
         else image.Replace(content, mediaType, fromSource: false);
         target.SetImage(image.Revision, now);
-        await db.SaveChangesAsync(cancellationToken);
+        await SaveConcurrentAsync(cancellationToken);
+        await NotifyLinkedAsync(campaignId, target, cancellationToken);
         return ToDto(campaignId, target);
     }
 
@@ -178,7 +200,8 @@ public sealed class CreatureService(
         var image = db.CreatureImages.SingleOrDefault(x => x.CreatureId == target.Id);
         if (image is not null) db.Remove(image);
         target.SetImage(null, now);
-        await db.SaveChangesAsync(cancellationToken);
+        await SaveConcurrentAsync(cancellationToken);
+        await NotifyLinkedAsync(campaignId, target, cancellationToken);
         return ToDto(campaignId, target);
     }
 
@@ -197,26 +220,23 @@ public sealed class CreatureService(
         if (stored is not null) return new CreatureImageResult(stored.Content, stored.MediaType, stored.Revision);
 
         var now = timeProvider.GetUtcNow();
-        if (owner.ImageSourceUrl is null || (owner.ImageFetchFailedAt is { } failed && now - failed < ImageRetryAfter))
+        if (owner.ImageSourceUrl is not { } sourceUrl || imageBackoff.IsBlocked(sourceUrl, now))
             throw new AppException(AppErrorKind.NotFound, "A criatura não tem imagem.");
 
-        var fetched = await imageSource.FetchAsync(owner.ImageSourceUrl, cancellationToken);
+        var fetched = await imageSource.FetchAsync(sourceUrl, cancellationToken);
         if (fetched is not { } image || image.Content.Length > CreatureImage.MaxBytes || !ImageFormat.IsValid(image.Content, image.MediaType))
         {
-            owner.MarkImageFetchFailed(now);
-            await db.SaveChangesAsync(cancellationToken);
+            imageBackoff.Fail(sourceUrl, now);
             throw new AppException(AppErrorKind.NotFound, "A imagem da criatura não está disponível agora.");
         }
+        imageBackoff.Clear(sourceUrl);
+        // Only the image table is written: the creature row (and its concurrency token) stays untouched.
         var row = new CreatureImage(owner.Id, image.Content, image.MediaType, fromSource: true);
         db.Add(row);
-        owner.MarkImageFetched(row.Revision);
-        if (!ReferenceEquals(owner, creature)) creature.MarkImageFetched(row.Revision);
         try { await db.SaveChangesAsync(cancellationToken); }
-        catch (Exception) when (db.CreatureImages.Any(x => x.CreatureId == owner.Id))
+        catch (Exception exception) when (exception.GetType().Name is "DbUpdateException")
         {
-            // Two viewers fetched concurrently and the other one stored it first: serve theirs.
-            var existing = db.CreatureImages.Single(x => x.CreatureId == owner.Id);
-            return new CreatureImageResult(existing.Content, existing.MediaType, existing.Revision);
+            // Another viewer stored the same source image first; ours is byte-identical, serve it.
         }
         return new CreatureImageResult(row.Content, row.MediaType, row.Revision);
     }
@@ -230,10 +250,52 @@ public sealed class CreatureService(
         return db.Creatures.SingleOrDefault(x => x.CampaignId == campaignId && x.BaseCreatureId == creature.Id) ?? creature;
     }
 
+    /// <summary>
+    /// The URL carries a revision so browsers can cache it forever: the master's upload revision,
+    /// or a stable hash of the remote source (a re-seed with a new picture is a new URL).
+    /// </summary>
     public static string? ImageUrl(Guid campaignId, Guid creatureId, Guid? revision, string? sourceUrl) =>
         revision is null && sourceUrl is null
             ? null
-            : $"/api/campaigns/{campaignId}/creatures/{creatureId}/image?rev={(revision?.ToString("N") ?? "src")}";
+            : $"/api/campaigns/{campaignId}/creatures/{creatureId}/image?rev={(revision?.ToString("N") ?? "s" + StableHash(sourceUrl!))}";
+
+    private static string StableHash(string value)
+    {
+        // FNV-1a: deterministic across processes (string.GetHashCode is not).
+        var hash = 2166136261u;
+        foreach (var character in value) hash = (hash ^ character) * 16777619u;
+        return hash.ToString("x8");
+    }
+
+    /// <summary>
+    /// Boards showing combatants linked to these creatures must re-read their snapshot (new
+    /// image, relinked sheet) and so must the encounter (combatants' CreatureId changed).
+    /// </summary>
+    private async Task NotifyLinkedAsync(Guid campaignId, Creature creature, CancellationToken cancellationToken)
+    {
+        var ids = new List<Guid> { creature.Id };
+        if (creature.BaseCreatureId is { } baseId) ids.Add(baseId);
+        var encounterIds = db.Combatants
+            .Where(x => x.CreatureId != null && ids.Contains(x.CreatureId.Value))
+            .Select(x => x.EncounterId)
+            .Distinct()
+            .ToArray();
+        await NotifyEncountersAsync(campaignId, encounterIds, cancellationToken);
+    }
+
+    private async Task NotifyEncountersAsync(Guid campaignId, IEnumerable<Guid> encounterIds, CancellationToken cancellationToken)
+    {
+        var candidates = encounterIds.Distinct().ToArray();
+        var open = db.Encounters.Where(e => candidates.Contains(e.Id) && e.CampaignId == campaignId && e.Status != EncounterStatus.Ended)
+            .Select(e => e.Id).ToArray();
+        foreach (var encounterId in open)
+        {
+            await notifier.EncounterInvalidatedAsync(campaignId, encounterId, cancellationToken);
+            var battlemap = db.Battlemaps.Where(x => x.EncounterId == encounterId).Select(x => x.Version).SingleOrDefault();
+            if (battlemap is not null)
+                await notifier.BattlemapInvalidatedAsync(campaignId, encounterId, DtoMapper.Revision(battlemap), cancellationToken);
+        }
+    }
 
     private Creature ImageOwner(Creature creature)
     {
@@ -261,10 +323,14 @@ public sealed class CreatureService(
         return copy;
     }
 
+    /// <summary>
+    /// Stale revision (rowversion) and the race where two tabs create the campaign copy at once
+    /// (unique (CampaignId, BaseCreatureId)) both surface as 409, never as a 500.
+    /// </summary>
     private async Task SaveConcurrentAsync(CancellationToken cancellationToken)
     {
         try { await db.SaveChangesAsync(cancellationToken); }
-        catch (Exception exception) when (exception.GetType().Name == "DbUpdateConcurrencyException")
+        catch (Exception exception) when (exception.GetType().Name is "DbUpdateConcurrencyException" or "DbUpdateException")
         {
             throw new AppException(AppErrorKind.Conflict, "Esta criatura foi alterada em outra aba. Recarregue a ficha.");
         }

@@ -29,7 +29,10 @@ const tokenPreset = computed<RollPreset | null>(() => {
   return token?.rollPreset ? clampPreset(token.rollPreset) : null
 })
 const preset = ref<RollPreset>({ ...DEFAULT_PRESET })
-watch([() => sheet.value?.id, tokenPreset], () => { preset.value = tokenPreset.value ?? { ...DEFAULT_PRESET } }, { immediate: true })
+// Keyed by value, not by object: every board refresh rebuilds the snapshot (new objects), which
+// must not wipe the master's in-progress choices; only a real preset change or another sheet does.
+const presetKey = computed(() => `${sheet.value?.id}|${creatures.sheetToken?.id ?? ''}|${JSON.stringify(tokenPreset.value)}`)
+watch(presetKey, () => { preset.value = tokenPreset.value ?? { ...DEFAULT_PRESET } }, { immediate: true })
 
 const details = computed(() => [
   ['Salvaguardas', sheet.value.savingThrows], ['Perícias', sheet.value.skills],
@@ -99,23 +102,32 @@ async function startPreparation() {
   finally { addBusy.value = false }
 }
 
-// Dialog behavior: Esc closes, focus starts on close and stays inside.
+// Dialog behavior: Esc closes, focus starts on close and stays inside. Listened on the document
+// so it still works after a click on plain text moved focus to <body>.
 function keydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') { event.preventDefault(); creatures.close(); return }
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    if (creatures.editing && !window.confirm('Descartar as alterações da ficha?')) return
+    creatures.close()
+    return
+  }
   if (event.key !== 'Tab' || !dialog.value) return
   const focusable = [...dialog.value.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select, textarea, [href], [tabindex]:not([tabindex="-1"])')]
   if (!focusable.length) return
   const first = focusable[0]!; const last = focusable[focusable.length - 1]!
-  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
-  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+  const inside = dialog.value.contains(document.activeElement)
+  if (event.shiftKey && (document.activeElement === first || !inside)) { event.preventDefault(); last.focus() }
+  else if (!event.shiftKey && (document.activeElement === last || !inside)) { event.preventDefault(); first.focus() }
 }
 let previousFocus: HTMLElement | null = null
 onMounted(() => {
   previousFocus = document.activeElement as HTMLElement | null
   nextTick(() => closeButton.value?.focus())
   document.body.classList.add('modal-open')
+  document.addEventListener('keydown', keydown)
 })
 onBeforeUnmount(() => {
+  document.removeEventListener('keydown', keydown)
   document.body.classList.remove('modal-open')
   previousFocus?.focus?.()
 })
@@ -123,7 +135,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="modal-overlay creature-sheet-overlay" @click.self="creatures.close()">
-    <div ref="dialog" class="creature-sheet" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" data-creature-sheet @keydown="keydown">
+    <div ref="dialog" class="creature-sheet" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" tabindex="-1" data-creature-sheet>
       <header class="creature-sheet-header">
         <span class="creature-portrait large" :class="{ 'has-image': portrait }">
           <img v-if="portrait" :src="portrait" alt="">

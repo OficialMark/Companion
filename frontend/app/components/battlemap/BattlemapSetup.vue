@@ -22,6 +22,14 @@ const pendingConfirmation = ref(false)
 const fogEnabled = ref(true)
 const fogMask = ref<string | null>(props.battlemap?.fogMask ?? encodeMask(fillMask(columns.value, rows.value, true)))
 const fogRestarted = ref(false)
+// The master shaped the fog on the preview (not the untouched full cover). Cleared only when the
+// grid change discards it, so typing 10 -> 1 -> 12 still reports the loss.
+const customFogDrawn = ref(Boolean(props.battlemap?.fogMask))
+function onPreviewFog(mask: string | null) {
+  fogMask.value = mask
+  customFogDrawn.value = true
+  fogRestarted.value = false
+}
 
 const MAX_GRID = 100
 const PREVIEW_MAX_WIDTH = 560
@@ -43,13 +51,13 @@ watch([columns, rows], ([nextColumns, nextRows], [previousColumns, previousRows]
   if (nextColumns === previousColumns && nextRows === previousRows) return
   if (!validGridSize(nextColumns, nextRows)) return
   const sameAsPublished = props.battlemap?.columns === nextColumns && props.battlemap?.rows === nextRows
-  // Only worth a notice when the master had shaped the fog (not the untouched full cover).
-  const hadCustomFog = validGridSize(previousColumns, previousRows) &&
-    fogMask.value !== encodeMask(fillMask(previousColumns, previousRows, true))
   fogMask.value = sameAsPublished && props.battlemap?.fogMask
     ? props.battlemap.fogMask
     : encodeMask(fillMask(nextColumns, nextRows, true))
-  fogRestarted.value = Boolean(previewUrl.value) && !sameAsPublished && hadCustomFog
+  if (Boolean(previewUrl.value) && !sameAsPublished && customFogDrawn.value) {
+    fogRestarted.value = true
+    customFogDrawn.value = false
+  }
 })
 function validGridSize(columns: number, rows: number) {
   return Number.isInteger(columns) && Number.isInteger(rows) && columns >= 1 && rows >= 1 && columns <= MAX_GRID && rows <= MAX_GRID
@@ -207,7 +215,7 @@ onBeforeUnmount(() => {
     <p v-if="previewUrl && fogEnabled && fogRestarted" class="field-hint" data-fog-restarted role="status">
       <Icon name="lucide:info" />O grid mudou, então a névoa recomeçou cobrindo o mapa inteiro.
     </p>
-    <FogPreview v-if="previewUrl && fogEnabled && validGrid" v-model="fogMask" :image-url="previewUrl" :columns="columns" :rows="rows" :is-grid-visible="isGridVisible" />
+    <FogPreview v-if="previewUrl && fogEnabled && validGrid" :model-value="fogMask" @update:model-value="onPreviewFog" :image-url="previewUrl" :columns="columns" :rows="rows" :is-grid-visible="isGridVisible" />
     <div v-else-if="previewUrl" class="battlemap-preview" :style="previewStyle">
       <img :src="previewUrl" alt="Prévia do mapa selecionado">
       <span v-if="isGridVisible" class="battlemap-preview-grid" :style="{ '--columns': columns, '--rows': rows }" />

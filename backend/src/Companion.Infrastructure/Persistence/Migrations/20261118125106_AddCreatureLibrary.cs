@@ -98,7 +98,6 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     Notes = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
                     ImageSourceUrl = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: true),
                     ImageRevision = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ImageFetchFailedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     IsRemovedFromCompendium = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),

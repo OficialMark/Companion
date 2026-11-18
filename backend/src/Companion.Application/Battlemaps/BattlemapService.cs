@@ -459,6 +459,8 @@ public sealed class BattlemapService(
 
     private BattlemapSnapshotDto ToSnapshot(Guid campaignId, Battlemap battlemap, Participant observer)
     {
+        // Roll presets are private to whoever can roll for the token (spec 008).
+        var isMaster = observer.Role == ParticipantRole.Master;
         var positions = db.BattlemapTokenPositions
             .Where(x => x.BattlemapId == battlemap.Id)
             .ToArray();
@@ -506,23 +508,24 @@ public sealed class BattlemapService(
                     AttackArea: area is null ? null : ToDto(area),
                     FootprintSize: appearance?.FootprintSize ?? 1,
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
-                    RollPreset: Preset(appearance));
+                    RollPreset: isMaster || participant.Id == observer.Id ? Preset(appearance) : null);
             });
         var creatureCombatants = db.Combatants
             .Where(x => x.EncounterId == battlemap.EncounterId && x.ParticipantId == null)
             .OrderBy(x => x.CreationOrder)
             .ToArray();
         var linkedIds = creatureCombatants.Where(x => x.CreatureId != null).Select(x => x.CreatureId!.Value).Distinct().ToArray();
-        var linkedImages = db.Creatures.Where(x => linkedIds.Contains(x.Id))
-            .Select(x => new { x.Id, x.ImageRevision, x.ImageSourceUrl })
+        var linkedCreatures = db.Creatures.Where(x => linkedIds.Contains(x.Id))
+            .Select(x => new { x.Id, x.ImageRevision, x.ImageSourceUrl, x.Size })
             .AsEnumerable()
-            .ToDictionary(x => x.Id, x => CreatureService.ImageUrl(campaignId, x.Id, x.ImageRevision, x.ImageSourceUrl));
+            .ToDictionary(x => x.Id);
         var creatureTokens = creatureCombatants
             .Select(combatant =>
             {
                 creaturePositions.TryGetValue(combatant.Id, out var position);
                 creatureAreas.TryGetValue(combatant.Id, out var area);
                 creatureAppearances.TryGetValue(combatant.Id, out var appearance);
+                var linked = combatant.CreatureId is { } linkedId ? linkedCreatures.GetValueOrDefault(linkedId) : null;
                 return new BattlemapTokenDto(
                     combatant.Id,
                     combatant.Name,
@@ -533,11 +536,13 @@ public sealed class BattlemapService(
                     position is null ? null : DtoMapper.Revision(position.Version),
                     IsCreature: true,
                     AttackArea: area is null ? null : ToDto(area),
-                    FootprintSize: appearance?.FootprintSize ?? 1,
+                    // Creatures added before the map existed have no appearance row yet:
+                    // their size still comes from the linked sheet (Large 2x2, Huge 3x3...).
+                    FootprintSize: appearance?.FootprintSize ?? Footprint(linked?.Size),
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
-                    ImageUrl: combatant.CreatureId is { } creatureId ? linkedImages.GetValueOrDefault(creatureId) : null,
+                    ImageUrl: linked is null ? null : CreatureService.ImageUrl(campaignId, linked.Id, linked.ImageRevision, linked.ImageSourceUrl),
                     CreatureId: combatant.CreatureId,
-                    RollPreset: Preset(appearance));
+                    RollPreset: isMaster ? Preset(appearance) : null);
             });
         var markerTokens = db.BattlemapMarkers
             .Where(x => x.BattlemapId == battlemap.Id)
@@ -561,7 +566,7 @@ public sealed class BattlemapService(
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
                     IsMarker: true,
                     OwnerParticipantId: marker.OwnerParticipantId,
-                    RollPreset: Preset(appearance));
+                    RollPreset: isMaster || marker.OwnerParticipantId == observer.Id ? Preset(appearance) : null);
             });
         var tokens = playerTokens.Concat(creatureTokens).Concat(markerTokens).ToArray();
         if (observer.Role != ParticipantRole.Master && battlemap.FogMask is not null)
@@ -596,6 +601,14 @@ public sealed class BattlemapService(
             tokens,
             battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
+    private static int Footprint(CreatureSize? size) => size switch
+    {
+        CreatureSize.Large => 2,
+        CreatureSize.Huge => 3,
+        CreatureSize.Gargantuan => 4,
+        _ => 1
+    };
+
     private static RollPresetDto? Preset(BattlemapTokenAppearance? appearance) =>
         appearance?.LastRollDie is { } die
             ? new RollPresetDto(appearance.LastRollCount ?? 1, die, appearance.LastRollAbility, appearance.LastRollBonus ?? 0)

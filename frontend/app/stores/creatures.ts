@@ -18,7 +18,8 @@ export const useCreatureStore = defineStore('creatures', {
     sheetToken: null as { id: string; name: string } | null,
     sheetLoading: false,
     editing: false,
-    requestSequence: 0
+    requestSequence: 0,
+    openSequence: 0
   }),
   getters: {
     pageCount: state => Math.max(1, Math.ceil(state.total / state.query.pageSize))
@@ -55,18 +56,27 @@ export const useCreatureStore = defineStore('creatures', {
       await this.load()
     },
     async open(id: string, token: { id: string; name: string } | null = null) {
+      // Only the latest request may open: a slow response for creature A must never show A's
+      // stats while rolls are labeled and remembered for token B.
+      const sequence = ++this.openSequence
       this.sheetLoading = true
-      this.sheetToken = token
       this.editing = false
       this.error = ''
       try {
-        this.sheet = await useCompanionApi().getCreature(this.session(), id)
-        void useImageCacheStore().ensure(this.sheet.imageUrl)
+        const sheet = await useCompanionApi().getCreature(this.session(), id)
+        if (sequence !== this.openSequence) return
+        this.sheet = sheet
+        this.sheetToken = token
+        void useImageCacheStore().ensure(sheet.imageUrl)
       } catch (error) {
+        if (sequence !== this.openSequence) return
         this.error = (error as Error).message
         this.sheet = null
+        this.sheetToken = null
+        // From the board the library tab (where errors render) is not visible.
+        if (token) useCampaignStore().error = `Não foi possível abrir a ficha: ${this.error}`
       } finally {
-        this.sheetLoading = false
+        if (sequence === this.openSequence) this.sheetLoading = false
       }
     },
     newCreature() {
@@ -75,6 +85,7 @@ export const useCreatureStore = defineStore('creatures', {
       this.editing = true
     },
     close() {
+      this.openSequence++
       this.sheet = null
       this.sheetToken = null
       this.editing = false

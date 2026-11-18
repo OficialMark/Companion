@@ -129,4 +129,31 @@ public sealed class CreatureTests
         Assert.Null(new DiceRoll(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "1d20", "[]", 0, 1, DateTimeOffset.UtcNow, null, "   ").Label);
         Assert.Throws<ArgumentException>(() => new DiceRoll(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "1d20", "[]", 0, 1, DateTimeOffset.UtcNow, null, "a\nb"));
     }
+
+    [Theory]
+    [InlineData("-1/2")]
+    [InlineData("1000/1")]
+    [InlineData("31")]
+    public void Out_of_range_challenge_ratings_are_rejected(string cr) =>
+        Assert.Throws<ArgumentException>(() => Creature.ParseChallenge(cr));
+
+    [Fact]
+    public void Compendium_rows_enforce_the_database_limits_in_the_domain()
+    {
+        Assert.Throws<ArgumentException>(() => Creature.ForCompendium(Guid.NewGuid(), new string('s', 121), "SRD 5.1", null, null, Stats(), DateTimeOffset.UtcNow));
+        Assert.Throws<ArgumentException>(() => Creature.ForCompendium(Guid.NewGuid(), "x", new string('b', 41), null, null, Stats(), DateTimeOffset.UtcNow));
+        Assert.Throws<ArgumentException>(() => Creature.ForCompendium(Guid.NewGuid(), "x", "SRD 5.1", "http://insecure.example/x", null, Stats(), DateTimeOffset.UtcNow));
+        Assert.Throws<ArgumentException>(() => Creature.ForCompendium(Guid.NewGuid(), "x", "SRD 5.1", null, "https://pocketdm.com.br/" + new string('a', 400), Stats(), DateTimeOffset.UtcNow));
+    }
+
+    [Fact]
+    public void Refresh_reports_a_changed_image_source_and_never_half_applies_a_bad_entry()
+    {
+        var creature = Creature.ForCompendium(Guid.NewGuid(), "goblin", "SRD 5.1", null, "https://pocketdm.com.br/a.webp", Stats(), DateTimeOffset.UtcNow);
+        Assert.False(creature.RefreshFromCompendium("SRD 5.1", null, "https://pocketdm.com.br/a.webp", Stats(), DateTimeOffset.UtcNow));
+        Assert.True(creature.RefreshFromCompendium("SRD 5.2", null, "https://pocketdm.com.br/b.webp", Stats(), DateTimeOffset.UtcNow));
+        Assert.ThrowsAny<ArgumentException>(() => creature.RefreshFromCompendium("SRD 9", null, "https://pocketdm.com.br/c.webp", Stats(dex: 99), DateTimeOffset.UtcNow));
+        Assert.Equal("SRD 5.2", creature.SourceBook);
+        Assert.Equal("https://pocketdm.com.br/b.webp", creature.ImageSourceUrl);
+    }
 }

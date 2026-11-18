@@ -11,6 +11,7 @@ const sizes = Object.entries(CREATURE_SIZE_LABELS) as Array<[CreatureSize, strin
 const origins = Object.entries(ORIGIN_LABELS) as Array<[CreatureOrigin, string]>
 const challengeSteps = ['0', '1/8', '1/4', '1/2', ...Array.from({ length: 30 }, (_, index) => String(index + 1))]
 const challengeValue = (value: string) => value.includes('/') ? Number(value.split('/')[0]) / Number(value.split('/')[1]) : Number(value)
+const crLabel = (value: number | null) => value == null ? '' : challengeSteps.find(step => Math.abs(challengeValue(step) - value) < 1e-6) ?? ''
 const filtersActive = computed(() => Boolean(creatures.query.size || creatures.query.type || creatures.query.origin || creatures.query.crMin != null || creatures.query.crMax != null))
 
 watch(search, value => {
@@ -59,8 +60,8 @@ onBeforeUnmount(() => clearTimeout(debounce))
         <option v-for="type in creatures.types" :key="type" :value="type">{{ type }}</option>
       </select>
       <div class="creature-cr" role="group" aria-label="Nível de desafio">
-        <select aria-label="ND mínimo" @change="onCr('crMin', $event)"><option value="">ND mín.</option><option v-for="cr in challengeSteps" :key="cr" :value="cr">{{ cr }}</option></select>
-        <select aria-label="ND máximo" @change="onCr('crMax', $event)"><option value="">ND máx.</option><option v-for="cr in challengeSteps" :key="cr" :value="cr">{{ cr }}</option></select>
+        <select aria-label="ND mínimo" :value="crLabel(creatures.query.crMin)" @change="onCr('crMin', $event)"><option value="">ND mín.</option><option v-for="cr in challengeSteps" :key="cr" :value="cr">{{ cr }}</option></select>
+        <select aria-label="ND máximo" :value="crLabel(creatures.query.crMax)" @change="onCr('crMax', $event)"><option value="">ND máx.</option><option v-for="cr in challengeSteps" :key="cr" :value="cr">{{ cr }}</option></select>
       </div>
       <select :value="creatures.query.origin" aria-label="Origem" @change="creatures.setQuery({ origin: ($event.target as HTMLSelectElement).value as CreatureOrigin })">
         <option value="">Todas as origens</option>

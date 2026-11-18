@@ -77,7 +77,7 @@ body.modal-open { overflow: hidden; }
 .creature-ability span { color: var(--gold); font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
 .creature-ability strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .creature-ability small { color: var(--ink-soft); font-size: .78rem; font-variant-numeric: tabular-nums; }
-.creature-abilities.editing input { width: 100%; max-width: 64px; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.05); color: var(--ink); text-align: center; font: inherit; font-weight: 800; }
+.creature-abilities.editing input { width: 100%; max-width: 64px; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.05); color: var(--ink); text-align: center; font: inherit; font-weight: 800; }
 
 .creature-details { display: grid; gap: 6px; margin: 0; }
 .creature-details div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; font-size: .86rem; }
@@ -108,7 +108,7 @@ body.modal-open { overflow: hidden; }
 .roll-ability { flex-direction: column; gap: 0; min-width: 52px; line-height: 1.1; }
 .roll-ability small { color: var(--muted); font-size: .72rem; font-weight: 600; }
 .roll-ability.selected small { color: var(--gold-soft); }
-.roll-chip.shortcut { min-height: 40px; border-style: dashed; color: var(--gold-soft); }
+.roll-chip.shortcut { min-height: 44px; border-style: dashed; color: var(--gold-soft); }
 .roll-stepper { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 12px; padding: 4px; background: rgba(0,0,0,.18); }
 .roll-stepper-label { padding: 0 6px; color: var(--muted); font-size: .76rem; font-weight: 700; }
 .roll-stepper-value { min-width: 42px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -124,7 +124,7 @@ body.modal-open { overflow: hidden; }
 .creature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .creature-grid label, .creature-list-intro { display: grid; gap: 4px; min-width: 0; color: var(--muted); font-size: .76rem; font-weight: 700; }
 .creature-grid .span-2 { grid-column: span 2; }
-.creature-editor input:not([type="file"]), .creature-editor select { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: rgba(255,255,255,.04); color: var(--ink); font: inherit; font-size: .88rem; }
+.creature-editor input:not([type="file"]), .creature-editor select { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: rgba(255,255,255,.04); color: var(--ink); font: inherit; font-size: .88rem; }
 .creature-editor select option { background: #241d23; }
 .creature-image-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .creature-image-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -137,10 +137,9 @@ body.modal-open { overflow: hidden; }
 /* Roll history label */
 .roll-label { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; border-radius: 999px; padding: 1px 8px; background: rgba(215,174,93,.14); color: var(--gold-soft); font-size: .72rem; font-weight: 700; }
 
-@media (pointer: coarse) {
-  .creature-roll .icon-button.small, .creature-sheet .icon-button.small { width: 44px; height: 44px; flex-basis: 44px; }
-  .roll-chip.shortcut, .creature-sheet .button.compact, .creature-library .button.compact { min-height: 44px; }
-}
+/* SC-007: every control in the library and the sheet is at least 44 px, at any width. */
+.creature-sheet .icon-button.small { width: 44px; height: 44px; flex-basis: 44px; }
+.creature-sheet .button.compact, .creature-library .button.compact { min-height: 44px; }
 
 @media (max-width: 680px) {
   .creature-sheet-overlay { padding: 0; align-items: stretch; }
@@ -151,7 +150,6 @@ body.modal-open { overflow: hidden; }
   .creature-sheet-footer [data-edit-creature] { margin-left: 0; }
   .creature-quick-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .creature-quick-stats dt .icon { display: none; }
-  .roll-chip.shortcut, .creature-sheet .button.compact, .creature-library .button.compact { min-height: 44px; }
   .creature-abilities { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .creature-details div { grid-template-columns: 1fr; gap: 0; }
   .creature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
