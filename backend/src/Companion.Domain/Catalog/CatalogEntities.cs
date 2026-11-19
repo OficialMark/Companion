@@ -31,9 +31,32 @@ public sealed class CatalogItem
     public string SearchKey { get; private set; } = string.Empty;
     public bool IsRemovedFromCatalog { get; private set; }
 
+    /// <summary>
+    /// Generic magic weapons and armor ("Arma +1", "Armadura de Resistência") have no stat block of
+    /// their own: adding one asks for the base item, whose block is copied (see CharacterService).
+    /// </summary>
+    public bool RequiresBaseItem { get; private set; }
+
     public void Apply(CatalogItemFields fields)
     {
-        var template = fields.Template.Validated() with { Equipped = false, Proficient = false, Quantity = Math.Max(1, fields.Template.Quantity) };
+        var raw = fields.Template;
+        RequiresBaseItem = (raw.Category == ItemCategory.Weapon && raw.Weapon is null) ||
+                           (raw.Category == ItemCategory.Armor && raw.Armor is null);
+        // Validate everything else with a stand-in block, then keep the block empty.
+        var probe = raw.Category switch
+        {
+            ItemCategory.Weapon when raw.Weapon is null => raw with { Weapon = new WeaponData("1d4", null, null, WeaponKind.Melee, WeaponClass.Simple, [], null, null, null, null) },
+            ItemCategory.Armor when raw.Armor is null => raw with { Armor = new ArmorData(10, ArmorType.Light, null, false) },
+            _ => raw
+        };
+        var template = probe.Validated() with
+        {
+            Equipped = false,
+            Proficient = false,
+            Quantity = Math.Max(1, raw.Quantity),
+            Weapon = raw.Category == ItemCategory.Weapon && raw.Weapon is null ? null : probe.Validated().Weapon,
+            Armor = raw.Category == ItemCategory.Armor && raw.Armor is null ? null : probe.Validated().Armor
+        };
         Name = template.Name;
         NameEn = string.IsNullOrWhiteSpace(fields.NameEn) ? null : fields.NameEn.Trim();
         Category = template.Category;

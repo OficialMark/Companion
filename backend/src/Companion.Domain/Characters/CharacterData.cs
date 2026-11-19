@@ -176,6 +176,7 @@ public sealed record InventoryItemData(
     IReadOnlyList<ItemEffect> Effects)
 {
     public const int MaxNameLength = 80;
+    public const int MaxDescriptionLength = 12000;
 
     public static bool IsEquippable(ItemCategory category) =>
         category is ItemCategory.Weapon or ItemCategory.Armor or ItemCategory.Shield or ItemCategory.Gear;
@@ -193,8 +194,8 @@ public sealed record InventoryItemData(
         if (Quantity is < 0 or > 9_999) throw new ArgumentException("A quantidade deve ficar entre 0 e 9999.");
         if (Weight is < 0 or > 99_999) throw new ArgumentException("O peso deve ficar entre 0 e 99999 kg.");
         if (MagicBonus is < 0 or > 3) throw new ArgumentException("O bônus mágico deve ficar entre 0 e +3.");
-        if (Description is { Length: > 4000 } || Notes is { Length: > 4000 })
-            throw new ArgumentException("Descrição e anotações devem ter até 4000 caracteres.");
+        if (Description is { Length: > MaxDescriptionLength } || Notes is { Length: > 4000 })
+            throw new ArgumentException($"A descrição deve ter até {MaxDescriptionLength} caracteres e as anotações até 4000.");
 
         WeaponData? weapon = null;
         ArmorData? armor = null;

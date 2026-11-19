@@ -25,7 +25,8 @@ public sealed record SaveSheetRequest(CharacterSheetData? Data, string? Version)
 
 public sealed record SaveItemRequest(InventoryItemData? Data, string? Version);
 
-public sealed record AddFromCatalogRequest(Guid CatalogItemId, int? Quantity);
+/// <summary><see cref="BaseCatalogItemId"/> is required for generic magic items ("Arma +1"): the mundane weapon or armor to copy the block from.</summary>
+public sealed record AddFromCatalogRequest(Guid CatalogItemId, int? Quantity, Guid? BaseCatalogItemId = null);
 
 public sealed record EquipItemRequest(bool Equipped);
 

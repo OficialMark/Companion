@@ -56,6 +56,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<bool>("RequiresAttunement")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("RequiresBaseItem")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SearchKey")
                         .IsRequired()
                         .HasMaxLength(260)

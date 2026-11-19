@@ -49,9 +49,10 @@ public static class CharacterEndpoints
             Results.Ok(await service.RemoveRollAsync(campaignId, Token(request), rollId, ct)));
 
         var catalog = endpoints.MapGroup("/api/campaigns/{campaignId:guid}/catalog").WithTags("Catalog");
-        catalog.MapGet("/items", (Guid campaignId, string? q, ItemCategory? category, string? rarity, int? page, int? pageSize,
+        catalog.MapGet("/items", (Guid campaignId, string? q, ItemCategory? category, string? rarity, int? page, int? pageSize, bool? mundane,
                 HttpRequest request, CatalogService service) =>
-            Results.Ok(service.ListItems(campaignId, Token(request), new CatalogItemQuery(q, category, rarity, page ?? 1, pageSize ?? 24))));
+            Results.Ok(service.ListItems(campaignId, Token(request),
+                new CatalogItemQuery(q, category, rarity, page ?? 1, pageSize ?? 24, mundane ?? false))));
         catalog.MapGet("/items/{itemId:guid}", (Guid campaignId, Guid itemId, HttpRequest request, CatalogService service) =>
             Results.Ok(service.GetItem(campaignId, Token(request), itemId)));
         catalog.MapGet("/spells", (Guid campaignId, string? q, int? level, string? school, string? @class, bool? ritual, bool? concentration,

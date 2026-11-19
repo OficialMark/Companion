@@ -7,10 +7,10 @@ using Companion.Domain.Models;
 namespace Companion.Application.Catalog;
 
 public sealed record CatalogItemSummaryDto(Guid Id, string Name, string? NameEn, ItemCategory Category, string? Subcategory,
-    string? Rarity, bool RequiresAttunement, int MagicBonus);
+    string? Rarity, bool RequiresAttunement, int MagicBonus, bool RequiresBaseItem);
 
 public sealed record CatalogItemDto(Guid Id, string Name, string? NameEn, ItemCategory Category, string? Subcategory,
-    string? Rarity, bool RequiresAttunement, string? Cost, InventoryItemData Template);
+    string? Rarity, bool RequiresAttunement, string? Cost, bool RequiresBaseItem, InventoryItemData Template);
 
 public sealed record CatalogSpellSummaryDto(Guid Id, string Name, int Level, string? School, bool Ritual, bool Concentration,
     IReadOnlyList<string> Classes);
@@ -20,7 +20,8 @@ public sealed record CatalogSpellDto(Guid Id, string Name, int Level, IReadOnlyL
 
 public sealed record CatalogPageDto<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize, string? Attribution);
 
-public sealed record CatalogItemQuery(string? Q, ItemCategory? Category, string? Rarity, int Page = 1, int PageSize = 24);
+/// <summary><see cref="Mundane"/> lists only plain items (no rarity, no bonus): the base choices for "Arma +1".</summary>
+public sealed record CatalogItemQuery(string? Q, ItemCategory? Category, string? Rarity, int Page = 1, int PageSize = 24, bool Mundane = false);
 
 public sealed record CatalogSpellQuery(string? Q, int? Level, string? School, string? Class, bool? Ritual, bool? Concentration,
     int Page = 1, int PageSize = 24);
@@ -52,10 +53,12 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
             items = rarity == "comum-ou-sem" ? items.Where(x => x.Rarity == null) : items.Where(x => x.Rarity == rarity);
         }
 
+        if (query.Mundane) items = items.Where(x => x.Rarity == null && !x.RequiresBaseItem);
+
         var total = items.Count();
         var rows = items.OrderBy(x => x.Name).ThenBy(x => x.Slug).Skip((page - 1) * size).Take(size).AsEnumerable()
             .Select(x => new CatalogItemSummaryDto(x.Id, x.Name, x.NameEn, x.Category, x.Subcategory, x.Rarity,
-                x.RequiresAttunement, x.Template.MagicBonus))
+                x.RequiresAttunement, x.Template.MagicBonus, x.RequiresBaseItem))
             .ToArray();
         return new CatalogPageDto<CatalogItemSummaryDto>(rows, total, page, size, ItemAttribution);
     }
@@ -66,7 +69,7 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         var item = db.CatalogItems.FirstOrDefault(x => x.Id == id && !x.IsRemovedFromCatalog)
             ?? throw new AppException(AppErrorKind.NotFound, "Item não encontrado no catálogo.");
         return new CatalogItemDto(item.Id, item.Name, item.NameEn, item.Category, item.Subcategory, item.Rarity,
-            item.RequiresAttunement, item.Cost, item.Template);
+            item.RequiresAttunement, item.Cost, item.RequiresBaseItem, item.Template);
     }
 
     public CatalogPageDto<CatalogSpellSummaryDto> ListSpells(Guid campaignId, string token, CatalogSpellQuery query)

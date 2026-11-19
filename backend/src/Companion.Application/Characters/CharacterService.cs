@@ -60,11 +60,12 @@ public sealed class CharacterService(
                 ?? throw new AppException(AppErrorKind.NotFound, "Item não encontrado no catálogo.");
             var quantity = request.Quantity ?? 1;
             if (quantity is < 1 or > 9_999) throw new AppException(AppErrorKind.Validation, "A quantidade deve ficar entre 1 e 9999.");
-            var template = catalog.Template with
+            var template = WithBaseItem(catalog, request.BaseCatalogItemId);
+            template = template with
             {
                 Quantity = quantity,
                 Equipped = false,
-                Proficient = DefaultProficiency(loaded.Sheet.Data.GeneralProficiencies, catalog.Template)
+                Proficient = DefaultProficiency(loaded.Sheet.Data.GeneralProficiencies, template)
             };
             AddItem(loaded, template, catalog.Id);
         });
@@ -264,6 +265,30 @@ public sealed class CharacterService(
         if (data.CharacterSpellId is { } spellId && loaded.Spells.All(x => x.Id != spellId))
             throw new AppException(AppErrorKind.Validation, "Magia não encontrada na sua ficha.");
         return data;
+    }
+
+    /// <summary>
+    /// A generic magic item ("Arma +1") gets its weapon or armor block from a mundane catalog item of
+    /// the same category; the name says both ("Arma +1 (Espada Longa)").
+    /// </summary>
+    private InventoryItemData WithBaseItem(Domain.Catalog.CatalogItem catalog, Guid? baseId)
+    {
+        if (!catalog.RequiresBaseItem) return catalog.Template;
+        var kind = catalog.Category == ItemCategory.Weapon ? "a arma" : "a armadura";
+        if (baseId is null) throw new AppException(AppErrorKind.Validation, $"Escolha {kind} base de {catalog.Name}.");
+        var baseItem = db.CatalogItems.FirstOrDefault(x => x.Id == baseId && !x.IsRemovedFromCatalog);
+        if (baseItem is null || baseItem.RequiresBaseItem || baseItem.Category != catalog.Category ||
+            baseItem.Rarity is not null || baseItem.Template.MagicBonus != 0)
+            throw new AppException(AppErrorKind.Validation, $"Escolha {kind} comum que servirá de base.");
+        var name = $"{catalog.Name} ({baseItem.Name})";
+        if (name.Length > InventoryItemData.MaxNameLength) name = name[..InventoryItemData.MaxNameLength].TrimEnd();
+        return catalog.Template with
+        {
+            Name = name,
+            Weapon = baseItem.Template.Weapon,
+            Armor = baseItem.Template.Armor,
+            Weight = catalog.Template.Weight ?? baseItem.Template.Weight
+        };
     }
 
     /// <summary>FR-030: the general proficiencies are only the starting value of an item's own flag.</summary>

@@ -26,7 +26,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     Cost = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
                     Template = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SearchKey = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: false),
-                    IsRemovedFromCatalog = table.Column<bool>(type: "bit", nullable: false)
+                    IsRemovedFromCatalog = table.Column<bool>(type: "bit", nullable: false),
+                    RequiresBaseItem = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Companion.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CompanionDbContext))]
-    [Migration("20261119180745_AddCharacterSheetTables")]
+    [Migration("20261119185009_AddCharacterSheetTables")]
     partial class AddCharacterSheetTables
     {
         /// <inheritdoc />
@@ -57,6 +57,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.Property<bool>("RequiresAttunement")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequiresBaseItem")
                         .HasColumnType("bit");
 
                     b.Property<string>("SearchKey")

@@ -72,6 +72,9 @@ builder.Services.AddScoped<ParticipantNameBackfill>();
 builder.Services.AddScoped<Companion.Application.Characters.CharacterService>();
 builder.Services.AddScoped<Companion.Application.Catalog.CatalogService>();
 builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
+builder.Services.AddSingleton<Companion.Application.Catalog.ICatalogSeedSource>(Companion.Infrastructure.Catalog.EmbeddedCatalogSeedSource.Spells());
+builder.Services.AddSingleton<Companion.Application.Catalog.ICatalogSeedSource>(Companion.Infrastructure.Catalog.EmbeddedCatalogSeedSource.Items());
+builder.Services.AddScoped<Companion.Application.Catalog.CatalogSeeder>();
 builder.Services.AddSingleton<CreatureImageBackoff>();
 // No automatic redirects: the host allowlist is checked once, before the request.
 builder.Services.AddHttpClient<ICreatureImageSource, HttpCreatureImageSource>()
@@ -167,6 +170,22 @@ await using (var scope = app.Services.CreateAsyncScope())
     catch (Exception exception)
     {
         seedLogger.LogError(exception, "Creature compendium seed failed; the API keeps running without it");
+    }
+    // Item and spell catalogs (spec 011, FR-021): same rules as the compendium, never fatal.
+    var catalogLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("CatalogSeeder");
+    try
+    {
+        await using var catalogScope = app.Services.CreateAsyncScope();
+        var catalogSeeder = catalogScope.ServiceProvider.GetRequiredService<Companion.Application.Catalog.CatalogSeeder>();
+        foreach (var seeded in await catalogSeeder.SeedAsync())
+        {
+            if (seeded.Applied) catalogLogger.LogInformation("Catalog seeded: {Count} entries", seeded.Upserted);
+            foreach (var skipped in seeded.Skipped) catalogLogger.LogWarning("Catalog entry skipped: {Entry}", skipped);
+        }
+    }
+    catch (Exception exception)
+    {
+        catalogLogger.LogError(exception, "Catalog seed failed; the API keeps running without it");
     }
 }
 
