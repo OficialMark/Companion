@@ -45,6 +45,25 @@ ROTULO      = 1..16 caracteres de letras (com acento), dígitos, espaço, "+", "
 
 > A ordem "dados antes de constantes" reproduz o comportamento do `Normalized` legado. O gerador do frontend já emite nessa ordem, então tela e servidor mostram a mesma string.
 
+### Detalhes fixados na implementação (T005–T011)
+
+- **A forma canônica é um ponto fixo**: `Parse(Normalized).Normalized == Normalized` para toda expressão válida (testado em todos os casos do arquivo).
+- Na forma nova cada constante fica separada, na ordem em que veio (`d20 + 2d6 + (FOR) 3 + 1`); só o legado soma as constantes num único modificador.
+- Repetição legada com construção nova ganha colchetes: `3#d20+(FOR)3` vira `3#[d20 + (FOR) 3]`. `1#[d20]` continua `1#[d20]` (sem colchetes, `d20` seria lido como legado e viraria `1d20`).
+- Rótulo: normalizado em NFC, espaços nas pontas removidos e espaços repetidos reduzidos a um (`(  Mão   leve )` vira `(Mão leve)`). Maiúsculas preservadas.
+- `N#(` sempre abre uma seleção: um termo rotulado não pode vir logo depois de `N#` sem colchetes (`4#(d20) maior` é erro de seleção, não rótulo).
+- Mensagem de limite (uma só, estendida): "Use no máximo 20 repetições, 100 dados no total (maior e menor contam as duas execuções), faces entre 2 e 1000, modificador entre -10000 e 10000 e até 256 caracteres."
+
+### Gerador do frontend (`buildExpression`)
+
+Entrada: `{ dice: { d20: 1, d6: 2, … }, parts: [{ label, value }], selection: 'none' | 'advantage' | 'disadvantage', repetitions }`.
+
+- Sem rótulo (com valor diferente de 0) e sem seleção, o gerador emite a **forma legada compacta**, porque é isso que o servidor devolve para essa entrada: `{ d20: 1, d6: 2 }` + `5` vira `1d20+2d6+5`, e com 3 repetições `3#1d20+2d6+5`. Assim a string gerada é sempre igual ao `Normalized`, sem exceção.
+- Com rótulo ou seleção, emite a forma nova espaçada (`d20 + (FOR) 3`, `2#(d20 + 5) maior`, `3#[2#(d20) menor]`).
+- Ordem dos dados: d20, d12, d10, d8, d6, d4, d100. O servidor preserva a ordem de entrada, então `d6 + d8` digitado à mão continua `d6 + d8`.
+- Partes com valor 0 e dados com quantidade 0 são omitidos. Rótulo vazio vira constante sem rótulo. Sem nenhum dado, devolve `''`.
+- `expressionLimits(input)` devolve a mensagem em PT-BR (ou `null`) para os mesmos limites do servidor: 1 a 20 repetições, 100 dados contando as duas execuções e todas as repetições, modificador total, rótulo e 256 caracteres.
+
 ## Execução
 
 1. Para cada repetição `r` em 1..N:

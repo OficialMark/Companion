@@ -45,16 +45,7 @@ public sealed class DiceRollService(
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
 
-        var results = Enumerable.Range(1, expression.Repetitions).Select(sequence =>
-        {
-            var terms = expression.Terms.Select(term =>
-            {
-                var values = Enumerable.Range(0, term.Count).Select(_ => randomizer.Roll(term.Faces)).ToArray();
-                return new DiceTermResultDto(term.Normalized, values, checked(term.Sign * values.Sum()));
-            }).ToArray();
-            return new DiceRollResultDto(sequence, terms, expression.Modifier,
-                checked(terms.Sum(x => x.Subtotal) + expression.Modifier));
-        }).ToArray();
+        var results = DiceRoller.Roll(expression, randomizer);
         var first = results[0];
         DiceRoll roll;
         try

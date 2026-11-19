@@ -24,7 +24,23 @@ export interface Participant {
   avatarRevision?: string | null
 }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
-export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }
+/** Constante da expressão (spec 011): `(FOR) 3` vira `{ label: 'FOR', value: 3 }`. */
+export interface DiceModifier { label: string | null; value: number }
+/** Uma das duas execuções de `2#(…) maior|menor`. */
+export interface DiceExecution { terms: DiceTermResult[]; modifier: number; total: number }
+export interface DiceRollResult {
+  sequence: number
+  /** Termos, modificador e total da execução escolhida (o que clientes antigos leem). */
+  terms: DiceTermResult[]
+  modifier: number
+  total: number
+  /** Só em expressões com rótulo, colchetes ou seleção. */
+  modifiers?: DiceModifier[]
+  selection?: 'maior' | 'menor' | null
+  /** Só com seleção: as duas execuções, na ordem em que rodaram. */
+  executions?: DiceExecution[]
+  selectedExecution?: number | null
+}
 export interface DiceRoll {
   id: string
   participantId: string
