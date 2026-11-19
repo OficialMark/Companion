@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Companion.Domain.Models;
 
 namespace Companion.Application.Contracts;
@@ -64,7 +65,24 @@ public sealed record DiceRollDto(
     DateTimeOffset CreatedAt,
     string? Label = null);
 public sealed record DiceTermResultDto(string Expression, IReadOnlyList<int> Values, int Subtotal);
-public sealed record DiceRollResultDto(int Sequence, IReadOnlyList<DiceTermResultDto> Terms, int Modifier, int Total);
+/// <summary>
+/// Um resultado (uma repetição). <see cref="Terms"/>, <see cref="Modifier"/> e <see cref="Total"/> são os da execução
+/// escolhida, para clientes antigos. Os campos novos (spec 011) ficam fora do JSON quando nulos, então uma expressão
+/// legada serializa exatamente como antes.
+/// </summary>
+public sealed record DiceRollResultDto(
+    int Sequence,
+    IReadOnlyList<DiceTermResultDto> Terms,
+    int Modifier,
+    int Total,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DiceModifierDto>? Modifiers = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Selection = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DiceExecutionDto>? Executions = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SelectedExecution = null);
+/// <summary>Constante da expressão, com rótulo quando houver: <c>(FOR) 3</c> vira <c>{ Label: "FOR", Value: 3 }</c>.</summary>
+public sealed record DiceModifierDto(string? Label, int Value);
+/// <summary>Uma das duas execuções de <c>2#(…) maior|menor</c>.</summary>
+public sealed record DiceExecutionDto(IReadOnlyList<DiceTermResultDto> Terms, int Modifier, int Total);
 public sealed record CombatantDto(
     Guid Id,
     Guid? ParticipantId,
