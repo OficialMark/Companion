@@ -1,0 +1,130 @@
+{
+  "talisman-of-ultimate-evil": {
+    "name": "Talismã do Mal Supremo",
+    "text": "Item Maravilhoso\n\nEste item simboliza o mal impenitente. Uma criatura que não seja um Corruptor ou Morto-Vivo e que toque o talismã sofre 8d6 de dano necrótico e sofre o dano novamente cada vez que terminar o turno segurando ou carregando o talismã.\n\nSímbolo Sagrado. Você pode usar o talismã como um Símbolo Sagrado. Você recebe um bônus de +2 nas jogadas de ataque com magia enquanto o veste ou segura.\n\nFim Supremo. O talismã tem 6 cargas. Enquanto veste ou segura o talismã, você pode realizar uma ação de Magia para gastar 1 carga e escolher como alvo uma criatura que você possa ver no chão a até 36 metros de você. Uma fissura flamejante se abre sob o alvo, e o alvo faz um teste de resistência de Destreza com CD 20. Se o alvo for um Celestial, ele tem desvantagem no teste. Em caso de falha, o alvo cai na fissura e é destruído, sem deixar restos. Em caso de sucesso, o alvo não é lançado na fissura, mas sofre 4d6 de dano psíquico pela provação. Em qualquer caso, a fissura então se fecha, sem deixar vestígio de sua existência. Quando você gasta a última carga, o talismã se dissolve em um lodo fétido e é destruído."
+  },
+  "thunderous-greatclub": {
+    "name": "Clava Grande Trovejante",
+    "text": "Arma (Clava Grande)\n\nEnquanto estiver sintonizado com esta arma mágica, seu valor de Força é 20, a menos que sua Força já seja igual ou maior que esse valor. A arma causa 1d8 de dano trovejante adicional a qualquer criatura que atingir e 3d8 de dano trovejante adicional a objetos que atingir e que não estejam sendo vestidos ou carregados.\n\nA arma tem as propriedades adicionais a seguir.\n\n**_Estrondo de Trovão._** Como uma ação de Magia, você pode golpear uma superfície dura com a arma para criar um estrondo de trovão alto, audível a até 90 metros. Você também cria um Cone de 9 metros de energia trovejante. Cada criatura no Cone precisa ser bem-sucedida em um teste de resistência de Força com CD 15 ou ficará com a condição Caído. Objetos não mágicos no Cone que não estejam sendo vestidos ou carregados sofrem 3d8 de dano trovejante.\n\n**_Terremoto._** Como uma ação de Magia, você pode golpear o chão com a arma para criar um intenso tremor sísmico em um círculo com raio de 15 metros centrado no ponto de impacto. Estruturas em contato com o chão nessa área sofrem 50 de dano contundente, e cada criatura no chão nessa área precisa ser bem-sucedida em um teste de resistência de Destreza com CD 20 ou ficará com a condição Caído. Se essa criatura também estiver se concentrando, ela precisa ser bem-sucedida em um teste de resistência de Constituição com CD 20, ou sua Concentração será quebrada. Além disso, você pode fazer uma fissura de 9 metros de profundidade e 3 metros de largura se abrir no chão em qualquer lugar da área. Qualquer criatura em um ponto onde a fissura se abra precisa fazer um teste de resistência de Destreza com CD 20, caindo na fissura em caso de falha ou movendo-se com a borda da fissura em caso de sucesso. Qualquer estrutura em um ponto onde a fissura se abra desaba dentro dela. Depois que você usa esta propriedade, ela não pode ser usada novamente até o próximo amanhecer."
+  },
+  "tome-of-clear-thought": {
+    "name": "Tomo do Pensamento Claro",
+    "text": "Item Maravilhoso\n\nEste livro contém exercícios de memória e lógica, e suas palavras estão carregadas de magia. Se você passar 48 horas ao longo de um período de 6 dias ou menos estudando o conteúdo do livro e praticando suas orientações, seu valor de Inteligência aumenta em 2, até um máximo de 30. O manual então perde sua magia, mas a recupera em um século."
+  },
+  "tome-of-leadership-and-influence": {
+    "name": "Tomo da Liderança e Influência",
+    "text": "Item Maravilhoso\n\nEste livro contém orientações para influenciar e encantar outras pessoas, e suas palavras estão carregadas de magia. Se você passar 48 horas ao longo de um período de 6 dias ou menos estudando o conteúdo do livro e praticando suas orientações, seu valor de Carisma aumenta em 2, até um máximo de 30. O manual então perde sua magia, mas a recupera em um século."
+  },
+  "tome-of-understanding": {
+    "name": "Tomo da Compreensão",
+    "text": "Item Maravilhoso\n\nEste livro contém exercícios de intuição e perspicácia, e suas palavras estão carregadas de magia. Se você passar 48 horas ao longo de um período de 6 dias ou menos estudando o conteúdo do livro e praticando suas orientações, seu valor de Sabedoria aumenta em 2, até um máximo de 30. O manual então perde sua magia, mas a recupera em um século."
+  },
+  "trident-of-fish-command": {
+    "name": "Tridente de Comando dos Peixes",
+    "text": "Arma (Tridente)\n\nEsta arma mágica tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Enquanto a carrega, você pode gastar 1 carga para conjurar Dominar Besta (CD de resistência 15) a partir dela em uma Besta que tenha Deslocamento de Natação."
+  },
+  "universal-solvent": {
+    "name": "Solvente Universal",
+    "text": "Item Maravilhoso\n\nEste tubo contém um líquido leitoso com um forte cheiro de álcool. Quando encontrado, o tubo contém 1d6 + 1 onças.\n\nVocê pode realizar uma ação de Usar para despejar 1 ou mais onças de solvente do tubo sobre uma superfície ao seu alcance. Cada onça dissolve instantaneamente até 0,09 metro quadrado de adesivo que tocar, incluindo Cola Soberana."
+  },
+  "vicious-weapon": {
+    "name": "Arma Cruel",
+    "text": "Arma (Qualquer Simples ou Marcial)\n\nEsta arma mágica causa 2d6 de dano adicional a qualquer criatura que atingir. Esse dano adicional é do mesmo tipo do dano normal da arma."
+  },
+  "vorpal-sword": {
+    "name": "Espada Vorpal",
+    "text": "Arma (Cimitarra, Espada Longa, Glaive ou Montante)\n\nVocê recebe um bônus de +3 nas jogadas de ataque e de dano feitas com esta arma mágica. Além disso, a arma ignora Resistência a dano cortante.\n\nQuando você usa esta arma para atacar uma criatura que tenha pelo menos uma cabeça e rola um 20 no d20 da jogada de ataque, você decepa uma das cabeças da criatura. A criatura morre se não puder sobreviver sem a cabeça perdida. Uma criatura é imune a esse efeito se tiver Imunidade a dano cortante, se não tiver ou não precisar de cabeça, ou se o Mestre decidir que a criatura é grande demais para ter a cabeça decepada com esta arma. Em vez disso, essa criatura sofre 30 de dano cortante adicional do golpe. Se a criatura tiver Resistência Lendária, ela pode gastar um uso diário dessa característica para evitar perder a cabeça, sofrendo o dano adicional em vez disso."
+  },
+  "wand-of-binding": {
+    "name": "Varinha de Aprisionamento",
+    "text": "Varinha\n\nEsta varinha tem 7 cargas.\n\n**_Magias._** Enquanto segura a varinha, você pode conjurar a partir dela uma das magias (CD de resistência 17) da tabela a seguir. A tabela indica quantas cargas você precisa gastar para conjurar a magia.\n\n| Magia | Custo em Cargas |\n|---|---|\n| Imobilizar Monstro | 5 |\n| Imobilizar Pessoa | 2 |\n\n**_Recuperando Cargas._** A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-enemy-detection": {
+    "name": "Varinha de Detecção de Inimigos",
+    "text": "Varinha\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode realizar uma ação de Magia para gastar 1 carga. Por 1 minuto, você sabe a direção da criatura hostil a você mais próxima a até 18 metros, mas não a distância entre ela e você. A varinha consegue sentir a presença de criaturas hostis que estejam Invisíveis, etéreas, disfarçadas ou escondidas, assim como as que estão à vista. O efeito termina se você parar de segurar a varinha.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-fear": {
+    "name": "Varinha do Medo",
+    "text": "Varinha\n\nEsta varinha tem 7 cargas.\n\n**Magias.** Enquanto segura a varinha, você pode conjurar a partir dela uma das magias (CD de resistência 15) da tabela a seguir. A tabela indica quantas cargas você precisa gastar para conjurar a magia.\n\n| Magia | Custo em Cargas |\n|---|---|\n| Comando (apenas \"fuja\" ou \"rasteje\") | 1 |\n| Medo (Cone de 18 metros) | 3 |\n\n**Recuperando Cargas.** A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-fireballs": {
+    "name": "Varinha de Bolas de Fogo",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode gastar no máximo 3 cargas para conjurar Bola de Fogo (CD de resistência 15) a partir dela. Com 1 carga, você conjura a versão de nível 3 da magia. Você pode aumentar o nível da magia em 1 para cada carga adicional que gastar.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-lightning-bolts": {
+    "name": "Varinha de Relâmpagos",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode gastar no máximo 3 cargas para conjurar Relâmpago (CD de resistência 15) a partir dela. Com 1 carga, você conjura a versão de nível 3 da magia. Você pode aumentar o nível da magia em 1 para cada carga adicional que gastar.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-magic-detection": {
+    "name": "Varinha de Detecção de Magia",
+    "text": "Varinha\n\nEsta varinha tem 3 cargas. Enquanto a segura, você pode gastar 1 carga para conjurar Detectar Magia a partir dela. A varinha recupera 1d3 cargas gastas diariamente ao amanhecer."
+  },
+  "wand-of-magic-missiles": {
+    "name": "Varinha de Mísseis Mágicos",
+    "text": "Varinha\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode gastar no máximo 3 cargas para conjurar Mísseis Mágicos a partir dela. Com 1 carga, você conjura a versão de nível 1 da magia. Você pode aumentar o nível da magia em 1 para cada carga adicional que gastar.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-paralysis": {
+    "name": "Varinha da Paralisia",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode realizar uma ação de Magia para gastar 1 carga e fazer um fino raio azul disparar da ponta em direção a uma criatura que você possa ver a até 18 metros de você. O alvo precisa ser bem-sucedido em um teste de resistência de Constituição com CD 15 ou ficará com a condição Paralisado por 1 minuto. Ao fim de cada um dos turnos do alvo, ele repete o teste, encerrando o efeito sobre si em caso de sucesso.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-polymorph": {
+    "name": "Varinha da Metamorfose",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode gastar 1 carga para conjurar Metamorfose (CD de resistência 15) a partir dela.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-secrets": {
+    "name": "Varinha dos Segredos",
+    "text": "Varinha\n\nEsta varinha tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Enquanto a segura, você pode realizar uma ação de Magia para gastar 1 carga e, se houver uma porta secreta ou armadilha a até 18 metros de você, a varinha pulsa e aponta para a mais próxima de você."
+  },
+  "wand-of-the-war-mage-1": {
+    "name": "Varinha do Mago de Guerra +1",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nIncomum (+1)\n\nEnquanto segura esta varinha, você recebe um bônus de +1 nas jogadas de ataque com magia. Além disso, você ignora Meia Cobertura ao fazer uma jogada de ataque com magia."
+  },
+  "wand-of-the-war-mage-2": {
+    "name": "Varinha do Mago de Guerra +2",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nRaro (+2)\n\nEnquanto segura esta varinha, você recebe um bônus de +2 nas jogadas de ataque com magia. Além disso, você ignora Meia Cobertura ao fazer uma jogada de ataque com magia."
+  },
+  "wand-of-the-war-mage-3": {
+    "name": "Varinha do Mago de Guerra +3",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nMuito Raro (+3)\n\nEnquanto segura esta varinha, você recebe um bônus de +3 nas jogadas de ataque com magia. Além disso, você ignora Meia Cobertura ao fazer uma jogada de ataque com magia."
+  },
+  "wand-of-web": {
+    "name": "Varinha de Teia",
+    "text": "Varinha\n\n(Requer Sintonização por um Conjurador)\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode gastar 1 carga para conjurar Teia (CD de resistência 13) a partir dela.\n\nRecuperando Cargas. A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em cinzas e é destruída."
+  },
+  "wand-of-wonder": {
+    "name": "Varinha das Maravilhas",
+    "text": "Varinha\n\nEsta varinha tem 7 cargas. Enquanto a segura, você pode realizar uma ação de Magia para gastar 1 carga enquanto escolhe um ponto a até 36 metros de você. Esse local se torna o ponto de origem de uma magia ou outro efeito mágico, determinado por uma rolagem na tabela Efeitos da Varinha das Maravilhas. Magias conjuradas a partir da varinha têm CD de resistência 15. Se o alcance máximo de uma magia normalmente for menor que 36 metros, ele passa a ser de 36 metros quando ela é conjurada a partir da varinha. Se um efeito tiver vários alvos possíveis, o Mestre determina aleatoriamente quais deles são afetados.\n\n**_Recuperando Cargas._** A varinha recupera 1d6 + 1 cargas gastas diariamente ao amanhecer. Se você gastar a última carga da varinha, role 1d20. Com um 1, a varinha se desfaz em pó e é destruída.\n\nTabela: Efeitos da Varinha das Maravilhas\n\n| 1d100 | Efeito |\n|---|---|\n| 01–20 | Você conjura uma magia originada no ponto escolhido. Role 1d10 para determinar a magia: com **1–2,** *Escuridão*; com **3–4,** *Fogo das Fadas*; com **5–6,** *Bola de Fogo*; com **7–8,** *Lentidão*; com **9–10,** *Névoa Fétida*. |\n| 21–25 | Nada acontece no ponto de origem escolhido. Em vez disso, você fica com a condição Atordoado até o início do seu próximo turno, acreditando que algo incrível acabou de acontecer. |\n| 26–30 | Você conjura *Lufada de Vento*. A Linha criada pela magia se estende de você até o ponto de origem escolhido. |\n| 31–35 | Nada acontece no ponto de origem escolhido. Em vez disso, você sofre 1d6 de dano psíquico. |\n| 36–40 | Uma chuva forte cai por 1 minuto em um Cilindro de 36 metros de altura e 18 metros de raio, centrado no ponto de origem escolhido. Durante esse tempo, a área do efeito fica Levemente Obscurecida. |\n| 41–45 | Uma nuvem de 600 borboletas enormes preenche um Cilindro de 18 metros de altura e 9 metros de raio, centrado no ponto de origem escolhido. As borboletas permanecem por 10 minutos, período em que a área do efeito fica Muito Obscurecida. |\n| 46–50 | Você conjura *Relâmpago*. A Linha criada pela magia se estende de você até o ponto de origem escolhido. |\n| 51–55 | A criatura mais próxima do ponto de origem escolhido é aumentada como se você tivesse conjurado *Aumentar/Reduzir* nela. Se o alvo não for você e não puder ser afetado por essa magia, você se torna o alvo. |\n| 56–60 | Uma criatura formada magicamente aparece em um espaço desocupado o mais perto possível do ponto de origem escolhido. A criatura não fica sob o seu controle, age como agiria normalmente e desaparece depois de 1 hora ou quando chegar a 0 pontos de vida. Role 1d4 para determinar qual criatura aparece. Com **1,** aparece um **Rinoceronte**; com **2,** aparece um **Elefante**; e com **3–4,** aparece um **Rato**. |\n| 61–64 | Grama cobre um círculo de chão com 18 metros de raio, com o centro desse círculo o mais perto possível do ponto de origem escolhido. A grama que já estiver ali cresce até dez vezes o seu tamanho normal e permanece crescida por 1 minuto. |\n| 65–68 | Um objeto à escolha do Mestre desaparece no Plano Etéreo. O objeto não pode estar sendo vestido nem carregado, precisa estar a até 36 metros do ponto de origem escolhido e não pode ter mais de 3 metros em nenhuma dimensão. Se não houver nenhum objeto assim no alcance, nada acontece. |\n| 69–72 | Nada acontece no ponto de origem escolhido. Em vez disso, você encolhe como se tivesse conjurado *Aumentar/Reduzir* em si mesmo e permanece nesse estado por 1 minuto. |\n| 73–77 | Folhas brotam da criatura mais próxima do ponto de origem escolhido. A menos que sejam arrancadas, as folhas ficam marrons e caem depois de 24 horas. |\n| 78–82 | Nada acontece no ponto de origem escolhido. Em vez disso, uma explosão de luz colorida e cintilante se estende a partir de você em uma Emanação de 9 metros. Cada criatura na área precisa ser bem-sucedida em um teste de resistência de Constituição com CD 15 ou ficará com a condição Cego por 1 minuto. A criatura repete o teste ao fim de cada um dos turnos dela, encerrando o efeito sobre si em caso de sucesso. |\n| 83–87 | Nada acontece no ponto de origem escolhido. Em vez disso, você conjura *Invisibilidade* em si mesmo. |\n| 88–92 | Nada acontece no ponto de origem escolhido. Em vez disso, um jorro de 1d4 × 10 gemas, cada uma valendo 1 PO, dispara da ponta da varinha em uma Linha de 9 metros de comprimento e 1,5 metro de largura em direção ao ponto de origem escolhido. Cada gema causa 1 de dano contundente, e o dano total das gemas é dividido igualmente entre todas as criaturas na Linha. |\n| 93–97 | Você conjura *Metamorfose*, tendo como alvo a criatura mais próxima do ponto de origem escolhido. Role 1d4 para determinar a nova forma do alvo. Com **1,** a nova forma é um **Urso-Negro;** com **2,** a nova forma é uma **Vespa Gigante;** com **3–4,** a nova forma é um **Sapo.** |\n| 98–00 | A criatura mais próxima do ponto de origem escolhido faz um teste de resistência de Constituição com CD 15. Em caso de falha, a criatura fica com a condição Contido e começa a se transformar em pedra. Enquanto estiver Contida dessa forma, a criatura repete o teste ao fim do seu próximo turno. Em caso de sucesso, o efeito termina. Em caso de falha, a criatura fica com a condição Petrificado em vez da condição Contido. A petrificação dura até que a criatura seja libertada pela magia *Restauração Maior* ou magia semelhante. |"
+  },
+  "weapon-1": {
+    "name": "Arma +1",
+    "text": "Arma (Qualquer Simples ou Marcial)\n\nIncomum (+1)\n\nVocê tem um bônus de +1 nas jogadas de ataque e de dano feitas com esta arma mágica."
+  },
+  "weapon-2": {
+    "name": "Arma +2",
+    "text": "Arma (Qualquer Simples ou Marcial)\n\nRaro (+2)\n\nVocê tem um bônus de +2 nas jogadas de ataque e de dano feitas com esta arma mágica."
+  },
+  "weapon-3": {
+    "name": "Arma +3",
+    "text": "Arma (Qualquer Simples ou Marcial)\n\nMuito Raro (+3)\n\nVocê tem um bônus de +3 nas jogadas de ataque e de dano feitas com esta arma mágica."
+  },
+  "weapon-of-warning": {
+    "name": "Arma de Alerta",
+    "text": "Arma (Qualquer Simples ou Marcial)\n\nEnquanto esta arma estiver ao seu alcance e você estiver sintonizado com ela, você e os aliados a até 9 metros de você recebem os benefícios a seguir.\n\nAlarme. A arma desperta magicamente cada beneficiado que esteja dormindo naturalmente quando o combate começa. Este benefício não acorda um beneficiado de um sono induzido magicamente.\n\nProntidão Sobrenatural. Cada beneficiado tem vantagem nas jogadas de Iniciativa."
+  },
+  "well-of-many-worlds": {
+    "name": "Poço dos Muitos Mundos",
+    "text": "Item Maravilhoso\n\nEste fino tecido negro, macio como seda, fica dobrado nas dimensões de um lenço. Ele se desdobra em uma folha circular de 1,8 metro de diâmetro.\n\nVocê pode realizar uma ação de Magia para desdobrar o Poço dos Muitos Mundos e colocá-lo sobre uma superfície sólida, onde ele forma um portal circular de mão dupla, com 1,8 metro de diâmetro, para outro mundo ou plano de existência. Cada vez que o item abre um portal, o Mestre decide para onde ele leva. O portal permanece aberto até que uma criatura a até 1,5 metro dele realize uma ação de Magia para fechá-lo, segurando as bordas do tecido e dobrando-o.\n\nDepois que o Poço dos Muitos Mundos abre um portal, ele não pode fazer isso novamente por 1d8 horas."
+  },
+  "wind-fan": {
+    "name": "Leque do Vento",
+    "text": "Item Maravilhoso\n\nEnquanto segura este leque, você pode conjurar Lufada de Vento (CD de resistência 13) a partir dele. Cada vez seguinte em que o leque for usado antes do próximo amanhecer, ele tem uma chance cumulativa de 20 por cento de não funcionar; se o leque não funcionar, ele se rasga em farrapos inúteis e não mágicos."
+  },
+  "winged-boots": {
+    "name": "Botas Aladas",
+    "text": "Item Maravilhoso\n\nEstas botas têm 4 cargas e recuperam 1d4 cargas gastas diariamente ao amanhecer. Enquanto calça as botas, você pode realizar uma ação de Magia para gastar 1 carga, recebendo um Deslocamento de Voo de 9 metros por 1 hora. Se estiver voando quando a duração terminar, você desce a uma taxa de 9 metros por rodada até pousar."
+  },
+  "wings-of-flying": {
+    "name": "Asas do Voo",
+    "text": "Item Maravilhoso\n\nEnquanto veste este manto, você pode realizar uma ação de Magia para transformar o manto em um par de asas nas suas costas. As asas duram 1 hora ou até você encerrar o efeito antes como uma ação de Magia. As asas lhe dão um Deslocamento de Voo de 18 metros. Se estiver no ar quando as asas desaparecerem, você cai. Quando as asas desaparecem, você não pode usá-las novamente por 1d12 horas."
+  }
+}
