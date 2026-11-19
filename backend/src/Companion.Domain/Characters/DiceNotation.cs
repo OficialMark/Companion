@@ -33,9 +33,19 @@ public static partial class DiceNotation
         return terms;
     }
 
-    /// <summary>One die kind only, e.g. a weapon's "1d8". Returns the normalized "NdM".</summary>
+    /// <summary>
+    /// One die kind only, e.g. a weapon's "1d8". Returns the normalized "NdM". A plain number from 1 to
+    /// 20 is a fixed damage (the SRD blowgun deals 1): it is kept as is and never rolled.
+    /// </summary>
     public static string Single(string? value, string field)
     {
+        var trimmed = value?.Trim() ?? string.Empty;
+        if (int.TryParse(trimmed, NumberStyles.None, CultureInfo.InvariantCulture, out var flat))
+        {
+            if (flat is < 1 or > 20) throw new ArgumentException($"{field}: um dano fixo deve ficar entre 1 e 20.");
+            return flat.ToString(CultureInfo.InvariantCulture);
+        }
+
         var terms = Terms(value, field);
         if (terms.Count != 1) throw new ArgumentException($"{field} deve ter um único tipo de dado, como 1d8.");
         return Format(terms);

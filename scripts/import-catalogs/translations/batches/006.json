@@ -9,7 +9,7 @@
   },
   "bag-of-tricks": {
     "name": "Bolsa de Truques",
-    "text": "Item maravilhoso\n\nEsta bolsa feita de pano cinza, ferrugem ou castanho parece vazia. Ao enfiar a mão dentro dela, porém, percebe-se a presença de um pequeno objeto felpudo.\n\nVocê pode realizar uma ação de Magia para tirar o objeto felpudo da bolsa e arremessá-lo a até 6 metros. Quando o objeto cai, ele se transforma em uma criatura que você determina rolando na tabela correspondente à cor da bolsa. Veja “Monstros” para o bloco de estatísticas da criatura. A criatura desaparece no próximo amanhecer ou quando é reduzida a 0 pontos de vida.\n\nA criatura é Amistosa com você e seus aliados e age imediatamente após você na sua contagem de Iniciativa. Você pode realizar uma Ação Bônus para comandar como a criatura se move e que ação ela realiza no próximo turno dela, como atacar um inimigo. Na ausência dessas ordens, a criatura age de maneira adequada à sua natureza.\n\nDepois que três objetos felpudos forem tirados da bolsa, ela não pode ser usada novamente até o próximo amanhecer.\n\nTabela: Bolsa de Truques Cinza\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Doninha |\n| 2 | Rato Gigante |\n| 3 | Texugo |\n| 4 | Javali |\n| 5 | Pantera |\n| 6 | Texugo Gigante |\n| 7 | Lobo Atroz |\n| 8 | Alce Gigante |\n\nTabela: Bolsa de Truques Ferrugem\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Rato |\n| 2 | Coruja |\n| 3 | Mastim |\n| 4 | Bode |\n| 5 | Bode Gigante |\n| 6 | Javali Gigante |\n| 7 | Leão |\n| 8 | Urso-Pardo |\n\nTabela: Bolsa de Truques Castanha\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Chacal |\n| 2 | Macaco |\n| 3 | Babuíno |\n| 4 | Bico de Machado |\n| 5 | Urso-Negro |\n| 6 | Doninha Gigante |\n| 7 | Hiena Gigante |\n| 8 | Tigre |"
+    "text": "Item maravilhoso\n\nEsta bolsa feita de pano cinza, ferrugem ou castanho parece vazia. Ao enfiar a mão dentro dela, porém, percebe-se a presença de um pequeno objeto felpudo.\n\nVocê pode realizar uma ação de Magia para tirar o objeto felpudo da bolsa e arremessá-lo a até 6 metros. Quando o objeto cai, ele se transforma em uma criatura que você determina rolando na tabela correspondente à cor da bolsa. Veja “Monstros” para o bloco de estatísticas da criatura. A criatura desaparece no próximo amanhecer ou quando é reduzida a 0 pontos de vida.\n\nA criatura é Amistosa com você e seus aliados e age imediatamente após você na sua contagem de Iniciativa. Você pode realizar uma ação bônus para comandar como a criatura se move e que ação ela realiza no próximo turno dela, como atacar um inimigo. Na ausência dessas ordens, a criatura age de maneira adequada à sua natureza.\n\nDepois que três objetos felpudos forem tirados da bolsa, ela não pode ser usada novamente até o próximo amanhecer.\n\nTabela: Bolsa de Truques Cinza\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Doninha |\n| 2 | Rato Gigante |\n| 3 | Texugo |\n| 4 | Javali |\n| 5 | Pantera |\n| 6 | Texugo Gigante |\n| 7 | Lobo Atroz |\n| 8 | Alce Gigante |\n\nTabela: Bolsa de Truques Ferrugem\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Rato |\n| 2 | Coruja |\n| 3 | Mastim |\n| 4 | Bode |\n| 5 | Bode Gigante |\n| 6 | Javali Gigante |\n| 7 | Leão |\n| 8 | Urso-Pardo |\n\nTabela: Bolsa de Truques Castanha\n\n| 1d8 | Criatura |\n|---|---|\n| 1 | Chacal |\n| 2 | Macaco |\n| 3 | Babuíno |\n| 4 | Bico de Machado |\n| 5 | Urso-Negro |\n| 6 | Doninha Gigante |\n| 7 | Hiena Gigante |\n| 8 | Tigre |"
   },
   "bead-of-force": {
     "name": "Conta de Força",
@@ -61,7 +61,7 @@
   },
   "boots-of-speed": {
     "name": "Botas de Velocidade",
-    "text": "Item maravilhoso\n\nEnquanto você usa estas botas, pode realizar uma Ação Bônus para bater os calcanhares delas um no outro. Se fizer isso, as botas dobram seu Deslocamento, e qualquer criatura que fizer um Ataque de Oportunidade contra você tem desvantagem na jogada de ataque. Se bater os calcanhares novamente, você encerra o efeito.\n\nQuando você tiver usado a propriedade das botas por um total de 10 minutos, a magia para de funcionar para você até você terminar um descanso longo."
+    "text": "Item maravilhoso\n\nEnquanto você usa estas botas, pode realizar uma ação bônus para bater os calcanhares delas um no outro. Se fizer isso, as botas dobram seu Deslocamento, e qualquer criatura que fizer um Ataque de Oportunidade contra você tem desvantagem na jogada de ataque. Se bater os calcanhares novamente, você encerra o efeito.\n\nQuando você tiver usado a propriedade das botas por um total de 10 minutos, a magia para de funcionar para você até você terminar um descanso longo."
   },
   "boots-of-striding-and-springing": {
     "name": "Botas de Caminhar e Saltar",
@@ -73,7 +73,7 @@
   },
   "bowl-of-commanding-water-elementals": {
     "name": "Tigela de Comando de Elementais da Água",
-    "text": "Item maravilhoso\n\nEnquanto esta tigela estiver cheia de água e você estiver a até 1,5 metro dela, você pode realizar uma ação de Magia para invocar um Elemental da Água. O elemental aparece em um espaço desocupado o mais perto possível da tigela, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma Ação Bônus. A tigela não pode ser usada dessa forma novamente até o próximo amanhecer.\n\nA tigela tem cerca de 0,3 metro de diâmetro e metade disso de profundidade. Ela comporta cerca de 3 galões."
+    "text": "Item maravilhoso\n\nEnquanto esta tigela estiver cheia de água e você estiver a até 1,5 metro dela, você pode realizar uma ação de Magia para invocar um Elemental da Água. O elemental aparece em um espaço desocupado o mais perto possível da tigela, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma ação bônus. A tigela não pode ser usada dessa forma novamente até o próximo amanhecer.\n\nA tigela tem cerca de 0,3 metro de diâmetro e metade disso de profundidade. Ela comporta cerca de 3 galões."
   },
   "bracers-of-archery": {
     "name": "Braçadeiras de Arquearia",
@@ -85,7 +85,7 @@
   },
   "brazier-of-commanding-fire-elementals": {
     "name": "Braseiro de Comando de Elementais do Fogo",
-    "text": "Item maravilhoso\n\nEnquanto estiver a até 1,5 metro deste braseiro, você pode realizar uma ação de Magia para invocar um Elemental do Fogo. O elemental aparece em um espaço desocupado o mais perto possível do braseiro, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma Ação Bônus. O braseiro não pode ser usado dessa forma novamente até o próximo amanhecer."
+    "text": "Item maravilhoso\n\nEnquanto estiver a até 1,5 metro deste braseiro, você pode realizar uma ação de Magia para invocar um Elemental do Fogo. O elemental aparece em um espaço desocupado o mais perto possível do braseiro, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma ação bônus. O braseiro não pode ser usado dessa forma novamente até o próximo amanhecer."
   },
   "brooch-of-shielding": {
     "name": "Broche de Proteção",
@@ -97,7 +97,7 @@
   },
   "candle-of-invocation": {
     "name": "Vela da Invocação",
-    "text": "Item maravilhoso\n\nA magia desta vela é ativada quando ela é acesa, o que exige uma ação de Magia. Depois de queimar por 4 horas, a vela é destruída. Você pode apagá-la antes para usá-la mais tarde. Desconte o tempo que ela queimou, em incrementos de 1 minuto, do tempo total de queima.\n\nEnquanto acesa, a vela emite Penumbra em um raio de 9 metros. Enquanto você estiver nessa luz, tem vantagem em Testes de D20. Além disso, um Clérigo ou Druida na luz pode conjurar magias de nível 1 que tenha preparado sem gastar espaços de magia.\n\nComo alternativa, quando acender a vela pela primeira vez, você pode conjurar *Portal* com ela. Fazer isso destrói a vela. O portal criado pela magia se liga a um Plano Exterior específico, escolhido pelo Mestre ou determinado rolando na tabela a seguir.\n\n| 1d100 | Plano Exterior |\n|---|---|\n| 01–05 | Abismo |\n| 06–10 | Aqueronte |\n| 11–17 | Arbórea |\n| 18–25 | Arcádia |\n| 26–33 | Terras Selvagens |\n| 34–41 | Bytopia |\n| 42–46 | Carceri |\n| 47–54 | Elísio |\n| 55–59 | Geena |\n| 60–64 | Hades |\n| 65–69 | Limbo |\n| 70–77 | Mechanus |\n| 78–85 | Monte Celestia |\n| 86–90 | Nove Infernos |\n| 91–95 | Pandemônio |\n| 96–00 | Ysgard |"
+    "text": "Item maravilhoso\n\nA magia desta vela é ativada quando ela é acesa, o que exige uma ação de Magia. Depois de queimar por 4 horas, a vela é destruída. Você pode apagá-la antes para usá-la mais tarde. Desconte o tempo que ela queimou, em incrementos de 1 minuto, do tempo total de queima.\n\nEnquanto acesa, a vela emite Penumbra em um raio de 9 metros. Enquanto você estiver nessa luz, tem vantagem em Testes de D20. Além disso, um Clérigo ou Druida na luz pode conjurar magias de círculo 1 que tenha preparado sem gastar espaços de magia.\n\nComo alternativa, quando acender a vela pela primeira vez, você pode conjurar *Portal* com ela. Fazer isso destrói a vela. O portal criado pela magia se liga a um Plano Exterior específico, escolhido pelo Mestre ou determinado rolando na tabela a seguir.\n\n| 1d100 | Plano Exterior |\n|---|---|\n| 01–05 | Abismo |\n| 06–10 | Aqueronte |\n| 11–17 | Arbórea |\n| 18–25 | Arcádia |\n| 26–33 | Terras Selvagens |\n| 34–41 | Bytopia |\n| 42–46 | Carceri |\n| 47–54 | Elísio |\n| 55–59 | Geena |\n| 60–64 | Hades |\n| 65–69 | Limbo |\n| 70–77 | Mechanus |\n| 78–85 | Monte Celestia |\n| 86–90 | Nove Infernos |\n| 91–95 | Pandemônio |\n| 96–00 | Ysgard |"
   },
   "cape-of-the-mountebank": {
     "name": "Capa do Charlatão",
@@ -109,7 +109,7 @@
   },
   "censer-of-controlling-air-elementals": {
     "name": "Incensário de Controle de Elementais do Ar",
-    "text": "Item maravilhoso\n\nEnquanto balança suavemente este incensário, você pode realizar uma ação de Magia para invocar um Elemental do Ar. O elemental aparece em um espaço desocupado o mais perto possível do incensário, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma Ação Bônus. O incensário não pode ser usado dessa forma novamente até o próximo amanhecer."
+    "text": "Item maravilhoso\n\nEnquanto balança suavemente este incensário, você pode realizar uma ação de Magia para invocar um Elemental do Ar. O elemental aparece em um espaço desocupado o mais perto possível do incensário, entende seus idiomas, obedece aos seus comandos e age imediatamente após você na sua contagem de Iniciativa. O elemental desaparece após 1 hora, quando morre ou quando você o dispensa com uma ação bônus. O incensário não pode ser usado dessa forma novamente até o próximo amanhecer."
   },
   "chime-of-opening": {
     "name": "Sino da Abertura",
@@ -121,7 +121,7 @@
   },
   "cloak-of-arachnida": {
     "name": "Manto da Aracnídea",
-    "text": "Item maravilhoso\n\nEsta roupa refinada é feita de seda negra entremeada com fios prateados e tênues. Enquanto a estiver usando, você recebe os seguintes benefícios.\n\nResistência a Veneno. Você tem Resistência a dano de veneno.\n\nEscalada de Aranha. Você tem Deslocamento de Escalada igual ao seu Deslocamento e pode se mover para cima, para baixo e através de superfícies verticais e pelo teto, mantendo as mãos livres.\n\nCaminhada de Aranha. Você não pode ficar preso em teias de nenhum tipo e pode se mover através de teias como se fossem Terreno Difícil.\n\nTeia. Você pode conjurar *Teia* (CD 13 para resistir). A teia criada pela magia preenche o dobro da sua área normal. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
+    "text": "Item maravilhoso\n\nEsta roupa refinada é feita de seda negra entremeada com fios prateados e tênues. Enquanto a estiver usando, você recebe os seguintes benefícios.\n\nResistência a Veneno. Você tem Resistência a dano de veneno.\n\nEscalada de Aranha. Você tem Deslocamento de Escalada igual ao seu Deslocamento e pode se mover para cima, para baixo e através de superfícies verticais e pelo teto, mantendo as mãos livres.\n\nCaminhada de Aranha. Você não pode ficar preso em teias de nenhum tipo e pode se mover através de teias como se fossem Terreno Difícil.\n\nTeia. Você pode conjurar *Teia* (CD de resistência 13). A teia criada pela magia preenche o dobro da sua área normal. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
   },
   "cloak-of-displacement": {
     "name": "Manto do Deslocamento",
@@ -149,14 +149,14 @@
   },
   "crystal-ball": {
     "name": "Bola de Cristal",
-    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD 17 para resistir) com ele."
+    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD de resistência 17) com ele."
   },
   "crystal-ball-of-mind-reading": {
     "name": "Bola de Cristal de Leitura Mental",
-    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD 17 para resistir) com ele. Além disso, você pode conjurar *Detectar Pensamentos* (CD 17 para resistir) tendo como alvo criaturas que você consiga ver a até 9 metros do sensor da magia. Você não precisa se concentrar nessa *Detectar Pensamentos* para mantê-la durante sua duração, mas ela termina se a *Vidência* terminar."
+    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD de resistência 17) com ele. Além disso, você pode conjurar *Detectar Pensamentos* (CD de resistência 17) tendo como alvo criaturas que você consiga ver a até 9 metros do sensor da magia. Você não precisa se concentrar nessa *Detectar Pensamentos* para mantê-la durante sua duração, mas ela termina se a *Vidência* terminar."
   },
   "crystal-ball-of-telepathy": {
     "name": "Bola de Cristal de Telepatia",
-    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD 17 para resistir) com ele. Além disso, você pode se comunicar telepaticamente com criaturas que consiga ver a até 9 metros do sensor da magia. Você também pode conjurar *Sugestão* (CD 17 para resistir) através do sensor em uma dessas criaturas. Você não precisa se concentrar nessa *Sugestão* para mantê-la durante sua duração, mas ela termina se a *Vidência* terminar. Você não pode conjurar *Sugestão* dessa forma novamente até o próximo amanhecer."
+    "text": "Item maravilhoso\n\nEnquanto tocar este orbe de cristal, você pode conjurar *Vidência* (CD de resistência 17) com ele. Além disso, você pode se comunicar telepaticamente com criaturas que consiga ver a até 9 metros do sensor da magia. Você também pode conjurar *Sugestão* (CD de resistência 17) através do sensor em uma dessas criaturas. Você não precisa se concentrar nessa *Sugestão* para mantê-la durante sua duração, mas ela termina se a *Vidência* terminar. Você não pode conjurar *Sugestão* dessa forma novamente até o próximo amanhecer."
   }
 }

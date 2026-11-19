@@ -2,44 +2,12 @@
 
 Gerado por `import-spells.mjs` e `import-items.mjs`. Cada importador reescreve só a sua seção.
 
-<!-- section:spells -->
-## Magias (magias5e)
-
-Resultado: **PASS**, `backend/src/Companion.Infrastructure/Persistence/Seed/spells.magias5e.json` escrito (545271 bytes).
-
-| Verificação | Esperado | Obtido | Status |
-| --- | --- | --- | --- |
-| total | 361 | 361 | PASS |
-| nível 0 | 27 | 27 | PASS |
-| nível 1 | 63 | 63 | PASS |
-| nível 2 | 59 | 59 | PASS |
-| nível 3 | 49 | 49 | PASS |
-| nível 4 | 35 | 35 | PASS |
-| nível 5 | 42 | 42 | PASS |
-| nível 6 | 32 | 32 | PASS |
-| nível 7 | 20 | 20 | PASS |
-| nível 8 | 18 | 18 | PASS |
-| nível 9 | 16 | 16 | PASS |
-| ritual | 32 | 32 | PASS |
-| concentração | 154 | 154 | PASS |
-| classes | bardo, bruxo, clérigo, druida, feiticeiro, mago, paladino, patrulheiro | bardo, bruxo, clérigo, druida, feiticeiro, mago, paladino, patrulheiro | PASS |
-| nomes das listas por classe encontrados | 842 | 842 | PASS |
-
-Informativo (sem valor esperado fixo):
-
-- Magias com "Em Níveis Superiores": 101
-- Com dado de dano sugerido: 133; com tipo de dano: 98
-- Tipo de rolagem: ataque 22, salvaguarda 128, nenhum 211
-- Entradas nas listas por classe: 842
-- Magias sem nenhuma classe: 0
-<!-- /section:spells -->
-
 <!-- section:items -->
 ## Itens (SRD 5.2.1, 5e-bits)
 
 Fonte: `5e-bits/5e-srd-api` no commit `c33bc0aab99716eb60b094222533d5531405eef4`, pasta `packages/5e-database/src/2024/en`.
 
-Resultado: **SOURCE OK**, tradução pendente (modo `--source-only`, seed não escrito).
+Resultado: **PASS**, `backend/src/Companion.Infrastructure/Persistence/Seed/items.srd52.json` escrito (458678 bytes).
 
 | Verificação da fonte | Esperado | Obtido | Status |
 | --- | --- | --- | --- |
@@ -64,5 +32,7 @@ Avisos do mapeamento:
 
 - hide-armor: tipo medium pelo limite de DES, mas a fonte diz light-armor; usado medium
 
-Tradução: pendente (T057). Rode sem `--source-only` depois que os lotes existirem.
+Tradução: 461 entradas, juntadas de 14 lotes.
+
+Validação: 461/461 entradas válidas, 0 erros.
 <!-- /section:items -->

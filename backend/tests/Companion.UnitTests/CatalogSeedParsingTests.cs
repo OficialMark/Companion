@@ -78,6 +78,32 @@ public sealed class CatalogSeedParsingTests
         Assert.Contains("mago", fireball.Classes);
     }
 
+    [Fact]
+    public void The_real_item_seed_loads_all_459_items_in_portuguese_with_the_srd_attribution()
+    {
+        var path = Path.Combine(RepoRoot(), "backend", "src", "Companion.Infrastructure", "Persistence", "Seed", "items.srd52.json");
+        var seed = JsonSerializer.Deserialize<CatalogSeeder.ItemSeedFile>(File.ReadAllBytes(path), Json)!;
+        Assert.StartsWith("This work includes material from the System Reference Document 5.2.1", seed.Attribution);
+
+        var items = seed.Items!.Select(x => new CatalogItem(Guid.NewGuid(), x.Slug!, CatalogSeeder.ToFields(x))).ToArray();
+
+        Assert.Equal(459, items.Length);
+        Assert.Equal(459, items.Select(x => x.Slug).Distinct().Count());
+        Assert.Equal(71, items.Count(x => x.Category == ItemCategory.Weapon));
+        Assert.Equal(26, items.Count(x => x.Category == ItemCategory.Armor));
+        var greatsword = items.Single(x => x.Slug == "greatsword");
+        Assert.Equal("Montante", greatsword.Name);
+        Assert.Equal("2d6", greatsword.Template.Weapon!.DamageDice);
+        Assert.Equal(WeaponClass.Martial, greatsword.Template.Weapon.Class);
+        var chain = items.Single(x => x.Slug == "chain-mail");
+        Assert.Equal(16, chain.Template.Armor!.BaseAc);
+        Assert.Equal(ArmorType.Heavy, chain.Template.Armor.Type);
+        var ring = items.Single(x => x.Slug == "ring-of-protection");
+        Assert.Equal([EffectType.ArmorClass, EffectType.SaveBonus], ring.Template.Effects.Select(x => x.Type));
+        Assert.Contains(items, x => x.RequiresBaseItem && x.Template.MagicBonus == 1);
+        Assert.DoesNotContain(items, x => x.Template.Description is { } text && text.Contains(" feet", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static string RepoRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
