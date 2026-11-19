@@ -1,0 +1,89 @@
+# Contrato HTTP: conta, ficha, inventário, magias, rolagens salvas e catálogos
+
+Minimal APIs, mesmo estilo de `CreatureEndpoints`. Toda rota exige `X-Participant-Token`. Erros em ProblemDetails, com o mapeamento existente (400 validação, 401 sem sessão, 403 papel, 404, 409 concorrência). Enums como string.
+
+**Regra de dono (FR-003):** nenhuma rota de ficha recebe `participantId`. O dono é sempre `ParticipantAuthorization.Require(campaignId, token)`. Itens, magias e rolagens são buscados por `id` **e** `ParticipantId = dono`; id de outro dono responde 404 (não 403, para não confirmar que existe).
+
+**Papel:** rotas de ficha respondem 403 para o mestre ("Somente jogadores possuem ficha pessoal.").
+
+**Resposta padrão de leitura e escrita da ficha (`CharacterDto`):**
+
+```jsonc
+{
+  "sheet": { /* campos editáveis de CharacterSheet + "version": "base64" */ },
+  "items": [ /* InventoryItemDto, com version */ ],
+  "spells": [ /* CharacterSpellDto */ ],
+  "savedRolls": [ /* SavedRollDto + "incomplete": bool */ ],
+  "stats": { /* CharacterStats, ver data-model.md */ }
+}
+```
+
+Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nunca calcula regra e nunca fica com `stats` velho.
+
+## Conta e sessão
+
+| Método | Rota | Corpo | Resposta | Notas |
+|---|---|---|---|---|
+| POST | `/api/campaigns/join` | `{code, displayName}` | `SessionResponse` (inalterado) | **Comportamento novo:** normaliza o nome e procura a conta `(campanha, papel do código, NameKey)`. Existe: cria uma sessão nova para ela. Não existe: cria participante e sessão. Concorrência: violação do índice único → relê e usa a conta vencedora. `ParticipantJoined` só é emitido quando a conta é criada. Rate limit "access" inalterado. |
+| POST | `/api/campaigns` | inalterado | inalterado | Nome do mestre normalizado; cria a sessão em `ParticipantSessions`. |
+| DELETE | `/api/campaigns/{id}/participants/me/session` | — | 204 | Apaga só a sessão do token usado (FR-043). "Sair da campanha" passa a chamar esta rota antes de limpar o navegador. |
+
+## Ficha
+
+| Método | Rota | Corpo | Resposta |
+|---|---|---|---|
+| GET | `/api/campaigns/{id}/participants/me/character` | — | `CharacterDto`. Cria a ficha padrão se não existir (idempotente; corrida resolvida pela PK). |
+| PATCH | `/api/campaigns/{id}/participants/me/character` | campos editáveis parciais + `version` | `CharacterDto` · 409 se `version` velha |
+
+## Inventário
+
+| Método | Rota | Corpo | Resposta |
+|---|---|---|---|
+| POST | `…/me/character/items` | `InventoryItemInput` | `CharacterDto` (201) |
+| POST | `…/me/character/items/from-catalog` | `{catalogItemId, quantity?}` | `CharacterDto` (201) |
+| PUT | `…/me/character/items/{itemId}` | `InventoryItemInput` + `version` | `CharacterDto` |
+| POST | `…/me/character/items/{itemId}/equip` | `{equipped: bool}` | `CharacterDto`, com `stats.notices: ["Cota de Malha foi desequipada."]` quando outro item saiu |
+| DELETE | `…/me/character/items/{itemId}` | — | `CharacterDto` |
+
+Validação de `InventoryItemInput`: categoria exige o bloco correspondente (`weapon`, `armor`, `shield`); `damageDice` e `versatileDice` aceitam só `NdM` válidos pela gramática; `effects` até 20 itens, cada um validado contra a tabela de `ItemEffect`.
+
+## Magias do personagem
+
+| Método | Rota | Corpo | Resposta |
+|---|---|---|---|
+| POST | `…/me/character/spells` | `CharacterSpellInput` | `CharacterDto` (201) |
+| POST | `…/me/character/spells/from-catalog` | `{catalogSpellId}` | `CharacterDto` (201); repetir a mesma magia → 409 |
+| PUT | `…/me/character/spells/{spellId}` | `CharacterSpellInput` | `CharacterDto` |
+| DELETE | `…/me/character/spells/{spellId}` | — | `CharacterDto` |
+
+## Rolagens salvas
+
+| Método | Rota | Corpo | Resposta |
+|---|---|---|---|
+| POST | `…/me/character/rolls` | `SavedRollInput` | `CharacterDto` (201) |
+| PUT | `…/me/character/rolls/{rollId}` | `SavedRollInput` | `CharacterDto` |
+| POST | `…/me/character/rolls/{rollId}/duplicate` | — | `CharacterDto` (201) |
+| DELETE | `…/me/character/rolls/{rollId}` | — | `CharacterDto` |
+
+`SavedRollInput.icon` fora de `SavedRollIcons.All` → 400. `inventoryItemId` / `characterSpellId` de outro dono → 400 ("Item não encontrado na sua ficha.").
+
+A execução de uma rolagem salva usa a rota de dados existente: o frontend monta a expressão com `stats` atuais e chama `POST /api/campaigns/{id}/dice-rolls` com `label = nome da rolagem`. A rota de dados aceita a gramática nova (ver `dice-expression.md`).
+
+## Catálogos (qualquer participante da campanha, jogador ou mestre)
+
+| Método | Rota | Query | Resposta |
+|---|---|---|---|
+| GET | `/api/campaigns/{id}/catalog/items` | `q`, `category`, `rarity`, `page` (1..), `pageSize` (≤50) | `{items: CatalogItemSummaryDto[], total, page, pageSize, attribution}` |
+| GET | `/api/campaigns/{id}/catalog/items/{itemId}` | — | `CatalogItemDto` |
+| GET | `/api/campaigns/{id}/catalog/spells` | `q`, `level`, `school`, `class`, `ritual`, `concentration`, `page`, `pageSize` | `{items: CatalogSpellSummaryDto[], total, page, pageSize}` |
+| GET | `/api/campaigns/{id}/catalog/spells/{spellId}` | — | `CatalogSpellDto` |
+
+`q` é comparado com `SearchKey` (sem acento, minúsculo), como no compêndio de criaturas. `attribution` só existe no catálogo de itens (texto CC-BY-4.0 do SRD 5.2). O catálogo de magias não tem crédito.
+
+## Tempo real
+
+| Evento | Payload | Quem recebe | Quando |
+|---|---|---|---|
+| `ParticipantUpdated` | `ParticipantDto` (inalterado) | grupo da campanha | PV ou iniciativa da ficha mudaram (FR-010) |
+| `CharacterChanged` | `{participantId}` | grupo da campanha | qualquer escrita na ficha; só o cliente cujo `me.id` bate busca de novo (sincroniza aparelhos da mesma conta sem expor a ficha a ninguém) |
+| `DiceRolled` | `DiceRollDto` (campos novos opcionais) | grupo da campanha | inalterado |
