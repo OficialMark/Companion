@@ -727,8 +727,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Expression")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("Label")
                         .HasMaxLength(80)
@@ -828,6 +828,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int?>("MaxHitPoints")
                         .HasColumnType("int");
 
+                    b.Property<string>("NameKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -844,6 +849,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("CampaignId", "DisplayName");
+
+                    b.HasIndex("CampaignId", "Role", "NameKey")
+                        .IsUnique()
+                        .HasFilter("[NameKey] IS NOT NULL");
 
                     b.ToTable("Participants", (string)null);
                 });
@@ -871,6 +880,39 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasKey("ParticipantId");
 
                     b.ToTable("ParticipantAvatars", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.ParticipantSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varbinary(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParticipantId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("ParticipantSessions", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.SeedVersion", b =>
@@ -1112,6 +1154,15 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasOne("Companion.Domain.Models.Participant", null)
                         .WithOne()
                         .HasForeignKey("Companion.Domain.Models.ParticipantAvatar", "ParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.ParticipantSession", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Participant", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

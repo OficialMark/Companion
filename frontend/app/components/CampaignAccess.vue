@@ -80,8 +80,9 @@ function enterCreatedCampaign() {
         </label>
         <label>
           Seu nome
-          <input v-model="displayName" maxlength="40" required autocomplete="nickname" placeholder="Como será chamado na mesa">
+          <input v-model="displayName" maxlength="40" required autocomplete="nickname" placeholder="Como será chamado na mesa" aria-describedby="display-name-hint">
         </label>
+        <p id="display-name-hint" class="field-hint"><Icon name="lucide:user-round-check" />Use o mesmo nome para voltar ao seu personagem.</p>
         <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
         <button class="button primary wide" :disabled="busy" type="submit">
           <Icon :name="busy ? 'lucide:loader-circle' : mode === 'create' ? 'lucide:sparkles' : 'lucide:door-open'" :class="{ spin: busy }" />

@@ -20,6 +20,9 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
     /// <summary>Every realtime notification the API emitted (the real SignalR notifier still runs).</summary>
     public NotificationLog Notifications { get; } = new();
 
+    /// <summary>Servidor SQL descartável do Testcontainers (testes que precisam de outro banco no mesmo servidor).</summary>
+    public string ConnectionString => _sqlServer.GetConnectionString();
+
     public Task InitializeAsync() => _sqlServer.StartAsync();
     public new Task DisposeAsync() => _sqlServer.DisposeAsync().AsTask();
 

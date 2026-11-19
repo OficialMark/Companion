@@ -55,8 +55,9 @@ public sealed class CampaignApiTests(CompanionApiFactory factory) : ApiTestBase(
     }
 
     [Fact]
-    public async Task Stable_identity_allows_players_with_the_same_display_name()
+    public async Task Same_display_name_opens_the_same_account_since_spec_011()
     {
+        // Antes da spec 011 o mesmo nome criava outro participante; agora o nome identifica a conta (FR-042).
         var campaign = await CreateCampaign(Guid.NewGuid().ToString("N")[..6]);
         var first = await Client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.PlayerCode, "Alex"));
         var second = await Client.PostAsJsonAsync("/api/campaigns/join", new JoinCampaignRequest(campaign.PlayerCode, "Alex"));
@@ -65,6 +66,7 @@ public sealed class CampaignApiTests(CompanionApiFactory factory) : ApiTestBase(
         second.EnsureSuccessStatusCode();
         var firstSession = (await first.Content.ReadFromJsonAsync<SessionResponse>(JsonOptions))!;
         var secondSession = (await second.Content.ReadFromJsonAsync<SessionResponse>(JsonOptions))!;
-        Assert.NotEqual(firstSession.ParticipantId, secondSession.ParticipantId);
+        Assert.Equal(firstSession.ParticipantId, secondSession.ParticipantId);
+        Assert.NotEqual(firstSession.ParticipantToken, secondSession.ParticipantToken);
     }
 }

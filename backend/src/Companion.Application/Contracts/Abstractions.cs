@@ -8,6 +8,7 @@ public interface ICompanionDbContext
     IQueryable<CampaignAccessCode> CampaignAccessCodes { get; }
     IQueryable<Participant> Participants { get; }
     IQueryable<ParticipantAvatar> ParticipantAvatars { get; }
+    IQueryable<ParticipantSession> ParticipantSessions { get; }
     IQueryable<DiceRoll> DiceRolls { get; }
     IQueryable<Encounter> Encounters { get; }
     IQueryable<Combatant> Combatants { get; }
@@ -25,6 +26,16 @@ public interface ICompanionDbContext
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
     void Add(Participant participant);
+    void Add(ParticipantSession session);
+    void Remove(ParticipantSession session);
+    /// <summary>Descarta uma inserção pendente que falhou (corrida no join pelo nome), para o próximo SaveChanges não repeti-la.</summary>
+    void Detach(Participant participant);
+    void Detach(ParticipantSession session);
+    /// <summary>
+    /// Grava <see cref="ParticipantSession.LastSeenAt"/> direto no banco, só se o valor guardado tiver
+    /// uma hora ou mais (a condição vai no WHERE, então duas requisições simultâneas gravam no máximo uma vez).
+    /// </summary>
+    void TouchSession(Guid sessionId, DateTimeOffset seenAt);
     void Add(ParticipantAvatar avatar);
     void Remove(ParticipantAvatar avatar);
     void Add(DiceRoll diceRoll);

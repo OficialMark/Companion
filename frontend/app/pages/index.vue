@@ -60,7 +60,7 @@ async function setHitPointsVisibility(combatantId: string | null, hidden: boolea
 }
 async function leave() {
   await realtime.disconnect()
-  store.clearSession()
+  await store.leaveCampaign()
 }
 
 const codeCopied = ref(false)
