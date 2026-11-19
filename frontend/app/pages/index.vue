@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import InventoryPanel from '~/components/character/InventoryPanel.vue'
+import PlayerRollPanel from '~/components/character/PlayerRollPanel.vue'
+import CharacterSheetView from '~/components/character/CharacterSheetView.vue'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
 import type { DiceRoll, StatusCondition } from '~/types/campaign'

@@ -97,6 +97,11 @@ function clampRepetitions(value: number) {
   return Math.min(MAX_REPETITIONS, Math.max(1, Math.trunc(Number.isFinite(value) ? value : 1)))
 }
 function setRepetitions(value: number) { update({ repetitions: clampRepetitions(value) }) }
+/** Live update while typing (FR-027: the expression follows every change); an empty or partial value waits for blur. */
+function onRepetitionsInput(event: Event) {
+  const value = (event.target as HTMLInputElement).valueAsNumber
+  if (Number.isInteger(value) && value >= 1 && value <= MAX_REPETITIONS) update({ repetitions: value })
+}
 
 function addExtra() {
   if (props.modelValue.extraModifiers.length >= MAX_EXTRAS) return
@@ -260,6 +265,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         aria-label="Repetições, de 1 a 20"
         data-repetitions
         :disabled="disabled"
+        @input="onRepetitionsInput"
         @change="setRepetitions(Number(($event.target as HTMLInputElement).value))"
       >
       <button class="icon-button" type="button" aria-label="Mais uma repetição" :disabled="disabled || modelValue.repetitions >= MAX_REPETITIONS" @click="setRepetitions(modelValue.repetitions + 1)">

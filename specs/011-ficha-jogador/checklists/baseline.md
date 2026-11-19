@@ -10,6 +10,14 @@ Medida em 2026-11-19, no commit `16c66ac` (antes de qualquer código da feature)
 
 Observação: num worktree novo, o Vitest falha nos 28 arquivos até rodar `pnpm exec nuxt prepare` (falta `.nuxt/`). Não é regressão.
 
-## Depois da feature
+## Depois da feature (2026-11-19, versão fechada)
 
-(preenchido em T067)
+| Suíte | Resultado |
+|---|---|
+| Backend unit | 374 passaram |
+| Backend integração | 96 passaram |
+| Frontend Vitest | 408 passaram |
+| Importadores de catálogo | 56 passaram, 3 pulados (cache completo ausente) |
+| E2E player-sheet (desktop, 1280 e 375 px) | passou |
+| E2E antigas | 11 falham igual na `main` (comparação lado a lado); não são regressões |
+

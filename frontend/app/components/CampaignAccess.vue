@@ -89,7 +89,7 @@ function enterCreatedCampaign() {
           {{ busy ? 'Preparando a mesa…' : mode === 'create' ? 'Criar e entrar' : 'Entrar na campanha' }}
         </button>
       </form>
-      <p class="access-note"><Icon name="lucide:lock" />Nenhuma conta é necessária. Sua sessão fica somente neste navegador.</p>
+      <p class="access-note"><Icon name="lucide:lock" />Sem senha: o código da mesa e o nome do personagem levam você de volta à sua conta, em qualquer aparelho.</p>
     </section>
   </main>
 </template>

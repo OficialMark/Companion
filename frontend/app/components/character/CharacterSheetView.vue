@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import SheetCoreTab from '~/components/character/SheetCoreTab.vue'
+import InventoryPanel from '~/components/character/InventoryPanel.vue'
+import SpellList from '~/components/character/SpellList.vue'
+import SavedRollList from '~/components/character/SavedRollList.vue'
 /**
  * The player's "Ficha" screen (spec 011, US1). Tabs for the sheet, the bag, spells and saved rolls.
  * Loads the caller's own character; the server decides whose it is from the session (FR-003).

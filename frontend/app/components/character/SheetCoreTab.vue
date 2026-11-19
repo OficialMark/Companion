@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DerivedStat from '~/components/character/DerivedStat.vue'
 import type { AbilityCode, ArmorType, CharacterSheetData, SkillTraining } from '~/types/character'
 import { ABILITY_LABEL, ABILITY_NAME, ABILITY_ORDER, SKILLS, abilityKey } from '~/types/character'
 
