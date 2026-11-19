@@ -13,8 +13,8 @@ const props = defineProps<{ mode: 'items' | 'spells' }>()
 const emit = defineEmits<{ close: [] }>()
 
 /** The backend DTO has these fields; the shared TS type may not have them yet. */
-type ItemSummary = CatalogItemSummary & { requiresBaseItem?: boolean }
-type ItemQuery = CatalogItemQuery & { mundane?: boolean }
+type ItemSummary = CatalogItemSummary
+type ItemQuery = CatalogItemQuery
 
 const SEARCH_DELAY_MS = 300
 const PAGE_SIZE = 20

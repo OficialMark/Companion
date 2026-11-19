@@ -188,6 +188,8 @@ export interface CatalogItemSummary {
   rarity: string | null
   requiresAttunement: boolean
   magicBonus: number
+  /** Generic magic weapon or armor ("Arma +1"): adding it asks for a mundane base item. */
+  requiresBaseItem: boolean
 }
 
 export interface CatalogItem {
@@ -199,6 +201,7 @@ export interface CatalogItem {
   rarity: string | null
   requiresAttunement: boolean
   cost: string | null
+  requiresBaseItem: boolean
   template: InventoryItemData
 }
 
@@ -223,7 +226,7 @@ export interface CatalogSpell {
 
 export interface CatalogPage<T> { items: T[]; total: number; page: number; pageSize: number; attribution: string | null }
 
-export interface CatalogItemQuery { q?: string; category?: string; rarity?: string; page?: number; pageSize?: number }
+export interface CatalogItemQuery { q?: string; category?: string; rarity?: string; page?: number; pageSize?: number; mundane?: boolean }
 export interface CatalogSpellQuery { q?: string; level?: number | null; school?: string; class?: string; ritual?: boolean | null; concentration?: boolean | null; page?: number; pageSize?: number }
 
 export const ABILITY_ORDER: AbilityCode[] = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha']
