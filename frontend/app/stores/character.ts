@@ -8,8 +8,7 @@ export const AUTOSAVE_DELAY_MS = 400
 let autosaveTimer: ReturnType<typeof setTimeout> | undefined
 
 function sheetData(character: Character): CharacterSheetData {
-  const { version: _version, ...data } = character.sheet
-  return structuredClone(data)
+  return structuredClone(character.sheet)
 }
 
 /**
@@ -35,7 +34,7 @@ export const useCharacterStore = defineStore('character', {
     stats: state => state.character?.stats ?? null,
     /** True while the draft has edits the server has not confirmed: derived values are stale. */
     stale: state => state.editSequence !== state.savedSequence,
-    equippedWeapons: state => (state.character?.items ?? []).filter(item => item.category === 'Weapon' && item.equipped)
+    equippedWeapons: state => (state.character?.items ?? []).filter(item => item.data.category === 'Weapon' && item.data.equipped)
   },
   actions: {
     session() {
@@ -83,7 +82,7 @@ export const useCharacterStore = defineStore('character', {
       const sequence = this.editSequence
       this.inFlight = true
       try {
-        const character = await useCharacterApi().saveSheet(this.session(), this.draft, this.character.sheet.version)
+        const character = await useCharacterApi().saveSheet(this.session(), this.draft, this.character.version)
         this.savedSequence = sequence
         this.apply(character)
         this.saveState = this.stale ? 'saving' : 'saved'

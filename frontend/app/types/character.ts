@@ -88,11 +88,12 @@ export interface InventoryItemData {
   effects: ItemEffect[]
 }
 
-export interface InventoryItem extends InventoryItemData {
+export interface InventoryItem {
   id: string
   sortOrder: number
   catalogItemId: string | null
   version: string
+  data: InventoryItemData
 }
 
 export interface CharacterSpellData {
@@ -113,7 +114,7 @@ export interface CharacterSpellData {
   addAbilityToDamage: boolean
 }
 
-export interface CharacterSpell extends CharacterSpellData { id: string; catalogSpellId: string | null }
+export interface CharacterSpell { id: string; sortOrder: number; catalogSpellId: string | null; data: CharacterSpellData }
 
 export interface RollModifier { label: string | null; value: number }
 
@@ -132,7 +133,7 @@ export interface SavedRollData {
   repetitions: number
 }
 
-export interface SavedRoll extends SavedRollData { id: string; sortOrder: number; incomplete: boolean }
+export interface SavedRoll { id: string; sortOrder: number; incomplete: boolean; data: SavedRollData }
 
 export interface StatPart { label: string; value: number; source: string; itemId: string | null }
 export interface ValueStat { value: number; parts: StatPart[] }
@@ -168,7 +169,9 @@ export interface CharacterStats {
 }
 
 export interface Character {
-  sheet: CharacterSheetData & { version: string }
+  participantId: string
+  sheet: CharacterSheetData
+  version: string
   items: InventoryItem[]
   spells: CharacterSpell[]
   savedRolls: SavedRoll[]
@@ -187,14 +190,16 @@ export interface CatalogItemSummary {
   magicBonus: number
 }
 
-export interface CatalogItem extends CatalogItemSummary {
-  weight: number | null
+export interface CatalogItem {
+  id: string
+  name: string
+  nameEn: string | null
+  category: ItemCategory
+  subcategory: string | null
+  rarity: string | null
+  requiresAttunement: boolean
   cost: string | null
-  description: string | null
-  weapon: WeaponData | null
-  armor: ArmorData | null
-  shield: ShieldData | null
-  effects: ItemEffect[]
+  template: InventoryItemData
 }
 
 export interface CatalogSpellSummary {
@@ -207,17 +212,13 @@ export interface CatalogSpellSummary {
   classes: string[]
 }
 
-export interface CatalogSpell extends CatalogSpellSummary {
-  castingTime: string | null
-  range: string | null
-  components: string | null
-  duration: string | null
-  description: string | null
+export interface CatalogSpell {
+  id: string
+  name: string
+  level: number
+  classes: string[]
   higherLevels: string | null
-  suggestedDamageDice: string | null
-  suggestedDamageType: string | null
-  attackKind: SpellAttackKind
-  saveAbility: AbilityCode | null
+  template: CharacterSpellData
 }
 
 export interface CatalogPage<T> { items: T[]; total: number; page: number; pageSize: number; attribution: string | null }

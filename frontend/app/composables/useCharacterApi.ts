@@ -27,27 +27,27 @@ export function useCharacterApi() {
   return {
     getCharacter: (session: Session) => send<Character>(session, base(session)),
     saveSheet: (session: Session, sheet: CharacterSheetData, version: string) =>
-      send<Character>(session, base(session), json('PUT', { ...sheet, version })),
+      send<Character>(session, base(session), json('PUT', { data: sheet, version })),
 
-    addItem: (session: Session, item: InventoryItemData) => send<Character>(session, `${base(session)}/items`, json('POST', item)),
+    addItem: (session: Session, item: InventoryItemData) => send<Character>(session, `${base(session)}/items`, json('POST', { data: item })),
     addItemFromCatalog: (session: Session, catalogItemId: string, quantity = 1) =>
       send<Character>(session, `${base(session)}/items/from-catalog`, json('POST', { catalogItemId, quantity })),
     saveItem: (session: Session, itemId: string, item: InventoryItemData, version: string) =>
-      send<Character>(session, `${base(session)}/items/${itemId}`, json('PUT', { ...item, version })),
+      send<Character>(session, `${base(session)}/items/${itemId}`, json('PUT', { data: item, version })),
     equipItem: (session: Session, itemId: string, equipped: boolean) =>
       send<Character>(session, `${base(session)}/items/${itemId}/equip`, json('POST', { equipped })),
     removeItem: (session: Session, itemId: string) => send<Character>(session, `${base(session)}/items/${itemId}`, json('DELETE')),
 
-    addSpell: (session: Session, spell: CharacterSpellData) => send<Character>(session, `${base(session)}/spells`, json('POST', spell)),
+    addSpell: (session: Session, spell: CharacterSpellData) => send<Character>(session, `${base(session)}/spells`, json('POST', { data: spell })),
     addSpellFromCatalog: (session: Session, catalogSpellId: string) =>
       send<Character>(session, `${base(session)}/spells/from-catalog`, json('POST', { catalogSpellId })),
     saveSpell: (session: Session, spellId: string, spell: CharacterSpellData) =>
-      send<Character>(session, `${base(session)}/spells/${spellId}`, json('PUT', spell)),
+      send<Character>(session, `${base(session)}/spells/${spellId}`, json('PUT', { data: spell })),
     removeSpell: (session: Session, spellId: string) => send<Character>(session, `${base(session)}/spells/${spellId}`, json('DELETE')),
 
-    addRoll: (session: Session, roll: SavedRollData) => send<Character>(session, `${base(session)}/rolls`, json('POST', roll)),
+    addRoll: (session: Session, roll: SavedRollData) => send<Character>(session, `${base(session)}/rolls`, json('POST', { data: roll })),
     saveRoll: (session: Session, rollId: string, roll: SavedRollData) =>
-      send<Character>(session, `${base(session)}/rolls/${rollId}`, json('PUT', roll)),
+      send<Character>(session, `${base(session)}/rolls/${rollId}`, json('PUT', { data: roll })),
     duplicateRoll: (session: Session, rollId: string) => send<Character>(session, `${base(session)}/rolls/${rollId}/duplicate`, json('POST')),
     removeRoll: (session: Session, rollId: string) => send<Character>(session, `${base(session)}/rolls/${rollId}`, json('DELETE')),
 
