@@ -34,12 +34,12 @@ for (const width of [1280, 1024, 375]) {
     await page.getByRole('button', { name: 'Entrar como mestre' }).click()
 
     // 1. The Criaturas tab exists for the master.
-    await expect(page.getByRole('tab', { name: 'Criaturas' })).toBeVisible()
-    await page.getByRole('tab', { name: 'Criaturas' }).click()
+    await expect(page.getByRole('button', { name: 'Compêndio' })).toBeVisible()
+    await page.getByRole('button', { name: 'Compêndio' }).click()
     await expect(page.locator('.creature-card').first()).toBeVisible()
     await shot(page, '1-tab')
     await noHorizontalScroll(page)
-    await page.getByRole('tab', { name: 'Mesa' }).click()
+    await page.getByRole('button', { name: 'Mesa', exact: true }).click()
 
     // 2. The combat preparation form opens on the catalog.
     await page.getByRole('button', { name: 'Iniciar preparação' }).click()

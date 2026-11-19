@@ -75,11 +75,11 @@ async function copyCode() {
 }
 
 // Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
-// Master's tabs (spec 008): the table, or the creature library.
-const view = ref<'table' | 'creatures'>('table')
+// Master's screen (spec 009): the table, or the full-width creature compendium. Kept in the URL.
+const { view } = useMasterView()
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
-watch(() => store.isMaster, master => { if (!master) { view.value = 'table'; creatures.close() } })
+watch(() => store.isMaster, master => { if (!master) creatures.close() })
 // Board photos: participants' avatars plus library images of creature tokens.
 watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
   for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
@@ -130,8 +130,11 @@ onBeforeUnmount(() => {
 <template>
   <CampaignAccess v-if="!store.session" />
   <main v-else class="app-shell">
-    <header class="topbar">
-      <div class="brand-inline"><span class="mini-mark" aria-hidden="true">20</span><strong>Companion</strong></div>
+    <header class="topbar" :class="{ 'has-view-nav': store.isMaster }">
+      <div class="brand-inline"><span class="mini-mark" aria-hidden="true">20</span><strong>Companion</strong><span v-if="store.isMaster && store.snapshot" class="brand-campaign" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span></div>
+      <!-- display: contents on desktop (nav and campaign are grid columns); its own row on phones. -->
+      <div class="topbar-center">
+      <MasterViewNav />
       <div v-if="store.snapshot" class="campaign-heading">
         <span class="campaign-name" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span>
         <button
@@ -145,6 +148,7 @@ onBeforeUnmount(() => {
           <Icon :name="codeCopied ? 'lucide:check' : 'lucide:copy'" />
           {{ store.snapshot.campaign.playerCode }}
         </button>
+      </div>
       </div>
       <div class="top-actions">
         <GameModeToggle />
@@ -163,6 +167,14 @@ onBeforeUnmount(() => {
       <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
+      <template v-if="view === 'compendio'">
+        <!-- The Mesa shows this inside its welcome row; the Compendium has none, so it gets its own. -->
+        <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert" data-compendio-offline>
+          <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
+        </p>
+        <CreatureLibrary />
+      </template>
+      <template v-else>
       <section v-if="!gameMode.active.value" class="welcome-row">
         <div><p class="eyebrow">Bem-vindo à mesa</p><h1>{{ store.session.displayName }}</h1></div>
         <p v-if="store.connection === 'offline'" class="offline-warning" role="alert">
@@ -179,12 +191,7 @@ onBeforeUnmount(() => {
         </details>
       </section>
 
-      <nav v-if="store.isMaster" class="view-tabs" role="tablist" aria-label="Áreas do mestre">
-        <button type="button" role="tab" class="view-tab" data-view="table" :class="{ selected: view === 'table' }" :aria-selected="view === 'table'" @click="view = 'table'"><Icon name="lucide:swords" />Mesa</button>
-        <button type="button" role="tab" class="view-tab" data-view="creatures" :class="{ selected: view === 'creatures' }" :aria-selected="view === 'creatures'" @click="view = 'creatures'"><Icon name="lucide:book-open" />Criaturas</button>
-      </nav>
-      <CreatureLibrary v-if="store.isMaster && view === 'creatures'" />
-      <div v-else class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
+      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
           <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
@@ -248,6 +255,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <InitiativeModifier />
+      </template>
     </div>
 
     <CreatureSheetModal v-if="store.isMaster && creatures.sheet" />

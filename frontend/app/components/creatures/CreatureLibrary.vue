@@ -12,6 +12,9 @@ const origins = Object.entries(ORIGIN_LABELS) as Array<[CreatureOrigin, string]>
 const challengeSteps = ['0', '1/8', '1/4', '1/2', ...Array.from({ length: 30 }, (_, index) => String(index + 1))]
 const challengeValue = (value: string) => value.includes('/') ? Number(value.split('/')[0]) / Number(value.split('/')[1]) : Number(value)
 const crLabel = (value: number | null) => value == null ? '' : challengeSteps.find(step => Math.abs(challengeValue(step) - value) < 1e-6) ?? ''
+// "Minhas criaturas" (spec 009) is the existing Custom origin filter, one click away.
+const mine = computed(() => creatures.query.origin === 'Custom')
+function toggleMine() { creatures.setQuery({ origin: mine.value ? '' : 'Custom' }) }
 const filtersActive = computed(() => Boolean(creatures.query.size || creatures.query.type || creatures.query.origin || creatures.query.crMin != null || creatures.query.crMax != null))
 
 watch(search, value => {
@@ -42,8 +45,15 @@ onBeforeUnmount(() => clearTimeout(debounce))
 <template>
   <section class="panel creature-library" aria-labelledby="creature-library-title" data-creature-library>
     <div class="panel-heading">
-      <div><p class="eyebrow"><Icon name="lucide:book-open" />Bestiário</p><h2 id="creature-library-title">Biblioteca de criaturas</h2></div>
-      <button class="button primary compact" type="button" data-new-creature @click="creatures.newCreature()"><Icon name="lucide:plus" /><span>Nova criatura</span></button>
+      <div>
+        <p class="eyebrow"><Icon name="lucide:book-open" />Bestiário da mesa</p>
+        <h1 id="creature-library-title">Compêndio</h1>
+        <p class="creature-library-lead">Consulte, filtre e edite as criaturas do compêndio, ou crie as suas.</p>
+      </div>
+      <div class="creature-library-actions">
+        <button class="button ghost compact creature-mine" type="button" data-mine :aria-pressed="mine" @click="toggleMine"><Icon name="lucide:user-round-pen" /><span>Minhas criaturas</span></button>
+        <button class="button primary compact" type="button" data-new-creature @click="creatures.newCreature()"><Icon name="lucide:plus" /><span>Nova criatura</span></button>
+      </div>
     </div>
 
     <div class="creature-filters">
@@ -52,11 +62,11 @@ onBeforeUnmount(() => clearTimeout(debounce))
         <input v-model="search" type="search" inputmode="search" placeholder="Buscar por nome (PT ou EN)" aria-label="Buscar criatura" data-creature-search>
       </label>
       <select :value="creatures.query.size" aria-label="Tamanho" @change="creatures.setQuery({ size: ($event.target as HTMLSelectElement).value as CreatureSize })">
-        <option value="">Todos os tamanhos</option>
+        <option value="">Tamanho</option>
         <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
       </select>
       <select :value="creatures.query.type" aria-label="Tipo" @change="creatures.setQuery({ type: ($event.target as HTMLSelectElement).value })">
-        <option value="">Todos os tipos</option>
+        <option value="">Tipo</option>
         <option v-for="type in creatures.types" :key="type" :value="type">{{ type }}</option>
       </select>
       <div class="creature-cr" role="group" aria-label="Nível de desafio">
@@ -64,10 +74,10 @@ onBeforeUnmount(() => clearTimeout(debounce))
         <select aria-label="ND máximo" :value="crLabel(creatures.query.crMax)" @change="onCr('crMax', $event)"><option value="">ND máx.</option><option v-for="cr in challengeSteps" :key="cr" :value="cr">{{ cr }}</option></select>
       </div>
       <select :value="creatures.query.origin" aria-label="Origem" @change="creatures.setQuery({ origin: ($event.target as HTMLSelectElement).value as CreatureOrigin })">
-        <option value="">Todas as origens</option>
+        <option value="">Origem</option>
         <option v-for="[value, label] in origins" :key="value" :value="value">{{ label }}</option>
       </select>
-      <button v-if="filtersActive || search" class="button ghost compact" type="button" @click="clearFilters"><Icon name="lucide:x" />Limpar</button>
+      <button v-if="filtersActive || search" class="button ghost compact creature-clear" type="button" @click="clearFilters"><Icon name="lucide:x" />Limpar</button>
     </div>
 
     <p class="creature-count" aria-live="polite">
@@ -98,7 +108,11 @@ onBeforeUnmount(() => clearTimeout(debounce))
     </ul>
     <div v-if="!creatures.loading && !creatures.items.length" class="empty-state">
       <span class="state-icon"><Icon name="lucide:search-x" size="1.6rem" /></span>
-      <p>Nenhuma criatura encontrada com esses filtros.</p>
+      <template v-if="mine && !search">
+        <p data-mine-empty>Você ainda não criou nenhuma criatura nesta mesa.</p>
+        <button class="button primary compact" type="button" @click="creatures.newCreature()"><Icon name="lucide:plus" />Criar a primeira</button>
+      </template>
+      <p v-else>Nenhuma criatura encontrada com esses filtros.</p>
     </div>
 
     <nav v-if="creatures.pageCount > 1" class="creature-pagination" aria-label="Páginas">
