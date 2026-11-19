@@ -1,0 +1,162 @@
+{
+  "pipes-of-the-sewers": {
+    "name": "Flauta dos Esgotos",
+    "text": "Item Maravilhoso\n\nEnquanto esta flauta estiver com você, ratos comuns e ratos gigantes ficam Indiferentes a você e não o atacarão, a menos que você os ameace ou os fira.\n\nA flauta tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Se tocar a flauta como uma ação de Magia, você pode usar uma Ação Bônus para gastar de 1 a 3 cargas, convocando um Enxame de Ratos para cada carga gasta, desde que haja ratos suficientes a menos de um quilômetro de você para serem convocados dessa maneira (conforme determinado pelo Mestre). Se não houver ratos suficientes para formar um enxame, a carga é desperdiçada. Os enxames convocados se movem em direção à música pelo caminho mais curto disponível, mas, fora isso, não ficam sob seu controle.\n\nSempre que um Enxame de Ratos que não esteja sob o controle de outra criatura chegar a até 9 metros de você enquanto você toca a flauta, o enxame faz um teste de resistência de Sabedoria CD 15. Se for bem-sucedido, o enxame se comporta normalmente e não pode ser influenciado pela música da flauta pelas próximas 24 horas. Se falhar, o enxame é influenciado pela música da flauta e se torna Amistoso a você e a seus aliados enquanto você continuar tocando a flauta a cada rodada como uma ação de Magia. Um enxame Amistoso obedece aos seus comandos. Se você não der nenhum comando a um enxame Amistoso, ele se defende, mas não realiza nenhuma outra ação. Se um enxame Amistoso começar o turno a mais de 9 metros de você, seu controle sobre ele termina, e o enxame se comporta normalmente e não pode ser influenciado pela música da flauta pelas próximas 24 horas."
+  },
+  "plate-armor-of-etherealness": {
+    "name": "Armadura de Placas Etérea",
+    "text": "Armadura (Meia-Armadura ou Armadura de Placas)\n\nEnquanto estiver usando esta armadura, você pode realizar uma ação de Magia e pronunciar uma palavra de comando para obter o efeito da magia Forma Etérea. A magia termina imediatamente se você remover a armadura ou realizar uma ação de Magia para repetir a palavra de comando. Esta propriedade da armadura não pode ser usada novamente até o próximo amanhecer."
+  },
+  "portable-hole": {
+    "name": "Buraco Portátil",
+    "text": "Item Maravilhoso\n\nEste fino tecido preto, macio como seda, fica dobrado nas dimensões de um lenço. Desdobrado, ele forma uma folha circular de 1,8 metro de diâmetro.\n\nVocê pode realizar uma ação de Magia para desdobrar um Buraco Portátil e colocá-lo sobre ou contra uma superfície sólida; o Buraco Portátil então cria um buraco extradimensional de 3 metros de profundidade. O espaço cilíndrico dentro do buraco existe em outro plano de existência, por isso não pode ser usado para abrir passagens. Qualquer criatura dentro de um Buraco Portátil aberto pode sair dele escalando.\n\nVocê pode realizar uma ação de Magia para fechar um Buraco Portátil, segurando as bordas do tecido e dobrando-o. Dobrar o tecido fecha o buraco, e quaisquer criaturas ou objetos dentro dele permanecem no espaço extradimensional. Não importa o que haja dentro, o buraco quase não pesa nada.\n\nSe o buraco estiver dobrado, uma criatura dentro do seu espaço extradimensional pode realizar uma ação para fazer um teste de Força (Atletismo) CD 10. Se for bem-sucedida, a criatura força a saída e aparece a até 1,5 metro do Buraco Portátil. Um Buraco Portátil fechado contém ar suficiente para 1 hora de respiração, dividida pelo número de criaturas que respiram dentro dele.\n\nColocar um Buraco Portátil dentro de um espaço extradimensional criado por uma Bolsa Guarda-Tudo, uma Mochila Prática ou um item semelhante destrói instantaneamente os dois itens e abre um portal para o Plano Astral. O portal se origina onde um item foi colocado dentro do outro. Qualquer criatura a até 3 metros do portal que não esteja atrás de Cobertura Total é sugada por ele e largada em um local aleatório do Plano Astral. Em seguida, o portal se fecha. O portal é de mão única e não pode ser reaberto."
+  },
+  "potion-of-animal-friendship": {
+    "name": "Poção de Amizade Animal",
+    "text": "Poção\n\nQuando bebe esta poção, você pode conjurar a versão de nível 3 da magia Amizade Animal (CD de resistência 13). Agitar o líquido lamacento desta poção faz surgirem pedacinhos: uma escama de peixe, uma pena de beija-flor, uma garra de gato ou um pelo de esquilo."
+  },
+  "potion-of-clairvoyance": {
+    "name": "Poção de Clarividência",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito da magia Clarividência (sem exigir Concentração).\n\nUm globo ocular flutua no líquido amarelado desta poção, mas desaparece quando a poção é aberta."
+  },
+  "potion-of-climbing": {
+    "name": "Poção de Escalada",
+    "text": "Poção\n\nQuando bebe esta poção, você ganha um Deslocamento de Escalada igual ao seu Deslocamento por 1 hora. Durante esse tempo, você tem vantagem em testes de Força (Atletismo) para escalar.\n\nEsta poção é dividida em camadas marrom, prateada e cinza que lembram faixas de rocha. Agitar o frasco não mistura as cores."
+  },
+  "potion-of-diminution": {
+    "name": "Poção de Diminuição",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito \"reduzir\" da magia Aumentar/Reduzir por 1d4 horas (sem exigir Concentração).\n\nO vermelho do líquido da poção se contrai continuamente até virar uma gotinha e depois se expande, colorindo o líquido transparente ao redor. Agitar o frasco não interrompe esse processo."
+  },
+  "potion-of-flying": {
+    "name": "Poção de Voo",
+    "text": "Poção\n\nQuando bebe esta poção, você ganha um Deslocamento de Voo igual ao seu Deslocamento por 1 hora e pode pairar. Se estiver no ar quando o efeito da poção acabar, você cai, a menos que tenha algum outro meio de se manter no alto. O líquido transparente desta poção flutua no topo do recipiente e tem impurezas brancas e turvas vagando nele."
+  },
+  "potion-of-growth": {
+    "name": "Poção de Crescimento",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito \"aumentar\" da magia Aumentar/Reduzir por 10 minutos (sem exigir Concentração).\n\nO vermelho do líquido da poção se expande continuamente a partir de uma gotinha, colorindo o líquido transparente ao redor, e depois se contrai. Agitar o frasco não interrompe esse processo."
+  },
+  "potions-of-healing": {
+    "name": "Poções de Cura",
+    "text": "Poção\n\nVocê recupera pontos de vida quando bebe esta poção. O número de pontos de vida depende da raridade da poção, como mostra a tabela abaixo.\n\nQualquer que seja sua potência, o líquido vermelho da poção cintila quando agitado.\n\n| Poção | PV Recuperados | Raridade |\n|---|---|---|\n| Poção de Cura | 2d4 + 2 | Comum |\n| Poção de Cura (maior) | 4d4 + 4 | Incomum |\n| Poção de Cura (superior) | 8d4 + 8 | Raro |\n| Poção de Cura (suprema) | 10d4 + 20 | Muito Raro |"
+  },
+  "potions-of-healing-greater": {
+    "name": "Poção de Cura (maior)",
+    "text": null
+  },
+  "potions-of-healing-superior": {
+    "name": "Poção de Cura (superior)",
+    "text": null
+  },
+  "potions-of-healing-supreme": {
+    "name": "Poção de Cura (suprema)",
+    "text": null
+  },
+  "potion-of-gaseous-form": {
+    "name": "Poção de Forma Gasosa",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito da magia Forma Gasosa por 1 hora (sem exigir Concentração) ou até encerrar o efeito como uma Ação Bônus.\n\nO recipiente desta poção parece conter uma névoa que se move e escorre como água."
+  },
+  "potion-of-heroism": {
+    "name": "Poção de Heroísmo",
+    "text": "Poção\n\nQuando bebe esta poção, você ganha 10 pontos de vida temporários que duram 1 hora. Pela mesma duração, você fica sob o efeito da magia Bênção (sem exigir Concentração).\n\nO líquido azul desta poção borbulha e solta vapor como se estivesse fervendo."
+  },
+  "potion-of-giant-strength": {
+    "name": "Poção de Força do Gigante",
+    "text": "Poção\n\nQuando bebe esta poção, seu valor de Força muda por 1 hora. O tipo de gigante determina o valor (veja a tabela abaixo). A poção não tem efeito sobre você se sua Força for igual ou maior que esse valor.\n\nNo líquido transparente desta poção flutua uma lasca de luz que lembra a unha de um gigante.\n\n| Poção | For. | Raridade |\n|---|---|---|\n| Poção de Força do Gigante (das colinas) | 21 | Incomum |\n| Poção de Força do Gigante (do gelo ou das pedras) | 23 | Raro |\n| Poção de Força do Gigante (do fogo) | 25 | Raro |\n| Poção de Força do Gigante (das nuvens) | 27 | Muito Raro |\n| Poção de Força do Gigante (das tempestades) | 29 | Lendário |"
+  },
+  "potion-of-invisibility": {
+    "name": "Poção de Invisibilidade",
+    "text": "Poção\n\nO recipiente desta poção parece vazio, mas dá a sensação de conter líquido. Quando bebe a poção, você fica com a condição Invisível por 1 hora. O efeito termina antes se você fizer uma jogada de ataque, causar dano ou conjurar uma magia."
+  },
+  "potion-of-invulnerability": {
+    "name": "Poção de Invulnerabilidade",
+    "text": "Poção\n\nPor 1 minuto depois de beber esta poção, você tem Resistência a todo dano.\n\nO líquido xaroposo desta poção parece ferro liquefeito."
+  },
+  "potion-of-longevity": {
+    "name": "Poção de Longevidade",
+    "text": "Poção\n\nQuando bebe esta poção, sua idade física é reduzida em 1d6 + 6 anos, até o mínimo de 13 anos. Cada vez que você beber uma Poção de Longevidade depois disso, há uma chance cumulativa de 10% de que, em vez disso, você envelheça 1d6 + 6 anos.\n\nSuspenso neste líquido âmbar há um minúsculo coração que, contra toda a razão, ainda está batendo. Esses ingredientes desaparecem quando a poção é aberta."
+  },
+  "potion-of-mind-reading": {
+    "name": "Poção de Leitura da Mente",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito da magia Detectar Pensamentos (CD de resistência 13) por 10 minutos (sem exigir Concentração). O líquido denso e roxo desta poção tem uma nuvem ovoide cor-de-rosa flutuando nele."
+  },
+  "potion-of-poison": {
+    "name": "Poção de Veneno",
+    "text": "Poção\n\nEsta mistura tem a aparência, o cheiro e o gosto de uma Poção de Cura ou de outra poção benéfica. No entanto, ela é na verdade veneno disfarçado por magia de ilusão. Identificar revela sua verdadeira natureza.\n\nSe beber esta poção, você sofre 4d6 de dano de veneno e precisa ser bem-sucedido em um teste de resistência de Constituição CD 13 ou ficará com a condição Envenenado por 1 hora."
+  },
+  "potion-of-resistance": {
+    "name": "Poção de Resistência",
+    "text": "Poção\n\nQuando bebe esta poção, você tem Resistência a um tipo de dano por 1 hora. O Mestre escolhe o tipo ou o determina aleatoriamente rolando na tabela a seguir.\n\n| 1d10 | Tipo de Dano |\n|---|---|\n| 1 | Ácido |\n| 2 | Gélido |\n| 3 | Fogo |\n| 4 | Força |\n| 5 | Elétrico |\n| 6 | Necrótico |\n| 7 | Veneno |\n| 8 | Psíquico |\n| 9 | Radiante |\n| 10 | Trovejante |"
+  },
+  "potion-of-speed": {
+    "name": "Poção de Velocidade",
+    "text": "Poção\n\nQuando bebe esta poção, você obtém o efeito da magia Velocidade por 1 minuto (sem exigir Concentração), sem sofrer a onda de letargia que normalmente ocorre quando o efeito termina. O fluido amarelo desta poção tem estrias pretas e gira sozinho."
+  },
+  "potion-of-vitality": {
+    "name": "Poção de Vitalidade",
+    "text": "Poção\n\nQuando bebe esta poção, ela remove todos os níveis de Exaustão que você tiver e encerra a condição Envenenado em você. Pelas próximas 24 horas, você recupera o número máximo de pontos de vida em qualquer Dado de Ponto de Vida que gastar.\n\nO líquido carmesim desta poção pulsa regularmente com uma luz fraca, lembrando um batimento cardíaco."
+  },
+  "potion-of-water-breathing": {
+    "name": "Poção de Respirar na Água",
+    "text": "Poção\n\nVocê consegue respirar debaixo d'água por 24 horas depois de beber esta poção.\n\nO fluido verde e turvo desta poção cheira a mar e tem uma bolha parecida com uma água-viva flutuando nele."
+  },
+  "quarterstaff-of-the-acrobat": {
+    "name": "Bordão do Acrobata",
+    "text": "Arma (Bordão)\n\nVocê recebe um bônus de +2 nas jogadas de ataque e de dano feitas com esta arma mágica.\n\nEnquanto empunha esta arma, você pode fazê-la emitir Penumbra verde em um raio de 3 metros, como uma Ação Bônus ou depois de rolar a Iniciativa, ou pode apagar a luz como uma Ação Bônus.\n\nEnquanto empunha esta arma, você pode usar uma Ação Bônus para alterar sua forma, transformando-a em uma vareta de 15 centímetros (para facilitar o armazenamento) ou em uma vara de 3 metros, ou revertendo-a a um Bordão; a arma só se alonga até onde o espaço ao redor permitir.\n\nEm certas formas, a arma tem as seguintes propriedades adicionais.\n\n**_Auxílio Acrobático (Somente nas Formas de Bordão e de Vara de 3 Metros)._** Enquanto empunha esta arma, você tem vantagem em testes de Destreza (Acrobacia).\n\n**_Deflexão de Ataque (Somente na Forma de Bordão)._** Quando é atingido por um ataque enquanto empunha a arma, você pode usar sua Reação para girar a arma ao seu redor, ganhando um bônus de +5 na sua Classe de Armadura contra o ataque que desencadeou a Reação, o que pode fazer o ataque errar. Você não pode usar esta propriedade novamente até terminar um Descanso Curto ou um Descanso Longo.\n\n**_Arma à Distância (Somente na Forma de Bordão)._** Esta arma tem a propriedade Arremesso, com distância normal de 9 metros e distância longa de 36 metros. Imediatamente depois de você fazer um ataque à distância com a arma, ela voa de volta para sua mão."
+  },
+  "ring-of-animal-influence": {
+    "name": "Anel de Influência Animal",
+    "text": "Anel\n\nEste anel tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Enquanto usa o anel, você pode gastar 1 carga para conjurar a partir dele uma das seguintes magias (CD de resistência 13):• Amizade Animal• Medo (afeta somente Bestas)• Falar com Animais"
+  },
+  "ring-of-djinni-summoning": {
+    "name": "Anel de Invocação de Djinni",
+    "text": "Anel\n\nEnquanto usa este anel, você pode realizar uma ação de Magia para invocar um Djinni específico do Plano Elemental do Ar. O djinni aparece em um espaço desocupado à sua escolha a até 36 metros de você. Ele permanece enquanto você mantiver a Concentração, até o máximo de 1 hora, ou até cair para 0 pontos de vida.\n\nEnquanto estiver invocado, o djinni é Amistoso a você e a seus aliados e obedece aos seus comandos. Se você não lhe der comandos, o djinni se defende de atacantes, mas não realiza nenhuma outra ação.\n\nDepois que o djinni parte, ele não pode ser invocado novamente por 24 horas, e o anel deixa de ser mágico se o djinni morrer.\n\nAnéis de Invocação de Djinni costumam ser criados pelos próprios djinn que invocam e dados a mortais como presentes de amizade ou sinais de estima."
+  },
+  "ring-of-elemental-command": {
+    "name": "Anel de Comando Elemental",
+    "text": "Anel\n\nCada *Anel de Comando Elemental* está ligado a um dos quatro Planos Elementais. O Mestre escolhe ou determina aleatoriamente o plano ligado. Por exemplo, um *Anel de Comando Elemental* (ar) está ligado ao Plano Elemental do Ar.\n\nTodo *Anel de Comando Elemental* tem as duas propriedades a seguir:\n\n**_Perdição Elemental._** Enquanto usa o anel, você tem vantagem nas jogadas de ataque contra Elementais, e eles têm desvantagem nas jogadas de ataque contra você.\n\n**_Compulsão Elemental._** Enquanto usa o anel, você pode realizar uma ação de Magia para tentar compelir um Elemental que você veja a até 18 metros de você. O Elemental faz um teste de resistência de Sabedoria CD 18. Se falhar, o Elemental fica com a condição Enfeitiçado até o início do seu próximo turno, e você determina o que ele faz com seu movimento e sua ação no próximo turno dele.\n\n**_Foco Elemental._** Enquanto usa o anel, você se beneficia de propriedades adicionais correspondentes ao Plano Elemental ligado ao anel:\n\n**Ar.** Você conhece o Aurano, tem Resistência a dano elétrico e tem um Deslocamento de Voo igual ao seu Deslocamento, podendo pairar.\n\n**Terra.** Você conhece o Terrano e tem Resistência a dano de ácido. Terreno composto de entulho, rochas ou terra não é Terreno Difícil para você. Além disso, você pode se mover através de terra ou rocha sólida como se essas áreas fossem Terreno Difícil, sem perturbar a matéria pela qual passa. Se terminar seu turno dentro de terra ou rocha sólida, você é expelido para o espaço desocupado mais próximo que ocupou por último.\n\n**Fogo.** Você conhece o Ignano e tem Imunidade a dano de fogo.\n\n**Água.** Você conhece o Aquano, ganha um Deslocamento de Natação de 18 metros e consegue respirar debaixo d'água.\n\n**_Conjuração._** O anel tem 5 cargas e recupera 1d4 + 1 cargas gastas diariamente ao amanhecer. Enquanto usa o anel, você pode conjurar uma magia a partir dele. Escolha a magia da lista de magias disponíveis de acordo com o Plano Elemental ao qual o anel está ligado, como mostra a tabela a seguir. A tabela indica quantas cargas você precisa gastar para conjurar a magia, cuja CD de resistência é 18.\n\n| Plano | Magias (Cargas) |\n|---|---|\n| Ar | Relâmpago em Cadeia (3 cargas), Queda Suave (0 cargas), Lufada de Vento (2 cargas), Muralha de Vento (1 carga) |\n| Terra | Terremoto (5 cargas), Moldar Rochas (2 cargas), Pele de Pedra (3 cargas), Muralha de Pedra (3 cargas) |\n| Fogo | Mãos Flamejantes (1 carga), Bola de Fogo (2 cargas), Tempestade de Fogo (4 cargas), Muralha de Fogo (3 cargas) |\n| Água | Criar ou Destruir Água (1 carga), Tempestade de Gelo (2 cargas), Tsunami (5 cargas), Muralha de Gelo (3 cargas), Caminhar na Água (2 cargas) |"
+  },
+  "ring-of-evasion": {
+    "name": "Anel de Evasão",
+    "text": "Anel\n\nEste anel tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Quando falha em um teste de resistência de Destreza enquanto usa o anel, você pode usar sua Reação para gastar 1 carga e, em vez disso, ser bem-sucedido nesse teste."
+  },
+  "ring-of-feather-falling": {
+    "name": "Anel de Queda Suave",
+    "text": "Anel\n\nQuando cai enquanto usa este anel, você desce 18 metros por rodada e não sofre dano da queda."
+  },
+  "ring-of-free-action": {
+    "name": "Anel de Ação Livre",
+    "text": "Anel\n\nEnquanto usa este anel, Terreno Difícil não lhe custa movimento extra. Além disso, magia não pode reduzir nenhum dos seus Deslocamentos nem fazer você ficar com a condição Paralisado ou Impedido."
+  },
+  "ring-of-invisibility": {
+    "name": "Anel de Invisibilidade",
+    "text": "Anel\n\nEnquanto usa este anel, você pode realizar uma ação de Magia para se dar a condição Invisível. Você permanece Invisível até o anel ser removido ou até usar uma Ação Bônus para voltar a ficar visível."
+  },
+  "ring-of-jumping": {
+    "name": "Anel do Salto",
+    "text": "Anel\n\nEnquanto usa este anel, você pode conjurar Salto a partir dele, mas só pode ter a si mesmo como alvo ao fazê-lo."
+  },
+  "ring-of-mind-shielding": {
+    "name": "Anel de Proteção Mental",
+    "text": "Anel\n\nEnquanto usa este anel, você é imune a magias que permitam a outras criaturas ler seus pensamentos, determinar se você está mentindo, saber sua tendência ou saber seu tipo de criatura. Criaturas só podem se comunicar telepaticamente com você se você permitir.\n\nVocê pode realizar uma ação de Magia para fazer o anel ficar imperceptível até realizar outra ação de Magia para torná-lo perceptível, até remover o anel ou até morrer.\n\nSe você morrer enquanto usa o anel, sua alma entra nele, a menos que ele já abrigue uma alma. Você pode permanecer no anel ou partir para a vida após a morte. Enquanto sua alma estiver no anel, você pode se comunicar telepaticamente com qualquer criatura que o esteja usando. Quem usa o anel não pode impedir essa comunicação telepática."
+  },
+  "ring-of-protection": {
+    "name": "Anel de Proteção",
+    "text": "Anel\n\nVocê recebe um bônus de +1 na Classe de Armadura e nos testes de resistência enquanto usa este anel."
+  },
+  "ring-of-regeneration": {
+    "name": "Anel de Regeneração",
+    "text": "Anel\n\nEnquanto usa este anel, você recupera 1d6 pontos de vida a cada 10 minutos se tiver pelo menos 1 ponto de vida. Se perder uma parte do corpo, o anel faz a parte perdida crescer de novo e voltar a funcionar plenamente depois de 1d6 + 1 dias, se você tiver pelo menos 1 ponto de vida durante todo esse tempo."
+  },
+  "ring-of-resistance": {
+    "name": "Anel de Resistência",
+    "text": "Anel\n\nVocê tem Resistência a um tipo de dano enquanto usa este anel. A gema do anel indica o tipo, que o Mestre escolhe ou determina aleatoriamente rolando na tabela a seguir.\n\n| 1d10 | Tipo de Dano | Gema |\n|---|---|---|\n| 1 | Ácido | Pérola |\n| 2 | Gélido | Turmalina |\n| 3 | Fogo | Granada |\n| 4 | Força | Safira |\n| 5 | Elétrico | Citrino |\n| 6 | Necrótico | Azeviche |\n| 7 | Veneno | Ametista |\n| 8 | Psíquico | Jade |\n| 9 | Radiante | Topázio |\n| 10 | Trovejante | Espinélio |"
+  },
+  "ring-of-shooting-stars": {
+    "name": "Anel de Estrelas Cadentes",
+    "text": "Anel\n\nVocê pode conjurar *Globos de Luz* ou *Luz* a partir do anel.\n\nO anel tem 6 cargas e recupera 1d6 cargas gastas diariamente ao amanhecer. Você pode gastar as cargas para usar as propriedades abaixo.\n\n**_Fogo das Fadas._** Você pode gastar 1 carga para conjurar *Fogo das Fadas* a partir do anel.\n\n**_Esferas de Relâmpago._** Você pode gastar 2 cargas como uma ação de Magia para criar até quatro esferas de relâmpago de 0,9 metro de diâmetro.\n\nCada esfera aparece em um espaço desocupado que você possa ver a até 36 metros de você. As esferas duram enquanto você mantiver a Concentração, até 1 minuto. Cada esfera emite Penumbra em um raio de 9 metros.\n\nComo uma Ação Bônus, você pode mover cada esfera até 9 metros, mas nunca a mais de 36 metros de você. Na primeira vez que uma esfera chegar a até 1,5 metro de uma criatura que não seja você e que não esteja atrás de Cobertura Total, a esfera descarrega um relâmpago nessa criatura e desaparece. Essa criatura faz um teste de resistência de Destreza CD 15. Se falhar, a criatura sofre dano elétrico de acordo com o número de esferas que você criou, como mostra a tabela a seguir. Se for bem-sucedida, a criatura sofre metade desse dano.\n\n| Número de Esferas | Dano Elétrico | Número de Esferas | Dano Elétrico |\n|---|---|---|---|\n| 1 | 4d12 | 3 | 2d6 |\n| 2 | 5d4 | 4 | 2d4 |\n\n**_Estrelas Cadentes._** Você pode gastar de 1 a 3 cargas como uma ação de Magia. Para cada carga gasta, você lança do anel uma partícula de luz brilhante em direção a um ponto que você possa ver a até 18 metros de você. Cada criatura em um Cubo de 4,5 metros que se origina nesse ponto é atingida por uma chuva de faíscas e faz um teste de resistência de Destreza CD 15, sofrendo 5d4 de dano radiante se falhar, ou metade desse dano se for bem-sucedida."
+  },
+  "ring-of-spell-storing": {
+    "name": "Anel de Armazenar Magia",
+    "text": "Anel\n\nEste anel armazena magias conjuradas nele, guardando-as até que o usuário sintonizado as use. O anel pode armazenar até 5 níveis de magias por vez. Quando encontrado, ele contém 1d6 + 1 níveis de magias armazenadas, escolhidas pelo Mestre.\n\nQualquer criatura pode conjurar uma magia de nível 1 a 5 no anel, tocando-o enquanto a magia é conjurada. A magia não tem nenhum efeito além de ser armazenada no anel. Se o anel não puder comportar a magia, ela é gasta sem efeito. O nível do espaço de magia usado para conjurar a magia determina quanto espaço ela ocupa.\n\nEnquanto usa este anel, você pode conjurar qualquer magia armazenada nele. A magia usa o nível do espaço, a CD de resistência de magia, o bônus de ataque de magia e o atributo de conjuração do conjurador original, mas, fora isso, é tratada como se você a tivesse conjurado. A magia conjurada a partir do anel deixa de estar armazenada nele, liberando espaço."
+  }
+}

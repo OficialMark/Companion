@@ -1,0 +1,134 @@
+{
+  "ring-of-spell-turning": {
+    "name": "Anel de Refletir Magia",
+    "text": "Anel\n\nEnquanto usa este anel, você tem vantagem em testes de resistência contra magias. Se for bem-sucedido no teste contra uma magia de nível 7 ou inferior, a magia não tem efeito sobre você. Se essa magia tinha somente você como alvo e não criou uma área de efeito, você pode usar sua Reação para refletir a magia de volta para quem a conjurou; o conjurador precisa fazer um teste de resistência contra a magia usando a própria CD de resistência de magia."
+  },
+  "ring-of-swimming": {
+    "name": "Anel de Natação",
+    "text": "Anel\n\nVocê tem um Deslocamento de Natação de 12 metros enquanto usa este anel."
+  },
+  "ring-of-telekinesis": {
+    "name": "Anel de Telecinésia",
+    "text": "Anel\n\nEnquanto usa este anel, você pode conjurar Telecinésia a partir dele."
+  },
+  "ring-of-the-ram": {
+    "name": "Anel do Aríete",
+    "text": "Anel\n\nEste anel tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Enquanto usa o anel, você pode realizar uma ação de Magia para gastar de 1 a 3 cargas e fazer um ataque mágico à distância contra uma criatura que você possa ver a até 18 metros de você. O anel produz uma cabeça de carneiro espectral e faz sua jogada de ataque com um bônus de +7. Se acertar, para cada carga gasta, o alvo sofre 2d10 de dano de força e é empurrado 1,5 metro para longe de você.\n\nAlternativamente, você pode gastar de 1 a 3 das cargas do anel como uma ação de Magia para tentar quebrar um objeto não mágico que você possa ver a até 18 metros de você e que não esteja sendo vestido nem carregado. O anel faz um teste de Força com um bônus de +5 para cada carga gasta."
+  },
+  "ring-of-three-wishes": {
+    "name": "Anel dos Três Desejos",
+    "text": "Anel\n\nEnquanto usa este anel, você pode gastar 1 de suas 3 cargas para conjurar Desejo a partir dele. O anel deixa de ser mágico quando você usa a última carga."
+  },
+  "ring-of-warmth": {
+    "name": "Anel do Calor",
+    "text": "Anel\n\nSe sofrer dano gélido enquanto usa este anel, o anel reduz o dano sofrido em 2d8.\n\nAlém disso, enquanto usa este anel, você e tudo o que você veste e carrega não são prejudicados por temperaturas de 0 graus Fahrenheit ou menos."
+  },
+  "ring-of-water-walking": {
+    "name": "Anel de Caminhar na Água",
+    "text": "Anel\n\nEnquanto usa este anel, você conjura Caminhar na Água a partir dele, tendo somente a si mesmo como alvo."
+  },
+  "ring-of-x-ray-vision": {
+    "name": "Anel de Visão de Raio X",
+    "text": "Anel\n\nEnquanto usa este anel, você pode realizar uma ação de Magia para obter visão de raio X com alcance de 9 metros por 1 minuto. Para você, objetos sólidos dentro desse raio parecem transparentes e não impedem a passagem da luz. A visão consegue penetrar 0,3 metro de pedra, 2,5 centímetros de metal comum ou até 0,9 metro de madeira ou terra. Substâncias mais espessas ou uma fina lâmina de chumbo bloqueiam a visão.\n\nSempre que usar o anel novamente antes de terminar um Descanso Longo, você precisa ser bem-sucedido em um teste de resistência de Constituição CD 15 ou ganhará 1 nível de Exaustão."
+  },
+  "robe-of-eyes": {
+    "name": "Robe dos Olhos",
+    "text": "Item Maravilhoso\n\nEste robe é adornado com padrões que lembram olhos. Enquanto veste o robe, você recebe os seguintes benefícios: Visão Panorâmica. O robe lhe dá vantagem em testes de Sabedoria (Percepção) que dependam da visão. Sentidos Especiais. Você tem Visão no Escuro e Visão Verdadeira, ambas com alcance de 36 metros.\n\nDesvantagens do Robe. Uma magia Luz conjurada sobre o robe ou uma magia Luz do Dia conjurada a até 1,5 metro do robe lhe dá a condição Cego por 1 minuto. No final de cada um dos seus turnos, você faz um teste de resistência de Constituição (CD 11 para Luz ou CD 15 para Luz do Dia), encerrando a condição em si mesmo se for bem-sucedido."
+  },
+  "robe-of-scintillating-colors": {
+    "name": "Robe das Cores Cintilantes",
+    "text": "Item Maravilhoso\n\nEste robe tem 3 cargas e recupera 1d3 cargas gastas diariamente ao amanhecer. Enquanto o veste, você pode realizar uma ação de Magia e gastar 1 carga para fazer a vestimenta exibir um padrão cambiante de cores ofuscantes até o final do seu próximo turno. Durante esse tempo, o robe emite Luz Plena em um raio de 9 metros e Penumbra por mais 9 metros, e criaturas que possam ver você têm desvantagem nas jogadas de ataque contra você. Qualquer criatura na Luz Plena que possa ver você quando o poder do robe é ativado precisa ser bem-sucedida em um teste de resistência de Sabedoria CD 15 ou ficará com a condição Atordoado até o efeito terminar."
+  },
+  "robe-of-stars": {
+    "name": "Robe das Estrelas",
+    "text": "Item Maravilhoso\n\nEste robe preto ou azul-escuro é bordado com pequenas estrelas brancas ou prateadas. Você recebe um bônus de +1 nos testes de resistência enquanto o veste.\n\nSeis estrelas, localizadas na parte frontal superior do robe, são especialmente grandes. Enquanto veste este robe, você pode realizar uma ação de Magia para remover uma das estrelas e gastá-la para conjurar a versão de nível 5 de Mísseis Mágicos. Diariamente ao anoitecer, 1d6 estrelas removidas reaparecem no robe.\n\nEnquanto veste o robe, você pode realizar uma ação de Magia para entrar no Plano Astral junto com tudo o que estiver vestindo e carregando. Você permanece lá até realizar uma ação de Magia para voltar ao plano em que estava. Você reaparece no último espaço que ocupou ou, se esse espaço estiver ocupado, no espaço desocupado mais próximo."
+  },
+  "robe-of-the-archmagi": {
+    "name": "Robe do Arquimago",
+    "text": "Item Maravilhoso\n\n(Requer sintonização por um Feiticeiro, Bruxo ou Mago)\n\nEsta vestimenta elegante é feita de um tecido requintado e adornada com runas.\n\nVocê recebe estes benefícios enquanto veste o robe.\n\nArmadura. Se não estiver usando armadura, sua Classe de Armadura base é 15 mais seu modificador de Destreza.\n\nResistência à Magia. Você tem vantagem em testes de resistência contra magias e outros efeitos mágicos.\n\nMago de Guerra. Sua CD de resistência de magia e seu bônus de ataque de magia aumentam em 2 cada."
+  },
+  "robe-of-useful-items": {
+    "name": "Robe dos Itens Úteis",
+    "text": "Item Maravilhoso\n\nEste robe é coberto de remendos de tecido de vários formatos e cores. Enquanto veste o robe, você pode realizar uma ação de Magia para destacar um dos remendos, fazendo-o se tornar o objeto ou a criatura que representa. Depois que o último remendo é removido, o robe se torna uma vestimenta comum.\n\nO robe tem dois de cada um dos seguintes remendos:\n\n- Lanterna Furta-Fogo (abastecida e acesa)\n\n- Adaga\n\n- Espelho\n\n- Vara\n\n- Corda (enrolada)\n\n- Saco\n\nAlém disso, o robe tem 4d4 outros remendos. O Mestre escolhe os remendos ou os determina aleatoriamente rolando na tabela a seguir.\n\n| 1d100 | Remendo |\n|---|---|\n| 01–08 | Bolsa com 100 PO |\n| 09–15 | Cofre de prata (0,3 metro de comprimento, 15 centímetros de largura e de profundidade) que vale 500 PO |\n| 16–22 | Porta de ferro (até 3 metros de largura e 3 metros de altura, trancada com barra do lado que você escolher), que você pode colocar em uma abertura que consiga alcançar; ela se ajusta à abertura, fixando-se e criando as próprias dobradiças |\n| 23–30 | 10 gemas que valem 100 PO cada |\n| 31–44 | Escada de madeira (7,2 metros de comprimento) |\n| 45–51 | Cavalo de Montaria com uma Sela de Montaria |\n| 52–59 | Fosso aberto (um Cubo de 3 metros), que você pode colocar no chão a até 3 metros de você |\n| 60–68 | 4 Poções de Cura |\n| 69–75 | Bote a remo (3,6 metros de comprimento) |\n| 76–83 | Pergaminho de Magia contendo uma magia de nível 1, 2 ou 3 (à sua escolha) |\n| 84–90 | 2 Mastins |\n| 91–96 | Janela (0,6 metro por 1,2 metro, com até 0,6 metro de profundidade), que você pode colocar em uma superfície vertical que consiga alcançar |\n| 97–00 | Aríete Portátil |"
+  },
+  "rod-of-absorption": {
+    "name": "Bastão de Absorção",
+    "text": "Bastão\n\nEnquanto segura este bastão, você pode usar sua Reação para absorver uma magia que tenha somente você como alvo e que não crie uma área de efeito. O efeito da magia absorvida é cancelado, e a energia da magia (não a magia em si) é armazenada no bastão. A energia tem o mesmo nível da magia quando ela foi conjurada. Uma magia cancelada se dissipa sem efeito, e quaisquer recursos usados para conjurá-la são desperdiçados. O bastão pode absorver e armazenar até 50 níveis de energia ao longo de sua existência. Depois que o bastão absorve 50 níveis de energia, ele não pode absorver mais. Se você for alvo de uma magia que o bastão não consiga armazenar, o bastão não tem efeito sobre essa magia.\n\nQuando se sintoniza com o bastão, você sabe quantos níveis de energia o bastão absorveu ao longo de sua existência e quantos níveis de energia mágica ele tem armazenados no momento.\n\nSe você é um conjurador segurando o bastão, pode converter a energia armazenada nele em espaços de magia para conjurar magias que tenha preparadas ou conheça. Você só pode criar espaços de magia de nível igual ou inferior aos seus próprios espaços de magia, até o máximo de nível 5. Você usa os níveis armazenados no lugar dos seus espaços, mas, fora isso, conjura a magia normalmente. Por exemplo, você pode usar 3 níveis armazenados no bastão como um espaço de magia de nível 3.\n\nUm bastão recém-encontrado normalmente tem 1d10 níveis de energia mágica armazenados. Um bastão que não consegue mais absorver energia mágica e não tem mais energia restante deixa de ser mágico."
+  },
+  "rod-of-alertness": {
+    "name": "Bastão do Alerta",
+    "text": "Bastão\n\nEste bastão tem as seguintes propriedades.\n\nAlerta. Enquanto segura o bastão, você tem vantagem em testes de Sabedoria (Percepção) e nas jogadas de Iniciativa.\n\nMagias. Enquanto segura o bastão, você pode conjurar a partir dele as seguintes magias:• Detectar o Bem e o Mal• Detectar Magia• Detectar Venenos e Doenças• Ver o Invisível\n\nAura Protetora. Como uma ação de Magia, você pode fincar a ponta da haste do bastão no chão; a cabeça do bastão então emite Luz Plena em um raio de 18 metros e Penumbra por mais 18 metros. Enquanto estiverem nessa Luz Plena, você e seus aliados recebem um bônus de +1 na Classe de Armadura e nos testes de resistência e conseguem sentir a localização de qualquer criatura Invisível que também esteja na Luz Plena.\n\nA cabeça do bastão para de brilhar e o efeito termina depois de 10 minutos ou quando uma criatura realiza uma ação de Magia para arrancar o bastão do chão. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
+  },
+  "rod-of-lordly-might": {
+    "name": "Bastão do Poder Senhorial",
+    "text": "Bastão\n\nEste bastão tem uma cabeça flangeada e funciona como uma Maça mágica que concede um bônus de +3 nas jogadas de ataque e de dano feitas com ela. O bastão tem propriedades associadas a seis botões diferentes, dispostos em fila ao longo da haste. Ele também tem outras três propriedades, detalhadas abaixo.\n\nBotões. Você pode apertar um dos botões a seguir como uma Ação Bônus; o efeito de um botão dura até você apertar outro botão ou até apertar o mesmo botão de novo, o que faz o bastão voltar à sua forma normal: Botão 1. Uma lâmina flamejante brota da ponta oposta à cabeça flangeada do bastão. As chamas emitem Luz Plena em um raio de 12 metros e Penumbra por mais 12 metros, e a lâmina funciona como uma Espada Longa ou uma Espada Curta mágica (à sua escolha) que causa 2d6 de dano de fogo extra ao acertar. Botão 2. A cabeça flangeada do bastão se dobra para baixo e duas lâminas em forma de meia-lua saltam para fora, transformando o bastão em um Machado de Batalha mágico que concede um bônus de +3 nas jogadas de ataque e de dano feitas com ele. Botão 3. A cabeça flangeada do bastão se dobra para baixo, uma ponta de lança salta da extremidade do bastão e o cabo se alonga em uma haste de 1,8 metro, transformando o bastão em uma Lança mágica que concede um bônus de +3 nas jogadas de ataque e de dano feitas com ela. Botão 4. O bastão se transforma em uma vara de escalada de até 15 metros de comprimento (você especifica o comprimento), embora os botões do bastão continuem ao seu alcance. Em superfícies tão duras quanto granito, um cravo na base e três ganchos no topo prendem a vara. Barras horizontais de 7,5 centímetros de comprimento se desdobram das laterais, a 0,3 metro uma da outra, formando uma escada. A vara aguenta até 2.000 quilogramas. Peso maior ou falta de uma fixação sólida faz o bastão voltar à sua forma normal. Botão 5. O bastão se transforma em um aríete de mão e concede a quem o usa um bônus de +10 em testes de Força (Atletismo) feitos para arrombar portas, barricadas e outras barreiras. Botão 6. O bastão assume ou mantém sua forma normal e indica o norte magnético. (Nada acontece se esta função do bastão for usada em um local que não tenha norte magnético.) O bastão também lhe dá conhecimento da sua profundidade aproximada abaixo do solo ou da sua altura acima dele.\n\nDrenar Vida. Quando atinge uma criatura com um ataque corpo a corpo usando o bastão, você pode forçar o alvo a fazer um teste de resistência de Constituição CD 17. Se falhar, o alvo sofre 4d6 de dano necrótico extra, e você recupera um número de pontos de vida igual à metade desse dano necrótico. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer.\n\nParalisar. Quando atinge uma criatura com um ataque corpo a corpo usando o bastão, você pode forçar o alvo a fazer um teste de resistência de Constituição CD 17. Se falhar, o alvo fica com a condição Paralisado por 1 minuto. O alvo repete o teste no final de cada um dos seus turnos, encerrando o efeito se for bem-sucedido. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer.\n\nAterrorizar. Enquanto segura o bastão, você pode realizar uma ação de Magia para forçar cada criatura que você possa ver a até 9 metros de você a fazer um teste de resistência de Sabedoria CD 17. Se falhar, o alvo fica com a condição Amedrontado por 1 minuto. Um alvo Amedrontado repete o teste no final de cada um dos seus turnos, encerrando o efeito em si mesmo se for bem-sucedido. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
+  },
+  "rod-of-resurrection": {
+    "name": "Bastão da Ressurreição",
+    "text": "Bastão\n\nO bastão tem 5 cargas. Enquanto o segura, você pode conjurar a partir dele uma das seguintes magias: Cura Completa (gasta 1 carga) ou Ressurreição (gasta 5 cargas).\n\nO bastão recupera 1 carga gasta diariamente ao amanhecer. Se você gastar a última carga, role 1d20. Com um 1, o bastão desaparece em uma explosão inofensiva de radiância."
+  },
+  "rod-of-rulership": {
+    "name": "Bastão do Domínio",
+    "text": "Bastão\n\nVocê pode realizar uma ação de Magia para exibir o bastão e exigir obediência de cada criatura à sua escolha que você possa ver a até 36 metros de você. Cada alvo precisa ser bem-sucedido em um teste de resistência de Sabedoria CD 15 ou ficará com a condição Enfeitiçado por 8 horas. Enquanto estiver Enfeitiçada dessa forma, a criatura considera você seu líder de confiança. Se for ferido por você ou por seus aliados, ou se receber a ordem de fazer algo contrário à sua natureza, o alvo deixa de estar Enfeitiçado dessa forma. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
+  },
+  "rod-of-security": {
+    "name": "Bastão da Segurança",
+    "text": "Bastão\n\nEnquanto segura este bastão, você pode realizar uma ação de Magia para ativá-lo. O bastão então transporta instantaneamente você e até 199 outras criaturas voluntárias que você possa ver para um semiplano. Você escolhe a forma que o semiplano assume. Ele pode ser um jardim tranquilo, uma taverna animada, um palácio imenso, uma ilha tropical, um carnaval fantástico ou qualquer outra coisa que você consiga imaginar. Seja qual for sua natureza, o semiplano contém água e comida suficientes para sustentar seus visitantes, e o ambiente do semiplano não pode ferir seus ocupantes. Tudo o mais com que se possa interagir lá só pode existir lá. Por exemplo, uma flor colhida de um jardim lá desaparece se for levada para fora do semiplano.\n\nPara cada hora passada no semiplano, um visitante recupera pontos de vida como se tivesse gastado 1 Dado de Ponto de Vida. Além disso, as criaturas não envelhecem enquanto estão lá, embora o tempo passe normalmente. Os visitantes podem permanecer lá por até 200 dias divididos pelo número de criaturas presentes (arredondado para baixo).\n\nQuando o tempo se esgota ou você realiza uma ação de Magia para encerrar o efeito, todos os visitantes reaparecem no local que ocupavam quando você ativou o bastão ou no espaço desocupado mais próximo desse local. Depois de usada, esta propriedade não pode ser usada novamente até que 10 dias tenham se passado."
+  },
+  "rope-of-climbing": {
+    "name": "Corda de Escalada",
+    "text": "Item Maravilhoso\n\nEste pedaço de corda de 18 metros pode suportar até 1.500 quilogramas. Enquanto segura uma ponta da corda, você pode realizar uma ação de Magia para ordenar que a outra ponta se anime e se mova em direção a um destino que você escolher, até o comprimento da corda de distância de você. Essa ponta se move 3 metros no seu turno quando você dá a ordem pela primeira vez e 3 metros no início de cada um dos seus turnos seguintes, até chegar ao destino ou até você mandá-la parar. Você também pode mandar a corda se prender firmemente a um objeto ou se soltar, se dar nós ou se desatar, ou se enrolar para ser carregada.\n\nSe você mandar a corda se dar nós, nós grandes aparecem em intervalos de 0,3 metro ao longo da corda. Enquanto tiver nós, a corda encolhe para 15 metros de comprimento e concede vantagem em testes de atributo feitos para escalar usando a corda. A corda tem CA 20, PV 20 e Imunidade a dano de veneno e psíquico. Ela recupera 1 ponto de vida a cada 5 minutos enquanto tiver pelo menos 1 ponto de vida. Se a corda cair para 0 pontos de vida, ela é destruída."
+  },
+  "rope-of-entanglement": {
+    "name": "Corda do Enredamento",
+    "text": "Item Maravilhoso\n\nEsta corda tem 9 metros de comprimento. Enquanto segura uma ponta da corda, você pode realizar uma ação de Magia para ordenar que a outra ponta dispare para a frente e enrede uma criatura que você possa ver a até 6 metros de você. O alvo precisa ser bem-sucedido em um teste de resistência de Destreza CD 15 ou ficará com a condição Impedido. Você pode libertar o alvo soltando sua ponta da corda (o que faz a corda se enrolar no espaço do alvo) ou usando uma Ação Bônus para repetir a ordem (o que faz a corda se enrolar na sua mão).\n\nUm alvo Impedido pela corda pode realizar uma ação para fazer, à escolha dele, um teste de Força (Atletismo) ou de Destreza (Acrobacia) CD 15. Se for bem-sucedido, o alvo deixa de estar Impedido pela corda. Se você ainda estiver segurando a corda quando um alvo escapar dela, pode usar sua Reação para ordenar que a corda se enrole na sua mão; caso contrário, a corda se enrola no espaço do alvo.\n\nA corda tem CA 20, PV 20 e Imunidade a dano de veneno e psíquico. Ela recupera 1 ponto de vida a cada 5 minutos enquanto tiver pelo menos 1 ponto de vida. Se a corda cair para 0 pontos de vida, ela é destruída."
+  },
+  "scarab-of-protection": {
+    "name": "Escaravelho de Proteção",
+    "text": "Item Maravilhoso\n\nEste medalhão em forma de besouro concede três benefícios enquanto estiver com você. Defesa. Você recebe um bônus de +1 na Classe de Armadura.\n\nPreservação. O escaravelho tem 12 cargas. Se falhar em um teste de resistência contra uma magia de Necromancia ou contra um efeito nocivo originado de um Morto-Vivo, você pode usar sua Reação para gastar 1 carga e transformar a falha em um sucesso. O escaravelho se desfaz em pó e é destruído quando sua última carga é gasta.\n\nResistência à Magia. Você tem vantagem em testes de resistência contra magias."
+  },
+  "scimitar-of-speed": {
+    "name": "Cimitarra da Velocidade",
+    "text": "Arma (Cimitarra)\n\nVocê recebe um bônus de +2 nas jogadas de ataque e de dano feitas com esta arma mágica. Além disso, você pode fazer um ataque com ela como uma Ação Bônus em cada um dos seus turnos."
+  },
+  "shield-1": {
+    "name": "Escudo +1",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem um bônus de +1 na Classe de Armadura, além do bônus normal do Escudo na CA."
+  },
+  "shield-2": {
+    "name": "Escudo +2",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem um bônus de +2 na Classe de Armadura, além do bônus normal do Escudo na CA."
+  },
+  "shield-3": {
+    "name": "Escudo +3",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem um bônus de +3 na Classe de Armadura, além do bônus normal do Escudo na CA."
+  },
+  "sending-stones": {
+    "name": "Pedras de Mensagem",
+    "text": "Item Maravilhoso\n\nPedras de Mensagem vêm em pares, e cada pedra é esculpida para combinar com a outra, de modo que o par é facilmente reconhecido. Enquanto toca uma das pedras, você pode conjurar Enviar Mensagem a partir dela. O alvo é o portador da outra pedra. Se nenhuma criatura estiver portando a outra pedra, você sabe disso assim que usa a pedra e não conjura a magia.\n\nDepois que Enviar Mensagem é conjurada usando qualquer uma das pedras, as pedras não podem ser usadas novamente até o próximo amanhecer. Se uma das pedras de um par for destruída, a outra deixa de ser mágica."
+  },
+  "sentinel-shield": {
+    "name": "Escudo Sentinela",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem vantagem nas jogadas de Iniciativa e em testes de Sabedoria (Percepção). O Escudo é decorado com o símbolo de um olho."
+  },
+  "shield-of-missile-attraction": {
+    "name": "Escudo de Atração de Projéteis",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem Resistência a dano de ataques feitos com armas à distância.\n\nMaldição. Este Escudo é amaldiçoado. Sintonizar-se com ele amaldiçoa você até que você seja alvo de uma magia Remover Maldição ou de magia semelhante. Remover o Escudo não encerra a maldição sobre você. Sempre que um ataque com uma arma à distância tiver como alvo uma criatura a até 3 metros de você, a maldição faz você se tornar o alvo em vez dela."
+  },
+  "shield-of-the-cavalier": {
+    "name": "Escudo do Cavaleiro",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem um bônus de +2 na Classe de Armadura. Esse bônus se soma ao bônus normal do Escudo na CA.\n\nO Escudo tem as seguintes propriedades adicionais, que você pode usar enquanto o empunha.\n\n**_Golpe Vigoroso._** Quando realiza a ação de Ataque, você pode fazer uma das jogadas de ataque usando o Escudo contra um alvo a até 1,5 metro de você. Aplique seu Bônus de Proficiência e seu modificador de Força à jogada de ataque. Se acertar, o Escudo causa ao alvo dano de força igual a 2d6 + 2 mais seu modificador de Força e, se o alvo for uma criatura, você pode empurrá-la até 3 metros diretamente para longe de você. Se a criatura for do seu tamanho ou menor, você também pode derrubá-la, dando-lhe a condição Caído.\n\n**_Campo Protetor._** Como uma Reação, quando você ou um aliado que você possa ver a até 1,5 metro de você for alvo de um ataque ou fizer um teste de resistência contra uma área de efeito, você pode usar o Escudo para criar uma Emanação imóvel de 1,5 metro que se origina em você. Quando a Emanação aparece, quaisquer criaturas ou objetos que não estejam totalmente contidos nela são empurrados para os espaços desocupados mais próximos fora dela. O ataque ou a área de efeito que desencadeou a Reação não tem efeito sobre criaturas e objetos dentro da Emanação, que dura enquanto você mantiver a Concentração, até 1 minuto. Nada pode entrar nem sair da Emanação. Uma criatura ou objeto dentro da Emanação não pode sofrer dano de ataques ou efeitos originados de fora, nem uma criatura dentro da Emanação pode causar dano a algo fora dela. Depois de usada, esta propriedade não pode ser usada novamente até o próximo amanhecer."
+  },
+  "slippers-of-spider-climbing": {
+    "name": "Sapatilhas de Escalada Aracnídea",
+    "text": "Item Maravilhoso\n\nEnquanto calça estas sapatilhas leves, você pode se mover para cima, para baixo e através de superfícies verticais e pelo teto, mantendo as mãos livres. Você tem um Deslocamento de Escalada igual ao seu Deslocamento. No entanto, as sapatilhas não permitem que você se mova dessa forma em uma superfície escorregadia, como uma coberta de gelo ou óleo."
+  },
+  "sovereign-glue": {
+    "name": "Cola Soberana",
+    "text": "Item Maravilhoso\n\nEsta substância viscosa e branco-leitosa pode formar uma ligação adesiva permanente entre quaisquer dois objetos. Ela precisa ser guardada em um pote ou frasco revestido por dentro com Óleo Escorregadio. Quando encontrado, um recipiente contém 1d6 + 1 onças.\n\nUma onça da cola pode cobrir uma superfície quadrada de 0,3 metro de lado. Aplicar uma onça de Cola Soberana exige uma ação de Usar, e a cola aplicada leva 1 minuto para secar. Depois disso, a ligação que ela cria só pode ser desfeita com a aplicação de Solvente Universal ou de Óleo da Etereidade, ou com uma magia Desejo."
+  },
+  "spellguard-shield": {
+    "name": "Escudo Guarda-Magia",
+    "text": "Armadura (Escudo)\n\nEnquanto empunha este Escudo, você tem vantagem em testes de resistência contra magias e outros efeitos mágicos, e jogadas de ataque de magia têm desvantagem contra você."
+  }
+}
