@@ -4,7 +4,7 @@ namespace Companion.Application.Contracts;
 
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
-public sealed record RollDiceRequest(string Expression, bool Publish = true);
+public sealed record RollDiceRequest(string Expression, bool Publish = true, string? Label = null);
 public sealed record AddCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
 public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
 public sealed record RollInitiativeRequest(Guid? CombatantId);
@@ -19,7 +19,12 @@ public sealed record ConfigureBattlemapRequest(
     int Columns,
     int Rows,
     bool IsGridVisible,
-    string? ExpectedRevision);
+    string? ExpectedRevision,
+    // Spec 008 (US2): fog drawn on the upload preview, applied in the same save as the image
+    // so no participant ever receives the new map uncovered. HasFogMask distinguishes
+    // "field absent" (legacy clients: keep current fog rules) from "empty" (fully revealed).
+    bool HasFogMask = false,
+    string? FogMask = null);
 public sealed record MoveBattlemapTokenRequest(int? Column, int? Row, string? ExpectedPositionVersion);
 public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, int? DirectionDegrees);
 public sealed record SetFogRequest(string? Mask);
@@ -56,7 +61,8 @@ public sealed record DiceRollDto(
     int Modifier,
     int Total,
     IReadOnlyList<DiceRollResultDto> Results,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string? Label = null);
 public sealed record DiceTermResultDto(string Expression, IReadOnlyList<int> Values, int Subtotal);
 public sealed record DiceRollResultDto(int Sequence, IReadOnlyList<DiceTermResultDto> Terms, int Modifier, int Total);
 public sealed record CombatantDto(
@@ -70,7 +76,8 @@ public sealed record CombatantDto(
     int? CurrentHitPoints = null,
     bool IsDefeated = false,
     int? MaxHitPoints = null,
-    bool IsHitPointsHidden = false);
+    bool IsHitPointsHidden = false,
+    Guid? CreatureId = null);
 public sealed record EncounterDto(
     Guid Id,
     EncounterStatus Status,
@@ -113,7 +120,13 @@ public sealed record BattlemapTokenDto(
     int FootprintSize = 1,
     IReadOnlyList<string>? StatusConditions = null,
     bool IsMarker = false,
-    Guid? OwnerParticipantId = null);
+    Guid? OwnerParticipantId = null,
+    // Spec 008: creature tokens show the library image and remember the last roll setup.
+    string? ImageUrl = null,
+    Guid? CreatureId = null,
+    RollPresetDto? RollPreset = null);
+public sealed record RollPresetDto(int Count, int Die, string? Ability, int Bonus);
+public sealed record SetRollPresetRequest(int Count, int Die, string? Ability, int Bonus);
 public sealed record BattlemapSnapshotDto(
     Guid Id,
     Guid EncounterId,

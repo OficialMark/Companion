@@ -114,3 +114,15 @@ Para evoluir uma funcionalidade com Codex, use as skills `$speckit-specify`, `$s
 Durante um encontro, o mestre pode publicar uma imagem PNG, JPEG ou WebP de até 20 MB e definir um grid de 1×1 a 100×100. Cada jogador recebe um pino próprio; jogadores movem somente seu pino e o mestre pode arbitrar qualquer posição.
 
 O visualizador mantém uma área estável em desktop e Android, usa células com escala inicial próxima de 40 px e oferece pan, zoom, ajuste total, arraste, seleção por toque e navegação por teclado. O estado confirmado é persistido no SQL Server e ressincronizado por snapshot após eventos SignalR ou reconexão.
+
+Ao publicar ou substituir a imagem, a prévia já traz o editor de névoa: um mapa novo começa todo coberto, e a névoa desenhada vai junto com a imagem, então os jogadores nunca recebem o mapa descoberto. No mapa publicado, o botão **Névoa** permite cobrir e revelar com pincel ou retângulo; criaturas totalmente cobertas não são enviadas aos jogadores.
+
+## Biblioteca de criaturas
+
+A aba **Criaturas** (só para o mestre) traz o compêndio em português de 725 criaturas, com busca por nome em PT ou EN e filtros por tamanho, tipo, ND e origem. O mestre pode criar criaturas próprias e editar qualquer uma. Editar uma criatura do compêndio cria a versão daquela mesa, e é possível restaurar o original. A imagem enviada aparece nos tokens.
+
+O mestre adiciona de 1 a 20 cópias ao combate pela ficha, pelo formulário "Combatentes" (modo Do catálogo) ou pelo botão "Do catálogo" ao lado de "Inserir token" no mapa, com nomes numerados, PV, iniciativa e tamanho do token. Com o combate em andamento, elas entram como reforços com iniciativa rolada, sem mudar o turno. Ele também escreve anotações pessoais e rola para a criatura escolhendo quantidade, dado, atributo e um adicional. No mapa, o menu de um token de criatura tem **Ficha e rolagens**, e a última configuração de rolagem de cada token volta pré-selecionada.
+
+O compêndio é semeado no primeiro startup da API a partir de `backend/src/Companion.Infrastructure/Persistence/Seed/creatures.pocketdm.json`, de forma idempotente. As imagens do compêndio são buscadas pelo servidor sob demanda e guardadas no banco.
+
+**Créditos:** tradução e curadoria © [Pocket DM](https://pocketdm.com.br/monstros), usadas com autorização. Conteúdo SRD sob [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) (Wizards of the Coast). Para reimportar, veja [`scripts/import-creatures/README.md`](scripts/import-creatures/README.md).

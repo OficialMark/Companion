@@ -198,6 +198,19 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int>("FootprintSize")
                         .HasColumnType("int");
 
+                    b.Property<string>("LastRollAbility")
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<int?>("LastRollBonus")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LastRollCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LastRollDie")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("MarkerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -415,6 +428,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.Property<int>("CreationOrder")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("CreatureId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int?>("CurrentHitPoints")
                         .HasColumnType("int");
 
@@ -449,6 +465,8 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatureId");
+
                     b.HasIndex("ParticipantId");
 
                     b.HasIndex("EncounterId", "CreationOrder")
@@ -459,6 +477,237 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasFilter("[ParticipantId] IS NOT NULL");
 
                     b.ToTable("Combatants", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.Creature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Actions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Alignment")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("ArmorClass")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArmorClassNote")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<Guid?>("BaseCreatureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BonusActions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChallengeRating")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("ChallengeValue")
+                        .HasPrecision(6, 3)
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<int>("Charisma")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConditionImmunities")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Constitution")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DamageImmunities")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DamageResistances")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DamageVulnerabilities")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Dexterity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExperiencePoints")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HitDice")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("HitPoints")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ImageRevision")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImageSourceUrl")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<int?>("Initiative")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Intelligence")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRemovedFromCompendium")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Languages")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LegendaryActions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LegendaryActionsIntro")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int?>("ProficiencyBonus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reactions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SavingThrows")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SearchKey")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("Senses")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<string>("Skills")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("SourceBook")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Speed")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Strength")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Traits")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Wisdom")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseCreatureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NULL AND [Slug] IS NOT NULL");
+
+                    b.HasIndex("CampaignId", "BaseCreatureId")
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NOT NULL AND [BaseCreatureId] IS NOT NULL");
+
+                    b.HasIndex("CampaignId", "SearchKey");
+
+                    b.ToTable("Creatures", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CreatureImage", b =>
+                {
+                    b.Property<Guid>("CreatureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("FromSource")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("Revision")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CreatureId");
+
+                    b.ToTable("CreatureImages", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.DiceRoll", b =>
@@ -480,6 +729,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<int>("Modifier")
                         .HasColumnType("int");
@@ -618,6 +871,25 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasKey("ParticipantId");
 
                     b.ToTable("ParticipantAvatars", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.SeedVersion", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SeedVersions", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.AttackArea", b =>
@@ -763,6 +1035,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Companion.Domain.Models.Combatant", b =>
                 {
+                    b.HasOne("Companion.Domain.Models.Creature", null)
+                        .WithMany()
+                        .HasForeignKey("CreatureId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Companion.Domain.Models.Encounter", null)
                         .WithMany("Combatants")
                         .HasForeignKey("EncounterId")
@@ -773,6 +1050,28 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.Creature", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Creature", null)
+                        .WithMany()
+                        .HasForeignKey("BaseCreatureId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Models.CreatureImage", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Creature", null)
+                        .WithOne()
+                        .HasForeignKey("Companion.Domain.Models.CreatureImage", "CreatureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Companion.Domain.Models.DiceRoll", b =>

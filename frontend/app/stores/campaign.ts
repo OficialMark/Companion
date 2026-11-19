@@ -43,6 +43,7 @@ export const useCampaignStore = defineStore('campaign', {
       this.snapshot = null
       this.clearBattlemap()
       this.clearAvatars()
+      useImageCacheStore().clear()
       if (import.meta.client) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     },
     clearBattlemap() {
@@ -96,6 +97,7 @@ export const useCampaignStore = defineStore('campaign', {
       this.seenEvents = []
       this.clearBattlemap()
       this.clearAvatars()
+      useImageCacheStore().clear()
       if (import.meta.client) localStorage.removeItem(SESSION_KEY)
     },
     async refresh() {

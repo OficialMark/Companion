@@ -2,6 +2,7 @@ import type {
   AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceRoll, Encounter,
   CreateMarkerRequest, MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session, SetAttackAreaRequest, SetTokenAppearanceRequest
 } from '~/types/campaign'
+import type { Creature, CreaturePage, CreatureQuery, RollPreset, SaveCreatureRequest } from '~/types/creatures'
 import { createUuid } from '~/utils/createUuid'
 
 interface ProblemDetails { title?: string; detail?: string }
@@ -54,7 +55,7 @@ export function useCompanionApi() {
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
     updateInitiativeModifier: (session: Session, initiativeModifier: number | null) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/initiative-modifier`, { method: 'PUT', body: JSON.stringify({ initiativeModifier }) }, session.participantToken),
     updateCombatProfile: (session: Session, initiativeModifier: number | null, currentHitPoints: number | null, maxHitPoints: number | null = null) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/combat-profile`, { method: 'PUT', body: JSON.stringify({ initiativeModifier, currentHitPoints, maxHitPoints }) }, session.participantToken),
-    rollDice: (session: Session, expression: string, publish = true) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, { method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish }) }, session.participantToken),
+    rollDice: (session: Session, expression: string, publish = true, label: string | null = null) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, { method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish, label }) }, session.participantToken),
     revealDiceRoll: (session: Session, rollId: string) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls/${rollId}/reveal`, { method: 'POST' }, session.participantToken),
     createEncounter: (session: Session) => request<Encounter>(`/campaigns/${session.campaignId}/encounters`, { method: 'POST' }, session.participantToken),
     addCombatant: (session: Session, encounterId: string, name: string, initiativeModifier: number, currentHitPoints: number | null, maxHitPoints: number | null = null) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/combatants`, { method: 'POST', body: JSON.stringify({ name, initiativeModifier, currentHitPoints, maxHitPoints }) }, session.participantToken),
@@ -67,13 +68,15 @@ export function useCompanionApi() {
     nextTurn: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/next-turn`, { method: 'POST' }, session.participantToken),
     endEncounter: (session: Session, encounterId: string) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/end`, { method: 'POST' }, session.participantToken),
     getBattlemap: (session: Session, encounterId: string) => request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, {}, session.participantToken),
-    configureBattlemap: (session: Session, encounterId: string, image: File, columns: number, rows: number, isGridVisible: boolean, expectedRevision: string | null) => {
+    /** fogMask: undefined = legacy (server keeps its rules), null = publish revealed, string = initial fog. */
+    configureBattlemap: (session: Session, encounterId: string, image: File, columns: number, rows: number, isGridVisible: boolean, expectedRevision: string | null, fogMask?: string | null) => {
       const form = new FormData()
       form.append('image', image)
       form.append('columns', String(columns))
       form.append('rows', String(rows))
       form.append('isGridVisible', String(isGridVisible))
       if (expectedRevision) form.append('expectedRevision', expectedRevision)
+      if (fogMask !== undefined) form.append('fogMask', fogMask ?? '')
       return request<ReplaceBattlemapResult>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap`, { method: 'PUT', body: form }, session.participantToken)
     },
     moveBattlemapToken: (session: Session, encounterId: string, participantId: string, body: MoveBattlemapTokenRequest) =>
@@ -95,6 +98,23 @@ export function useCompanionApi() {
     setAllHitPointsVisibility: (session: Session, encounterId: string, hidden: boolean) =>
       request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/hit-points-visibility`, { method: 'PUT', body: JSON.stringify({ hidden }) }, session.participantToken),
     battlemapImage,
+    // Creature library (spec 008)
+    listCreatures: (session: Session, query: CreatureQuery) => {
+      const params = new URLSearchParams()
+      for (const [key, value] of Object.entries(query)) if (value !== undefined && value !== null && value !== '') params.set(key, String(value))
+      return request<CreaturePage>(`/campaigns/${session.campaignId}/creatures?${params}`, {}, session.participantToken)
+    },
+    creatureTypes: (session: Session) => request<string[]>(`/campaigns/${session.campaignId}/creatures/types`, {}, session.participantToken),
+    getCreature: (session: Session, id: string) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}`, {}, session.participantToken),
+    createCreature: (session: Session, body: SaveCreatureRequest) => request<Creature>(`/campaigns/${session.campaignId}/creatures`, { method: 'POST', body: JSON.stringify(body) }, session.participantToken),
+    saveCreature: (session: Session, id: string, body: SaveCreatureRequest) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}`, { method: 'PUT', body: JSON.stringify(body) }, session.participantToken),
+    saveCreatureNotes: (session: Session, id: string, notes: string | null, expectedRevision: string | null) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}/notes`, { method: 'PUT', body: JSON.stringify({ notes, expectedRevision }) }, session.participantToken),
+    /** Custom: deleted (undefined). Edited: the restored compendium original. */
+    deleteCreature: (session: Session, id: string) => request<Creature | undefined>(`/campaigns/${session.campaignId}/creatures/${id}`, { method: 'DELETE' }, session.participantToken),
+    uploadCreatureImage: (session: Session, id: string, file: File) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}/image`, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file }, session.participantToken),
+    removeCreatureImage: (session: Session, id: string) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}/image`, { method: 'DELETE' }, session.participantToken),
+    addCreaturesToEncounter: (session: Session, encounterId: string, creatureId: string, count: number) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/creatures`, { method: 'POST', body: JSON.stringify({ creatureId, count }) }, session.participantToken),
+    setRollPreset: (session: Session, encounterId: string, tokenId: string, preset: RollPreset) => request<BattlemapSnapshot>(`/campaigns/${session.campaignId}/encounters/${encounterId}/battlemap/tokens/${tokenId}/roll-preset`, { method: 'PUT', body: JSON.stringify(preset) }, session.participantToken),
     participantAvatar,
     uploadAvatar,
     removeAvatar: (session: Session) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/avatar`, { method: 'DELETE' }, session.participantToken),

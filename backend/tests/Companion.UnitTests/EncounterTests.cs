@@ -225,4 +225,54 @@ public sealed class EncounterTests
         encounter.Start();
         return encounter;
     }
+
+    [Fact]
+    public void A_reinforcement_rolls_initiative_and_never_steals_the_current_turn()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var fast = encounter.AddCombatant(Guid.NewGuid(), "Rápido", 0, currentHitPoints: 10);
+        var slow = encounter.AddCombatant(Guid.NewGuid(), "Lento", 0, currentHitPoints: 10);
+        fast.SetInitiative(15);
+        slow.SetInitiative(5);
+        encounter.Start();
+        encounter.AdvanceTurn(); // turn: Lento (index 1)
+
+        // Rolls 18 + 2 = 20: sorts ahead of everyone, but the turn stays with Lento.
+        var ogre = encounter.AddReinforcement(Guid.NewGuid(), "Ogro 1", 2, 59, 59, () => 18);
+
+        Assert.Equal(20, ogre.Initiative);
+        Assert.Equal(59, ogre.CurrentHitPoints);
+        Assert.Equal(3, encounter.Combatants.Count);
+        Assert.Equal(2, encounter.CurrentTurnIndex); // Ogro 20, Rápido 15, Lento 5
+        Assert.Equal(1, encounter.Round);
+        encounter.AdvanceTurn();
+        Assert.Equal(0, encounter.CurrentTurnIndex); // wraps to the ogre, round 2
+        Assert.Equal(2, encounter.Round);
+    }
+
+    [Fact]
+    public void A_reinforcement_is_refused_outside_an_active_combat()
+    {
+        var preparing = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        Assert.Throws<InvalidOperationException>(() => preparing.AddReinforcement(Guid.NewGuid(), "Goblin 1", 2, 7, 7, () => 10));
+        var ended = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        ended.End(DateTimeOffset.UtcNow);
+        Assert.Throws<InvalidOperationException>(() => ended.AddReinforcement(Guid.NewGuid(), "Goblin 1", 2, 7, 7, () => 10));
+    }
+
+    [Fact]
+    public void A_reinforcement_into_an_emptied_combat_takes_the_turn()
+    {
+        var encounter = new Encounter(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var only = encounter.AddCombatant(Guid.NewGuid(), "Único", 0, currentHitPoints: 10);
+        only.SetInitiative(10);
+        encounter.Start();
+        encounter.RemoveCombatant(only.Id);
+        Assert.Null(encounter.CurrentTurnIndex);
+
+        encounter.AddReinforcement(Guid.NewGuid(), "Goblin 1", 2, 7, 7, () => 10);
+
+        Assert.Equal(0, encounter.CurrentTurnIndex);
+        encounter.AdvanceTurn(); // must not throw
+    }
 }

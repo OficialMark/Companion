@@ -1,3 +1,4 @@
+using Companion.Application.Creatures;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
 using Companion.Domain.Models;
@@ -106,6 +107,68 @@ public sealed class EncounterService(
             foreach (var creature in encounter.Combatants.Where(x => x.IsCreature))
                 creature.SetHitPointsHidden(request.Hidden);
         }, cancellationToken);
+
+    public const int MaxCreaturesPerAdd = 20;
+
+    /// <summary>
+    /// Adds 1-20 combatants from a library creature (spec 008, US4): numbered names, HP and
+    /// initiative from the sheet, linked to the creature, token footprint from its size.
+    /// While preparing they join like any combatant; during combat they are reinforcements that roll
+    /// initiative on entry without moving the turn. Refused once the encounter ended.
+    /// </summary>
+    public async Task<EncounterDto> AddCreaturesAsync(
+        Guid campaignId, Guid encounterId, string token, AddCreaturesToEncounterRequest request, CancellationToken cancellationToken)
+    {
+        var master = authorization.Require(campaignId, token, masterOnly: true);
+        if (request.Count is < 1 or > MaxCreaturesPerAdd)
+            throw new AppException(AppErrorKind.Validation, $"Adicione de 1 a {MaxCreaturesPerAdd} criaturas por vez.");
+        var encounter = Load(campaignId, encounterId);
+        if (encounter.Status == EncounterStatus.Ended)
+            throw new AppException(AppErrorKind.Validation, "O combate já foi encerrado.");
+        var reinforcement = encounter.Status == EncounterStatus.Active;
+        var creature = db.Creatures.SingleOrDefault(x => x.Id == request.CreatureId && (x.CampaignId == null || x.CampaignId == campaignId))
+            ?? throw new AppException(AppErrorKind.NotFound, "Criatura não encontrada.");
+        if (creature.IsCompendium)
+            creature = db.Creatures.SingleOrDefault(x => x.CampaignId == campaignId && x.BaseCreatureId == creature.Id) ?? creature;
+
+        // If the master hid HP for every creature, newcomers must not leak theirs to the players.
+        var existingCreatures = encounter.Combatants.Where(x => x.IsCreature).ToArray();
+        var hideHitPoints = existingCreatures.Length > 0 && existingCreatures.All(x => x.IsHitPointsHidden);
+        var names = CreatureNaming.Next(creature.Name, encounter.Combatants.Select(x => x.Name), request.Count, Combatant.MaxNameLength);
+        var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id);
+        try
+        {
+            foreach (var name in names)
+            {
+                var modifier = Math.Clamp(creature.InitiativeModifier, -100, 100);
+                // During combat the newcomer rolls initiative on entry and joins the order without moving the turn.
+                var combatant = reinforcement
+                    ? encounter.AddReinforcement(Guid.NewGuid(), name, modifier, creature.HitPoints, creature.HitPoints, () => randomizer.Roll(20))
+                    : encounter.AddCombatant(Guid.NewGuid(), name, modifier, currentHitPoints: creature.HitPoints, maxHitPoints: creature.HitPoints);
+                combatant.LinkCreature(creature.Id);
+                if (hideHitPoints) combatant.SetHitPointsHidden(true);
+                db.Add(combatant);
+                if (battlemap is not null && creature.FootprintSize > 1)
+                {
+                    var appearance = BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemap.Id, combatant.Id);
+                    appearance.SetFootprintSize(creature.FootprintSize);
+                    db.Add(appearance);
+                }
+            }
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+        // A reinforcement changes the turn order even when CurrentTurnIndex stays the same: bump the
+        // rowversion so a concurrent "next turn" computed on the old list fails with 409 instead.
+        if (reinforcement) db.MarkModified(encounter);
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.EncounterInvalidatedAsync(campaignId, encounter.Id, cancellationToken);
+        if (battlemap is not null)
+            await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, DtoMapper.Revision(battlemap.Version), cancellationToken);
+        return DtoMapper.ToDto(encounter, master);
+    }
 
     public async Task<EncounterDto> RemoveCombatantAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken)

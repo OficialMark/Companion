@@ -1,3 +1,5 @@
+using Companion.Application.Creatures;
+using Companion.Infrastructure.Creatures;
 using System.Text.Json.Serialization;
 using Companion.Api;
 using Companion.Api.Endpoints;
@@ -64,6 +66,13 @@ builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
 builder.Services.AddScoped<BattlemapService>();
 builder.Services.AddScoped<AttackService>();
+builder.Services.AddScoped<CreatureService>();
+builder.Services.AddScoped<CompendiumSeeder>();
+builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
+builder.Services.AddSingleton<CreatureImageBackoff>();
+// No automatic redirects: the host allowlist is checked once, before the request.
+builder.Services.AddHttpClient<ICreatureImageSource, HttpCreatureImageSource>()
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 var app = builder.Build();
 if (!app.Environment.IsEnvironment("Testing")) app.UseRateLimiter();
@@ -115,6 +124,7 @@ app.MapCampaignEndpoints();
 app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();
+app.MapCreatureEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 
@@ -122,6 +132,19 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
     await db.Database.MigrateAsync();
+    // Global creature compendium (spec 008): a no-op unless the embedded seed changed. Never fatal:
+    // bad rows are skipped and logged, and any other failure leaves the API up (library degraded).
+    var seedLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("CompendiumSeeder");
+    try
+    {
+        var seeded = await scope.ServiceProvider.GetRequiredService<CompendiumSeeder>().SeedAsync();
+        if (seeded.Applied) seedLogger.LogInformation("Creature compendium seeded: {Count} entries", seeded.Upserted);
+        foreach (var skipped in seeded.Skipped) seedLogger.LogWarning("Creature compendium entry skipped: {Entry}", skipped);
+    }
+    catch (Exception exception)
+    {
+        seedLogger.LogError(exception, "Creature compendium seed failed; the API keeps running without it");
+    }
 }
 
 await app.RunAsync();

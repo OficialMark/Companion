@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CreaturePicker from '~/components/creatures/CreaturePicker.vue'
+const mode = ref<'catalog' | 'manual'>('catalog')
 const store = useCampaignStore(); const api = useCompanionApi(); const name = ref(''); const modifier = ref(0); const hitPoints = ref<number | null>(null); const maxHitPoints = ref<number | null>(null); const busy = ref(false); const error = ref('')
 async function execute(action: () => Promise<unknown>) { busy.value = true; error.value = ''; try { await action() } catch (exception) { error.value = (exception as Error).message } finally { busy.value = false } }
 async function createEncounter() { if (!store.session || !store.snapshot) return; await execute(async () => { store.snapshot!.activeEncounter = await api.createEncounter(store.session!) }) }
@@ -21,7 +23,12 @@ const missingHitPoints = computed(() => combatants.value.some(c => c.currentHitP
   </section>
   <section v-else-if="store.isMaster && store.snapshot?.activeEncounter?.status === 'Preparing'" class="panel encounter-setup" aria-labelledby="setup-title">
     <div class="panel-heading"><div><p class="eyebrow"><Icon name="lucide:clipboard-list" />Preparação</p><h2 id="setup-title">Combatentes</h2></div></div>
-    <form class="combatant-form" @submit.prevent="addCombatant">
+    <div class="setup-mode" role="group" aria-label="Como adicionar combatentes">
+      <button class="view-tab" :class="{ selected: mode === 'catalog' }" type="button" :aria-pressed="mode === 'catalog'" data-setup-mode="catalog" @click="mode = 'catalog'"><Icon name="lucide:book-open" />Do catálogo</button>
+      <button class="view-tab" :class="{ selected: mode === 'manual' }" type="button" :aria-pressed="mode === 'manual'" data-setup-mode="manual" @click="mode = 'manual'"><Icon name="lucide:pencil-line" />Manual</button>
+    </div>
+    <CreaturePicker v-if="mode === 'catalog'" />
+    <form v-else class="combatant-form" @submit.prevent="addCombatant">
       <label>Nome<input v-model="name" maxlength="60" required placeholder="Goblin arqueiro"></label>
       <label><span class="label-with-icon"><Icon name="lucide:zap" />Modificador</span><input v-model.number="modifier" type="number" min="-100" max="100" required></label>
       <label><span class="label-with-icon"><Icon name="lucide:heart" />Vida atual</span><input id="new-combatant-hit-points" v-model.number="hitPoints" type="number" min="0" max="99999" step="1" required></label>

@@ -42,6 +42,8 @@ public static class BattlemapEndpoints
             using var buffer = new MemoryStream();
             await stream.CopyToAsync(buffer, ct);
             var expectedRevision = form["expectedRevision"].ToString();
+            var hasFogMask = form.ContainsKey("fogMask");
+            var fogMask = hasFogMask ? form["fogMask"].ToString() : null;
             var result = await service.ConfigureAsync(
                 campaignId,
                 encounterId,
@@ -53,7 +55,9 @@ public static class BattlemapEndpoints
                     columns,
                     rows,
                     isGridVisible,
-                    string.IsNullOrWhiteSpace(expectedRevision) ? null : expectedRevision),
+                    string.IsNullOrWhiteSpace(expectedRevision) ? null : expectedRevision,
+                    hasFogMask,
+                    fogMask),
                 ct);
             return result.Created
                 ? Results.Created($"/api/campaigns/{campaignId}/encounters/{encounterId}/battlemap", result.Result)
@@ -120,6 +124,16 @@ public static class BattlemapEndpoints
             CancellationToken ct) =>
             Results.Ok(await service.SetTokenAppearanceAsync(
                 campaignId, encounterId, tokenId, Token(request), body, ct)));
+
+        group.MapPut("/tokens/{tokenId:guid}/roll-preset", async (
+            Guid campaignId,
+            Guid encounterId,
+            Guid tokenId,
+            SetRollPresetRequest body,
+            HttpRequest request,
+            BattlemapService service,
+            CancellationToken ct) =>
+            Results.Ok(await service.SetRollPresetAsync(campaignId, encounterId, tokenId, Token(request), body, ct)));
 
         group.MapPut("/fog", async (
             Guid campaignId,

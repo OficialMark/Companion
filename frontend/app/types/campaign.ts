@@ -35,6 +35,8 @@ export interface DiceRoll {
   total: number
   results: DiceRollResult[]
   createdAt: string
+  /** Who the roll was for, e.g. "Goblin 2" (spec 008). */
+  label?: string | null
 }
 export interface Combatant {
   id: string
@@ -49,6 +51,7 @@ export interface Combatant {
   isDefeated?: boolean
   /** Master hid this creature's HP from players; players receive null HP when true. */
   isHitPointsHidden?: boolean
+  creatureId?: string | null
 }
 export interface Encounter {
   id: string
@@ -114,6 +117,10 @@ export interface BattlemapToken {
   attackArea?: AttackArea | null
   footprintSize?: number
   statusConditions?: StatusCondition[]
+  /** Spec 008: library creature image (authenticated API path) and link. */
+  imageUrl?: string | null
+  creatureId?: string | null
+  rollPreset?: { count: number; die: number; ability: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null; bonus: number } | null
 }
 export interface SetTokenAppearanceRequest {
   footprintSize: number

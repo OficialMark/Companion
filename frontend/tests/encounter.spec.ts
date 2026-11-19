@@ -34,12 +34,19 @@ describe('EncounterSetup', () => {
   })
 
   it('marks a combatant with zero hit points as defeated', () => { store.isMaster = true; store.snapshot.activeEncounter = { id: 'encounter-1', status: 'Active', round: 1, currentTurnIndex: 0, combatants: [{ id: 'combatant-1', participantId: null, name: 'Goblin', initiativeModifier: 2, initiative: 14, creationOrder: 0, isCurrent: true, currentHitPoints: 0, isDefeated: true }] }; const wrapper = mount(InitiativeTracker); expect(wrapper.get('.initiative-list li').classes()).toContain('defeated') })
-  it('blocks encounter start while hit points are missing', () => {
+  it('blocks encounter start while hit points are missing', async () => {
     store.snapshot.activeEncounter = {
       id: 'encounter-1', status: 'Preparing', round: 0, currentTurnIndex: null,
       combatants: [{ id: 'combatant-1', participantId: null, name: 'Goblin', initiativeModifier: 2, initiative: 14, creationOrder: 0, isCurrent: false, currentHitPoints: null }]
     }
-    const wrapper = mount(EncounterSetup)
+    const wrapper = mount(EncounterSetup, { global: { stubs: { CreaturePicker: { template: '<div data-stub-picker />' } } } })
+    // Opens on the catalog; Manual swaps it for the free-form fields.
+    expect(wrapper.get('[data-setup-mode="catalog"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.find('[data-stub-picker]').exists()).toBe(true)
+    expect(wrapper.find('#new-combatant-hit-points').exists()).toBe(false)
+    await wrapper.get('[data-setup-mode="manual"]').trigger('click')
+    expect(wrapper.get('[data-setup-mode="manual"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.find('[data-stub-picker]').exists()).toBe(false)
     expect(wrapper.get('#new-combatant-hit-points').exists()).toBe(true)
     expect(wrapper.get('button.button.primary').attributes('disabled')).toBeDefined()
   })

@@ -63,6 +63,26 @@ describe('BattlemapBoard marker tokens', () => {
     expect(wrapper.emitted('create-marker')?.[0]).toEqual(['Familiar'])
   })
 
+  it('offers the creature catalog next to "Inserir token" to the master only', async () => {
+    const player = mount(BattlemapBoard, {
+      props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+    })
+    expect(player.find('[data-board-catalog]').exists()).toBe(false)
+    const master = mount(BattlemapBoard, {
+      props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: true },
+      global: { stubs: { CreaturePicker: { template: '<div data-stub-picker />' } } }
+    })
+    expect(master.find('[data-stub-picker]').exists()).toBe(false)
+    await master.get('[data-board-catalog]').trigger('click')
+    expect(master.find('[data-stub-picker]').exists()).toBe(true)
+    expect(master.get('[data-board-catalog]').attributes('aria-expanded')).toBe('true')
+
+    const offline = mount(BattlemapBoard, {
+      props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: false }
+    })
+    expect(offline.find('[data-board-catalog]').exists()).toBe(false)
+  })
+
   it('offers a "Remover token" action in the panel only for a marker, emitting marker-remove', async () => {
     const wrapper = mount(BattlemapBoard, {
       props: { battlemap: markerSnapshot(), imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }

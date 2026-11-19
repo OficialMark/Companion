@@ -21,6 +21,9 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<AttackArea> AttackAreas => Set<AttackArea>();
     public DbSet<BattlemapTokenAppearance> TokenAppearances => Set<BattlemapTokenAppearance>();
     public DbSet<BattlemapMarker> BattlemapMarkers => Set<BattlemapMarker>();
+    public DbSet<Creature> Creatures => Set<Creature>();
+    public DbSet<CreatureImage> CreatureImages => Set<CreatureImage>();
+    public DbSet<SeedVersion> SeedVersions => Set<SeedVersion>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -36,6 +39,9 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<AttackArea> ICompanionDbContext.AttackAreas => AttackAreas;
     IQueryable<BattlemapTokenAppearance> ICompanionDbContext.TokenAppearances => TokenAppearances;
     IQueryable<BattlemapMarker> ICompanionDbContext.BattlemapMarkers => BattlemapMarkers;
+    IQueryable<Creature> ICompanionDbContext.Creatures => Creatures;
+    IQueryable<CreatureImage> ICompanionDbContext.CreatureImages => CreatureImages;
+    IQueryable<SeedVersion> ICompanionDbContext.SeedVersions => SeedVersions;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -44,6 +50,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
     void ICompanionDbContext.Add(Encounter encounter) => Encounters.Add(encounter);
+    void ICompanionDbContext.MarkModified(Encounter encounter) => Entry(encounter).State = EntityState.Modified;
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);
     void ICompanionDbContext.Add(CombatAttack attack) => CombatAttacks.Add(attack);
     void ICompanionDbContext.Add(CombatAttackTarget target) => CombatAttackTargets.Add(target);
@@ -56,6 +63,11 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(BattlemapTokenAppearance appearance) => TokenAppearances.Remove(appearance);
     void ICompanionDbContext.Add(BattlemapMarker marker) => BattlemapMarkers.Add(marker);
     void ICompanionDbContext.Remove(BattlemapMarker marker) => BattlemapMarkers.Remove(marker);
+    void ICompanionDbContext.Add(Creature creature) => Creatures.Add(creature);
+    void ICompanionDbContext.Remove(Creature creature) => Creatures.Remove(creature);
+    void ICompanionDbContext.Add(CreatureImage image) => CreatureImages.Add(image);
+    void ICompanionDbContext.Remove(CreatureImage image) => CreatureImages.Remove(image);
+    void ICompanionDbContext.Add(SeedVersion seedVersion) => SeedVersions.Add(seedVersion);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,6 +89,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
             .Select(encounter => encounter.Id)
             .Contains(combatant.EncounterId)).ExecuteDeleteAsync(cancellationToken);
         await Encounters.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        // Campaign creatures (own + edited copies); their images cascade in the database.
+        await Creatures.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await Participants.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await CampaignAccessCodes.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         var deleted = await Campaigns.Where(x => x.Id == campaignId).ExecuteDeleteAsync(cancellationToken);

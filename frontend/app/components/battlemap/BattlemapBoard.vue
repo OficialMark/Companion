@@ -9,6 +9,7 @@ import { maskPath } from '~/utils/fogMask'
 import BattlemapTokenMarker from './BattlemapToken.vue'
 import AttackAreaPanel from './AttackAreaPanel.vue'
 import FogToolbar from './FogToolbar.vue'
+import CreaturePicker from '~/components/creatures/CreaturePicker.vue'
 
 const props = withDefaults(defineProps<{
   battlemap: BattlemapSnapshot
@@ -36,9 +37,11 @@ const emit = defineEmits<{
   'fog-commit': [mask: string | null]
   /** combatantId = null applies to every creature of the encounter. */
   'hit-points-visibility': [combatantId: string | null, hidden: boolean]
+  'open-creature-sheet': [tokenId: string, creatureId: string, name: string]
 }>()
 
 const newMarkerLabel = ref('')
+const catalogOpen = ref(false)
 function submitNewMarker() {
   const label = newMarkerLabel.value.trim()
   if (!label) return
@@ -77,7 +80,8 @@ const selectedToken = computed(() =>
 const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
 const defeatedSet = computed(() => new Set(props.defeatedIds))
-const photoFor = (token: BattlemapToken) => token.isCreature ? null : props.avatars[token.participantId] ?? null
+// Players' photos and library creature images (spec 008) both arrive keyed by token id.
+const photoFor = (token: BattlemapToken) => props.avatars[token.participantId] ?? null
 // The board follows the map proportion (within sensible height limits), so wide
 // maps don't leave a tall empty frame and tall maps get more vertical room.
 const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.value}` }))
@@ -322,7 +326,12 @@ function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
   dragPointer.x = event.clientX
   dragPointer.y = event.clientY
   dragPointer.moved = false
-  surface.value?.setPointerCapture?.(event.pointerId)
+  capturePointer(event.pointerId)
+}
+
+/** Capture can fail when the pointer is already gone (touch races); dragging still works without it. */
+function capturePointer(pointerId: number) {
+  try { surface.value?.setPointerCapture?.(pointerId) } catch { /* not capturable */ }
 }
 
 function pointerDistance() {
@@ -356,7 +365,7 @@ function pointerDown(event: PointerEvent) {
     if (fog.stroking.value) commitFogStroke()
   }
   activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
-  surface.value?.setPointerCapture?.(event.pointerId)
+  capturePointer(event.pointerId)
   if (activePointers.size === 2) {
     // Second finger: pinch wins over painting/panning; an in-progress fog stroke is undone.
     if (fog.stroking.value) fog.cancel()
@@ -729,6 +738,8 @@ onBeforeUnmount(() => observer?.disconnect())
       :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
       :is-marker="Boolean(activeAttackAreaToken.isMarker)"
       :hit-points-hidden="panelHitPointsHidden(activeAttackAreaToken)"
+      :can-open-sheet="isMaster && Boolean(activeAttackAreaToken.creatureId)"
+      @open-sheet="emit('open-creature-sheet', activeAttackAreaToken!.participantId, activeAttackAreaToken!.creatureId!, activeAttackAreaToken!.displayName)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
@@ -763,7 +774,9 @@ onBeforeUnmount(() => observer?.disconnect())
         placeholder="Nome do token (ex.: Lobo invocado)"
       >
       <button data-new-marker-submit class="button ghost compact" type="submit" :disabled="!newMarkerLabel.trim()" @click.prevent="submitNewMarker"><Icon name="lucide:map-pin-plus" /><span>Inserir token</span></button>
+      <button v-if="isMaster" data-board-catalog class="button secondary compact" type="button" :aria-expanded="catalogOpen" @click="catalogOpen = !catalogOpen"><Icon :name="catalogOpen ? 'lucide:x' : 'lucide:book-open'" /><span>{{ catalogOpen ? 'Fechar catálogo' : 'Do catálogo' }}</span></button>
     </form>
+    <div v-if="isMaster && online && catalogOpen" class="battlemap-catalog" aria-label="Adicionar criaturas do catálogo"><CreaturePicker /></div>
     <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
       <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />
       <span>

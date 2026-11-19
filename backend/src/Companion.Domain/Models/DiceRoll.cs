@@ -14,8 +14,17 @@ public sealed class DiceRoll
         int modifier,
         int total,
         DateTimeOffset createdAt,
-        DateTimeOffset? revealedAt = null)
+        DateTimeOffset? revealedAt = null,
+        string? label = null)
     {
+        if (label is not null)
+        {
+            label = label.Trim();
+            if (label.Length == 0) label = null;
+            else if (label.Length > MaxLabelLength || label.Any(char.IsControl))
+                throw new ArgumentException($"O rótulo da rolagem deve ter até {MaxLabelLength} caracteres, sem quebras de linha.", nameof(label));
+        }
+        Label = label;
         Id = id;
         CampaignId = campaignId;
         ParticipantId = participantId;
@@ -38,6 +47,9 @@ public sealed class DiceRoll
     public int Total { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? RevealedAt { get; private set; }
+    public const int MaxLabelLength = 80;
+    /// <summary>Who the roll was for, e.g. "Goblin 2" (spec 008); null for a plain roll.</summary>
+    public string? Label { get; private set; }
 
     public void Reveal(DateTimeOffset revealedAt) => RevealedAt ??= revealedAt;
 }

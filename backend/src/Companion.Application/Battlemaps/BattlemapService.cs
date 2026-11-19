@@ -1,3 +1,4 @@
+using Companion.Application.Creatures;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
 using Companion.Domain.Models;
@@ -102,6 +103,13 @@ public sealed class BattlemapService(
         catch (Exception exception) when (exception is ArgumentException or ArgumentOutOfRangeException)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
+
+        if (request.HasFogMask)
+        {
+            // Same transaction as the image: the first snapshot anyone can read is already fogged.
+            try { battlemap.SetFog(DecodeFogMask(request.FogMask)); }
+            catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -311,15 +319,7 @@ public sealed class BattlemapService(
         var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounter.Id)
             ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
 
-        byte[]? mask = null;
-        if (!string.IsNullOrEmpty(request.Mask))
-        {
-            // Bound the decode before allocating: base64 of the largest legal mask.
-            if (request.Mask.Length > (Battlemap.MaxFogMaskBytes + 2) / 3 * 4)
-                throw new AppException(AppErrorKind.Validation, "A névoa enviada é grande demais para o grid.");
-            try { mask = Convert.FromBase64String(request.Mask); }
-            catch (FormatException) { throw new AppException(AppErrorKind.Validation, "A névoa enviada é inválida."); }
-        }
+        var mask = DecodeFogMask(request.Mask);
         try { battlemap.SetFog(mask); }
         catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
 
@@ -327,6 +327,38 @@ public sealed class BattlemapService(
         var snapshot = ToSnapshot(campaignId, battlemap, master);
         await notifier.BattlemapInvalidatedAsync(campaignId, encounter.Id, snapshot.Revision, cancellationToken);
         return snapshot;
+    }
+
+    /// <summary>Remembers the last roll setup for a token on this map (spec 008, US5).</summary>
+    public async Task<BattlemapSnapshotDto> SetRollPresetAsync(
+        Guid campaignId,
+        Guid encounterId,
+        Guid tokenId,
+        string token,
+        SetRollPresetRequest request,
+        CancellationToken cancellationToken)
+    {
+        var (_, battlemap, participant, combatant, _, actor) = ResolveTokenForMutation(campaignId, encounterId, tokenId, token);
+        var appearance = participant is not null
+            ? db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.ParticipantId == tokenId)
+            : combatant is not null
+                ? db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.CombatantId == tokenId)
+                : db.TokenAppearances.SingleOrDefault(x => x.BattlemapId == battlemap.Id && x.MarkerId == tokenId);
+        if (appearance is null)
+        {
+            appearance = participant is not null
+                ? BattlemapTokenAppearance.ForParticipant(Guid.NewGuid(), battlemap.Id, tokenId)
+                : combatant is not null
+                    ? NewCreatureAppearance(battlemap.Id, combatant)
+                    : BattlemapTokenAppearance.ForMarker(Guid.NewGuid(), battlemap.Id, tokenId);
+            db.Add(appearance);
+        }
+        var ability = string.IsNullOrWhiteSpace(request.Ability) ? null : request.Ability.Trim().ToLowerInvariant();
+        try { appearance.SetRollPreset(request.Count, request.Die, ability, request.Bonus); }
+        catch (ArgumentOutOfRangeException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
+        // Private to whoever rolls: no broadcast, nobody else's board changes.
+        await db.SaveChangesAsync(cancellationToken);
+        return ToSnapshot(campaignId, battlemap, actor);
     }
 
     public async Task<BattlemapSnapshotDto> CreateMarkerAsync(
@@ -427,6 +459,8 @@ public sealed class BattlemapService(
 
     private BattlemapSnapshotDto ToSnapshot(Guid campaignId, Battlemap battlemap, Participant observer)
     {
+        // Roll presets are private to whoever can roll for the token (spec 008).
+        var isMaster = observer.Role == ParticipantRole.Master;
         var positions = db.BattlemapTokenPositions
             .Where(x => x.BattlemapId == battlemap.Id)
             .ToArray();
@@ -473,17 +507,25 @@ public sealed class BattlemapService(
                     position is null ? null : DtoMapper.Revision(position.Version),
                     AttackArea: area is null ? null : ToDto(area),
                     FootprintSize: appearance?.FootprintSize ?? 1,
-                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
+                    RollPreset: isMaster || participant.Id == observer.Id ? Preset(appearance) : null);
             });
-        var creatureTokens = db.Combatants
+        var creatureCombatants = db.Combatants
             .Where(x => x.EncounterId == battlemap.EncounterId && x.ParticipantId == null)
             .OrderBy(x => x.CreationOrder)
+            .ToArray();
+        var linkedIds = creatureCombatants.Where(x => x.CreatureId != null).Select(x => x.CreatureId!.Value).Distinct().ToArray();
+        var linkedCreatures = db.Creatures.Where(x => linkedIds.Contains(x.Id))
+            .Select(x => new { x.Id, x.ImageRevision, x.ImageSourceUrl, x.Size })
             .AsEnumerable()
+            .ToDictionary(x => x.Id);
+        var creatureTokens = creatureCombatants
             .Select(combatant =>
             {
                 creaturePositions.TryGetValue(combatant.Id, out var position);
                 creatureAreas.TryGetValue(combatant.Id, out var area);
                 creatureAppearances.TryGetValue(combatant.Id, out var appearance);
+                var linked = combatant.CreatureId is { } linkedId ? linkedCreatures.GetValueOrDefault(linkedId) : null;
                 return new BattlemapTokenDto(
                     combatant.Id,
                     combatant.Name,
@@ -494,8 +536,13 @@ public sealed class BattlemapService(
                     position is null ? null : DtoMapper.Revision(position.Version),
                     IsCreature: true,
                     AttackArea: area is null ? null : ToDto(area),
-                    FootprintSize: appearance?.FootprintSize ?? 1,
-                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? []);
+                    // Creatures added before the map existed have no appearance row yet:
+                    // their size still comes from the linked sheet (Large 2x2, Huge 3x3...).
+                    FootprintSize: appearance?.FootprintSize ?? Footprint(linked?.Size),
+                    StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
+                    ImageUrl: linked is null ? null : CreatureService.ImageUrl(campaignId, linked.Id, linked.ImageRevision, linked.ImageSourceUrl),
+                    CreatureId: combatant.CreatureId,
+                    RollPreset: isMaster ? Preset(appearance) : null);
             });
         var markerTokens = db.BattlemapMarkers
             .Where(x => x.BattlemapId == battlemap.Id)
@@ -518,7 +565,8 @@ public sealed class BattlemapService(
                     FootprintSize: appearance?.FootprintSize ?? 1,
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
                     IsMarker: true,
-                    OwnerParticipantId: marker.OwnerParticipantId);
+                    OwnerParticipantId: marker.OwnerParticipantId,
+                    RollPreset: isMaster || marker.OwnerParticipantId == observer.Id ? Preset(appearance) : null);
             });
         var tokens = playerTokens.Concat(creatureTokens).Concat(markerTokens).ToArray();
         if (observer.Role != ParticipantRole.Master && battlemap.FogMask is not null)
@@ -553,6 +601,44 @@ public sealed class BattlemapService(
             tokens,
             battlemap.FogMask is null ? null : Convert.ToBase64String(battlemap.FogMask));
     }
+    /// <summary>
+    /// First appearance row of a creature token (e.g. created by a roll preset): it must start
+    /// at the linked sheet's size, or a 2x2 Ogre added before the map would shrink to 1x1.
+    /// </summary>
+    private BattlemapTokenAppearance NewCreatureAppearance(Guid battlemapId, Combatant combatant)
+    {
+        var appearance = BattlemapTokenAppearance.ForCombatant(Guid.NewGuid(), battlemapId, combatant.Id);
+        if (combatant.CreatureId is { } creatureId)
+        {
+            var size = db.Creatures.Where(x => x.Id == creatureId).Select(x => (CreatureSize?)x.Size).SingleOrDefault();
+            appearance.SetFootprintSize(Footprint(size));
+        }
+        return appearance;
+    }
+
+    private static int Footprint(CreatureSize? size) => size switch
+    {
+        CreatureSize.Large => 2,
+        CreatureSize.Huge => 3,
+        CreatureSize.Gargantuan => 4,
+        _ => 1
+    };
+
+    private static RollPresetDto? Preset(BattlemapTokenAppearance? appearance) =>
+        appearance?.LastRollDie is { } die
+            ? new RollPresetDto(appearance.LastRollCount ?? 1, die, appearance.LastRollAbility, appearance.LastRollBonus ?? 0)
+            : null;
+
+    private static byte[]? DecodeFogMask(string? base64)
+    {
+        if (string.IsNullOrEmpty(base64)) return null;
+        // Bound the decode before allocating: base64 of the largest legal mask.
+        if (base64.Length > (Battlemap.MaxFogMaskBytes + 2) / 3 * 4)
+            throw new AppException(AppErrorKind.Validation, "A névoa enviada é grande demais para o grid.");
+        try { return Convert.FromBase64String(base64); }
+        catch (FormatException) { throw new AppException(AppErrorKind.Validation, "A névoa enviada é inválida."); }
+    }
+
     private static AttackAreaDto ToDto(AttackArea area) => new(
         area.Id,
         area.Shape.ToString(),
