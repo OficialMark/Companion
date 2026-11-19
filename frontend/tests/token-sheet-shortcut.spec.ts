@@ -1,4 +1,4 @@
-import { mount, flushPromises } from '@vue/test-utils'
+import { enableAutoUnmount, mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import AttackAreaPanel from '~/components/battlemap/AttackAreaPanel.vue'
@@ -7,6 +7,9 @@ import { useCampaignStore } from '~/stores/campaign'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
 import type { BattlemapSnapshot } from '~/types/campaign'
 import type { Creature } from '~/types/creatures'
+
+// Every mounted board is unmounted after each test, so no right-click guard leaks into the next one.
+enableAutoUnmount(afterEach)
 
 // Spec 010: right-click on a token opens its sheet; a sheet roll's result stays 2 s on screen.
 
@@ -139,6 +142,137 @@ describe('right-click on a battlemap token (spec 010)', () => {
     const wrapper = board(true)
     expect(wrapper.get('[data-participant-id="goblin-1"]').attributes('aria-label')).toContain('Shift+F10 abre a ficha')
     expect(wrapper.get('[data-participant-id="player-0"]').attributes('aria-label')).not.toContain('Shift+F10')
+  })
+})
+
+describe('browser context menu stays closed for board right-clicks (spec 010)', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  /** A contextmenu event anywhere on the page (e.g. over the sheet that just opened); true when cancelled. */
+  function browserMenuBlocked(target: EventTarget = document.body) {
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+    target.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+
+  it('right-click on a creature: blocked until 300 ms after the button goes up (Windows fires on release)', async () => {
+    const wrapper = board(true)
+    wrapper.element.ownerDocument.body.appendChild(wrapper.element)
+    await pointer(wrapper.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 2)
+    expect(browserMenuBlocked()).toBe(true) // e.g. over the sheet overlay, outside the board
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    vi.advanceTimersByTime(250)
+    expect(browserMenuBlocked()).toBe(true) // the release-time event
+    vi.advanceTimersByTime(100)
+    expect(browserMenuBlocked()).toBe(false) // the rest of the page keeps its normal menu
+    wrapper.unmount()
+  })
+
+  it('right-click on a token without a sheet (its menu opens) and right-drag pan on the surface: same', async () => {
+    const wrapper = board(true)
+    await pointer(wrapper.get('[data-participant-id="player-0"]').element, 'pointerdown', 2)
+    expect(browserMenuBlocked()).toBe(true)
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    vi.advanceTimersByTime(400)
+    expect(browserMenuBlocked()).toBe(false)
+
+    await pointer(wrapper.get('[data-board-surface]').element, 'pointerdown', 2)
+    expect(browserMenuBlocked()).toBe(true)
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    vi.advanceTimersByTime(400)
+    expect(browserMenuBlocked()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('keyboard (Menu key fires contextmenu on key UP, after focus moved into the sheet): blocked until 300 ms after keyup', async () => {
+    const wrapper = board(true)
+    await wrapper.get('[data-participant-id="goblin-1"]').trigger('keydown', { key: 'ContextMenu' })
+    expect(wrapper.emitted('open-creature-sheet')).toHaveLength(1)
+    expect(browserMenuBlocked()).toBe(true)
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ContextMenu' }))
+    vi.advanceTimersByTime(250)
+    expect(browserMenuBlocked()).toBe(true)
+    vi.advanceTimersByTime(100)
+    expect(browserMenuBlocked()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('after the release, the release-time menu event or a new press elsewhere ends the guard (fast right-clicks get the normal menu)', async () => {
+    const wrapper = board(true)
+    const goblin = wrapper.get('[data-participant-id="goblin-1"]').element
+    await pointer(goblin, 'pointerdown', 2)
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    expect(browserMenuBlocked()).toBe(true) // Windows' release-time event
+    expect(browserMenuBlocked()).toBe(false) // the next one, right away, is a normal menu
+
+    await pointer(goblin, 'pointerdown', 2)
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    await pointer(document.body, 'pointerdown', 2) // a new right-click elsewhere, within 300 ms
+    expect(browserMenuBlocked()).toBe(false)
+  })
+
+  it('a lost release (focus change, pen cancel) does not eat the next right-click elsewhere', async () => {
+    const wrapper = board(true)
+    await pointer(wrapper.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 2)
+    // no pointerup ever arrives
+    await pointer(document.body, 'pointerdown', 2)
+    expect(browserMenuBlocked()).toBe(false)
+  })
+
+  it('a press on the board while armed re-arms (the board gesture stays protected)', async () => {
+    const wrapper = board(true)
+    const goblin = wrapper.get('[data-participant-id="goblin-1"]').element
+    await pointer(goblin, 'pointerdown', 2)
+    await pointer(goblin, 'pointerdown', 2)
+    expect(browserMenuBlocked()).toBe(true)
+  })
+
+  it('keyboard: only the menu key going up ends the gesture (Shift going up does not)', async () => {
+    const wrapper = board(true)
+    await wrapper.get('[data-participant-id="goblin-1"]').trigger('keydown', { key: 'F10', shiftKey: true })
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift' }))
+    vi.advanceTimersByTime(1_000)
+    expect(browserMenuBlocked()).toBe(true)
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'F10' }))
+    vi.advanceTimersByTime(400)
+    expect(browserMenuBlocked()).toBe(false)
+  })
+
+  it('chorded right button (pressed during a left drag, reported only as a move) is guarded too', async () => {
+    const wrapper = board(true)
+    await pointer(wrapper.get('[data-board-surface]').element, 'pointermove', 2)
+    expect(browserMenuBlocked()).toBe(true)
+    await pointer(window as unknown as Element, 'pointerup', 2)
+    vi.advanceTimersByTime(400)
+    expect(browserMenuBlocked()).toBe(false)
+  })
+
+  it('left button and other buttons releasing do not arm or end the guard', async () => {
+    const wrapper = board(true)
+    await pointer(wrapper.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 0)
+    expect(browserMenuBlocked()).toBe(false)
+    await pointer(wrapper.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 2)
+    await pointer(window as unknown as Element, 'pointerup', 0) // a left release does not end the right gesture
+    vi.advanceTimersByTime(1_000)
+    expect(browserMenuBlocked()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('a release we never hear about still frees the menu after 10 s; unmounting frees it at once', async () => {
+    const lost = board(true)
+    await pointer(lost.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 2)
+    vi.advanceTimersByTime(9_900)
+    expect(browserMenuBlocked()).toBe(true)
+    vi.advanceTimersByTime(200)
+    expect(browserMenuBlocked()).toBe(false)
+    lost.unmount()
+
+    const gone = board(true)
+    await pointer(gone.get('[data-participant-id="goblin-1"]').element, 'pointerdown', 2)
+    gone.unmount()
+    expect(browserMenuBlocked()).toBe(false)
+    expect(vi.getTimerCount()).toBe(0)
   })
 })
 

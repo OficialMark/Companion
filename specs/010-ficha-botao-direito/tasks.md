@@ -46,6 +46,31 @@
 - [X] T016 Crítico frio de novo, sobre as correções, até PASS
 - [X] T017 Commit, PR e merge na `main`
 
+## Phase 6: Correção pós-merge: menu do Chrome (US1, FR-001)
+
+Relato do dono: "só cuide para que quando selecionar o botão direito, não abra o menu de contexto do chrome".
+
+Causa: no Windows, o Chrome dispara `contextmenu` ao **soltar** o botão direito (e a tecla Menu ao soltar a tecla). Nesse momento a ficha ou o menu do token já estão por cima do tabuleiro, ou o ponteiro foi arrastado para fora dele. O `@contextmenu.prevent` do svg não alcança esses casos, e o menu nativo abria sobre a ficha.
+
+- [X] T019 [US1] Reproduzir num navegador real com `frontend/tests/e2e/no-browser-context-menu.spec.ts`. O teste grava cada evento `contextmenu` real e se a página o cancelou. Na `main` falhou: `modal-overlay creature-sheet-overlay`, `prevented: false`
+- [X] T020 [US1] `guardBrowserMenu(endsOn)` em `frontend/app/components/battlemap/BattlemapBoard.vue`:
+  - Cancela `contextmenu` na página do pressionar até o fim do gesto: o primeiro evento depois de soltar, ou 300 ms.
+  - Uma nova pressão encerra a guarda, há um teto de 10 s e desmontar o tabuleiro libera tudo.
+  - Fica armada no botão direito em token (`startTokenDrag`), na superfície (`pointerDown`) e no atalho de teclado (`openTokenContextFromKey`, liberado no `keyup`).
+  - Fora desses gestos, o menu do navegador continua normal na página.
+- [X] T021 [P] [US1] Seis testes de unidade em `frontend/tests/token-sheet-shortcut.spec.ts`, mais `enableAutoUnmount(afterEach)` para nenhuma guarda vazar entre testes:
+  - token com ficha, token sem ficha e pan pela superfície;
+  - teclado;
+  - fim pelo evento de soltar ou por nova pressão;
+  - botão esquerdo não arma;
+  - teto de 10 s e desmontagem.
+- [X] T022 [US1] Provar o e2e por mutação. Com a guarda desligada, ele falha na ficha (`prevented: false`); com a correção, passa 3 de 3. O teste só simula o evento de soltar quando o navegador não o dispara sozinho, e assim vale em Windows, Linux e Mac
+- [X] T023 Crítico frio sobre a correção: PASS, com 3 achados corrigidos, cada um com teste:
+  - (médio) Qualquer nova pressão libera a guarda. Um "soltar" perdido por troca de foco ou caneta não come o menu da página por até 10 s; uma pressão no tabuleiro rearma.
+  - O teclado só termina com a própria tecla Menu ou F10, não com o Shift.
+  - O botão direito apertado durante um arraste com o esquerdo (`pointermove` com `button === 2`) também é guardado.
+- [X] T024 `pnpm vitest run` (220) e `pnpm nuxt typecheck` limpos; e2e `no-browser-context-menu` 3 de 3 e `token-sheet-shortcut` passando; commit, PR, merge na `main` e rebuild da stack 3636
+
 ## Dependencies & Execution Order
 
 - T001–T006 e T011–T013 já foram feitos.
