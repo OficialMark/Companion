@@ -100,7 +100,7 @@
 **Goal**: a tela e o servidor executam a mesma estrutura.
 **Independent Test**: com dados controlados, `d20 + 5 + 2d6` com vantagem, com desvantagem e com 3 repetições mais vantagem.
 
-- [ ] T046 [US5] Teste de ponta a ponta da semântica em `backend/tests/Companion.IntegrationTests/DiceRollGroupingApiTests.cs`. Para cada caso de `dice-expressions.cases.json` marcado `"roundTrip": true`, a string gerada pelo frontend (o campo `canonical`) é aceita pelo servidor e volta idêntica em `DiceRollDto.expression`
+- [X] T046 [US5] Teste de ponta a ponta da semântica em `backend/tests/Companion.IntegrationTests/DiceRollGroupingApiTests.cs`. Para cada caso de `dice-expressions.cases.json` marcado `"roundTrip": true`, a string gerada pelo frontend (o campo `canonical`) é aceita pelo servidor e volta idêntica em `DiceRollDto.expression` Nota: DiceRoundTripApiTests.cs envia ao servidor real todos os casos roundTrip (os mesmos que o gerador do frontend testa).
 - [ ] T047 [US5] Teste do painel em `frontend/tests/player-roll-panel.spec.ts`: as combinações de vantagem e repetição produzem as formas da US5 (cenários 1 a 6), e o aviso de limite aparece antes do envio
 
 ## Phase 9: User Story 6 - Rolagens salvas (P2)
