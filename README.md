@@ -130,3 +130,20 @@ O mestre adiciona de 1 a 20 cópias ao combate pela ficha, pelo formulário "Com
 O compêndio é semeado no primeiro startup da API a partir de `backend/src/Companion.Infrastructure/Persistence/Seed/creatures.pocketdm.json`, de forma idempotente. As imagens do compêndio são buscadas pelo servidor sob demanda e guardadas no banco.
 
 **Licença:** conteúdo SRD sob [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) (Wizards of the Coast). Para reimportar, veja [`scripts/import-creatures/README.md`](scripts/import-creatures/README.md).
+
+## Ficha do jogador
+
+Cada nome de personagem é uma conta da campanha: entrar com o código de jogador e o mesmo nome (em qualquer combinação de maiúsculas e espaços) abre a mesma conta, em quantos aparelhos quiser. O nome é guardado com a primeira letra de cada palavra maiúscula ("Loren B. Vonn Neuman"). "Sair da campanha" encerra só a sessão daquele aparelho.
+
+O jogador alterna entre **Mesa** e **Ficha** pela barra superior (endereço `?tela=ficha`). A ficha tem quatro abas:
+
+- **Ficha:** valores-base editáveis (atributos, nível, perícias, salvaguardas, proficiências gerais, PV, CA sem armadura, deslocamento, atributo de conjuração). Os valores derivados (modificadores, proficiência, CA, iniciativa, perícias, percepção passiva, CD e ataque de magia) são calculados só pelo servidor, e cada um mostra de onde vem cada número. A ficha grava sozinha; se outro aparelho mudou a mesma ficha, ela pede para recarregar.
+- **Mochila:** itens com categoria, bônus mágico, proficiência própria e efeitos configuráveis. No máximo uma armadura e um escudo equipados. Efeitos de itens diferentes se somam; o mesmo efeito de duas cópias do mesmo item conta uma vez.
+- **Magias:** do catálogo (361 magias em português) ou personalizadas.
+- **Rolagens:** rolagens salvas com nome e ícone, sempre montadas com os valores atuais da ficha.
+
+No Modo Jogo, o jogador com ficha rola pelo painel próprio: dados (clique soma, segurar tira), atributo, perícia, arma ou magia, adicionais, vantagem ou desvantagem e repetições. A expressão mostrada é exatamente a que o servidor executa: repetição como `3#[...]`, vantagem como `2#(...) maior`, desvantagem como `2#(...) menor`.
+
+Catálogos: magias em português (uso autorizado pelo autor, que pediu para não ser creditado) e itens do SRD 5.2.1 traduzidos para o português. Os dois são importados fora do app por [`scripts/import-catalogs`](scripts/import-catalogs/README.md) e carregados no startup da API, como o compêndio de criaturas. O catálogo de itens mostra o aviso de licença CC BY 4.0 do SRD.
+
+Especificação, plano e roteiro de validação: [`specs/011-ficha-jogador`](specs/011-ficha-jogador).
