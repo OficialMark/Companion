@@ -11,6 +11,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<CampaignAccessCode> CampaignAccessCodes => Set<CampaignAccessCode>();
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<ParticipantAvatar> ParticipantAvatars => Set<ParticipantAvatar>();
+    public DbSet<ParticipantSession> ParticipantSessions => Set<ParticipantSession>();
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<Combatant> Combatants => Set<Combatant>();
@@ -29,6 +30,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
     IQueryable<Participant> ICompanionDbContext.Participants => Participants;
     IQueryable<ParticipantAvatar> ICompanionDbContext.ParticipantAvatars => ParticipantAvatars;
+    IQueryable<ParticipantSession> ICompanionDbContext.ParticipantSessions => ParticipantSessions;
     IQueryable<DiceRoll> ICompanionDbContext.DiceRolls => DiceRolls;
     IQueryable<Encounter> ICompanionDbContext.Encounters => Encounters;
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
@@ -46,6 +48,18 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
     void ICompanionDbContext.Add(Participant participant) => Participants.Add(participant);
+    void ICompanionDbContext.Add(ParticipantSession session) => ParticipantSessions.Add(session);
+    void ICompanionDbContext.Remove(ParticipantSession session) => ParticipantSessions.Remove(session);
+    void ICompanionDbContext.Detach(Participant participant) => Entry(participant).State = EntityState.Detached;
+    void ICompanionDbContext.Detach(ParticipantSession session) => Entry(session).State = EntityState.Detached;
+
+    void ICompanionDbContext.TouchSession(Guid sessionId, DateTimeOffset seenAt)
+    {
+        var staleBefore = seenAt - ParticipantSession.LastSeenResolution;
+        ParticipantSessions.Where(x => x.Id == sessionId && x.LastSeenAt <= staleBefore)
+            .ExecuteUpdate(setters => setters.SetProperty(x => x.LastSeenAt, seenAt));
+    }
+
     void ICompanionDbContext.Add(ParticipantAvatar avatar) => ParticipantAvatars.Add(avatar);
     void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
@@ -91,6 +105,8 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
         await Encounters.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         // Campaign creatures (own + edited copies); their images cascade in the database.
         await Creatures.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        // Sessões antes dos participantes (a FK também cascateia, mas a limpeza fica explícita).
+        await ParticipantSessions.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await Participants.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await CampaignAccessCodes.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         var deleted = await Campaigns.Where(x => x.Id == campaignId).ExecuteDeleteAsync(cancellationToken);

@@ -68,6 +68,7 @@ builder.Services.AddScoped<BattlemapService>();
 builder.Services.AddScoped<AttackService>();
 builder.Services.AddScoped<CreatureService>();
 builder.Services.AddScoped<CompendiumSeeder>();
+builder.Services.AddScoped<ParticipantNameBackfill>();
 builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
 builder.Services.AddSingleton<CreatureImageBackoff>();
 // No automatic redirects: the host allowlist is checked once, before the request.
@@ -132,6 +133,25 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
     await db.Database.MigrateAsync();
+    // Contas por nome (spec 011, FR-044): normaliza nomes antigos e escolhe a dona de cada nome repetido.
+    // Idempotente (só pega quem tem NameKey nula). Nunca fatal: sem ele, os tokens antigos seguem
+    // valendo; só o join pelo nome não acha as contas antigas até a próxima subida.
+    // Escopo próprio: se falhar no meio, as alterações pendentes não vazam para o SaveChanges do seeder.
+    var backfillLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("ParticipantNameBackfill");
+    try
+    {
+        await using var backfillScope = app.Services.CreateAsyncScope();
+        var backfill = await backfillScope.ServiceProvider.GetRequiredService<ParticipantNameBackfill>().RunAsync();
+        if (backfill.Changed)
+            backfillLogger.LogInformation("Participant names backfilled: {Renamed} renamed, {Keys} account keys assigned",
+                backfill.Renamed, backfill.KeysAssigned);
+        foreach (var participantId in backfill.Invalid)
+            backfillLogger.LogWarning("Participant {ParticipantId} kept its name: it does not normalize", participantId);
+    }
+    catch (Exception exception)
+    {
+        backfillLogger.LogError(exception, "Participant name backfill failed; the API keeps running without it");
+    }
     // Global creature compendium (spec 008): a no-op unless the embedded seed changed. Never fatal:
     // bad rows are skipped and logged, and any other failure leaves the API up (library degraded).
     var seedLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("CompendiumSeeder");

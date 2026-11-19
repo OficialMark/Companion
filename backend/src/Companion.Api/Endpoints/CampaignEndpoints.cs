@@ -22,6 +22,14 @@ public static class CampaignEndpoints
             CancellationToken ct) =>
             Results.Ok(await service.GetSnapshotAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), ct)));
 
+        // "Sair da campanha" (spec 011, FR-043): apaga só a sessão deste token; as outras sessões da conta seguem.
+        group.MapDelete("/{campaignId:guid}/participants/me/session", async (
+            Guid campaignId, HttpRequest request, CampaignService service, CancellationToken ct) =>
+        {
+            await service.LeaveAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), ct);
+            return Results.NoContent();
+        });
+
         group.MapPut("/{campaignId:guid}/participants/me/combat-profile", async (
             Guid campaignId, UpdateCombatProfileRequest body, HttpRequest request,
             CampaignService service, CancellationToken ct) =>
