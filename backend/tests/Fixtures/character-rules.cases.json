@@ -1,0 +1,211 @@
+{
+  "$comment": "Spec 011, data-model.md (CharacterStats). Read by CharacterRulesTests. Each case: name, sheet (partial CharacterSheetData; missing fields use CharacterSheetData.Default), items (InventoryItemData JSON plus optional id and sortOrder; validated with .Validated()), spells (CharacterSpellData JSON), expect (dotted paths into the camelCase JSON of CharacterStats; a numeric segment indexes a list, 'length' counts it).",
+  "cases": [
+    { "name": "modificador no mínimo (FOR 1)", "sheet": { "strength": 1 }, "expect": { "abilities.str.final": 1, "abilities.str.modifier": -5 } },
+    { "name": "modificador no máximo (FOR 30)", "sheet": { "strength": 30 }, "expect": { "abilities.str.modifier": 10 } },
+    { "name": "modificadores com arredondamento para baixo", "sheet": { "dexterity": 15, "wisdom": 9, "intelligence": 8 }, "expect": { "abilities.dex.modifier": 2, "abilities.wis.modifier": -1, "abilities.int.modifier": -1 } },
+    { "name": "proficiência no nível 4", "sheet": { "level": 4 }, "expect": { "proficiencyBonus": 2 } },
+    { "name": "proficiência no nível 5", "sheet": { "level": 5 }, "expect": { "proficiencyBonus": 3 } },
+    { "name": "proficiência no nível 8", "sheet": { "level": 8 }, "expect": { "proficiencyBonus": 3 } },
+    { "name": "proficiência no nível 9", "sheet": { "level": 9 }, "expect": { "proficiencyBonus": 4 } },
+    { "name": "proficiência no nível 12", "sheet": { "level": 12 }, "expect": { "proficiencyBonus": 4 } },
+    { "name": "proficiência no nível 13", "sheet": { "level": 13 }, "expect": { "proficiencyBonus": 5 } },
+    { "name": "proficiência no nível 16", "sheet": { "level": 16 }, "expect": { "proficiencyBonus": 5 } },
+    { "name": "proficiência no nível 17", "sheet": { "level": 17 }, "expect": { "proficiencyBonus": 6 } },
+    { "name": "proficiência no nível 20", "sheet": { "level": 20 }, "expect": { "proficiencyBonus": 6 } },
+    {
+      "name": "salvaguarda com e sem proficiência",
+      "sheet": { "dexterity": 14, "level": 5, "savingThrowProficiencies": ["Dex"] },
+      "expect": { "savingThrows.dex.bonus": 5, "savingThrows.dex.training": "Proficient", "savingThrows.str.bonus": 0 }
+    },
+    {
+      "name": "perícia com proficiência e com especialização",
+      "sheet": { "dexterity": 16, "level": 5, "skills": { "furtividade": "Expertise", "acrobacia": "Proficient" } },
+      "expect": { "skills.furtividade.bonus": 9, "skills.acrobacia.bonus": 6, "skills.prestidigitacao.bonus": 3 }
+    },
+    {
+      "name": "percepção passiva",
+      "sheet": { "wisdom": 14, "skills": { "percepcao": "Proficient" } },
+      "expect": { "passivePerception.value": 14 }
+    },
+    {
+      "name": "US1: DES 16 e nível 5 sem armadura",
+      "sheet": { "dexterity": 16, "level": 5 },
+      "expect": { "initiative.value": 3, "armorClass.value": 13, "proficiencyBonus": 3, "skills.furtividade.bonus": 3 }
+    },
+    {
+      "name": "Defesa sem Armadura com CON",
+      "sheet": { "dexterity": 14, "constitution": 16, "unarmoredAbility": "Con" },
+      "expect": { "armorClass.value": 15 }
+    },
+    {
+      "name": "armadura leve soma DES inteira",
+      "sheet": { "dexterity": 16 },
+      "items": [{ "name": "Armadura de Couro", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 11, "type": "Light", "stealthDisadvantage": false } }],
+      "expect": { "armorClass.value": 14 }
+    },
+    {
+      "name": "armadura média limita DES a +2",
+      "sheet": { "dexterity": 18 },
+      "items": [{ "name": "Peitoral", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 14, "type": "Medium", "stealthDisadvantage": false } }],
+      "expect": { "armorClass.value": 16 }
+    },
+    {
+      "name": "armadura média com DES negativa",
+      "sheet": { "dexterity": 8 },
+      "items": [{ "name": "Peitoral", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 14, "type": "Medium", "stealthDisadvantage": false } }],
+      "expect": { "armorClass.value": 13 }
+    },
+    {
+      "name": "armadura pesada ignora DES",
+      "sheet": { "strength": 15, "dexterity": 18 },
+      "items": [{ "name": "Cota de Malha", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 16, "type": "Heavy", "strengthMin": 13, "stealthDisadvantage": true } }],
+      "expect": { "armorClass.value": 16, "speed.walk.value": 9, "warnings.length": 0 }
+    },
+    {
+      "name": "armadura pesada sem a Força mínima reduz o deslocamento",
+      "sheet": { "strength": 10 },
+      "items": [{ "name": "Cota de Malha", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 16, "type": "Heavy", "strengthMin": 13, "stealthDisadvantage": true } }],
+      "expect": { "speed.walk.value": 6, "warnings.length": 1 }
+    },
+    {
+      "name": "US3: cota, escudo +1 e anel de proteção",
+      "sheet": { "dexterity": 14 },
+      "items": [
+        { "name": "Cota de Malha", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 16, "type": "Heavy", "stealthDisadvantage": true } },
+        { "name": "Escudo +1", "category": "Shield", "quantity": 1, "equipped": true, "proficient": true, "magicBonus": 1, "shield": { "acBonus": 2 } },
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }, { "type": "SaveBonus", "target": "all", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "armorClass.value": 20, "savingThrows.con.bonus": 1, "abilities.dex.base": 14 }
+    },
+    {
+      "name": "US3: escudo desequipado sai da CA e a base continua igual",
+      "sheet": { "dexterity": 14 },
+      "items": [
+        { "name": "Cota de Malha", "category": "Armor", "quantity": 1, "equipped": true, "proficient": true, "armor": { "baseAc": 16, "type": "Heavy", "stealthDisadvantage": true } },
+        { "name": "Escudo +1", "category": "Shield", "quantity": 1, "equipped": false, "proficient": true, "magicBonus": 1, "shield": { "acBonus": 2 } },
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "armorClass.value": 17, "abilities.dex.base": 14, "abilities.dex.final": 14 }
+    },
+    {
+      "name": "efeitos de itens diferentes se somam (anel e manto)",
+      "items": [
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] },
+        { "name": "Manto de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "armorClass.value": 12, "suppressedEffects.length": 0 }
+    },
+    {
+      "name": "efeito igual de duas cópias do mesmo item vale uma vez",
+      "items": [
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }, { "type": "SaveBonus", "target": "all", "op": "Add", "value": 1 }] },
+        { "name": "anel de  proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }, { "type": "SaveBonus", "target": "all", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "armorClass.value": 11, "savingThrows.wis.bonus": 1, "suppressedEffects.length": 2, "suppressedEffects.0.keptItemName": "Anel de Proteção" }
+    },
+    {
+      "name": "a duplicidade é recalculada: desequipar a cópia que contava libera a outra",
+      "items": [
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": false, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] },
+        { "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "armorClass.value": 11, "suppressedEffects.length": 0 }
+    },
+    {
+      "name": "valor mínimo abaixo do base não muda nada",
+      "sheet": { "strength": 21 },
+      "items": [{ "name": "Manoplas de Força do Ogro", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "for", "op": "Min", "value": 19 }] }],
+      "expect": { "abilities.str.final": 21, "abilities.str.base": 21 }
+    },
+    {
+      "name": "valor mínimo acima do base vira o valor final",
+      "sheet": { "strength": 8 },
+      "items": [{ "name": "Manoplas de Força do Ogro", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "FOR", "op": "Min", "value": 19 }] }],
+      "expect": { "abilities.str.final": 19, "abilities.str.modifier": 4, "abilities.str.base": 8 }
+    },
+    {
+      "name": "soma em atributo não altera o base",
+      "sheet": { "strength": 16 },
+      "items": [{ "name": "Cinto +2", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "str", "op": "Add", "value": 2 }] }],
+      "expect": { "abilities.str.final": 18, "abilities.str.base": 16, "abilities.str.modifier": 4 }
+    },
+    {
+      "name": "PV máximos com bônus de item",
+      "sheet": { "baseMaxHitPoints": 20 },
+      "items": [{ "name": "Amuleto da Vida", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "MaxHp", "op": "Add", "value": 5 }] }],
+      "expect": { "maxHitPoints.value": 25 }
+    },
+    {
+      "name": "CD e ataque de magia pelo atributo de conjuração",
+      "sheet": { "wisdom": 16, "level": 5, "spellcastingAbility": "Wis" },
+      "expect": { "spellSaveDc.value": 14, "spellAttackBonus.value": 6 }
+    },
+    {
+      "name": "arma de acuidade usa a DES quando ela é maior",
+      "sheet": { "strength": 12, "dexterity": 16, "level": 5 },
+      "items": [{ "name": "Rapieira", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "magicBonus": 1, "weapon": { "damageDice": "1d8", "damageType": "perfurante", "kind": "Melee", "class": "Martial", "properties": ["finesse"] } }],
+      "expect": { "weaponRolls.0.ability": "Dex", "weaponRolls.0.attackBonus": 7, "weaponRolls.0.damage.dice": "1d8" }
+    },
+    {
+      "name": "US4: Espada Longa +1 com FOR 16 no nível 5",
+      "sheet": { "strength": 16, "level": 5 },
+      "items": [{ "name": "Espada Longa +1", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "magicBonus": 1, "weapon": { "damageDice": "1d8", "damageType": "cortante", "versatileDice": "1d10", "kind": "Melee", "class": "Martial", "properties": ["versatile"] } }],
+      "expect": { "weaponRolls.0.ability": "Str", "weaponRolls.0.attackBonus": 7, "weaponRolls.0.attack.length": 3, "weaponRolls.0.attack.1.label": "prof", "weaponRolls.0.attack.2.label": "arma", "weaponRolls.0.versatile.dice": "1d10" }
+    },
+    {
+      "name": "arma à distância usa a DES",
+      "sheet": { "strength": 16, "dexterity": 12 },
+      "items": [{ "name": "Arco Longo", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "weapon": { "damageDice": "1d8", "damageType": "perfurante", "kind": "Ranged", "class": "Martial", "properties": ["ammunition", "heavy", "two-handed"] } }],
+      "expect": { "weaponRolls.0.ability": "Dex", "weaponRolls.0.attackBonus": 3 }
+    },
+    {
+      "name": "atributo da arma trocado manualmente",
+      "sheet": { "strength": 16, "dexterity": 10 },
+      "items": [{ "name": "Clava", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": false, "weapon": { "damageDice": "1d4", "damageType": "contundente", "kind": "Melee", "class": "Simple", "abilityOverride": "Dex" } }],
+      "expect": { "weaponRolls.0.ability": "Dex", "weaponRolls.0.attackBonus": 0 }
+    },
+    {
+      "name": "proficiência da arma é a do item, independente da geral",
+      "sheet": { "strength": 16, "generalProficiencies": { "armor": [], "shields": false, "simpleWeapons": true, "martialWeapons": true } },
+      "items": [{ "name": "Espada Longa", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": false, "weapon": { "damageDice": "1d8", "kind": "Melee", "class": "Martial" } }],
+      "expect": { "weaponRolls.0.attackBonus": 3, "weaponRolls.0.attack.length": 1 }
+    },
+    {
+      "name": "armadura sem proficiência pré-seleciona desvantagem em FOR e DES",
+      "items": [{ "name": "Cota de Malha", "category": "Armor", "quantity": 1, "equipped": true, "proficient": false, "armor": { "baseAc": 16, "type": "Heavy", "stealthDisadvantage": true } }],
+      "expect": { "rollDefaults.disadvantageOnStrDex": true, "warnings.length": 1 }
+    },
+    {
+      "name": "bônus de ataque corpo a corpo não vale à distância",
+      "items": [
+        { "name": "Espada Curta", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "weapon": { "damageDice": "1d6", "kind": "Melee", "class": "Martial" } },
+        { "name": "Arco Curto", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "weapon": { "damageDice": "1d6", "kind": "Ranged", "class": "Simple" } },
+        { "name": "Luvas do Golpe", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "AttackBonus", "target": "melee", "op": "Add", "value": 1 }, { "type": "DamageBonus", "target": "melee", "op": "Add", "value": 1 }] }
+      ],
+      "expect": { "weaponRolls.0.attackBonus": 3, "weaponRolls.1.attackBonus": 2, "weaponRolls.0.damage.parts.length": 2, "weaponRolls.1.damage.parts.length": 1 }
+    },
+    {
+      "name": "item na mochila sem equipar não aplica efeito",
+      "items": [{ "name": "Anel de Proteção", "category": "Gear", "quantity": 1, "equipped": false, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }] }],
+      "expect": { "armorClass.value": 10 }
+    },
+    {
+      "name": "poção não se equipa nem aplica efeito",
+      "items": [{ "name": "Poção estranha", "category": "Potion", "quantity": 2, "equipped": true, "effects": [{ "type": "MaxHp", "op": "Add", "value": 5 }] }],
+      "expect": { "maxHitPoints.value": 10 }
+    },
+    {
+      "name": "visão no escuro por item e resistência",
+      "sheet": { "baseSenses": { "darkvision": 18 } },
+      "items": [{ "name": "Óculos da Noite", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Vision", "target": "darkvision", "op": "Min", "value": 36 }, { "type": "Resistance", "target": "fogo", "op": "Add" }] }],
+      "expect": { "senses.darkvision.value": 36, "resistances.0": "fogo" }
+    },
+    {
+      "name": "dano de magia com atributo marcado",
+      "sheet": { "wisdom": 16, "level": 5, "spellcastingAbility": "Wis" },
+      "spells": [{ "name": "Raio Guiador", "level": 1, "attackKind": "Attack", "damageDice": "4d6", "damageType": "radiante", "addAbilityToDamage": true }],
+      "expect": { "spellRolls.0.attackBonus": 6, "spellRolls.0.damage.dice": "4d6", "spellRolls.0.damage.parts.0.value": 3 }
+    }
+  ]
+}

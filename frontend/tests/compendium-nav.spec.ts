@@ -4,8 +4,8 @@ import { reactive } from 'vue'
 import { useCampaignStore } from '~/stores/campaign'
 import { useCreatureStore } from '~/stores/creatures'
 import { useImageCacheStore } from '~/stores/imageCache'
-import { useMasterView } from '~/composables/useMasterView'
-import MasterViewNav from '~/components/MasterViewNav.vue'
+import { useAppView } from '~/composables/useAppView'
+import ViewNav from '~/components/ViewNav.vue'
 import CreatureLibrary from '~/components/creatures/CreatureLibrary.vue'
 
 // Spec 009, US3: the master's Mesa/Compêndio navigation in the top bar, kept in the URL.
@@ -14,7 +14,7 @@ const router = { replace: vi.fn(({ query }: { query: Record<string, string> }) =
 const api = { listCreatures: vi.fn(), creatureTypes: vi.fn() }
 vi.stubGlobal('useRoute', () => route)
 vi.stubGlobal('useRouter', () => router)
-vi.stubGlobal('useMasterView', useMasterView)
+vi.stubGlobal('useAppView', useAppView)
 vi.stubGlobal('useCompanionApi', () => api)
 vi.stubGlobal('useCampaignStore', () => useCampaignStore())
 vi.stubGlobal('useCreatureStore', () => useCreatureStore())
@@ -35,23 +35,23 @@ beforeEach(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
 })
 
-describe('MasterViewNav (top bar)', () => {
+describe('ViewNav (top bar)', () => {
   it('shows Mesa and Compêndio to the master, Mesa marked as the current page', () => {
     session('Master')
-    const wrapper = mount(MasterViewNav)
+    const wrapper = mount(ViewNav)
     expect(wrapper.get('[data-view="mesa"]').attributes('aria-current')).toBe('page')
     expect(wrapper.get('[data-view="compendio"]').attributes('aria-current')).toBeUndefined()
   })
 
   it('is not rendered for a player', () => {
     session('Player')
-    expect(mount(MasterViewNav).find('[data-master-nav]').exists()).toBe(false)
+    expect(mount(ViewNav).find('[data-master-nav]').exists()).toBe(false)
   })
 
   it('Compêndio writes ?tela=compendio (replace, no history step), keeps other params and scrolls to the top', async () => {
     session('Master')
     route.query = { foo: 'bar' }
-    const wrapper = mount(MasterViewNav)
+    const wrapper = mount(ViewNav)
     await wrapper.get('[data-view="compendio"]').trigger('click')
     expect(router.replace).toHaveBeenCalledWith({ query: { foo: 'bar', tela: 'compendio' } })
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0 })
@@ -63,29 +63,29 @@ describe('MasterViewNav (top bar)', () => {
 
   it('clicking the screen already open does nothing', async () => {
     session('Master')
-    const wrapper = mount(MasterViewNav)
+    const wrapper = mount(ViewNav)
     await wrapper.get('[data-view="mesa"]').trigger('click')
     expect(router.replace).not.toHaveBeenCalled()
   })
 })
 
-describe('useMasterView', () => {
+describe('useAppView', () => {
   it('a reload with ?tela=compendio reopens the Compendium for the master', () => {
     session('Master')
     route.query = { tela: 'compendio' }
-    expect(useMasterView().view.value).toBe('compendio')
+    expect(useAppView().view.value).toBe('compendio')
   })
 
   it('a player asking for ?tela=compendio stays on the Mesa', () => {
     session('Player')
     route.query = { tela: 'compendio' }
-    expect(useMasterView().view.value).toBe('mesa')
+    expect(useAppView().view.value).toBe('mesa')
   })
 
   it('an unknown screen falls back to the Mesa', () => {
     session('Master')
     route.query = { tela: 'qualquer' }
-    expect(useMasterView().view.value).toBe('mesa')
+    expect(useAppView().view.value).toBe('mesa')
   })
 })
 

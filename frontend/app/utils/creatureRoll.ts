@@ -42,7 +42,7 @@ export function clampPreset(preset: RollPreset): RollPreset {
 }
 
 /** Server expression, e.g. "1d20+2+1"; zero terms are dropped. */
-export function buildExpression(preset: RollPreset, abilityMod: number) {
+export function buildCreatureExpression(preset: RollPreset, abilityMod: number) {
   const { count, die, bonus } = clampPreset(preset)
   let expression = `${count}d${die}`
   if (abilityMod) expression += abilityMod > 0 ? `+${abilityMod}` : `${abilityMod}`

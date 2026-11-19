@@ -20,6 +20,12 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
     /// <summary>Every realtime notification the API emitted (the real SignalR notifier still runs).</summary>
     public NotificationLog Notifications { get; } = new();
 
+    /// <summary>Servidor SQL descartável do Testcontainers (testes que precisam de outro banco no mesmo servidor).</summary>
+    public string ConnectionString => _sqlServer.GetConnectionString();
+
+    /// <summary>Dados roteirizados para testes de rolagem (spec 011); sem roteiro, rola aleatório como antes.</summary>
+    public ScriptedDiceRandomizer Dice { get; } = new();
+
     public Task InitializeAsync() => _sqlServer.StartAsync();
     public new Task DisposeAsync() => _sqlServer.DisposeAsync().AsTask();
 
@@ -37,6 +43,8 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<ICreatureImageSource>();
             services.AddSingleton<ICreatureImageSource>(ImageSource);
+            services.RemoveAll<IDiceRandomizer>();
+            services.AddSingleton<IDiceRandomizer>(Dice);
             services.RemoveAll<ICampaignNotifier>();
             services.AddScoped<ICampaignNotifier>(provider => new RecordingCampaignNotifier(
                 ActivatorUtilities.CreateInstance<SignalRCampaignNotifier>(provider), Notifications));
@@ -55,6 +63,23 @@ public sealed class FakeCreatureImageSource : ICreatureImageSource
     {
         lock (_requests) _requests.Add(url);
         return Task.FromResult<(byte[] Content, string MediaType)?>(Available ? (Webp, "image/webp") : null);
+    }
+}
+
+public sealed class ScriptedDiceRandomizer : IDiceRandomizer
+{
+    private readonly Queue<int> _script = new();
+
+    /// <summary>Os próximos dados saem nesta ordem; depois deles, volta ao aleatório.</summary>
+    public void Enqueue(params int[] values) { lock (_script) foreach (var value in values) _script.Enqueue(value); }
+
+    public int Roll(int faces)
+    {
+        lock (_script)
+        {
+            if (_script.TryDequeue(out var value)) return value;
+        }
+        return Random.Shared.Next(1, faces + 1);
     }
 }
 

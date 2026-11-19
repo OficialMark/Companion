@@ -1,4 +1,6 @@
 using Companion.Application.Contracts;
+using Companion.Domain.Catalog;
+using Companion.Domain.Characters;
 using Companion.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +13,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<CampaignAccessCode> CampaignAccessCodes => Set<CampaignAccessCode>();
     public DbSet<Participant> Participants => Set<Participant>();
     public DbSet<ParticipantAvatar> ParticipantAvatars => Set<ParticipantAvatar>();
+    public DbSet<ParticipantSession> ParticipantSessions => Set<ParticipantSession>();
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<Combatant> Combatants => Set<Combatant>();
@@ -24,11 +27,18 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Creature> Creatures => Set<Creature>();
     public DbSet<CreatureImage> CreatureImages => Set<CreatureImage>();
     public DbSet<SeedVersion> SeedVersions => Set<SeedVersion>();
+    public DbSet<CharacterSheet> CharacterSheets => Set<CharacterSheet>();
+    public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<CharacterSpell> CharacterSpells => Set<CharacterSpell>();
+    public DbSet<SavedRoll> SavedRolls => Set<SavedRoll>();
+    public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();
+    public DbSet<CatalogSpell> CatalogSpells => Set<CatalogSpell>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
     IQueryable<Participant> ICompanionDbContext.Participants => Participants;
     IQueryable<ParticipantAvatar> ICompanionDbContext.ParticipantAvatars => ParticipantAvatars;
+    IQueryable<ParticipantSession> ICompanionDbContext.ParticipantSessions => ParticipantSessions;
     IQueryable<DiceRoll> ICompanionDbContext.DiceRolls => DiceRolls;
     IQueryable<Encounter> ICompanionDbContext.Encounters => Encounters;
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
@@ -42,10 +52,28 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<Creature> ICompanionDbContext.Creatures => Creatures;
     IQueryable<CreatureImage> ICompanionDbContext.CreatureImages => CreatureImages;
     IQueryable<SeedVersion> ICompanionDbContext.SeedVersions => SeedVersions;
+    IQueryable<CharacterSheet> ICompanionDbContext.CharacterSheets => CharacterSheets;
+    IQueryable<InventoryItem> ICompanionDbContext.InventoryItems => InventoryItems;
+    IQueryable<CharacterSpell> ICompanionDbContext.CharacterSpells => CharacterSpells;
+    IQueryable<SavedRoll> ICompanionDbContext.SavedRolls => SavedRolls;
+    IQueryable<CatalogItem> ICompanionDbContext.CatalogItems => CatalogItems;
+    IQueryable<CatalogSpell> ICompanionDbContext.CatalogSpells => CatalogSpells;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
     void ICompanionDbContext.Add(Participant participant) => Participants.Add(participant);
+    void ICompanionDbContext.Add(ParticipantSession session) => ParticipantSessions.Add(session);
+    void ICompanionDbContext.Remove(ParticipantSession session) => ParticipantSessions.Remove(session);
+    void ICompanionDbContext.Detach(Participant participant) => Entry(participant).State = EntityState.Detached;
+    void ICompanionDbContext.Detach(ParticipantSession session) => Entry(session).State = EntityState.Detached;
+
+    void ICompanionDbContext.TouchSession(Guid sessionId, DateTimeOffset seenAt)
+    {
+        var staleBefore = seenAt - ParticipantSession.LastSeenResolution;
+        ParticipantSessions.Where(x => x.Id == sessionId && x.LastSeenAt <= staleBefore)
+            .ExecuteUpdate(setters => setters.SetProperty(x => x.LastSeenAt, seenAt));
+    }
+
     void ICompanionDbContext.Add(ParticipantAvatar avatar) => ParticipantAvatars.Add(avatar);
     void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
@@ -68,6 +96,19 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Add(CreatureImage image) => CreatureImages.Add(image);
     void ICompanionDbContext.Remove(CreatureImage image) => CreatureImages.Remove(image);
     void ICompanionDbContext.Add(SeedVersion seedVersion) => SeedVersions.Add(seedVersion);
+    void ICompanionDbContext.Add(CharacterSheet sheet) => CharacterSheets.Add(sheet);
+    void ICompanionDbContext.Add(InventoryItem item) => InventoryItems.Add(item);
+    void ICompanionDbContext.Remove(InventoryItem item) => InventoryItems.Remove(item);
+    void ICompanionDbContext.Add(CharacterSpell spell) => CharacterSpells.Add(spell);
+    void ICompanionDbContext.Remove(CharacterSpell spell) => CharacterSpells.Remove(spell);
+    void ICompanionDbContext.Add(SavedRoll roll) => SavedRolls.Add(roll);
+    void ICompanionDbContext.Remove(SavedRoll roll) => SavedRolls.Remove(roll);
+    void ICompanionDbContext.Add(CatalogItem item) => CatalogItems.Add(item);
+    void ICompanionDbContext.Add(CatalogSpell spell) => CatalogSpells.Add(spell);
+    void ICompanionDbContext.Detach(CharacterSheet sheet) => Entry(sheet).State = EntityState.Detached;
+    void ICompanionDbContext.ExpectVersion(CharacterSheet sheet, byte[] version) => Entry(sheet).Property(x => x.Version).OriginalValue = version;
+    void ICompanionDbContext.ExpectVersion(InventoryItem item, byte[] version) => Entry(item).Property(x => x.Version).OriginalValue = version;
+    void ICompanionDbContext.MarkModified(CharacterSheet sheet) => Entry(sheet).Property(x => x.UpdatedAt).IsModified = true;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,6 +132,13 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
         await Encounters.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         // Campaign creatures (own + edited copies); their images cascade in the database.
         await Creatures.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        // Sessões antes dos participantes (a FK também cascateia, mas a limpeza fica explícita).
+        var participantIds = Participants.Where(x => x.CampaignId == campaignId).Select(x => x.Id);
+        await SavedRolls.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
+        await CharacterSpells.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
+        await InventoryItems.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
+        await CharacterSheets.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
+        await ParticipantSessions.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await Participants.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await CampaignAccessCodes.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         var deleted = await Campaigns.Where(x => x.Id == campaignId).ExecuteDeleteAsync(cancellationToken);

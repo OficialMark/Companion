@@ -1,0 +1,17 @@
+{
+  "name": "companion-import-catalogs",
+  "private": true,
+  "description": "Spell (magias5e) and item (SRD 5.2.1) catalog importers. No dependencies. main points at run-tests.mjs (imports every *.test.mjs) so `node --test scripts/import-catalogs/` works on Node 22+ (directory resolved as a module) as well as Node 20 (directory scanned for *.test.mjs).",
+  "type": "module",
+  "main": "run-tests.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "import:spells": "node import-spells.mjs",
+    "import:items": "node import-items.mjs",
+    "items:source": "node import-items.mjs --source-only",
+    "validate": "node validate-translation.mjs"
+  }
+}

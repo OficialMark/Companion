@@ -1,4 +1,4 @@
-import { abilityModifier, buildExpression, clampPreset, describeRoll, modifierFor, parseActionRolls } from '~/utils/creatureRoll'
+import { abilityModifier, buildCreatureExpression, clampPreset, describeRoll, modifierFor, parseActionRolls } from '~/utils/creatureRoll'
 
 const goblin = { strength: 8, dexterity: 14, constitution: 10, intelligence: 10, wisdom: 8, charisma: 8 }
 
@@ -11,9 +11,9 @@ describe('creature rolls (spec 008)', () => {
   })
 
   it('builds the server expression and a readable preview, dropping zero terms', () => {
-    expect(buildExpression({ count: 1, die: 20, ability: 'dex', bonus: 1 }, 2)).toBe('1d20+2+1')
-    expect(buildExpression({ count: 1, die: 20, ability: 'wis', bonus: -2 }, -1)).toBe('1d20-1-2')
-    expect(buildExpression({ count: 2, die: 6, ability: null, bonus: 0 }, 0)).toBe('2d6')
+    expect(buildCreatureExpression({ count: 1, die: 20, ability: 'dex', bonus: 1 }, 2)).toBe('1d20+2+1')
+    expect(buildCreatureExpression({ count: 1, die: 20, ability: 'wis', bonus: -2 }, -1)).toBe('1d20-1-2')
+    expect(buildCreatureExpression({ count: 2, die: 6, ability: null, bonus: 0 }, 0)).toBe('2d6')
     expect(describeRoll({ count: 1, die: 20, ability: 'dex', bonus: 1 }, 2)).toBe('1d20 + 2 (DES) + 1')
     expect(describeRoll({ count: 1, die: 20, ability: 'wis', bonus: -2 }, -1)).toBe('1d20 − 1 (SAB) − 2')
   })

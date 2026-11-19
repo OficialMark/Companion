@@ -68,7 +68,13 @@ builder.Services.AddScoped<BattlemapService>();
 builder.Services.AddScoped<AttackService>();
 builder.Services.AddScoped<CreatureService>();
 builder.Services.AddScoped<CompendiumSeeder>();
+builder.Services.AddScoped<ParticipantNameBackfill>();
+builder.Services.AddScoped<Companion.Application.Characters.CharacterService>();
+builder.Services.AddScoped<Companion.Application.Catalog.CatalogService>();
 builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
+builder.Services.AddSingleton<Companion.Application.Catalog.ICatalogSeedSource>(Companion.Infrastructure.Catalog.EmbeddedCatalogSeedSource.Spells());
+builder.Services.AddSingleton<Companion.Application.Catalog.ICatalogSeedSource>(Companion.Infrastructure.Catalog.EmbeddedCatalogSeedSource.Items());
+builder.Services.AddScoped<Companion.Application.Catalog.CatalogSeeder>();
 builder.Services.AddSingleton<CreatureImageBackoff>();
 // No automatic redirects: the host allowlist is checked once, before the request.
 builder.Services.AddHttpClient<ICreatureImageSource, HttpCreatureImageSource>()
@@ -125,6 +131,7 @@ app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();
 app.MapCreatureEndpoints();
+app.MapCharacterEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 
@@ -132,6 +139,25 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
     await db.Database.MigrateAsync();
+    // Contas por nome (spec 011, FR-044): normaliza nomes antigos e escolhe a dona de cada nome repetido.
+    // Idempotente (só pega quem tem NameKey nula). Nunca fatal: sem ele, os tokens antigos seguem
+    // valendo; só o join pelo nome não acha as contas antigas até a próxima subida.
+    // Escopo próprio: se falhar no meio, as alterações pendentes não vazam para o SaveChanges do seeder.
+    var backfillLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("ParticipantNameBackfill");
+    try
+    {
+        await using var backfillScope = app.Services.CreateAsyncScope();
+        var backfill = await backfillScope.ServiceProvider.GetRequiredService<ParticipantNameBackfill>().RunAsync();
+        if (backfill.Changed)
+            backfillLogger.LogInformation("Participant names backfilled: {Renamed} renamed, {Keys} account keys assigned",
+                backfill.Renamed, backfill.KeysAssigned);
+        foreach (var participantId in backfill.Invalid)
+            backfillLogger.LogWarning("Participant {ParticipantId} kept its name: it does not normalize", participantId);
+    }
+    catch (Exception exception)
+    {
+        backfillLogger.LogError(exception, "Participant name backfill failed; the API keeps running without it");
+    }
     // Global creature compendium (spec 008): a no-op unless the embedded seed changed. Never fatal:
     // bad rows are skipped and logged, and any other failure leaves the API up (library degraded).
     var seedLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("CompendiumSeeder");
@@ -144,6 +170,22 @@ await using (var scope = app.Services.CreateAsyncScope())
     catch (Exception exception)
     {
         seedLogger.LogError(exception, "Creature compendium seed failed; the API keeps running without it");
+    }
+    // Item and spell catalogs (spec 011, FR-021): same rules as the compendium, never fatal.
+    var catalogLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("CatalogSeeder");
+    try
+    {
+        await using var catalogScope = app.Services.CreateAsyncScope();
+        var catalogSeeder = catalogScope.ServiceProvider.GetRequiredService<Companion.Application.Catalog.CatalogSeeder>();
+        foreach (var seeded in await catalogSeeder.SeedAsync())
+        {
+            if (seeded.Applied) catalogLogger.LogInformation("Catalog seeded: {Count} entries", seeded.Upserted);
+            foreach (var skipped in seeded.Skipped) catalogLogger.LogWarning("Catalog entry skipped: {Entry}", skipped);
+        }
+    }
+    catch (Exception exception)
+    {
+        catalogLogger.LogError(exception, "Catalog seed failed; the API keeps running without it");
     }
 }
 

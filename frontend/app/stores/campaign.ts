@@ -91,6 +91,22 @@ export const useCampaignStore = defineStore('campaign', {
       if (index >= 0) this.snapshot.participants[index] = { ...this.snapshot.participants[index]!, avatarRevision: updated.avatarRevision }
       void this.syncAvatars()
     },
+    /**
+     * "Sair da campanha" (spec 011, FR-043): avisa o servidor para apagar só a sessão deste aparelho
+     * e depois limpa o navegador. Falha de rede, timeout ou sessão já inválida não impedem a saída local:
+     * no pior caso a sessão fica órfã no servidor, sem ninguém com o token.
+     */
+    async leaveCampaign() {
+      const session = this.session
+      if (session) {
+        try {
+          await useCompanionApi().leaveSession(session)
+        } catch {
+          // A saída local acontece de qualquer jeito.
+        }
+      }
+      this.clearSession()
+    },
     clearSession() {
       this.session = null
       this.snapshot = null
@@ -304,6 +320,11 @@ export const useCampaignStore = defineStore('campaign', {
       if (event.type === 'BattlemapInvalidated') {
         const payload = event.payload as BattlemapInvalidationEvent
         if (payload.encounterId === this.snapshot.activeEncounter?.id) await this.refreshBattlemap()
+        return
+      }
+      if (event.type === 'CharacterChanged') {
+        // Spec 011: only the id travels; the owner's other devices reload their own sheet.
+        await useCharacterStore().onRemoteChange((event.payload as { participantId: string }).participantId)
         return
       }
       if (event.type === 'DamageApplied') {

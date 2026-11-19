@@ -1,0 +1,162 @@
+{
+  "pistol": {
+    "name": "Pistola",
+    "text": null
+  },
+  "poisoners-kit": {
+    "name": "Kit de Envenenador",
+    "text": "Atributo: Inteligência.\n\nUsar: Detectar um objeto envenenado (CD 10).\n\nFabricar: Veneno Básico."
+  },
+  "plate-armor": {
+    "name": "Armadura de Placas",
+    "text": null
+  },
+  "playing-cards": {
+    "name": "Baralho",
+    "text": "Atributo: Sabedoria.\n\nUsar: Discernir se alguém está trapaceando (CD 10), Vencer o jogo (CD 20)."
+  },
+  "poison-basic": {
+    "name": "Veneno Básico",
+    "text": "Como uma ação bônus, você pode usar um frasco de Veneno Básico para cobrir uma arma ou até três unidades de munição. Uma criatura que sofra dano perfurante ou cortante da arma ou munição envenenada sofre 1d4 de dano de veneno adicional. Depois de aplicado, o veneno mantém a potência por 1 minuto ou até que seu dano seja causado, o que ocorrer primeiro."
+  },
+  "pole": {
+    "name": "Vara",
+    "text": "Uma Vara tem 3 metros de comprimento. Você pode usá-la para tocar algo a até 3 metros de distância. Se precisar fazer um teste de Força (Atletismo) como parte de um Salto em Altura ou Salto em Distância, você pode usar a Vara como apoio para o salto, o que lhe dá vantagem no teste."
+  },
+  "pot-iron": {
+    "name": "Panela de Ferro",
+    "text": "Uma Panela de Ferro comporta até 1 galão."
+  },
+  "potion-of-healing": {
+    "name": "Poção de Cura",
+    "text": "Esta poção é um item mágico. Como uma ação bônus, você pode bebê-la ou administrá-la a outra criatura a até 1,5 metro de você. A criatura que bebe o fluido vermelho mágico deste frasco recupera 2d4 + 2 pontos de vida."
+  },
+  "potters-tools": {
+    "name": "Ferramentas de Oleiro",
+    "text": "Atributo: Inteligência.\n\nUsar: Discernir o que um objeto de cerâmica conteve nas últimas 24 horas (CD 15).\n\nFabricar: Jarro, Lamparina."
+  },
+  "pouch": {
+    "name": "Algibeira",
+    "text": "Uma Algibeira comporta até 3 quilogramas em um volume de um quinto de pé cúbico."
+  },
+  "priests-pack": {
+    "name": "Pacote de Sacerdote",
+    "text": "Um Pacote de Sacerdote contém os seguintes itens: Mochila, Cobertor, Água Benta, Lamparina, Rações para 7 dias, Robe e Pederneira."
+  },
+  "quarterstaff": {
+    "name": "Bordão",
+    "text": null
+  },
+  "quiver": {
+    "name": "Aljava",
+    "text": "Uma Aljava comporta até 20 Flechas."
+  },
+  "ram-portable": {
+    "name": "Aríete Portátil",
+    "text": "Você pode usar um Aríete Portátil para arrombar portas. Ao fazer isso, você recebe +4 de bônus no teste de Força. Outro personagem pode ajudá-lo a usar o aríete, o que lhe dá vantagem nesse teste."
+  },
+  "rapier": {
+    "name": "Rapieira",
+    "text": null
+  },
+  "rations": {
+    "name": "Rações",
+    "text": "As Rações consistem em comida pronta para viagem, incluindo carne-seca, frutas secas, biscoitos duros e nozes. Veja \"Desnutrição\" no \"Glossário de Regras\" para os riscos de não se alimentar."
+  },
+  "reliquary": {
+    "name": "Relicário",
+    "text": "Um Símbolo Sagrado assume uma das formas da tabela de Símbolos Sagrados e é adornado com joias ou pintado para canalizar magia divina. Um Clérigo ou Paladino pode usar um Símbolo Sagrado como Foco de Conjuração.\n\nA tabela indica se um Símbolo Sagrado precisa ser segurado, vestido ou exibido em um tecido (como um tabardo ou estandarte) ou em um Escudo."
+  },
+  "ring-mail": {
+    "name": "Cota de Anéis",
+    "text": null
+  },
+  "robe": {
+    "name": "Robe",
+    "text": "Um Robe tem significado vocacional ou cerimonial. Alguns eventos e locais só admitem pessoas que vistam um Robe com determinadas cores ou símbolos."
+  },
+  "rod": {
+    "name": "Bastão",
+    "text": null
+  },
+  "rope": {
+    "name": "Corda",
+    "text": "Como uma ação Usar, você pode dar um nó com a Corda se for bem-sucedido em um teste de Destreza (Prestidigitação) CD 10. A Corda pode ser arrebentada com um teste bem-sucedido de Força (Atletismo) CD 20.\n\nVocê pode amarrar uma criatura relutante com a Corda somente se ela estiver na condição Agarrado, Incapacitado ou Impedido. Se as pernas da criatura estiverem amarradas, ela fica na condição Impedido até escapar. Escapar da Corda exige que a criatura seja bem-sucedida em um teste de Destreza (Acrobacia) CD 15 como uma ação."
+  },
+  "sack": {
+    "name": "Saco",
+    "text": "Um Saco comporta até 15 quilogramas em 0,027 metro cúbico."
+  },
+  "scale-mail": {
+    "name": "Brunea",
+    "text": null
+  },
+  "scholars-pack": {
+    "name": "Pacote de Estudioso",
+    "text": "Um Pacote de Estudioso contém os seguintes itens: Mochila, Cobertor, Livro, Tinta, Caneta-Tinteiro, Lamparina, 10 garrafas de Óleo, 10 folhas de Pergaminho e Pederneira."
+  },
+  "scimitar": {
+    "name": "Cimitarra",
+    "text": null
+  },
+  "shawm": {
+    "name": "Charamela",
+    "text": "Atributo: Carisma.\n\nUsar: Tocar uma melodia conhecida (CD 10), Improvisar uma canção (CD 15)."
+  },
+  "shield": {
+    "name": "Escudo",
+    "text": null
+  },
+  "shortbow": {
+    "name": "Arco Curto",
+    "text": null
+  },
+  "shortsword": {
+    "name": "Espada Curta",
+    "text": null
+  },
+  "shovel": {
+    "name": "Pá",
+    "text": "Trabalhando por 1 hora, você pode usar uma Pá para cavar um buraco de 1,5 metro de lado em terra ou material semelhante."
+  },
+  "sickle": {
+    "name": "Foice Curta",
+    "text": null
+  },
+  "signal-whistle": {
+    "name": "Apito de Sinalização",
+    "text": "Quando soprado como uma ação Usar, um Apito de Sinalização produz um som que pode ser ouvido a até 180 metros de distância."
+  },
+  "sling": {
+    "name": "Funda",
+    "text": null
+  },
+  "smiths-tools": {
+    "name": "Ferramentas de Ferreiro",
+    "text": "Atributo: Força.\n\nUsar: Forçar a abertura de uma porta ou recipiente (CD 20).\n\nFabricar: Machado de Batalha, Adaga, Mangual, Glaive, Machado Grande, Montante, Alabarda, Machadinha, Azagaia, Lança de Montaria, Martelo Leve, Espada Longa, Maça, Malho, Foice Curta, Lança, Tridente, Martelo de Guerra, Picareta de Guerra, Peitoral, Camisão de Malha, Meia-Armadura, Brunea, Cota de Malha, Armadura de Placas, Cota de Anéis, Armadura de Talas, Esferas de Metal, Balde, Estrepes, Corrente, Pé de Cabra, Balas de Arma de Fogo, Gancho de Escalada, Panela de Ferro, Cravos de Ferro, Balas de Funda."
+  },
+  "spear": {
+    "name": "Lança",
+    "text": null
+  },
+  "spellbook": {
+    "name": "Grimório",
+    "text": "Essencial para magos, um grimório é um tomo encadernado em couro com 100 páginas de velino em branco, adequadas para registrar magias."
+  },
+  "spell-scroll-cantrip": {
+    "name": "Pergaminho de Magia (Truque)",
+    "text": "Um *Pergaminho de Magia* (Truque) ou *Pergaminho de Magia* (Círculo 1) é um item mágico que contém as palavras de um truque ou de uma magia de círculo 1, respectivamente, definidos pelo criador do pergaminho. Se a magia estiver na lista de magias da sua classe, você pode ler o pergaminho e conjurar a magia usando o tempo de conjuração normal dela e sem fornecer nenhum componente Material.\n\nSe a magia exigir um teste de resistência ou uma jogada de ataque, a CD de resistência de magia é 13 e o bônus de ataque é +5. O pergaminho se desintegra quando a conjuração é concluída."
+  },
+  "spell-scroll-level-1": {
+    "name": "Pergaminho de Magia (Círculo 1)",
+    "text": "Um *Pergaminho de Magia* (Truque) ou *Pergaminho de Magia* (Círculo 1) é um item mágico que contém as palavras de um truque ou de uma magia de círculo 1, respectivamente, definidos pelo criador do pergaminho. Se a magia estiver na lista de magias da sua classe, você pode ler o pergaminho e conjurar a magia usando o tempo de conjuração normal dela e sem fornecer nenhum componente Material.\n\nSe a magia exigir um teste de resistência ou uma jogada de ataque, a CD de resistência de magia é 13 e o bônus de ataque é +5. O pergaminho se desintegra quando a conjuração é concluída."
+  },
+  "spikes-iron": {
+    "name": "Cravos de Ferro",
+    "text": "Cravos de Ferro vêm em feixes de dez. Como uma ação Usar, você pode usar um objeto rombudo, como um Martelo Leve, para cravar um cravo em madeira, terra ou material semelhante. Você pode fazer isso para travar uma porta fechada ou para então amarrar uma Corda ou Corrente ao Cravo."
+  },
+  "splint-armor": {
+    "name": "Armadura de Talas",
+    "text": null
+  }
+}

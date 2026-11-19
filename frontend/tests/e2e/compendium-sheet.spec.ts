@@ -49,7 +49,7 @@ async function overlaps(root: Locator) {
 /** Visible interactive controls smaller than 44 × 44 px. */
 async function smallTargets(root: Locator) {
   return root.evaluate(element => [...element.querySelectorAll<HTMLElement>('button, input:not([type="file"]), select, textarea, a[href], [role="button"]')]
-    // WCAG 2.5.8 exempts links inside a sentence (the Pocket DM credit) from the target size.
+    // WCAG 2.5.8 exempts links inside a sentence (the SRD license notice) from the target size.
     .filter(node => !(node.tagName === 'A' && node.closest('p')))
     .filter(node => node.closest('.sr-only') === null && getComputedStyle(node).display !== 'none' && node.getClientRects().length > 0)
     .map(node => ({ node, box: node.getBoundingClientRect() }))
@@ -160,9 +160,10 @@ async function journey(page: Page, width: number) {
   if (shots) await page.screenshot({ path: `${shots}/${test.info().project.name}-${width}-1-compendio-full.png`, fullPage: true })
   expect(await smallTargets(page.locator('[data-creature-library]')), 'library small targets').toEqual([])
   await noHorizontalScroll(page)
-  // C5: pagination and the Pocket DM credit are part of the screen.
+  // C5: pagination and the SRD license notice are part of the screen; no Pocket DM credit (spec 011, FR-040).
   await expect(page.getByRole('navigation', { name: 'Páginas' })).toBeVisible()
-  await expect(page.locator('.creature-credit a[href*="pocketdm"]')).toBeVisible()
+  await expect(page.locator('.creature-credit a[href*="creativecommons"]')).toBeVisible()
+  await expect(page.locator('.creature-credit a[href*="pocketdm"]')).toHaveCount(0)
   // C4: the five filter selects share each row evenly (same width within a row).
   const rows = await page.locator('.creature-filters select').evaluateAll(selects => {
     const byRow = new Map<number, number[]>()

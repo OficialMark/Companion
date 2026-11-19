@@ -28,3 +28,6 @@ test-results/
 Thumbs.db
 *.log
 *.tmp
+
+# Catalog importers download cache (scripts/import-catalogs)
+scripts/import-catalogs/.cache/

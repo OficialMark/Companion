@@ -52,14 +52,15 @@ beforeEach(() => {
 })
 
 describe('creature library (spec 008, US3)', () => {
-  it('lists, searches with debounce and filters through the API, and credits Pocket DM', async () => {
+  it('lists, searches with debounce and filters through the API, with the SRD notice and no Pocket DM credit (spec 011, FR-040)', async () => {
     vi.useFakeTimers()
     ready()
     const wrapper = mount(CreatureLibrary)
     await flushPromises()
     expect(wrapper.text()).toContain('Goblin')
-    expect(wrapper.text()).toContain('Pocket DM')
-    expect(wrapper.find('a[href="https://pocketdm.com.br/monstros"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Pocket DM')
+    expect(wrapper.find('a[href*="pocketdm"]').exists()).toBe(false)
+    expect(wrapper.find('.creature-credit a[href*="creativecommons"]').exists()).toBe(true)
 
     await wrapper.get('[data-creature-search]').setValue('lob')
     await wrapper.get('[data-creature-search]').setValue('lobo')

@@ -1,0 +1,162 @@
+{
+  "ink": {
+    "name": "Tinta",
+    "text": "A Tinta vem em uma garrafa de 1 onça, que fornece tinta suficiente para escrever cerca de 500 páginas."
+  },
+  "ink-pen": {
+    "name": "Caneta-Tinteiro",
+    "text": "Com Tinta, uma Caneta-Tinteiro é usada para escrever ou desenhar."
+  },
+  "javelin": {
+    "name": "Azagaia",
+    "text": null
+  },
+  "jewelers-tools": {
+    "name": "Ferramentas de Joalheiro",
+    "text": "Atributo: Inteligência.\n\nUsar: Discernir o valor de uma gema (CD 15).\n\nFabricar: Cristal, Orbe, Bordão, Bastão, Cajado, Varinha, Amuleto, Emblema, Relicário."
+  },
+  "jug": {
+    "name": "Jarro",
+    "text": "Um Jarro comporta até 1 galão."
+  },
+  "ladder": {
+    "name": "Escada",
+    "text": "Uma Escada tem 3 metros de altura. É preciso escalar para subir ou descer por ela. Lamparina (5 PP)"
+  },
+  "lamp": {
+    "name": "Lamparina",
+    "text": "Uma Lamparina queima Óleo como combustível para emitir Luz Plena em um raio de 4,5 metros e Penumbra por mais 9 metros"
+  },
+  "lance": {
+    "name": "Lança de Montaria",
+    "text": "Duas Mãos, exceto quando montado."
+  },
+  "lantern-bullseye": {
+    "name": "Lanterna Furta-Fogo",
+    "text": "Uma Lanterna Furta-Fogo queima Óleo como combustível para emitir Luz Plena em um Cone de 18 metros e Penumbra por mais 18 metros."
+  },
+  "lantern-hooded": {
+    "name": "Lanterna Coberta",
+    "text": "Uma Lanterna Coberta queima Óleo como combustível para emitir Luz Plena em um raio de 9 metros e Penumbra por mais 9 metros. Como uma ação bônus, você pode baixar a cobertura, reduzindo a luz a Penumbra em um raio de 1,5 metro, ou erguê-la novamente."
+  },
+  "leather-armor": {
+    "name": "Armadura de Couro",
+    "text": null
+  },
+  "leatherworkers-tools": {
+    "name": "Ferramentas de Coureiro",
+    "text": "Atributo: Destreza.\n\nUsar: Adicionar um desenho a um item de couro (CD 10).\n\nFabricar: Funda, Chicote, Gibão de Peles, Armadura de Couro, Armadura de Couro Batido, Mochila, Estojo de Virotes, Estojo de Mapas ou Pergaminhos, Pergaminho, Algibeira, Aljava, Odre."
+  },
+  "light-crossbow": {
+    "name": "Besta Leve",
+    "text": null
+  },
+  "light-hammer": {
+    "name": "Martelo Leve",
+    "text": null
+  },
+  "lock": {
+    "name": "Cadeado",
+    "text": "Um Cadeado vem com uma chave. Sem a chave, uma criatura pode usar Ferramentas de Ladrão para abrir este Cadeado com um teste bem-sucedido de Destreza (Prestidigitação) CD 15."
+  },
+  "longbow": {
+    "name": "Arco Longo",
+    "text": null
+  },
+  "longsword": {
+    "name": "Espada Longa",
+    "text": null
+  },
+  "lute": {
+    "name": "Alaúde",
+    "text": "Atributo: Carisma.\n\nUsar: Tocar uma melodia conhecida (CD 10), Improvisar uma canção (CD 15)."
+  },
+  "lyre": {
+    "name": "Lira",
+    "text": "Atributo: Carisma.\n\nUsar: Tocar uma melodia conhecida (CD 10), Improvisar uma canção (CD 15)."
+  },
+  "mace": {
+    "name": "Maça",
+    "text": null
+  },
+  "magnifying-glass": {
+    "name": "Lupa",
+    "text": "Uma Lupa concede vantagem em qualquer teste de atributo feito para avaliar ou inspecionar um item muito detalhado. Acender uma fogueira com uma Lupa exige luz tão intensa quanto a do sol para concentrar, gravetos para inflamar e cerca de 5 minutos para o fogo pegar."
+  },
+  "manacles": {
+    "name": "Algemas",
+    "text": "Como uma ação Usar, você pode usar Algemas para prender uma criatura Pequena ou Média relutante a até 1,5 metro de você que esteja na condição Agarrado, Incapacitado ou Impedido, se for bem-sucedido em um teste de Destreza (Prestidigitação) CD 13. Enquanto estiver presa, a criatura tem desvantagem em jogadas de ataque, e fica Impedida se as Algemas estiverem presas a uma corrente ou gancho fixo no lugar. Escapar das Algemas exige um teste bem-sucedido de Destreza (Prestidigitação) CD 20 como uma ação. Arrebentá-las exige um teste bem-sucedido de Força (Atletismo) CD 25 como uma ação.\n\nCada par de Algemas vem com uma chave. Sem a chave, uma criatura pode usar Ferramentas de Ladrão para abrir a fechadura das Algemas com um teste bem-sucedido de Destreza (Prestidigitação) CD 15."
+  },
+  "masons-tools": {
+    "name": "Ferramentas de Pedreiro",
+    "text": "Atributo: Força.\n\nUsar: Cinzelar um símbolo ou um buraco na pedra (CD 10).\n\nFabricar: Talha e polia."
+  },
+  "map": {
+    "name": "Mapa",
+    "text": "Se você consultar um Mapa preciso, recebe +5 de bônus em testes de Sabedoria (Sobrevivência) feitos para se orientar no lugar representado nele."
+  },
+  "mirror": {
+    "name": "Espelho",
+    "text": "Um Espelho de aço de mão é útil para cuidados pessoais, mas também para espiar além de esquinas e refletir luz como sinal."
+  },
+  "maul": {
+    "name": "Malho",
+    "text": null
+  },
+  "morningstar": {
+    "name": "Maça Estrela",
+    "text": null
+  },
+  "musket": {
+    "name": "Mosquete",
+    "text": null
+  },
+  "navigators-tools": {
+    "name": "Ferramentas de Navegador",
+    "text": "Atributo: Sabedoria.\n\nUsar: Traçar uma rota (CD 10), Determinar a posição observando as estrelas (CD 15)."
+  },
+  "needles": {
+    "name": "Agulhas",
+    "text": null
+  },
+  "net": {
+    "name": "Rede",
+    "text": "Quando você realiza a ação Atacar, pode substituir um dos seus ataques pelo arremesso de uma Rede. Escolha como alvo uma criatura que você possa ver a até 4,5 metros de você. O alvo deve ser bem-sucedido em um teste de resistência de Destreza (CD 8 mais seu modificador de Destreza e seu bônus de proficiência) ou fica na condição Impedido até escapar. O alvo é bem-sucedido automaticamente se for Enorme ou maior.\n\nPara escapar, o alvo ou uma criatura a até 1,5 metro dele deve usar uma ação para fazer um teste de Força (Atletismo) CD 10, libertando a criatura Impedida em caso de sucesso. Destruir a Rede (CA 10; 5 PV; Imunidade a dano contundente, veneno e psíquico) também liberta o alvo, encerrando o efeito."
+  },
+  "oil": {
+    "name": "Óleo",
+    "text": "Você pode encharcar uma criatura, um objeto ou um espaço com Óleo ou usá-lo como combustível, conforme detalhado abaixo.\n\n**Encharcar uma Criatura ou um Objeto.** Quando você realiza a ação Atacar, pode substituir um dos seus ataques pelo arremesso de uma garrafa de Óleo. Escolha como alvo uma criatura ou um objeto a até 6 metros de você. O alvo deve ser bem-sucedido em um teste de resistência de Destreza (CD 8 mais seu modificador de Destreza e seu bônus de proficiência) ou fica coberto de óleo. Se o alvo sofrer dano de fogo antes de o óleo secar (após 1 minuto), ele sofre 5 de dano de fogo adicional do óleo em chamas.\n\n**Encharcar um Espaço.** Você pode realizar a ação Usar para derramar uma garrafa de Óleo em terreno plano e cobrir uma área quadrada de 1,5 metro a até 1,5 metro de você. Se for aceso, o óleo queima até o fim do turno 2 rodadas após ser aceso (ou 12 segundos) e causa 5 de dano de fogo a qualquer criatura que entre na área ou termine o turno nela. Uma criatura só pode sofrer esse dano uma vez por turno.\n\n**Combustível.** O Óleo serve de combustível para Lamparinas e Lanternas. Depois de acesa, uma garrafa de Óleo queima por 6 horas em uma Lamparina ou Lanterna. Essa duração não precisa ser consecutiva; você pode apagar o Óleo em chamas (como uma ação Usar) e reacendê-lo até que ele tenha queimado por um total de 6 horas"
+  },
+  "orb": {
+    "name": "Orbe",
+    "text": null
+  },
+  "padded-armor": {
+    "name": "Armadura Acolchoada",
+    "text": null
+  },
+  "painters-supplies": {
+    "name": "Suprimentos de Pintor",
+    "text": "Atributo: Sabedoria.\n\nUsar: Pintar uma imagem reconhecível de algo que você viu (CD 10).\n\nFabricar: Bordão, Ramo de Visco, Cajado, Varinha de Teixo, Amuleto, Emblema, Relicário."
+  },
+  "pan-flute": {
+    "name": "Flauta de Pã",
+    "text": "Atributo: Carisma.\n\nUsar: Tocar uma melodia conhecida (CD 10), Improvisar uma canção (CD 15)."
+  },
+  "paper": {
+    "name": "Papel",
+    "text": "Uma folha de Papel comporta cerca de 250 palavras manuscritas."
+  },
+  "parchment": {
+    "name": "Pergaminho",
+    "text": "Uma folha de Pergaminho comporta cerca de 250 palavras manuscritas."
+  },
+  "perfume": {
+    "name": "Perfume",
+    "text": "O Perfume vem em um frasco de 4 onças. Por 1 hora depois de aplicar o Perfume em si mesmo, você tem vantagem em testes de Carisma (Persuasão) feitos para influenciar um Humanoide Indiferente a até 1,5 metro de você."
+  },
+  "pike": {
+    "name": "Pique",
+    "text": null
+  }
+}

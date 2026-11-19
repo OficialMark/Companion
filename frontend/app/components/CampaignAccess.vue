@@ -80,15 +80,16 @@ function enterCreatedCampaign() {
         </label>
         <label>
           Seu nome
-          <input v-model="displayName" maxlength="40" required autocomplete="nickname" placeholder="Como será chamado na mesa">
+          <input v-model="displayName" maxlength="40" required autocomplete="nickname" placeholder="Como será chamado na mesa" aria-describedby="display-name-hint">
         </label>
+        <p id="display-name-hint" class="field-hint"><Icon name="lucide:user-round-check" />Use o mesmo nome para voltar ao seu personagem.</p>
         <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
         <button class="button primary wide" :disabled="busy" type="submit">
           <Icon :name="busy ? 'lucide:loader-circle' : mode === 'create' ? 'lucide:sparkles' : 'lucide:door-open'" :class="{ spin: busy }" />
           {{ busy ? 'Preparando a mesa…' : mode === 'create' ? 'Criar e entrar' : 'Entrar na campanha' }}
         </button>
       </form>
-      <p class="access-note"><Icon name="lucide:lock" />Nenhuma conta é necessária. Sua sessão fica somente neste navegador.</p>
+      <p class="access-note"><Icon name="lucide:lock" />Sem senha: o código da mesa e o nome do personagem levam você de volta à sua conta, em qualquer aparelho.</p>
     </section>
   </main>
 </template>

@@ -41,7 +41,26 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.MaxHitPoints);
         builder.HasIndex(x => x.TokenHash).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
+        // Identidade da conta (spec 011, FR-042). Já vem em maiúsculas invariantes, então a comparação é
+        // binária: o banco decide igual ao C# (diferencia acentos, não depende da collation do servidor).
+        // O filtro aceita os nomes repetidos antigos, que ficam com NameKey nula (FR-044).
+        builder.Property(x => x.NameKey).HasMaxLength(40).UseCollation("Latin1_General_100_BIN2");
+        builder.HasIndex(x => new { x.CampaignId, x.Role, x.NameKey }).IsUnique()
+            .HasFilter("[NameKey] IS NOT NULL");
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class ParticipantSessionConfiguration : IEntityTypeConfiguration<ParticipantSession>
+{
+    public void Configure(EntityTypeBuilder<ParticipantSession> builder)
+    {
+        builder.ToTable("ParticipantSessions");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.TokenHash).HasMaxLength(ParticipantSession.TokenHashLength).IsRequired();
+        builder.HasIndex(x => x.TokenHash).IsUnique();
+        builder.HasIndex(x => x.ParticipantId);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -63,7 +82,7 @@ public sealed class DiceRollConfiguration : IEntityTypeConfiguration<DiceRoll>
     {
         builder.ToTable("DiceRolls");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Expression).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.Expression).HasMaxLength(256).IsRequired();
         builder.Property(x => x.Label).HasMaxLength(DiceRoll.MaxLabelLength);
         builder.Property(x => x.ValuesJson).IsRequired();
         builder.Property(x => x.RevealedAt);

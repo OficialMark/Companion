@@ -1,3 +1,5 @@
+const apiTarget = (process.env.NUXT_API_TARGET || 'http://localhost:8080').replace(/\/+$/, '')
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   ssr: false,
@@ -20,7 +22,7 @@ export default defineNuxtConfig({
       sizeLimitKb: 256
     }
   },
-  css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css', '~/assets/css/creatures.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/dice.css', '~/assets/css/battlemap.css', '~/assets/css/creatures.css', '~/assets/css/character.css', '~/assets/css/inventory.css', '~/assets/css/roll-panel.css'],
   runtimeConfig: {
     public: {
       apiBase: '/api',
@@ -43,9 +45,11 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    // NUXT_API_TARGET lets a second dev instance point at its own API (spec 011 quickstart)
+    // without touching the stack that is serving the table.
     devProxy: {
-      '/api': { target: 'http://localhost:8080/api', changeOrigin: true },
-      '/hubs': { target: 'http://localhost:8080/hubs', changeOrigin: true, ws: true }
+      '/api': { target: `${apiTarget}/api`, changeOrigin: true },
+      '/hubs': { target: `${apiTarget}/hubs`, changeOrigin: true, ws: true }
     }
   }
 })

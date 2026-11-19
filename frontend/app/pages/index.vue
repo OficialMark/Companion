@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import InventoryPanel from '~/components/character/InventoryPanel.vue'
+import PlayerRollPanel from '~/components/character/PlayerRollPanel.vue'
+import CharacterSheetView from '~/components/character/CharacterSheetView.vue'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
 import type { DiceRoll, StatusCondition } from '~/types/campaign'
@@ -12,10 +15,13 @@ const loading = ref(true)
 const pendingAttackRoll = ref<DiceRoll | null>(null)
 const damageModalOpen = ref(false)
 
-function onQuickRolledD20(roll: DiceRoll) { pendingAttackRoll.value = roll }
+/** Damage expression to prefill after "acertou" (the player's weapon attack, spec 011); null for the quick roller. */
+const pendingDamageExpression = ref<string | null>(null)
+
+function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingAttackRoll.value = roll }
 function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
-function onAttackDismissed() { pendingAttackRoll.value = null }
-function onDamageSettled() { damageModalOpen.value = false }
+function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null }
+function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null }
 
 async function activate() {
   if (!store.session) { loading.value = false; return }
@@ -60,7 +66,7 @@ async function setHitPointsVisibility(combatantId: string | null, hidden: boolea
 }
 async function leave() {
   await realtime.disconnect()
-  store.clearSession()
+  await store.leaveCampaign()
 }
 
 const codeCopied = ref(false)
@@ -76,10 +82,38 @@ async function copyCode() {
 
 // Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
 // Master's screen (spec 009): the table, or the full-width creature compendium. Kept in the URL.
-const { view } = useMasterView()
+const { view } = useAppView()
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
 watch(() => store.isMaster, master => { if (!master) creatures.close() })
+// Spec 011: the player's own sheet; a new session (another account) starts from scratch.
+const character = useCharacterStore()
+watch(() => store.session?.participantToken, () => character.reset())
+// Modo Jogo of a player with a character: the roll panel replaces the quick roller (US4). The character
+// is loaded on entering the Modo Jogo; without one (or while it fails to load) the quick roller stays.
+const isPlayer = computed(() => store.session?.role === 'Player')
+const showPlayerPanel = computed(() => gameMode.active.value && isPlayer.value && Boolean(character.character))
+// The token is part of the source: a new session resets the store above and loads its own character.
+watch(() => [gameMode.active.value && isPlayer.value, store.session?.participantToken] as const, ([wanted, token]) => {
+  if (wanted && token && !character.character && !character.loading) void character.load()
+}, { immediate: true })
+/** "Acertou?" only for a combatant of the active encounter (same rule as the attack resolution). */
+const playerInActiveEncounter = computed(() => {
+  const encounter = store.snapshot?.activeEncounter
+  return encounter?.status === 'Active' && encounter.combatants.some(combatant => combatant.participantId === store.session?.participantId)
+})
+function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null) {
+  if (!playerInActiveEncounter.value) return
+  pendingDamageExpression.value = damageExpression
+  pendingAttackRoll.value = roll
+}
+const inventoryOpen = ref(false)
+function onInventoryKeydown(event: KeyboardEvent) { if (event.key === 'Escape') inventoryOpen.value = false }
+watch(inventoryOpen, open => {
+  if (open) window.addEventListener('keydown', onInventoryKeydown)
+  else window.removeEventListener('keydown', onInventoryKeydown)
+})
+watch(() => gameMode.active.value, active => { if (!active) inventoryOpen.value = false })
 // Board photos: participants' avatars plus library images of creature tokens.
 watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
   for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
@@ -130,11 +164,11 @@ onBeforeUnmount(() => {
 <template>
   <CampaignAccess v-if="!store.session" />
   <main v-else class="app-shell">
-    <header class="topbar" :class="{ 'has-view-nav': store.isMaster }">
+    <header class="topbar" :class="{ 'has-view-nav': store.isMaster || store.session.role === 'Player' }">
       <div class="brand-inline"><span class="mini-mark" aria-hidden="true">20</span><strong>Companion</strong><span v-if="store.isMaster && store.snapshot" class="brand-campaign" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span></div>
       <!-- display: contents on desktop (nav and campaign are grid columns); its own row on phones. -->
       <div class="topbar-center">
-      <MasterViewNav />
+      <ViewNav />
       <div v-if="store.snapshot" class="campaign-heading">
         <span class="campaign-name" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span>
         <button
@@ -167,7 +201,13 @@ onBeforeUnmount(() => {
       <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
-      <template v-if="view === 'compendio'">
+      <template v-if="view === 'ficha'">
+        <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert">
+          <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
+        </p>
+        <CharacterSheetView />
+      </template>
+      <template v-else-if="view === 'compendio'">
         <!-- The Mesa shows this inside its welcome row; the Compendium has none, so it gets its own. -->
         <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert" data-compendio-offline>
           <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
@@ -193,7 +233,8 @@ onBeforeUnmount(() => {
 
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
-          <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+          <PlayerRollPanel v-if="showPlayerPanel" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
+          <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
             <div class="panel-heading">
@@ -267,8 +308,26 @@ onBeforeUnmount(() => {
     />
     <DamageRollModal
       v-if="damageModalOpen"
+      :expression="pendingDamageExpression ?? undefined"
       @resolved="onDamageSettled"
       @cancelled="onDamageSettled"
     />
+    <div
+      v-if="inventoryOpen && showPlayerPanel"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-inventory-title"
+      data-game-inventory
+      @click.self="inventoryOpen = false"
+    >
+      <div class="modal-panel game-inventory-modal">
+        <div class="game-inventory-head">
+          <h2 id="game-inventory-title"><Icon name="lucide:backpack" />Mochila</h2>
+          <button class="icon-button" type="button" aria-label="Fechar mochila" title="Fechar mochila" data-close-inventory @click="inventoryOpen = false"><Icon name="lucide:x" /></button>
+        </div>
+        <InventoryPanel compact />
+      </div>
+    </div>
   </main>
 </template>

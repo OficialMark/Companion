@@ -55,8 +55,12 @@ export function useCompanionApi() {
   }
 
   return {
+    /** Low-level call, used by feature composables such as useCharacterApi (spec 011). */
+    request,
     createCampaign: (campaignName: string, displayName: string) => request<Session>('/campaigns', { method: 'POST', body: JSON.stringify({ campaignName, displayName }) }),
     joinCampaign: (code: string, displayName: string) => request<Session>('/campaigns/join', { method: 'POST', body: JSON.stringify({ code, displayName }) }),
+    /** "Sair da campanha" (spec 011, FR-043): apaga só a sessão deste aparelho. Desiste em 5 s para não prender a saída local. */
+    leaveSession: (session: Session) => request<void>(`/campaigns/${session.campaignId}/participants/me/session`, { method: 'DELETE', signal: AbortSignal.timeout(5000) }, session.participantToken),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
     updateInitiativeModifier: (session: Session, initiativeModifier: number | null) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/initiative-modifier`, { method: 'PUT', body: JSON.stringify({ initiativeModifier }) }, session.participantToken),
     updateCombatProfile: (session: Session, initiativeModifier: number | null, currentHitPoints: number | null, maxHitPoints: number | null = null) => request<Participant>(`/campaigns/${session.campaignId}/participants/me/combat-profile`, { method: 'PUT', body: JSON.stringify({ initiativeModifier, currentHitPoints, maxHitPoints }) }, session.participantToken),

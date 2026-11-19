@@ -1,5 +1,7 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 using Companion.Application.Contracts;
+using Companion.Domain.Characters;
 using Companion.Domain.Dice;
 using Companion.Domain.Models;
 
@@ -16,38 +18,102 @@ public sealed class CampaignService(
     public async Task<SessionResponse> CreateAsync(CreateCampaignRequest request, CancellationToken cancellationToken)
     {
         var campaignName = ValidateName(request.CampaignName, 80, "campanha");
-        var displayName = ValidateName(request.DisplayName, 40, "participante");
+        var displayName = NormalizeParticipantName(request.DisplayName);
         var (playerCode, masterCode) = CreateUniqueCodes();
         var credential = tokens.Create();
         var now = timeProvider.GetUtcNow();
         var campaign = new Campaign(Guid.NewGuid(), campaignName, now);
-        var master = new Participant(Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Master, credential.Hash, now);
+        var master = new Participant(Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Master, UnusableTokenHash(), now);
         db.Add(campaign);
         db.Add(new CampaignAccessCode(playerCode, campaign.Id, ParticipantRole.Player));
         db.Add(new CampaignAccessCode(masterCode, campaign.Id, ParticipantRole.Master));
         db.Add(master);
+        db.Add(new ParticipantSession(Guid.NewGuid(), master.Id, campaign.Id, credential.Hash, now));
         await db.SaveChangesAsync(cancellationToken);
         return new SessionResponse(campaign.Id, playerCode, masterCode, master.Id, master.DisplayName, master.Role, credential.Token);
     }
 
+    /// <summary>
+    /// Entra na conta pelo nome (spec 011, US 2b). O nome é normalizado e procurado em
+    /// (campanha, papel do código, NameKey): se existe, só ganha uma sessão nova e as outras sessões
+    /// continuam valendo (FR-043); se não existe, a conta é criada. ParticipantJoined só sai na criação.
+    /// </summary>
     public async Task<SessionResponse> JoinAsync(JoinCampaignRequest request, CancellationToken cancellationToken)
     {
         var code = (request.Code ?? string.Empty).Trim();
         if (code.Length != 4 || code.Any(character => character is < '0' or > '9'))
             throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
-        var displayName = ValidateName(request.DisplayName, 40, "participante");
+        var displayName = NormalizeParticipantName(request.DisplayName);
         var access = db.CampaignAccessCodes.FirstOrDefault(x => x.Code == code)
             ?? throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
         var campaign = db.Campaigns.FirstOrDefault(x => x.Id == access.CampaignId)
             ?? throw new AppException(AppErrorKind.NotFound, "Código de acesso inválido.");
         var credential = tokens.Create();
-        var participant = new Participant(Guid.NewGuid(), campaign.Id, displayName, access.Role, credential.Hash, timeProvider.GetUtcNow());
-        db.Add(participant);
-        await db.SaveChangesAsync(cancellationToken);
-        await notifier.NotifyAsync(campaign.Id, "ParticipantJoined", ToDto(participant), cancellationToken);
+        var (participant, created) = await OpenAccountAsync(campaign.Id, access.Role, displayName, credential.Hash, cancellationToken);
+        if (created)
+            await notifier.NotifyAsync(campaign.Id, "ParticipantJoined", ToDto(participant), cancellationToken);
         var playerCode = db.CampaignAccessCodes.First(x => x.CampaignId == campaign.Id && x.Role == ParticipantRole.Player).Code;
         return new SessionResponse(campaign.Id, playerCode, null, participant.Id, participant.DisplayName, participant.Role, credential.Token);
     }
+
+    /// <summary>"Sair da campanha" (FR-043): apaga só a sessão do token usado; as outras continuam.</summary>
+    public async Task LeaveAsync(Guid campaignId, string token, CancellationToken cancellationToken)
+    {
+        var (_, session) = authorization.RequireSession(campaignId, token);
+        db.Remove(session);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<(Participant Participant, bool Created)> OpenAccountAsync(
+        Guid campaignId, ParticipantRole role, string displayName, byte[] sessionHash, CancellationToken cancellationToken)
+    {
+        var nameKey = PersonName.Key(displayName);
+        var now = timeProvider.GetUtcNow();
+        var existing = FindAccount(campaignId, role, nameKey);
+        if (existing is not null)
+        {
+            await AddSessionAsync(existing, sessionHash, now, cancellationToken);
+            return (existing, false);
+        }
+
+        var participant = new Participant(Guid.NewGuid(), campaignId, displayName, role, UnusableTokenHash(), now);
+        var session = new ParticipantSession(Guid.NewGuid(), participant.Id, campaignId, sessionHash, now);
+        db.Add(participant);
+        db.Add(session);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return (participant, true);
+        }
+        catch (Exception exception) when (exception.GetType().Name is "DbUpdateException")
+        {
+            // Corrida: outro join com o mesmo nome venceu o índice único (CampaignId, Role, NameKey).
+            // A inserção inteira voltou (participante e sessão na mesma transação). Descarta as
+            // entidades pendentes e entra na conta vencedora. Sem vencedora, o erro era outro: repassa.
+            db.Detach(session);
+            db.Detach(participant);
+            var winner = FindAccount(campaignId, role, nameKey);
+            if (winner is null) throw;
+            await AddSessionAsync(winner, sessionHash, now, cancellationToken);
+            return (winner, false);
+        }
+    }
+
+    private Participant? FindAccount(Guid campaignId, ParticipantRole role, string nameKey) =>
+        db.Participants.FirstOrDefault(x => x.CampaignId == campaignId && x.Role == role && x.NameKey == nameKey);
+
+    private async Task AddSessionAsync(Participant participant, byte[] sessionHash, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        db.Add(new ParticipantSession(Guid.NewGuid(), participant.Id, participant.CampaignId, sessionHash, now));
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// <c>Participants.TokenHash</c> é NOT NULL e único, mas desde a spec 011 a autorização lê só
+    /// <c>ParticipantSessions</c>. Conta nova recebe 32 bytes aleatórios que não são o SHA-256 de
+    /// nenhum token entregue, então a coluna não autoriza ninguém. A remoção fica para uma feature futura.
+    /// </summary>
+    private static byte[] UnusableTokenHash() => RandomNumberGenerator.GetBytes(ParticipantSession.TokenHashLength);
 
     public Task<CampaignSnapshot> GetSnapshotAsync(Guid campaignId, string token, CancellationToken cancellationToken)
     {
@@ -198,6 +264,18 @@ public sealed class CampaignService(
         var expression = DiceExpression.Parse(roll.Expression);
         var term = expression.Terms[0];
         return [new DiceRollResultDto(1, [new DiceTermResultDto(term.Normalized, values, checked(term.Sign * values.Sum()))], roll.Modifier, roll.Total)];
+    }
+
+    private static string NormalizeParticipantName(string? input)
+    {
+        try
+        {
+            return PersonName.Normalize(input);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new AppException(AppErrorKind.Validation, exception.Message);
+        }
     }
 
     private static string ValidateName(string? input, int maxLength, string field)

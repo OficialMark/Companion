@@ -1,0 +1,1124 @@
+{
+  "$comment": "Spec 011, contracts/dice-expression.md. Shared by backend (DiceExpressionGroupingTests) and frontend (roll-expression.spec.ts). Each case: input (string the server parses), canonical (expected Normalized, null when error), error (substring of the expected message, null when valid), roundTrip (true when the frontend generator must be able to produce `canonical` exactly; then `build` holds the generator input: { dice: { d4..d100: count }, parts: [{ label, value }], selection: none|advantage|disadvantage, repetitions }). `note` is free text.",
+  "cases": [
+    {
+      "input": "d20",
+      "canonical": "1d20",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado"
+    },
+    {
+      "input": "2D6+3",
+      "canonical": "2d6+3",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado"
+    },
+    {
+      "input": " 1d8-1 ",
+      "canonical": "1d8-1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d8": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": -1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado"
+    },
+    {
+      "input": "3#3d5+4",
+      "canonical": "3#3d5+4",
+      "error": null,
+      "roundTrip": false,
+      "note": "legado; d5 não existe no gerador"
+    },
+    {
+      "input": "2d3+4+2d8+3",
+      "canonical": "2d3+2d8+7",
+      "error": null,
+      "roundTrip": false,
+      "note": "legado; d3 não existe no gerador"
+    },
+    {
+      "input": "0d6",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "101d6",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "1d1",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "d20+10001",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "21#d6",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "20#6d6",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "legado: limite"
+    },
+    {
+      "input": "20",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "2x6",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "d",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "2##d6",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "3#",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "d20+",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "legado: sintaxe"
+    },
+    {
+      "input": "d20+5+2d6",
+      "canonical": "1d20+2d6+5",
+      "error": null,
+      "roundTrip": false,
+      "note": "contrato; o gerador emite a mesma string a partir de d20+2d6+5"
+    },
+    {
+      "input": "d20+2d6+5",
+      "canonical": "1d20+2d6+5",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1,
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 5
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado gerável"
+    },
+    {
+      "input": "3 # 2d6 + 1",
+      "canonical": "3#2d6+1",
+      "error": null,
+      "roundTrip": false,
+      "note": "legado com espaços; o gerador agora usa colchetes (ver caso seguinte)"
+    },
+    {
+      "input": "2#d20+2d6+3",
+      "canonical": "2#1d20+2d6+3",
+      "error": null,
+      "roundTrip": false,
+      "note": "rótulo zerado é omitido, então o gerador emite o legado; o gerador agora usa colchetes (ver caso seguinte)"
+    },
+    {
+      "input": "1#d20",
+      "canonical": "1d20",
+      "error": null,
+      "roundTrip": false,
+      "note": "legado: 1 repetição some"
+    },
+    {
+      "input": "d20+1+2",
+      "canonical": "1d20+3",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 1
+          },
+          {
+            "label": null,
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado: constantes somadas"
+    },
+    {
+      "input": "d100-2",
+      "canonical": "1d100-2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d100": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": -2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "legado"
+    },
+    {
+      "input": "d20+d12+d10+d8+d6+d4+d100",
+      "canonical": "1d20+1d12+1d10+1d8+1d6+1d4+1d100",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d4": 1,
+          "d6": 1,
+          "d8": 1,
+          "d10": 1,
+          "d12": 1,
+          "d20": 1,
+          "d100": 1
+        },
+        "parts": [],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "ordem fixa do gerador"
+    },
+    {
+      "input": "2#(d20 + 5 + 2d6) maior",
+      "canonical": "2#(d20 + 2d6 + 5) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1,
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 5
+          }
+        ],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "contrato"
+    },
+    {
+      "input": "3#[d20+(FOR)3+(prof)3]",
+      "canonical": "3#[d20 + (FOR) 3 + (prof) 3]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          },
+          {
+            "label": "prof",
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 3
+      },
+      "note": "contrato"
+    },
+    {
+      "input": "3#[2#(d20+(DES)4)MENOR]",
+      "canonical": "3#[2#(d20 + (DES) 4) menor]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "DES",
+            "value": 4
+          }
+        ],
+        "selection": "disadvantage",
+        "repetitions": 3
+      },
+      "note": "contrato"
+    },
+    {
+      "input": "2#(d20+5)",
+      "canonical": null,
+      "error": "terminar com maior ou menor",
+      "roundTrip": false,
+      "note": "contrato: seleção sem maior/menor"
+    },
+    {
+      "input": "4#(d20) maior",
+      "canonical": null,
+      "error": "só existe com 2 execuções",
+      "roundTrip": false,
+      "note": "contrato: seleção só com 2"
+    },
+    {
+      "input": "2#[2#[d20]]",
+      "canonical": null,
+      "error": "repetição aninhada",
+      "roundTrip": false,
+      "note": "contrato: repetição aninhada"
+    },
+    {
+      "input": "2#(d20) maior",
+      "canonical": "2#(d20) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "vantagem"
+    },
+    {
+      "input": "2#(d20)menor",
+      "canonical": "2#(d20) menor",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [],
+        "selection": "disadvantage",
+        "repetitions": 1
+      },
+      "note": "desvantagem"
+    },
+    {
+      "input": "2#(D20+3) Maior",
+      "canonical": "2#(d20 + 3) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 3
+          }
+        ],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "maiúsculas na leitura"
+    },
+    {
+      "input": "2 # ( d20 + 5 ) mAiOr",
+      "canonical": "2#(d20 + 5) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 5
+          }
+        ],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "espaços e maiúsculas"
+    },
+    {
+      "input": "2#(d20+(FOR)3+(prof)2) maior",
+      "canonical": "2#(d20 + (FOR) 3 + (prof) 2) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          },
+          {
+            "label": "prof",
+            "value": 2
+          }
+        ],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "vantagem com rótulos"
+    },
+    {
+      "input": "2#(1d20-1)menor",
+      "canonical": "2#(d20 - 1) menor",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": -1
+          }
+        ],
+        "selection": "disadvantage",
+        "repetitions": 1
+      },
+      "note": "constante negativa na seleção"
+    },
+    {
+      "input": "2#(d20)",
+      "canonical": null,
+      "error": "terminar com maior ou menor",
+      "roundTrip": false,
+      "note": "sem maior/menor"
+    },
+    {
+      "input": "2#(d20) melhor",
+      "canonical": null,
+      "error": "terminar com maior ou menor",
+      "roundTrip": false,
+      "note": "palavra errada"
+    },
+    {
+      "input": "3#(d20) menor",
+      "canonical": null,
+      "error": "só existe com 2 execuções",
+      "roundTrip": false,
+      "note": "seleção com 3"
+    },
+    {
+      "input": "2#(2#(d20) maior) maior",
+      "canonical": null,
+      "error": "não pode conter repetição",
+      "roundTrip": false,
+      "note": "seleção dentro de seleção"
+    },
+    {
+      "input": "2#(3#d20) maior",
+      "canonical": null,
+      "error": "não pode conter repetição",
+      "roundTrip": false,
+      "note": "repetição dentro de seleção"
+    },
+    {
+      "input": "3#[d20+5]",
+      "canonical": "3#[d20 + 5]",
+      "error": null,
+      "roundTrip": false,
+      "note": "colchetes sem rótulo: o gerador emite o legado 3#1d20+5"
+    },
+    {
+      "input": "1#[d20]",
+      "canonical": "1#[d20]",
+      "error": null,
+      "roundTrip": false,
+      "note": "colchetes com 1 repetição continuam colchetes"
+    },
+    {
+      "input": "3#[2#(d20) maior]",
+      "canonical": "3#[2#(d20) maior]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [],
+        "selection": "advantage",
+        "repetitions": 3
+      },
+      "note": "repetição de vantagem"
+    },
+    {
+      "input": "3#d20+(FOR)3",
+      "canonical": "3#[d20 + (FOR) 3]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 3
+      },
+      "note": "repetição legada com rótulo vira colchetes"
+    },
+    {
+      "input": "3#2#(d20) maior",
+      "canonical": null,
+      "error": "repetição aninhada",
+      "roundTrip": false,
+      "note": "seleção repetida sem colchetes"
+    },
+    {
+      "input": "2#[3#d20]",
+      "canonical": null,
+      "error": "repetição aninhada",
+      "roundTrip": false,
+      "note": "repetição legada dentro de colchetes"
+    },
+    {
+      "input": "2#[4#(d20) maior]",
+      "canonical": null,
+      "error": "só existe com 2 execuções",
+      "roundTrip": false,
+      "note": "seleção com 4 dentro de colchetes"
+    },
+    {
+      "input": "3#[d20]+2",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "texto depois dos colchetes"
+    },
+    {
+      "input": "3#[d20",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "colchete sem fechar"
+    },
+    {
+      "input": "d20+(FOR)3",
+      "canonical": "d20 + (FOR) 3",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "rótulo"
+    },
+    {
+      "input": "d20 + (Anel) 1",
+      "canonical": "d20 + (Anel) 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "Anel",
+            "value": 1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "rótulo"
+    },
+    {
+      "input": "(prof)2+d20",
+      "canonical": "d20 + (prof) 2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "prof",
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "dados antes de constantes"
+    },
+    {
+      "input": "d20+(Força)2+(Destreza)1",
+      "canonical": "d20 + (Força) 2 + (Destreza) 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "Força",
+            "value": 2
+          },
+          {
+            "label": "Destreza",
+            "value": 1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "acentos"
+    },
+    {
+      "input": "d20-(FOR)1",
+      "canonical": "d20 - (FOR) 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": -1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "rótulo negativo"
+    },
+    {
+      "input": "d20 - (FOR) 1 + 2",
+      "canonical": "d20 - (FOR) 1 + 2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": -1
+          },
+          {
+            "label": null,
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "rótulo negativo e constante"
+    },
+    {
+      "input": "d20+(  Mão   leve )2",
+      "canonical": "d20 + (Mão leve) 2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "  Mão   leve ",
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "espaços do rótulo normalizados"
+    },
+    {
+      "input": "d20+(D'Artagnan)1+(Arma +1)1+(Nv.3)2",
+      "canonical": "d20 + (D'Artagnan) 1 + (Arma +1) 1 + (Nv.3) 2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "D'Artagnan",
+            "value": 1
+          },
+          {
+            "label": "Arma +1",
+            "value": 1
+          },
+          {
+            "label": "Nv.3",
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "apóstrofo, mais e ponto"
+    },
+    {
+      "input": "2d6+(Ataque Furtivo)3",
+      "canonical": "2d6 + (Ataque Furtivo) 3",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": "Ataque Furtivo",
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "rótulo com espaço"
+    },
+    {
+      "input": "d20+2d6+(FOR)3+1",
+      "canonical": "d20 + 2d6 + (FOR) 3 + 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1,
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          },
+          {
+            "label": null,
+            "value": 1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "constantes não se juntam na forma nova"
+    },
+    {
+      "input": "d8+d6+(DES)2",
+      "canonical": "d8 + d6 + (DES) 2",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 1,
+          "d8": 1
+        },
+        "parts": [
+          {
+            "label": "DES",
+            "value": 2
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "ordem do gerador: d8 antes de d6"
+    },
+    {
+      "input": "d6+d8+(DES)2",
+      "canonical": "d6 + d8 + (DES) 2",
+      "error": null,
+      "roundTrip": false,
+      "note": "servidor mantém a ordem de entrada"
+    },
+    {
+      "input": "-d4+d20+(X)1",
+      "canonical": "-d4 + d20 + (X) 1",
+      "error": null,
+      "roundTrip": false,
+      "note": "dado negativo primeiro"
+    },
+    {
+      "input": "d20+(FOR)0",
+      "canonical": "d20 + (FOR) 0",
+      "error": null,
+      "roundTrip": false,
+      "note": "o gerador omite partes zeradas"
+    },
+    {
+      "input": "d20+(abcdefghijklmnopq)1",
+      "canonical": null,
+      "error": "O rótulo entre parênteses",
+      "roundTrip": false,
+      "note": "rótulo com 17 caracteres"
+    },
+    {
+      "input": "d20+(FOR!)3",
+      "canonical": null,
+      "error": "O rótulo entre parênteses",
+      "roundTrip": false,
+      "note": "caractere inválido no rótulo"
+    },
+    {
+      "input": "d20+( )3",
+      "canonical": null,
+      "error": "O rótulo entre parênteses",
+      "roundTrip": false,
+      "note": "rótulo vazio"
+    },
+    {
+      "input": "d20+(FOR)",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "rótulo sem valor"
+    },
+    {
+      "input": "d20+(FOR)-3",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "sinal vai antes do rótulo"
+    },
+    {
+      "input": "d20+(FOR 3",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "parêntese sem fechar"
+    },
+    {
+      "input": "(FOR)3",
+      "canonical": null,
+      "error": "Use uma expressão como",
+      "roundTrip": false,
+      "note": "sem dados"
+    },
+    {
+      "input": "2#(50d6) maior",
+      "canonical": "2#(50d6) maior",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 50
+        },
+        "parts": [],
+        "selection": "advantage",
+        "repetitions": 1
+      },
+      "note": "100 dados contando as duas execuções"
+    },
+    {
+      "input": "2#(51d6) maior",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "102 dados contando as duas execuções"
+    },
+    {
+      "input": "5#[2#(10d6) maior]",
+      "canonical": "5#[2#(10d6) maior]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 10
+        },
+        "parts": [],
+        "selection": "advantage",
+        "repetitions": 5
+      },
+      "note": "100 dados: 10 x 2 x 5"
+    },
+    {
+      "input": "5#[2#(10d6+d4) maior]",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "110 dados: 11 x 2 x 5"
+    },
+    {
+      "input": "20#[d20+(FOR)3]",
+      "canonical": "20#[d20 + (FOR) 3]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 3
+          }
+        ],
+        "selection": "none",
+        "repetitions": 20
+      },
+      "note": "20 repetições"
+    },
+    {
+      "input": "21#[d20]",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "21 repetições"
+    },
+    {
+      "input": "0#[d20]",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "0 repetições"
+    },
+    {
+      "input": "d20+(FOR)10000+1",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "modificador 10001"
+    },
+    {
+      "input": "d20+(FOR)10000-1",
+      "canonical": "d20 + (FOR) 10000 - 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "FOR",
+            "value": 10000
+          },
+          {
+            "label": null,
+            "value": -1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "modificador no limite"
+    },
+    {
+      "input": "d20+(Modificador 0001)1+(Modificador 0002)1+(Modificador 0003)1+(Modificador 0004)1+(Modificador 0005)1+(Modificador 0006)1+(Modificador 0007)1+(Modificador 0008)1+(Modificador 0009)1+(Modificador 0010)1+(Modificador 0011)1",
+      "canonical": "d20 + (Modificador 0001) 1 + (Modificador 0002) 1 + (Modificador 0003) 1 + (Modificador 0004) 1 + (Modificador 0005) 1 + (Modificador 0006) 1 + (Modificador 0007) 1 + (Modificador 0008) 1 + (Modificador 0009) 1 + (Modificador 0010) 1 + (Modificador 0011) 1",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1
+        },
+        "parts": [
+          {
+            "label": "Modificador 0001",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0002",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0003",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0004",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0005",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0006",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0007",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0008",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0009",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0010",
+            "value": 1
+          },
+          {
+            "label": "Modificador 0011",
+            "value": 1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 1
+      },
+      "note": "canônica com exatamente 256 caracteres"
+    },
+    {
+      "input": "d20+(Modificador 0001)1+(Modificador 0002)1+(Modificador 0003)1+(Modificador 0004)1+(Modificador 0005)1+(Modificador 0006)1+(Modificador 0007)1+(Modificador 0008)1+(Modificador 0009)1+(Modificador 0010)1+(Modificador 0011)10",
+      "canonical": null,
+      "error": "Use no máximo 20 repetições",
+      "roundTrip": false,
+      "note": "canônica com 257 caracteres"
+    },
+    {
+      "input": "3#[2d6 + 1]",
+      "canonical": "3#[2d6 + 1]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 1
+          }
+        ],
+        "selection": "none",
+        "repetitions": 3
+      },
+      "note": "repetição sempre entre colchetes (pedido 7.1)"
+    },
+    {
+      "input": "2#[d20 + 2d6 + 3]",
+      "canonical": "2#[d20 + 2d6 + 3]",
+      "error": null,
+      "roundTrip": true,
+      "build": {
+        "dice": {
+          "d20": 1,
+          "d6": 2
+        },
+        "parts": [
+          {
+            "label": null,
+            "value": 3
+          },
+          {
+            "label": "FOR",
+            "value": 0
+          }
+        ],
+        "selection": "none",
+        "repetitions": 2
+      },
+      "note": "repetição sempre entre colchetes (pedido 7.1)"
+    }
+  ]
+}
