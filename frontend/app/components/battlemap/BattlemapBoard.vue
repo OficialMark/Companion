@@ -323,6 +323,57 @@ function commitCell(column: number, row: number) {
   selectedParticipantId.value = null
 }
 
+/**
+ * Keeps the browser's own context menu closed for a right-click gesture that started on the board.
+ * The board's `@contextmenu.prevent` is not enough: Windows Chrome fires `contextmenu` when the right
+ * button (or the Menu key) goes UP, and by then our right-click may have opened the sheet or a token
+ * menu on top of the board, or the pointer may have been dragged off it. So every `contextmenu` on
+ * the page is cancelled from the press until the gesture is over: after the release, the first
+ * `contextmenu` (the one Windows fires on release) or 300 ms, whichever comes first; a new press
+ * anywhere ends it at once, and a 10 s cap covers a release we never hear about. Right-clicks that
+ * start anywhere else keep the normal browser menu.
+ */
+let releaseMenuGuard: (() => void) | null = null
+function guardBrowserMenu(endsOn: 'pointerup' | 'keyup') {
+  releaseMenuGuard?.()
+  let released = false
+  const block = (event: Event) => {
+    event.preventDefault()
+    if (released) release() // the release-time event: the gesture is over
+  }
+  let timer = window.setTimeout(release, 10_000)
+  const ended = (event: Event) => {
+    if (endsOn === 'pointerup' && (event as PointerEvent).button !== 2) return
+    // Only the menu key itself ends a keyboard gesture (Shift going up mid-hold does not).
+    if (endsOn === 'keyup' && !['ContextMenu', 'F10'].includes((event as KeyboardEvent).key)) return
+    released = true
+    window.clearTimeout(timer)
+    timer = window.setTimeout(release, 300)
+  }
+  // Any new press is a new gesture: it gets the normal menu unless it is on the board, which re-arms
+  // right after (window capture runs before the board's handlers). This also frees the page when the
+  // previous release was lost (focus change, pen cancel), instead of eating menus for up to 10 s.
+  const newPress = () => release()
+  function release() {
+    window.clearTimeout(timer)
+    document.removeEventListener('contextmenu', block, true)
+    window.removeEventListener(endsOn, ended, true)
+    window.removeEventListener('pointerdown', newPress, true)
+    releaseMenuGuard = null
+  }
+  document.addEventListener('contextmenu', block, true)
+  window.addEventListener(endsOn, ended, true)
+  window.addEventListener('pointerdown', newPress, true)
+  releaseMenuGuard = release
+}
+onBeforeUnmount(() => releaseMenuGuard?.())
+
+/** Keyboard "right-click" (Shift+F10 / Menu key) on a token: same guard, released on key up. */
+function openTokenContextFromKey(token: BattlemapToken) {
+  guardBrowserMenu('keyup')
+  openTokenContext(token)
+}
+
 function clickSurface(event: MouseEvent) {
   if (suppressSurfaceClick) {
     suppressSurfaceClick = false
@@ -339,6 +390,7 @@ function clickSurface(event: MouseEvent) {
 
 function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
   suppressSurfaceClick = false
+  if (event.button === 2) guardBrowserMenu('pointerup')
   if (fog.active.value) return
   // Middle button: nothing. Right button: the token's sheet, or its menu when it has no sheet,
   // without dragging (the browser menu is suppressed on the board). Only the primary
@@ -383,6 +435,7 @@ function startPan(event: PointerEvent) {
 
 function pointerDown(event: PointerEvent) {
   suppressSurfaceClick = false
+  if (event.button === 2) guardBrowserMenu('pointerup')
   // A pan that ended without a click (right/middle button) must not swallow the next click.
   panPointer.moved = false
   // A primary pointer going down means no other pointer is really active: drop entries
@@ -419,6 +472,8 @@ function pointerDown(event: PointerEvent) {
 }
 
 function pointerMove(event: PointerEvent) {
+  // Right button pressed while another is already down (chorded): no pointerdown, only a move.
+  if (event.button === 2) guardBrowserMenu('pointerup')
   if (fog.active.value) {
     const cell = cellFromEvent(event)
     if (!fogHover.value || fogHover.value.column !== cell.column || fogHover.value.row !== cell.row) fogHover.value = cell
@@ -754,7 +809,7 @@ onBeforeUnmount(() => observer?.disconnect())
           @select="selectToken"
           @dragstart="startTokenDrag"
           :has-sheet="Boolean(sheetFor(token))"
-          @context="openTokenContext"
+          @context="openTokenContextFromKey"
         />
       </g>
     </svg>
