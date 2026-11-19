@@ -91,9 +91,9 @@
 **Goal**: painel com dados, fonte, tipo, adicionais, vantagem e repetição; expressão ao vivo; mochila editável no Modo Jogo.
 **Independent Test**: Espada Longa +1 com FOR 16 e nível 5 mostra `d20 + (FOR) 3 + (prof) 3 + (arma) 1`; com vantagem, mostra a forma com `2#(…) maior` e o histórico traz as duas execuções.
 
-- [ ] T043 [P] [US4] `frontend/app/composables/useLongPress.ts` (500 ms, cancela o clique, cancela ao sair do alvo) e `frontend/app/components/character/DicePad.vue` (clique +1, segurar −1, `Delete`/`Backspace`/`-` −1, limpar, contador, alvos de 44 px). Testes em `frontend/tests/dice-pad.spec.ts` com timers falsos
-- [ ] T044 [US4] `frontend/app/components/character/PlayerRollPanel.vue`: fonte (arma equipada, magia, atributo, perícia, salvaguarda), tipo, adicionais, vantagem (exclusiva), repetições de 1 a 20, `[data-expression]` montada só com `rollExpression.ts` e `stats.weaponRolls`/`spellRolls`/`skills`, desvantagem pré-selecionada e sinalizada quando `rollDefaults.disadvantageOnStrDex`, aviso antes de enviar se passar dos limites. Rolagem pela rota de dados existente, com rótulo descritivo. Testes em `frontend/tests/player-roll-panel.spec.ts`
-- [ ] T045 [US4] Integração no Modo Jogo em `frontend/app/pages/index.vue`: jogador com ficha vê `PlayerRollPanel` no lugar do `QuickDiceRoller`, e jogador sem ficha mantém o `QuickDiceRoller`. Um ataque com arma, sendo combatente num encontro ativo, abre o `AttackConfirmModal`, e "acertou" abre o `DamageRollModal` com o dano da mesma arma. Botão "Mochila" abre o `InventoryPanel` num modal sem sair do Modo Jogo. Testes em `frontend/tests/game-mode.spec.ts`, com os casos existentes intactos
+- [X] T043 [P] [US4] `frontend/app/composables/useLongPress.ts` (500 ms, cancela o clique, cancela ao sair do alvo) e `frontend/app/components/character/DicePad.vue` (clique +1, segurar −1, `Delete`/`Backspace`/`-` −1, limpar, contador, alvos de 44 px). Testes em `frontend/tests/dice-pad.spec.ts` com timers falsos
+- [X] T044 [US4] `frontend/app/components/character/PlayerRollPanel.vue`: fonte (arma equipada, magia, atributo, perícia, salvaguarda), tipo, adicionais, vantagem (exclusiva), repetições de 1 a 20, `[data-expression]` montada só com `rollExpression.ts` e `stats.weaponRolls`/`spellRolls`/`skills`, desvantagem pré-selecionada e sinalizada quando `rollDefaults.disadvantageOnStrDex`, aviso antes de enviar se passar dos limites. Rolagem pela rota de dados existente, com rótulo descritivo. Testes em `frontend/tests/player-roll-panel.spec.ts`
+- [X] T045 [US4] Integração no Modo Jogo em `frontend/app/pages/index.vue`: jogador com ficha vê `PlayerRollPanel` no lugar do `QuickDiceRoller`, e jogador sem ficha mantém o `QuickDiceRoller`. Um ataque com arma, sendo combatente num encontro ativo, abre o `AttackConfirmModal`, e "acertou" abre o `DamageRollModal` com o dano da mesma arma. Botão "Mochila" abre o `InventoryPanel` num modal sem sair do Modo Jogo. Testes em `frontend/tests/game-mode.spec.ts`, com os casos existentes intactos
 
 ## Phase 8: User Story 5 - Vantagem, desvantagem e repetição com a mesma semântica (P1)
 
@@ -101,7 +101,7 @@
 **Independent Test**: com dados controlados, `d20 + 5 + 2d6` com vantagem, com desvantagem e com 3 repetições mais vantagem.
 
 - [X] T046 [US5] Teste de ponta a ponta da semântica em `backend/tests/Companion.IntegrationTests/DiceRollGroupingApiTests.cs`. Para cada caso de `dice-expressions.cases.json` marcado `"roundTrip": true`, a string gerada pelo frontend (o campo `canonical`) é aceita pelo servidor e volta idêntica em `DiceRollDto.expression` Nota: DiceRoundTripApiTests.cs envia ao servidor real todos os casos roundTrip (os mesmos que o gerador do frontend testa).
-- [ ] T047 [US5] Teste do painel em `frontend/tests/player-roll-panel.spec.ts`: as combinações de vantagem e repetição produzem as formas da US5 (cenários 1 a 6), e o aviso de limite aparece antes do envio
+- [X] T047 [US5] Teste do painel em `frontend/tests/player-roll-panel.spec.ts`: as combinações de vantagem e repetição produzem as formas da US5 (cenários 1 a 6), e o aviso de limite aparece antes do envio
 
 ## Phase 9: User Story 6 - Rolagens salvas (P2)
 
@@ -112,8 +112,8 @@
 - [X] T049 [US6] Persistência, migration (parte das rolagens), serviço (o `incomplete` é calculado na leitura) e rotas `…/me/character/rolls` (POST, PUT, duplicate, DELETE)
 - [X] T050 [US6] Integração `backend/tests/Companion.IntegrationTests/SavedRollApiTests.cs`: CRUD, ícone fora da lista dá 400, item de outro dono dá 400, remover a arma marca `incomplete`
 - [X] T051 [US6] Acrescentar as rotas de rolagens à matriz de T034
-- [ ] T052 [P] [US6] `frontend/app/utils/savedRollIcons.ts` e um teste que compara a lista com `SavedRollIcons.cs` lendo o arquivo C# (`frontend/tests/saved-roll-icons.spec.ts`)
-- [ ] T053 [US6] `frontend/app/components/character/SavedRollEditor.vue`, que reaproveita `DicePad` e os mesmos controles do painel, para cumprir o FR-036. A aba Rolagens fica na ficha; no painel, uma barra `[data-saved-roll]` mostra `[data-incomplete]`. Testes em `frontend/tests/saved-roll-editor.spec.ts`: para a mesma configuração, o editor e o painel mostram a mesma `[data-expression]`
+- [X] T052 [P] [US6] `frontend/app/utils/savedRollIcons.ts` e um teste que compara a lista com `SavedRollIcons.cs` lendo o arquivo C# (`frontend/tests/saved-roll-icons.spec.ts`)
+- [X] T053 [US6] `frontend/app/components/character/SavedRollEditor.vue`, que reaproveita `DicePad` e os mesmos controles do painel, para cumprir o FR-036. A aba Rolagens fica na ficha; no painel, uma barra `[data-saved-roll]` mostra `[data-incomplete]`. Testes em `frontend/tests/saved-roll-editor.spec.ts`: para a mesma configuração, o editor e o painel mostram a mesma `[data-expression]`
 
 ## Phase 10: User Story 7 - Catálogo de itens e de magias (P2)
 

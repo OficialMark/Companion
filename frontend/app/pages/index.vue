@@ -12,10 +12,13 @@ const loading = ref(true)
 const pendingAttackRoll = ref<DiceRoll | null>(null)
 const damageModalOpen = ref(false)
 
-function onQuickRolledD20(roll: DiceRoll) { pendingAttackRoll.value = roll }
+/** Damage expression to prefill after "acertou" (the player's weapon attack, spec 011); null for the quick roller. */
+const pendingDamageExpression = ref<string | null>(null)
+
+function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingAttackRoll.value = roll }
 function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
-function onAttackDismissed() { pendingAttackRoll.value = null }
-function onDamageSettled() { damageModalOpen.value = false }
+function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null }
+function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null }
 
 async function activate() {
   if (!store.session) { loading.value = false; return }
@@ -83,6 +86,31 @@ watch(() => store.isMaster, master => { if (!master) creatures.close() })
 // Spec 011: the player's own sheet; a new session (another account) starts from scratch.
 const character = useCharacterStore()
 watch(() => store.session?.participantToken, () => character.reset())
+// Modo Jogo of a player with a character: the roll panel replaces the quick roller (US4). The character
+// is loaded on entering the Modo Jogo; without one (or while it fails to load) the quick roller stays.
+const isPlayer = computed(() => store.session?.role === 'Player')
+const showPlayerPanel = computed(() => gameMode.active.value && isPlayer.value && Boolean(character.character))
+// The token is part of the source: a new session resets the store above and loads its own character.
+watch(() => [gameMode.active.value && isPlayer.value, store.session?.participantToken] as const, ([wanted, token]) => {
+  if (wanted && token && !character.character && !character.loading) void character.load()
+}, { immediate: true })
+/** "Acertou?" only for a combatant of the active encounter (same rule as the attack resolution). */
+const playerInActiveEncounter = computed(() => {
+  const encounter = store.snapshot?.activeEncounter
+  return encounter?.status === 'Active' && encounter.combatants.some(combatant => combatant.participantId === store.session?.participantId)
+})
+function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null) {
+  if (!playerInActiveEncounter.value) return
+  pendingDamageExpression.value = damageExpression
+  pendingAttackRoll.value = roll
+}
+const inventoryOpen = ref(false)
+function onInventoryKeydown(event: KeyboardEvent) { if (event.key === 'Escape') inventoryOpen.value = false }
+watch(inventoryOpen, open => {
+  if (open) window.addEventListener('keydown', onInventoryKeydown)
+  else window.removeEventListener('keydown', onInventoryKeydown)
+})
+watch(() => gameMode.active.value, active => { if (!active) inventoryOpen.value = false })
 // Board photos: participants' avatars plus library images of creature tokens.
 watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
   for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
@@ -202,7 +230,8 @@ onBeforeUnmount(() => {
 
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
-          <QuickDiceRoller v-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+          <PlayerRollPanel v-if="showPlayerPanel" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
+          <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
             <div class="panel-heading">
@@ -276,8 +305,26 @@ onBeforeUnmount(() => {
     />
     <DamageRollModal
       v-if="damageModalOpen"
+      :expression="pendingDamageExpression ?? undefined"
       @resolved="onDamageSettled"
       @cancelled="onDamageSettled"
     />
+    <div
+      v-if="inventoryOpen && showPlayerPanel"
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-inventory-title"
+      data-game-inventory
+      @click.self="inventoryOpen = false"
+    >
+      <div class="modal-panel game-inventory-modal">
+        <div class="game-inventory-head">
+          <h2 id="game-inventory-title"><Icon name="lucide:backpack" />Mochila</h2>
+          <button class="icon-button" type="button" aria-label="Fechar mochila" title="Fechar mochila" data-close-inventory @click="inventoryOpen = false"><Icon name="lucide:x" /></button>
+        </div>
+        <InventoryPanel compact />
+      </div>
+    </div>
   </main>
 </template>
