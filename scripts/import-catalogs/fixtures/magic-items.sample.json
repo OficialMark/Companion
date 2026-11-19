@@ -1,0 +1,377 @@
+[
+  {
+    "index": "weapon",
+    "url": "/api/2024/magic-items/weapon",
+    "image": "/api/images/magic-items/weapon.png",
+    "name": "Weapon",
+    "equipment_category": {
+      "index": "weapons",
+      "name": "Weapons",
+      "url": "/api/2024/equipment-categories/weapons"
+    },
+    "variants": [
+      {
+        "index": "weapon-1",
+        "url": "/api/2024/magic-items/weapon-1",
+        "name": "Weapon +1"
+      },
+      {
+        "index": "weapon-2",
+        "url": "/api/2024/magic-items/weapon-2",
+        "name": "Weapon +2"
+      },
+      {
+        "index": "weapon-3",
+        "url": "/api/2024/magic-items/weapon-3",
+        "name": "Weapon +3"
+      }
+    ],
+    "variant": false,
+    "attunement": false,
+    "rarity": {
+      "name": "Uncommon (+1), Rare (+2), or Very Rare (+3)"
+    },
+    "desc": [
+      "Weapon (Any Simple or Martial)",
+      "You have a bonus to attack rolls and damage rolls made with this magic weapon. The bonus is determined by the weapon's rarity."
+    ]
+  },
+  {
+    "index": "weapon-1",
+    "url": "/api/2024/magic-items/weapon-1",
+    "image": "/api/images/magic-items/weapon.png",
+    "name": "Weapon +1",
+    "equipment_category": {
+      "index": "weapons",
+      "name": "Weapons",
+      "url": "/api/2024/equipment-categories/weapons"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Uncommon"
+    },
+    "desc": [
+      "Weapon (Any Simple or Martial)",
+      "Uncommon (+1)",
+      "You have a +1 bonus to attack rolls and damage rolls made with this magic weapon."
+    ]
+  },
+  {
+    "index": "weapon-2",
+    "url": "/api/2024/magic-items/weapon-2",
+    "image": "/api/images/magic-items/weapon.png",
+    "name": "Weapon +2",
+    "equipment_category": {
+      "index": "weapons",
+      "name": "Weapons",
+      "url": "/api/2024/equipment-categories/weapons"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Rare"
+    },
+    "desc": [
+      "Weapon (Any Simple or Martial)",
+      "Rare (+2)",
+      "You have a +2 bonus to attack rolls and damage rolls made with this magic weapon."
+    ]
+  },
+  {
+    "index": "weapon-3",
+    "url": "/api/2024/magic-items/weapon-3",
+    "image": "/api/images/magic-items/weapon.png",
+    "name": "Weapon +3",
+    "equipment_category": {
+      "index": "weapons",
+      "name": "Weapons",
+      "url": "/api/2024/equipment-categories/weapons"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Very Rare"
+    },
+    "desc": [
+      "Weapon (Any Simple or Martial)",
+      "Very Rare (+3)",
+      "You have a +3 bonus to attack rolls and damage rolls made with this magic weapon."
+    ]
+  },
+  {
+    "index": "armor-2",
+    "url": "/api/2024/magic-items/armor-2",
+    "image": "/api +2/images/magic-items/armor.png",
+    "name": "Armor +2",
+    "equipment_category": {
+      "index": "armor",
+      "name": "Armor",
+      "url": "/api/2024/equipment-categories/armor"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Very Rare"
+    },
+    "desc": [
+      "Armor (Any Light, Medium, or Heavy)",
+      "You have a +2 bonus to Armor Class while wearing this armor."
+    ]
+  },
+  {
+    "index": "shield-1",
+    "url": "/api/2024/magic-items/shield-1",
+    "image": "/api/images/magic-items/shield.png",
+    "name": "Shield +1",
+    "equipment_category": {
+      "index": "armor",
+      "name": "Armor",
+      "url": "/api/2024/equipment-categories/armor"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Uncommon"
+    },
+    "desc": [
+      "Armor (Shield)",
+      "While holding this Shield, you have a +1 bonus to Armor Class, in addition to the Shield's normal bonus to AC."
+    ]
+  },
+  {
+    "index": "ring-of-protection",
+    "url": "/api/2024/magic-items/ring-of-protection",
+    "image": "/api/images/magic-items/ring-of-protection.png",
+    "name": "Ring of Protection",
+    "equipment_category": {
+      "index": "rings",
+      "name": "Rings",
+      "url": "/api/2024/equipment-categories/rings"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": true,
+    "rarity": {
+      "name": "Rare"
+    },
+    "desc": [
+      "Ring",
+      "You gain a +1 bonus to Armor Class and saving throws while wearing this ring."
+    ]
+  },
+  {
+    "index": "cloak-of-protection",
+    "url": "/api/2024/magic-items/cloak-of-protection",
+    "image": "/api/images/magic-items/cloak-of-protection.png",
+    "name": "Cloak of Protection",
+    "equipment_category": {
+      "index": "wondrous-items",
+      "name": "Wondrous Items",
+      "url": "/api/2024/equipment-categories/wondrous-items"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": true,
+    "rarity": {
+      "name": "Uncommon"
+    },
+    "desc": [
+      "Wondrous Item",
+      "You gain a +1 bonus to Armor Class and saving throws while you wear this cloak."
+    ]
+  },
+  {
+    "index": "potions-of-healing",
+    "url": "/api/2024/magic-items/potions-of-healing",
+    "image": "/api/images/magic-items/potions-of-healing.png",
+    "name": "Potions of Healing",
+    "equipment_category": {
+      "index": "potions",
+      "name": "Potions",
+      "url": "/api/2024/equipment-categories/potions"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": false,
+    "rarity": {
+      "name": "Rarity Varies"
+    },
+    "desc": [
+      "Potion",
+      "You regain Hit Points when you drink this potion. The number of Hit Points depends on the potion's rarity, as shown in the table below.",
+      "Whatever its potency, the potion's red liquid glimmers when agitated.",
+      "| Potion | HP Regained | Rarity |",
+      "|---|---|---|",
+      "| Potion of Healing | 2d4 + 2 | Common |",
+      "| Potion of Healing (greater) | 4d4 + 4 | Uncommon |",
+      "| Potion of Healing (superior) | 8d4 + 8 | Rare |",
+      "| Potion of Healing (supreme) | 10d4 + 20 | Very Rare |"
+    ]
+  },
+  {
+    "index": "gauntlets-of-ogre-power",
+    "url": "/api/2024/magic-items/gauntlets-of-ogre-power",
+    "image": "/api/images/magic-items/gauntlets-of-ogre-power.png",
+    "name": "Gauntlets of Ogre Power",
+    "equipment_category": {
+      "index": "wondrous-items",
+      "name": "Wondrous Items",
+      "url": "/api/2024/equipment-categories/wondrous-items"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": true,
+    "rarity": {
+      "name": "Uncommon"
+    },
+    "desc": [
+      "Wondrous Item",
+      "Your Strength is 19 while you wear these gauntlets. They have no effect on you if your Strength is 19 or higher without them."
+    ]
+  },
+  {
+    "index": "belt-of-giant-strength",
+    "url": "/api/2024/magic-items/belt-of-giant-strength",
+    "image": "/api/images/magic-items/belt-of-giant-strength.png",
+    "name": "Belt of Giant Strength",
+    "equipment_category": {
+      "index": "wondrous-items",
+      "name": "Wondrous Items",
+      "url": "/api/2024/equipment-categories/wondrous-items"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": true,
+    "rarity": {
+      "name": "Rarity Varies"
+    },
+    "desc": [
+      "Wondrous Item",
+      "While wearing this belt, your Strength changes to a score granted by the belt. The type of giant determines the score (see the table below). The item has no effect on you if your Strength without the belt is equal to or greater than the belt's score.",
+      "| Belt | Str. | Rarity |",
+      "|---|---|---|",
+      "| Belt of Giant Strength (hill) | 21 | Rare |",
+      "| Belt of Giant Strength (frost or stone) | 23 | Very Rare |",
+      "| Belt of Giant Strength (fire) | 25 | Very Rare |",
+      "| Belt of Giant Strength (cloud) | 27 | Legendary |",
+      "| Belt of Giant Strength (storm) | 29 | Legendary |"
+    ]
+  },
+  {
+    "index": "wand-of-the-war-mage-2",
+    "url": "/api/2024/magic-items/wand-of-the-war-mage-2",
+    "image": "/api/images/magic-items/wand-of-the-war-mage.png",
+    "name": "Wand of the War Mage +2",
+    "equipment_category": {
+      "index": "wands",
+      "name": "Wands",
+      "url": "/api/2024/equipment-categories/wands"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": true,
+    "limited-to": "Spellcaster",
+    "rarity": {
+      "name": "Rare"
+    },
+    "desc": [
+      "Wand",
+      "Rare (+2)",
+      "While holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore Half Cover when making a spell attack roll."
+    ]
+  },
+  {
+    "index": "dagger-of-venom",
+    "url": "/api/2024/magic-items/dagger-of-venom",
+    "image": "/api/images/magic-items/dagger-of-venom.png",
+    "name": "Dagger of Venom",
+    "equipment_category": {
+      "index": "weapons",
+      "name": "Weapons",
+      "url": "/api/2024/equipment-categories/weapons"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": false,
+    "rarity": {
+      "name": "Rare"
+    },
+    "desc": [
+      "Weapon (Dagger)",
+      "You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.",
+      "You can take a Bonus Action to magically coat the blade with poison. The poison remains for 1 minute or until an attack using this weapon hits a creature. That creature must succeed on a DC 15 Constitution saving throw or take 2d10 Poison damage and have the Poisoned condition for 1 minute. The weapon can't be used this way again until the next dawn."
+    ]
+  },
+  {
+    "index": "horn-of-valhalla-1",
+    "url": "/api/2024/magic-items/horn-of-valhalla-1",
+    "image": "/api/images/magic-items/horn-of-valhalla.png",
+    "name": "Silver Horn of Valhalla",
+    "equipment_category": {
+      "index": "wondrous-items",
+      "name": "Wondrous Items",
+      "url": "/api/2024/equipment-categories/wondrous-items"
+    },
+    "variants": [],
+    "variant": true,
+    "attunement": false,
+    "rarity": {
+      "name": "Rare"
+    },
+    "desc": [
+      "Wondrous Item",
+      "Rare (Silver)",
+      "You can take a Magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you. Each spirit uses the Berserker stat block and returns to Ysgard after 1 hour or when it drops to 0 Hit Points. The spirits look like living, breathing warriors, and they have Immunity to the Charmed and Frightened conditions. Once you use the horn, it can't be used again until 7 days have passed.",
+      "Four types of Horn of Valhalla are known to exist, each made of a different metal. The horn's type determines how many spirits it summons, as well as the requirement for its use. The GM chooses the horn's type or determines it randomly by rolling on the following table.",
+      "If you blow the horn without meeting its requirement, the summoned spirits attack you. If you meet the requirement, they are Friendly to you and your allies and follow your commands.",
+      "| 1d100 | Horn Type | Spirits | Requirement |",
+      "|---|---|---|---|",
+      "| 01-40 | Silver | 2 | None |",
+      "| 41-75 | Brass | 3 | Proficiency with all Simple weapons |",
+      "| 76-90 | Bronze | 4 | Training with all Medium armor |",
+      "| 91-00 | Iron | 5 | Proficiency with all Martial weapons |"
+    ]
+  },
+  {
+    "index": "spell-scroll",
+    "url": "/api/2024/magic-items/spell-scroll",
+    "image": "/api/images/magic-items/spell-scroll.png",
+    "name": "Spell Scroll",
+    "equipment_category": {
+      "index": "wondrous-items",
+      "name": "Wondrous Items",
+      "url": "/api/2024/equipment-categories/wondrous-items"
+    },
+    "variants": [],
+    "variant": false,
+    "attunement": false,
+    "rarity": {
+      "name": "Rarity Varies"
+    },
+    "desc": [
+      "Scroll",
+      "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost.",
+      "If the spell is on your spell list but of a higher level than you can normally cast, you make an ability check using your spellcasting ability to determine whether you cast the spell. The DC equals 10 plus the spell's level. On a failed check, the spell disappears from the scroll with no other effect.",
+      "The level of the spell on the scroll determines the spell's saving throw DC and attack bonus, as well as the scroll's rarity, as shown in the following table.",
+      "| Spell Level | Rarity | Save DC | Attack Bonus |",
+      "|---|---|---|---|",
+      "| Cantrip | Common | 13 | +5 |",
+      "| 1 | Common | 13 | +5 |",
+      "| 2 | Uncommon | 13 | +5 |",
+      "| 3 | Uncommon | 15 | +7 |",
+      "| 4 | Rare | 15 | +7 |",
+      "| 5 | Rare | 17 | +9 |",
+      "| 6 | Very Rare | 17 | +9 |",
+      "| 7 | Very Rare | 18 | +10 |",
+      "| 8 | Very Rare | 18 | +10 |",
+      "| 9 | Legendary | 19 | +11 |",
+      "Copying a Scroll into a Spellbook. A Wizard spell on a Spell Scroll can be copied into a spellbook. When a spell is copied in this way, the copier must succeed on an Intelligence (Arcana) check with a DC equal to 10 plus the spell's level. On a successful check, the spell is copied. Whether the check succeeds or fails, the Spell Scroll is destroyed."
+    ]
+  }
+]
