@@ -144,7 +144,7 @@ describe('critic regressions (spec 008)', () => {
     await wrapper.get('[aria-label="ND máximo"]').setValue('1/4')
     await flushPromises()
     expect((wrapper.get('[aria-label="ND máximo"]').element as HTMLSelectElement).value).toBe('1/4')
-    await wrapper.get('button.button.ghost.compact').trigger('click') // Limpar
+    await wrapper.findAll('button').find(button => button.text().includes('Limpar'))!.trigger('click')
     await flushPromises()
     expect((wrapper.get('[aria-label="ND máximo"]').element as HTMLSelectElement).value).toBe('')
   })

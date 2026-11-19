@@ -119,7 +119,7 @@ Ao publicar ou substituir a imagem, a prévia já traz o editor de névoa: um ma
 
 ## Biblioteca de criaturas
 
-A aba **Criaturas** (só para o mestre) traz o compêndio em português de 725 criaturas, com busca por nome em PT ou EN e filtros por tamanho, tipo, ND e origem. O mestre pode criar criaturas próprias e editar qualquer uma. Editar uma criatura do compêndio cria a versão daquela mesa, e é possível restaurar o original. A imagem enviada aparece nos tokens.
+O mestre alterna entre **Mesa** e **Compêndio** pela barra superior. O Compêndio é uma tela própria (endereço `?tela=compendio`, que sobrevive a recarregar a página; jogadores sempre caem na Mesa) e traz o compêndio em português de 725 criaturas, com busca por nome em PT ou EN e filtros por tamanho, tipo, ND e origem, além do atalho **Minhas criaturas** (as criadas na mesa). O mestre pode criar criaturas próprias e editar qualquer uma. Editar uma criatura do compêndio cria a versão daquela mesa, e é possível restaurar o original. A imagem enviada aparece nos tokens.
 
 O mestre adiciona de 1 a 20 cópias ao combate pela ficha, pelo formulário "Combatentes" (modo Do catálogo) ou pelo botão "Do catálogo" ao lado de "Inserir token" no mapa, com nomes numerados, PV, iniciativa e tamanho do token. Com o combate em andamento, elas entram como reforços com iniciativa rolada, sem mudar o turno. Ele também escreve anotações pessoais e rola para a criatura escolhendo quantidade, dado, atributo e um adicional. No mapa, o menu de um token de criatura tem **Ficha e rolagens**, e a última configuração de rolagem de cada token volta pré-selecionada.
 

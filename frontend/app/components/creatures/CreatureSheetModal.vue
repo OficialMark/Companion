@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="modal-overlay creature-sheet-overlay" @pointerdown="pressedOnBackdrop = $event.target === $event.currentTarget" @click.self="pressedOnBackdrop && requestClose(); pressedOnBackdrop = false">
-    <div ref="dialog" class="creature-sheet" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" tabindex="-1" data-creature-sheet>
+    <div ref="dialog" class="creature-sheet" :class="{ editing: creatures.editing }" role="dialog" aria-modal="true" aria-labelledby="creature-sheet-title" tabindex="-1" data-creature-sheet>
       <header class="creature-sheet-header">
         <span class="creature-portrait large" :class="{ 'has-image': portrait }">
           <img v-if="portrait" :src="portrait" alt="">
@@ -162,16 +162,16 @@ onBeforeUnmount(() => {
         <button ref="closeButton" class="icon-button" type="button" aria-label="Fechar ficha" title="Fechar (Esc)" @click="requestClose()"><Icon name="lucide:x" /></button>
       </header>
 
-      <div class="creature-sheet-body">
+      <div class="creature-sheet-body" :class="{ editing: creatures.editing }">
         <CreatureEditor v-if="creatures.editing" :key="sheet.id || 'new'" />
         <template v-else>
           <dl class="creature-quick-stats">
             <div><dt><Icon name="lucide:shield" />CA</dt><dd>{{ sheet.armorClass }}<small v-if="sheet.armorClassNote">{{ sheet.armorClassNote }}</small></dd></div>
             <div><dt><Icon name="lucide:heart" />PV</dt><dd>{{ sheet.hitPoints }}<small v-if="sheet.hitDice">{{ sheet.hitDice }}</small></dd></div>
-            <div><dt><Icon name="lucide:footprints" />Deslocamento</dt><dd class="text">{{ sheet.speed || '—' }}</dd></div>
             <div><dt><Icon name="lucide:zap" />Iniciativa</dt><dd>{{ formatModifier(sheet.initiativeModifier) }}</dd></div>
             <div><dt><Icon name="lucide:crown" />ND</dt><dd>{{ sheet.challengeRating }}<small v-if="sheet.experiencePoints != null">{{ sheet.experiencePoints.toLocaleString('pt-BR') }} XP</small></dd></div>
           </dl>
+          <p v-if="sheet.speed" class="creature-speed" data-creature-speed><Icon name="lucide:footprints" /><span class="creature-speed-label">Deslocamento</span><span>{{ sheet.speed }}</span></p>
 
           <div class="creature-abilities" role="list" aria-label="Atributos">
             <div v-for="ability in ABILITIES" :key="ability.key" class="creature-ability" role="listitem" :aria-label="`${ability.label} ${sheet[ability.field]} (${formatModifier(abilityModifier(sheet[ability.field]))})`">
@@ -223,12 +223,12 @@ onBeforeUnmount(() => {
             <output class="roll-stepper-value" data-add-count>{{ addCount }}</output>
             <button class="icon-button small" type="button" aria-label="Mais uma" :disabled="addCount >= 20" @click="addCount++"><Icon name="lucide:plus" /></button>
           </div>
-          <button v-if="!encounter" class="button secondary" type="button" :disabled="addBusy || campaign.connection === 'offline'" @click="startPreparation"><Icon name="lucide:swords" />Preparar combate</button>
-          <button v-else class="button primary" type="button" data-add-to-combat :disabled="Boolean(addBlocked) || addBusy" :title="addBlocked" @click="addToCombat">
-            <Icon name="lucide:user-plus" />Adicionar ao combate
+          <button v-if="!encounter" class="button secondary" type="button" aria-label="Preparar combate" :disabled="addBusy || campaign.connection === 'offline'" @click="startPreparation"><Icon name="lucide:swords" /><span class="label-long">Preparar combate</span><span class="label-short" aria-hidden="true">Preparar</span></button>
+          <button v-else class="button primary" type="button" aria-label="Adicionar ao combate" data-add-to-combat :disabled="Boolean(addBlocked) || addBusy" :title="addBlocked" @click="addToCombat">
+            <Icon name="lucide:user-plus" /><span class="label-long">Adicionar ao combate</span><span class="label-short" aria-hidden="true">Adicionar</span>
           </button>
         </div>
-        <button class="button ghost" type="button" data-edit-creature @click="creatures.editing = true"><Icon name="lucide:pencil" />Editar ficha</button>
+        <button class="button ghost" type="button" data-edit-creature aria-label="Editar ficha" title="Editar ficha" @click="creatures.editing = true"><Icon name="lucide:pencil" /><span class="edit-label">Editar ficha</span></button>
         <p v-if="addBlocked || addMessage" class="field-hint creature-add-message" role="status"><Icon name="lucide:info" />{{ addBlocked || addMessage }}</p>
       </footer>
     </div>

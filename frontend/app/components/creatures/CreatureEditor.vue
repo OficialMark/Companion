@@ -105,6 +105,7 @@ async function dropImage() {
 
 <template>
   <form class="creature-editor" data-creature-editor @submit.prevent="save">
+    <div class="creature-editor-fields">
     <p v-if="sheet.origin === 'Compendium'" class="field-hint"><Icon name="lucide:info" />Salvar cria a versão desta mesa. O original do compêndio continua disponível para restaurar.</p>
 
     <fieldset class="creature-fieldset">
@@ -122,24 +123,24 @@ async function dropImage() {
 
     <fieldset class="creature-fieldset creature-grid">
       <legend>Identidade</legend>
-      <label class="span-2">Nome<input v-model="form.name" maxlength="120" required data-field="name"></label>
-      <label class="span-2">Nome em inglês<input v-model="form.nameEn" maxlength="120"></label>
-      <label>Tamanho<select v-model="form.size"><option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option></select></label>
-      <label>Tipo<input v-model="form.type" maxlength="80" required></label>
-      <label class="span-2">Alinhamento<input v-model="form.alignment" maxlength="80"></label>
-      <label>ND<input v-model="form.challengeRating" maxlength="10" required placeholder="1/4"></label>
-      <label>XP<input v-model.number="form.experiencePoints" type="number" min="0"></label>
-      <label>Proficiência<input v-model.number="form.proficiencyBonus" type="number" min="0" max="20"></label>
+      <label class="col-3 m-col-6">Nome<input v-model="form.name" maxlength="120" required data-field="name"></label>
+      <label class="col-3 m-col-6">Nome em inglês<input v-model="form.nameEn" maxlength="120"></label>
+      <label class="col-2 m-col-6">Tamanho<select v-model="form.size"><option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option></select></label>
+      <label class="col-2 m-col-6">Tipo<input v-model="form.type" maxlength="80" required></label>
+      <label class="col-2 m-col-6">Alinhamento<input v-model="form.alignment" maxlength="80"></label>
+      <label class="col-2 m-col-2">ND<input v-model="form.challengeRating" maxlength="10" required placeholder="1/4"></label>
+      <label class="col-2 m-col-2">XP<input v-model.number="form.experiencePoints" type="number" min="0"></label>
+      <label class="col-2 m-col-2">Proficiência<input v-model.number="form.proficiencyBonus" type="number" min="0" max="20"></label>
     </fieldset>
 
     <fieldset class="creature-fieldset creature-grid">
       <legend>Combate</legend>
-      <label>CA<input v-model.number="form.armorClass" type="number" min="0" max="50" required data-field="armorClass"></label>
-      <label class="span-2">Nota da CA<input v-model="form.armorClassNote" maxlength="120" placeholder="armadura natural"></label>
-      <label>PV<input v-model.number="form.hitPoints" type="number" min="1" max="9999" required></label>
-      <label>Dados de vida<input v-model="form.hitDice" maxlength="40" placeholder="2d6"></label>
-      <label>Iniciativa<input v-model.number="form.initiative" type="number" min="-20" max="30" placeholder="DES"></label>
-      <label class="span-2">Deslocamento<input v-model="form.speed" maxlength="200"></label>
+      <label class="col-2 m-col-2">CA<input v-model.number="form.armorClass" type="number" min="0" max="50" required data-field="armorClass"></label>
+      <label class="col-2 m-col-2">PV<input v-model.number="form.hitPoints" type="number" min="1" max="9999" required></label>
+      <label class="col-2 m-col-2">Iniciativa<input v-model.number="form.initiative" type="number" min="-20" max="30" placeholder="DES"></label>
+      <label class="col-2 m-col-6">Dados de vida<input v-model="form.hitDice" maxlength="40" placeholder="2d6"></label>
+      <label class="col-4 m-col-6">Nota da CA<input v-model="form.armorClassNote" maxlength="120" placeholder="armadura natural"></label>
+      <label class="col-6 m-col-6">Deslocamento<input v-model="form.speed" maxlength="200" placeholder="9 m, voo 18 m"></label>
     </fieldset>
 
     <fieldset class="creature-fieldset">
@@ -155,16 +156,19 @@ async function dropImage() {
 
     <fieldset class="creature-fieldset creature-grid">
       <legend>Detalhes</legend>
-      <label v-for="[key, label] in textFields" :key="key" class="span-2">{{ label }}<input :value="form[key] ?? ''" maxlength="500" @input="setText(key, ($event.target as HTMLInputElement).value)"></label>
+      <label v-for="[key, label] in textFields" :key="key" class="col-3 m-col-6">{{ label }}<input :value="form[key] ?? ''" maxlength="500" @input="setText(key, ($event.target as HTMLInputElement).value)"></label>
     </fieldset>
 
     <fieldset v-for="list in lists" :key="list.key" class="creature-fieldset">
       <legend>{{ list.title }}</legend>
       <label v-if="list.key === 'legendaryActions'" class="creature-list-intro">Introdução<textarea v-model="form.legendaryActionsIntro" rows="2" maxlength="2000" /></label>
+      <p v-if="!form[list.key].length" class="creature-list-empty">Nenhum item.</p>
       <div v-for="(entry, index) in form[list.key]" :key="index" class="creature-list-entry">
-        <input v-model="entry.name" maxlength="120" :aria-label="`${list.title}: nome ${index + 1}`" placeholder="Nome">
-        <textarea v-model="entry.description" rows="2" maxlength="4000" :aria-label="`${list.title}: descrição ${index + 1}`" placeholder="Descrição" />
-        <button class="icon-button small danger" type="button" :aria-label="`Remover ${entry.name || 'item'}`" @click="removeEntry(form[list.key], index)"><Icon name="lucide:trash-2" /></button>
+        <div class="creature-list-entry-head">
+          <input v-model="entry.name" maxlength="120" :aria-label="`${list.title}: nome ${index + 1}`" placeholder="Nome">
+          <button class="icon-button small danger" type="button" :aria-label="`Remover ${entry.name || 'item'}`" @click="removeEntry(form[list.key], index)"><Icon name="lucide:trash-2" /></button>
+        </div>
+        <textarea v-model="entry.description" rows="3" maxlength="4000" :aria-label="`${list.title}: descrição ${index + 1}`" placeholder="Descrição" />
       </div>
       <button class="button ghost compact" type="button" :disabled="form[list.key].length >= 40" @click="addEntry(form[list.key])"><Icon name="lucide:plus" />Adicionar</button>
     </fieldset>
@@ -175,6 +179,7 @@ async function dropImage() {
     </fieldset>
 
     <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
+    </div>
     <div class="creature-editor-actions">
       <button v-if="!isNew && sheet.origin !== 'Compendium'" class="button ghost danger" type="button" data-remove-creature :disabled="busy" @click="remove">
         <Icon :name="sheet.origin === 'Edited' ? 'lucide:undo-2' : 'lucide:trash-2'" />

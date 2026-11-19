@@ -121,6 +121,18 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .code-badge:hover { border-color: var(--line-strong); background: rgba(215,174,93,.12); }
 .code-badge.copied { border-color: rgba(99,194,144,.45); color: var(--green); }
 .top-actions { justify-content: flex-end; }
+/* Master's navigation in the top bar (spec 009, US3) */
+.topbar.has-view-nav { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+.topbar-center { display: contents; }
+/* Copy of the campaign name for narrow phones (row 1, next to the logo); hidden elsewhere. */
+.brand-campaign { display: none; }
+.top-actions > * { flex-shrink: 0; }
+.topbar .code-badge { min-height: 44px; }
+.view-nav { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: rgba(0,0,0,.22); }
+.view-nav-item { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 10px; padding: 0 16px; background: transparent; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 700; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
+.view-nav-item:hover { color: var(--ink); }
+.view-nav-item[aria-current="page"] { color: var(--gold); background: rgba(215,174,93,.14); box-shadow: inset 0 0 0 1px rgba(215,174,93,.35); }
+.view-nav-item:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .game-mode-toggle { min-height: 44px; padding: 0 14px; }
 .game-mode-toggle.active { border-color: rgba(215,174,93,.45); color: var(--gold-soft); background: rgba(215,174,93,.08); }
 .connection { display: flex; align-items: center; gap: 7px; min-height: 34px; border: 1px solid var(--line); border-radius: 999px; padding: 0 11px; color: var(--muted); font-size: .76rem; white-space: nowrap; }
@@ -350,9 +362,26 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 
 /* Tablet: single column, side panels side by side (auto-fit so nothing leaves an empty column) */
 @media (max-width: 900px) {
+  /* Row 1: logo + actions. Row 2: Mesa/Compêndio + campaign name and code, as one flex row,
+     from tablet width down, so the nav's width never squeezes the actions above it. */
+  .topbar.has-view-nav { grid-template-columns: minmax(0, 1fr) auto; }
+  .topbar.has-view-nav .topbar-center { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 10px; min-width: 0; border-top: 1px solid var(--line); padding-top: 8px; }
+  .topbar.has-view-nav .campaign-heading { flex: 1 1 auto; min-width: 0; border-top: 0; padding-top: 0; justify-content: flex-end; }
+  .topbar.has-view-nav .view-nav { flex: none; }
+  .topbar.has-view-nav { row-gap: 8px; }
+  .topbar.has-view-nav .campaign-name { max-width: none; }
   .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
   .side-column { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
   .campaign-name { max-width: 22vw; }
+}
+
+/* Narrow phones: next to the nav the campaign name would shrink to "Co…". It moves up to row 1,
+   beside the logo, where the hidden "Companion" text leaves room (spec 009). Only one copy is
+   displayed at a time, so assistive technology also reads it once. */
+@media (max-width: 480px) {
+  .topbar.has-view-nav .campaign-name { display: none; }
+  .topbar.has-view-nav .brand-campaign { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; min-width: 0; overflow: hidden; overflow-wrap: anywhere; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: .9rem; font-weight: 600; line-height: 1.25; }
+  .topbar.has-view-nav .brand-inline { min-width: 0; }
 }
 
 /* Phone */
@@ -360,6 +389,7 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   .topbar { grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; padding: 8px 14px; }
   .brand-inline strong { display: none; }
   .campaign-heading { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 8px; }
+  .view-nav-item { padding: 0 12px; font-size: .84rem; }
   .campaign-name { max-width: none; flex: 1; }
   .top-actions { gap: 8px; }
   .toggle-label, .connection-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
