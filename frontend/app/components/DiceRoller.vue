@@ -3,10 +3,10 @@ import { useId } from 'vue'
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
-const props = withDefaults(defineProps<{ mode?: 'public' | 'attack' }>(), { mode: 'public' })
+const props = withDefaults(defineProps<{ mode?: 'public' | 'attack'; initialExpression?: string }>(), { mode: 'public', initialExpression: undefined })
 const emit = defineEmits<{ rolled: [roll: DiceRoll] }>()
 const componentId = useId() ?? 'dice'; const titleId = `dice-title-${componentId}`; const expressionId = `dice-expression-${componentId}`
-const store = useCampaignStore(); const api = useCompanionApi(); const expression = ref('d20'); const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
+const store = useCampaignStore(); const api = useCompanionApi(); const expression = ref(props.initialExpression || 'd20'); const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
 const presets = ['d20', '2d20', 'd12', 'd10', 'd8', 'd6', 'd4']; const rollingDuration = 750; const settlingDuration = 250; const resultHoldDuration = 1000
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 async function roll(value = expression.value) {

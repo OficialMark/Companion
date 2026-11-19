@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAttackResolution } from '~/composables/useAttackResolution'
 import AttackTargetList from './AttackTargetList.vue'
+/** Optional damage expression to start with, e.g. the weapon of the player's attack (spec 011, US4). */
+const props = defineProps<{ expression?: string }>()
 const emit = defineEmits<{ resolved: []; cancelled: [] }>()
 const { encounter, roll, selected, busy, error, rolled, cancel, confirm } = useAttackResolution()
 function close() { cancel(); emit('cancelled') }
@@ -12,7 +14,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', handleKeydown) })
 <template>
   <div class="modal-overlay" role="alertdialog" aria-modal="true" aria-label="Rolar dano">
     <div class="modal-panel damage-roll-modal">
-      <DiceRoller v-if="!roll" mode="attack" @rolled="rolled" />
+      <DiceRoller v-if="!roll" mode="attack" :initial-expression="props.expression" @rolled="rolled" />
       <div v-else class="attack-targets">
         <h2 class="damage-heading"><Icon name="lucide:flame" />Dano: {{ roll.total }}</h2>
         <p>Selecione quem recebe o dano:</p>

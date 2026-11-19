@@ -1,1 +1,125 @@
-/* Spec 011: player roll panel, dice pad and saved rolls. */
+/* Spec 011: player roll panel, dice pad and saved rolls. Mobile first, 44px targets, no horizontal scroll at 375px. */
+
+.player-roll-panel { display: grid; gap: 14px; }
+.player-roll-panel .panel-heading { margin-bottom: 0; flex-wrap: wrap; }
+
+/* Shared controls (RollConfigFields) */
+.roll-config { display: grid; gap: 12px; min-width: 0; }
+.roll-config-row { display: grid; gap: 10px; min-width: 0; }
+.roll-source select { text-overflow: ellipsis; }
+/* Kinds: 4 short labels; advantage: 3 labels. Fixed columns so 375px never wraps or scrolls sideways. */
+.roll-segment { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 0; }
+.roll-segment.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.roll-segment .roll-chip { width: 100%; min-width: 0; padding: 0 6px; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 419px) { .roll-segment .roll-chip .icon { display: none; } }
+.roll-config-hint, .roll-config-warning { display: flex; align-items: flex-start; gap: 7px; margin: 0; font-size: .8rem; line-height: 1.45; }
+.roll-config-hint { color: var(--muted); }
+.roll-config-hint .icon, .roll-config-warning .icon { margin-top: .15em; }
+.roll-config-warning { border-radius: 10px; padding: 8px 10px; background: rgba(230,119,119,.1); color: var(--red-soft); }
+.roll-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink-soft); font-size: .88rem; cursor: pointer; }
+.roll-toggle input { width: 20px; height: 20px; accent-color: var(--gold); }
+
+/* Dice pad */
+.dice-pad { display: grid; gap: 8px; min-width: 0; }
+.dice-pad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.dice-pad-die {
+  position: relative; min-height: 52px; min-width: 44px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 12px; padding: 0 4px; background: rgba(255,255,255,.04);
+  color: var(--ink-soft); font: inherit; font-weight: 800; font-size: .95rem; cursor: pointer;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: border-color .15s, background .15s, color .15s, transform .1s;
+}
+.dice-pad-die:hover:not(:disabled) { border-color: var(--line-strong); color: var(--ink); }
+.dice-pad-die:active:not(:disabled) { transform: scale(.96); }
+.dice-pad-die:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.dice-pad-die:disabled { opacity: .5; cursor: not-allowed; }
+.dice-pad-die.active { border-color: var(--gold); color: var(--gold); background: rgba(215,174,93,.12); }
+.dice-pad-badge {
+  position: absolute; top: -7px; right: -5px; min-width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 999px; padding: 0 6px; background: var(--wine-light); color: #fff; font-size: .72rem; font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+.dice-pad-clear { justify-self: start; }
+
+/* Extras and repetitions */
+.roll-extras { display: grid; gap: 8px; min-width: 0; }
+.roll-extras > .button { justify-self: start; }
+.roll-extra { display: grid; grid-template-columns: minmax(0, 1fr) 76px 44px; gap: 6px; align-items: center; }
+.roll-extra input { min-height: 44px; min-width: 0; padding: 0 10px; }
+.roll-repetitions { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.roll-repetitions-label { margin-right: auto; color: var(--muted); font-size: .8rem; font-weight: 700; }
+.roll-repetitions input { width: 64px; min-height: 44px; padding: 0 8px; text-align: center; }
+
+/* Live expression */
+.roll-expression { display: grid; gap: 4px; min-width: 0; border: 1px dashed var(--line-strong); border-radius: 12px; padding: 10px 12px; background: rgba(10,8,10,.25); }
+.roll-expression-label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.roll-expression code { color: var(--gold-soft); font-size: .98rem; font-weight: 700; overflow-wrap: anywhere; }
+.roll-expression code:empty { display: none; }
+.roll-expression-empty { color: var(--muted); font-size: .86rem; }
+
+/* Panel actions, animation and result */
+.player-roll-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.player-roll-actions .roll-go { width: 100%; min-height: 52px; font-size: 1.05rem; }
+.player-roll-panel .roll-stage { min-width: 0; overflow: hidden; }
+.player-roll-panel .roll-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--ink-soft); overflow-wrap: anywhere; }
+.player-roll-panel .roll-last strong { color: var(--gold); font-size: 1.3rem; }
+.player-roll-panel .roll-last small { color: var(--muted); }
+
+/* Saved rolls bar (panel) */
+.saved-roll-bar { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.saved-roll-chip {
+  min-height: 44px; max-width: 100%; display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(215,174,93,.35); border-radius: 999px; padding: 0 14px; background: rgba(215,174,93,.08);
+  color: var(--gold-soft); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer;
+}
+.saved-roll-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-roll-chip:hover:not(:disabled) { border-color: var(--gold); background: rgba(215,174,93,.16); }
+.saved-roll-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.saved-roll-chip:disabled { opacity: .55; cursor: not-allowed; }
+.saved-roll-chip[data-incomplete] { border-style: dashed; border-color: rgba(230,119,119,.45); color: var(--red-soft); background: transparent; }
+
+/* Saved roll editor (modal) */
+.saved-roll-editor { width: min(560px, 100%); }
+.saved-roll-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.saved-roll-editor-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.5rem; }
+.saved-roll-editor-head h2 .icon { color: var(--gold); }
+.saved-roll-editor .button-row { margin-top: 0; }
+.saved-roll-icons { min-width: 0; margin: 0; border: 0; padding: 0; }
+.saved-roll-icons legend { margin-bottom: 6px; padding: 0; color: var(--muted); font-size: .76rem; font-weight: 700; }
+.saved-roll-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.saved-roll-icon {
+  min-height: 44px; min-width: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px;
+  background: rgba(255,255,255,.04); color: var(--ink-soft); font-size: 1.15rem; cursor: pointer;
+}
+.saved-roll-icon:hover { border-color: var(--line-strong); color: var(--ink); }
+.saved-roll-icon:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.saved-roll-icon.selected { border-color: var(--gold); color: var(--gold); background: rgba(215,174,93,.14); }
+
+/* Saved rolls tab (sheet) */
+.saved-roll-list { display: grid; gap: 12px; min-width: 0; }
+.saved-roll-list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.saved-roll-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.saved-roll-item {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; min-width: 0;
+  border: 1px solid var(--line); border-radius: 14px; padding: 10px; background: rgba(42,34,41,.72);
+}
+.saved-roll-item[data-incomplete] { border-color: rgba(230,119,119,.4); }
+.saved-roll-item-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: rgba(215,174,93,.1); color: var(--gold); font-size: 1.2rem; }
+.saved-roll-item-body { display: grid; gap: 3px; min-width: 0; }
+.saved-roll-item-body strong { overflow-wrap: anywhere; }
+.saved-roll-item-body code { color: var(--gold-soft); font-size: .84rem; overflow-wrap: anywhere; }
+.saved-roll-incomplete { display: inline-flex; align-items: center; gap: 5px; color: var(--red-soft); font-size: .78rem; font-weight: 700; }
+.saved-roll-item-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+
+/* Bag in the Modo Jogo */
+.game-inventory-modal { width: min(720px, 100%); }
+.game-inventory-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.game-inventory-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.5rem; }
+.game-inventory-head h2 .icon { color: var(--gold); }
+
+@media (min-width: 560px) {
+  .dice-pad-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .player-roll-actions { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .saved-roll-item { grid-template-columns: 44px minmax(0, 1fr) auto; }
+  .saved-roll-item-actions { grid-column: auto; }
+}
