@@ -10,13 +10,18 @@ Minimal APIs, mesmo estilo de `CreatureEndpoints`. Toda rota exige `X-Participan
 
 ```jsonc
 {
-  "sheet": { /* campos editáveis de CharacterSheet + "version": "base64" */ },
-  "items": [ /* InventoryItemDto, com version */ ],
-  "spells": [ /* CharacterSpellDto */ ],
-  "savedRolls": [ /* SavedRollDto + "incomplete": bool */ ],
-  "stats": { /* CharacterStats, ver data-model.md */ }
+  "participantId": "guid",
+  "sheet": { /* CharacterSheetData */ },
+  "version": "base64 (rowversion da ficha)",
+  "items": [ { "id": "…", "sortOrder": 0, "catalogItemId": null, "version": "base64", "data": { /* InventoryItemData */ } } ],
+  "spells": [ { "id": "…", "sortOrder": 0, "catalogSpellId": null, "data": { /* CharacterSpellData */ } } ],
+  "savedRolls": [ { "id": "…", "sortOrder": 0, "incomplete": false, "data": { /* SavedRollData */ } } ],
+  "stats": { /* CharacterStats, ver data-model.md */ },
+  "notices": [ "Cota de Malha foi desequipado." ]
 }
 ```
+
+Corpos de escrita: `{ "data": …, "version": … }` para ficha e item (a versão do item é opcional), `{ "data": … }` para magia e rolagem. Todas as respostas são 200.
 
 Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nunca calcula regra e nunca fica com `stats` velho.
 
@@ -33,7 +38,7 @@ Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nun
 | Método | Rota | Corpo | Resposta |
 |---|---|---|---|
 | GET | `/api/campaigns/{id}/participants/me/character` | — | `CharacterDto`. Cria a ficha padrão se não existir (idempotente; corrida resolvida pela PK). |
-| PATCH | `/api/campaigns/{id}/participants/me/character` | campos editáveis parciais + `version` | `CharacterDto` · 409 se `version` velha |
+| PUT | `/api/campaigns/{id}/participants/me/character` | `{ data: CharacterSheetData, version }` (ficha inteira) | `CharacterDto` · 409 se `version` velha |
 
 ## Inventário
 
@@ -42,7 +47,7 @@ Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nun
 | POST | `…/me/character/items` | `InventoryItemInput` | `CharacterDto` (201) |
 | POST | `…/me/character/items/from-catalog` | `{catalogItemId, quantity?}` | `CharacterDto` (201) |
 | PUT | `…/me/character/items/{itemId}` | `InventoryItemInput` + `version` | `CharacterDto` |
-| POST | `…/me/character/items/{itemId}/equip` | `{equipped: bool}` | `CharacterDto`, com `stats.notices: ["Cota de Malha foi desequipada."]` quando outro item saiu |
+| POST | `…/me/character/items/{itemId}/equip` | `{equipped: bool}` | `CharacterDto`, com `notices` quando outro item saiu |
 | DELETE | `…/me/character/items/{itemId}` | — | `CharacterDto` |
 
 Validação de `InventoryItemInput`: categoria exige o bloco correspondente (`weapon`, `armor`, `shield`); `damageDice` e `versatileDice` aceitam só `NdM` válidos pela gramática; `effects` até 20 itens, cada um validado contra a tabela de `ItemEffect`.

@@ -3,7 +3,7 @@ import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import type { Creature, RollPreset } from '~/types/creatures'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
-import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, RESULT_HOLD_MS, ROLL_DICE, buildExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
+import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, RESULT_HOLD_MS, ROLL_DICE, buildCreatureExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
 
 /**
  * Roll for a creature (spec 008, US5): dice count, die, ability modifier and an extra value.
@@ -24,7 +24,7 @@ const draft = reactive<RollPreset>(clampPreset(props.preset))
 watch(() => props.preset, next => Object.assign(draft, clampPreset(next)))
 
 const abilityMod = computed(() => modifierFor(props.creature, draft.ability))
-const expression = computed(() => buildExpression(draft, abilityMod.value))
+const expression = computed(() => buildCreatureExpression(draft, abilityMod.value))
 const preview = computed(() => describeRoll(draft, abilityMod.value))
 const busy = ref(false)
 const error = ref('')

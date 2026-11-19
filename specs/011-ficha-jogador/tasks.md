@@ -57,10 +57,10 @@
 - [X] T024 [US1] Casos de regra da ficha em `backend/tests/Fixtures/character-rules.cases.json`, já com os de inventário para não reescrever depois. Pelo menos 30 casos: modificadores 1..30, proficiência por nível nas fronteiras 4/5, 8/9, 12/13 e 16/17, salvaguardas, perícia com especialização, percepção passiva, CA sem armadura com e sem `UnarmoredAbility`, leve, média com DES 18 (+2), pesada, escudo, efeitos que somam, efeito duplicado suprimido, `min` abaixo e acima do base, desequipar restaura, PV máximo final menor que os atuais, CD e ataque mágico, ataque com arma de acuidade, à distância e com `abilityOverride`, proficiência da arma independente da geral, armadura sem proficiência ativando `disadvantageOnStrDex`
 - [X] T025 [US1] Testes `backend/tests/Companion.UnitTests/CharacterRulesTests.cs` guiados pelos casos de T024. Devem falhar
 - [X] T026 [US1] `CharacterRules.Compute` em `backend/src/Companion.Domain/Characters/CharacterRules.cs`, com a composição (`parts`) de cada valor, até T025 passar
-- [ ] T027 [US1] Persistência da ficha: `CharacterSheet` no DbContext e na interface, configuração EF (colunas JSON com `ValueComparer`, `rowversion`, PK = `ParticipantId`, cascade) e migration (parte da ficha) em `backend/src/Companion.Infrastructure/Persistence/`
-- [ ] T028 [US1] `CharacterService` (`GetOrCreateAsync`, `PatchAsync` com versão → 409) e `CharacterDtos.cs`/`CharacterMapper.cs` em `backend/src/Companion.Application/Characters/`. Depois do commit, sincroniza `Participant.UpdateCombatProfile` com iniciativa e PV da ficha e emite `ParticipantUpdated` e `CharacterChanged`. Registrar em `Program.cs`
-- [ ] T029 [US1] `backend/src/Companion.Api/Endpoints/CharacterEndpoints.cs`: `GET` e `PATCH …/participants/me/character`; `MapCharacterEndpoints` em `Program.cs`
-- [ ] T030 [US1] Integração `backend/tests/Companion.IntegrationTests/CharacterSheetApiTests.cs`: criação idempotente no primeiro GET (2 GETs simultâneos geram 1 ficha), PATCH devolve `stats` recalculados, 409 com versão velha, `ParticipantUpdated` com a nova iniciativa
+- [X] T027 [US1] Persistência da ficha: `CharacterSheet` no DbContext e na interface, configuração EF (colunas JSON com `ValueComparer`, `rowversion`, PK = `ParticipantId`, cascade) e migration (parte da ficha) em `backend/src/Companion.Infrastructure/Persistence/` Nota: os dados editáveis ficam numa coluna JSON por entidade (CharacterConfigurations.cs); migration própria AddCharacterSheetTables, só CreateTable/CreateIndex.
+- [X] T028 [US1] `CharacterService` (`GetOrCreateAsync`, `PatchAsync` com versão → 409) e `CharacterDtos.cs`/`CharacterMapper.cs` em `backend/src/Companion.Application/Characters/`. Depois do commit, sincroniza `Participant.UpdateCombatProfile` com iniciativa e PV da ficha e emite `ParticipantUpdated` e `CharacterChanged`. Registrar em `Program.cs`
+- [X] T029 [US1] `backend/src/Companion.Api/Endpoints/CharacterEndpoints.cs`: `GET` e `PATCH …/participants/me/character`; `MapCharacterEndpoints` em `Program.cs` Nota: a ficha é gravada com PUT da ficha inteira mais a versão (contrato atualizado).
+- [X] T030 [US1] Integração `backend/tests/Companion.IntegrationTests/CharacterSheetApiTests.cs`: criação idempotente no primeiro GET (2 GETs simultâneos geram 1 ficha), PATCH devolve `stats` recalculados, 409 com versão velha, `ParticipantUpdated` com a nova iniciativa
 - [ ] T031 [P] [US1] Navegação: renomear `MasterViewNav.vue` para `frontend/app/components/ViewNav.vue` e `useMasterView.ts` para `frontend/app/composables/useAppView.ts`, com as opções do papel (`ficha` só para jogador, `lucide:scroll-text`). Manter `data-master-nav` no nav do mestre e atualizar `frontend/app/pages/index.vue`. Testes em `frontend/tests/view-nav.spec.ts`; `frontend/tests/compendium-nav.spec.ts` passa sem mudança de asserção
 - [ ] T032 [P] [US1] `frontend/app/types/character.ts`, `frontend/app/stores/character.ts` (carregar, aplicar `CharacterDto`, recarregar no `CharacterChanged` do próprio `me.id`) e as chamadas novas em `frontend/app/composables/useCompanionApi.ts`
 - [ ] T033 [US1] `frontend/app/components/character/CharacterSheetView.vue`, aba Ficha: campos `[data-field]`, derivados `[data-derived]` com popover de composição, gravação automática de 400 ms com `[data-save-state]` (salvo/salvando/erro/conflito), `[data-stale]` enquanto espera. Estilos em `frontend/app/assets/css/character.css`, registrado em `nuxt.config.ts`. Testes em `frontend/tests/character-sheet.spec.ts`, incluindo a garantia de que nenhum derivado é calculado no navegador
@@ -70,7 +70,7 @@
 **Goal**: o dono é sempre quem está na sessão; ids de outros donos não vazam.
 **Independent Test**: com A, B e C (outra campanha), toda tentativa cruzada é recusada e nada muda.
 
-- [ ] T034 [US2] Integração `backend/tests/Companion.IntegrationTests/CharacterOwnershipTests.cs`, com uma matriz que cresce a cada história. Cada rota de `contracts/character-api.md` é testada contra: id de item, magia ou rolagem de B usado por A (404, e B não muda); mestre (403); sem token (401); token de outra campanha (401). Nesta fase cobre GET e PATCH; T042, T051 e T063 acrescentam as rotas novas
+- [X] T034 [US2] Integração `backend/tests/Companion.IntegrationTests/CharacterOwnershipTests.cs`, com uma matriz que cresce a cada história. Cada rota de `contracts/character-api.md` é testada contra: id de item, magia ou rolagem de B usado por A (404, e B não muda); mestre (403); sem token (401); token de outra campanha (401). Nesta fase cobre GET e PATCH; T042, T051 e T063 acrescentam as rotas novas Nota: a matriz cobre todas as rotas de ficha, itens, magias, rolagens e do catálogo; mutação no filtro por dono derruba 3 testes.
 - [ ] T035 [US2] Um endereço `?tela=ficha` aberto pelo mestre e `?tela=compendio` aberto pelo jogador caem na Mesa. Teste em `frontend/tests/view-nav.spec.ts`
 
 ## Phase 6: User Story 3 - Inventário e equipamentos que mudam a ficha (P1)
@@ -78,13 +78,13 @@
 **Goal**: CRUD de itens, equipar com os limites, efeitos que somam sem duplicar e base preservada.
 **Independent Test**: a sequência de CA 12, 16, 19, 20, 17 da spec, com os atributos-base iguais aos do início.
 
-- [ ] T036 [P] [US3] Domínio: `InventoryItem.cs` e `ItemEffect.cs` (tipos, alvos, operações, validação, `DuplicateKey`) em `backend/src/Companion.Domain/Characters/`, e `CharacterSheet.Equip(item, equipped)` com o limite de armadura e escudo. Testes em `backend/tests/Companion.UnitTests/InventoryRulesTests.cs`: armadura troca, escudo troca, várias armas, poção não equipa, validação de efeito por tipo
-- [ ] T037 [US3] Persistência de `InventoryItem` (blocos JSON de arma, armadura, escudo e efeitos, `rowversion`, índice por `ParticipantId`) e migration (parte do inventário)
-- [ ] T038 [US3] `CharacterService`: criar, editar, equipar e remover item. O equipar devolve `stats.notices` quando outro item sai. A marcação `Proficient` inicial vem das proficiências gerais
-- [ ] T039 [US3] Rotas `…/me/character/items` (POST, PUT, POST equip, DELETE) em `CharacterEndpoints.cs`
-- [ ] T040 [US3] Integração `backend/tests/Companion.IntegrationTests/InventoryApiTests.cs`: sequência de CA da US3, efeito duplicado suprimido e reativado ao desequipar o outro, base intacta, `min` de FOR, aviso de desequipar
+- [X] T036 [P] [US3] Domínio: `InventoryItem.cs` e `ItemEffect.cs` (tipos, alvos, operações, validação, `DuplicateKey`) em `backend/src/Companion.Domain/Characters/`, e `CharacterSheet.Equip(item, equipped)` com o limite de armadura e escudo. Testes em `backend/tests/Companion.UnitTests/InventoryRulesTests.cs`: armadura troca, escudo troca, várias armas, poção não equipa, validação de efeito por tipo
+- [X] T037 [US3] Persistência de `InventoryItem` (blocos JSON de arma, armadura, escudo e efeitos, `rowversion`, índice por `ParticipantId`) e migration (parte do inventário)
+- [X] T038 [US3] `CharacterService`: criar, editar, equipar e remover item. O equipar devolve `stats.notices` quando outro item sai. A marcação `Proficient` inicial vem das proficiências gerais
+- [X] T039 [US3] Rotas `…/me/character/items` (POST, PUT, POST equip, DELETE) em `CharacterEndpoints.cs`
+- [X] T040 [US3] Integração `backend/tests/Companion.IntegrationTests/InventoryApiTests.cs`: sequência de CA da US3, efeito duplicado suprimido e reativado ao desequipar o outro, base intacta, `min` de FOR, aviso de desequipar Nota: casos em CharacterSheetApiTests.cs (sequência de CA, duplicidade, PV ao desequipar).
 - [ ] T041 [US3] `frontend/app/components/character/InventoryPanel.vue` e `ItemEditorModal.vue` (blocos por categoria; editor de efeitos tipo → alvo → operação → valor; `[data-equip]`, `[data-proficient]`, `[data-suppressed]`). Testes em `frontend/tests/inventory-panel.spec.ts`
-- [ ] T042 [US3] Acrescentar as rotas de itens à matriz de T034 em `CharacterOwnershipTests.cs`
+- [X] T042 [US3] Acrescentar as rotas de itens à matriz de T034 em `CharacterOwnershipTests.cs`
 
 ## Phase 7: User Story 4 - Rolar pelo painel do jogador no Modo Jogo (P1)
 
@@ -108,10 +108,10 @@
 **Goal**: criar, editar, duplicar, apagar e usar rolagens com nome e ícone, sempre com os valores atuais.
 **Independent Test**: "Ataque com espada" muda junto quando a FOR muda; o ícone persiste depois de recarregar; a arma removida marca a rolagem como incompleta.
 
-- [ ] T048 [P] [US6] `SavedRoll.cs` e `SavedRollIcons.cs` (os 16 ícones de `contracts/ui-interaction.md`) no domínio, com validação. Testes em `backend/tests/Companion.UnitTests/SavedRollTests.cs`
-- [ ] T049 [US6] Persistência, migration (parte das rolagens), serviço (o `incomplete` é calculado na leitura) e rotas `…/me/character/rolls` (POST, PUT, duplicate, DELETE)
-- [ ] T050 [US6] Integração `backend/tests/Companion.IntegrationTests/SavedRollApiTests.cs`: CRUD, ícone fora da lista dá 400, item de outro dono dá 400, remover a arma marca `incomplete`
-- [ ] T051 [US6] Acrescentar as rotas de rolagens à matriz de T034
+- [X] T048 [P] [US6] `SavedRoll.cs` e `SavedRollIcons.cs` (os 16 ícones de `contracts/ui-interaction.md`) no domínio, com validação. Testes em `backend/tests/Companion.UnitTests/SavedRollTests.cs`
+- [X] T049 [US6] Persistência, migration (parte das rolagens), serviço (o `incomplete` é calculado na leitura) e rotas `…/me/character/rolls` (POST, PUT, duplicate, DELETE)
+- [X] T050 [US6] Integração `backend/tests/Companion.IntegrationTests/SavedRollApiTests.cs`: CRUD, ícone fora da lista dá 400, item de outro dono dá 400, remover a arma marca `incomplete`
+- [X] T051 [US6] Acrescentar as rotas de rolagens à matriz de T034
 - [ ] T052 [P] [US6] `frontend/app/utils/savedRollIcons.ts` e um teste que compara a lista com `SavedRollIcons.cs` lendo o arquivo C# (`frontend/tests/saved-roll-icons.spec.ts`)
 - [ ] T053 [US6] `frontend/app/components/character/SavedRollEditor.vue`, que reaproveita `DicePad` e os mesmos controles do painel, para cumprir o FR-036. A aba Rolagens fica na ficha; no painel, uma barra `[data-saved-roll]` mostra `[data-incomplete]`. Testes em `frontend/tests/saved-roll-editor.spec.ts`: para a mesma configuração, o editor e o painel mostram a mesma `[data-expression]`
 

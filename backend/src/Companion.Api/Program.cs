@@ -69,6 +69,8 @@ builder.Services.AddScoped<AttackService>();
 builder.Services.AddScoped<CreatureService>();
 builder.Services.AddScoped<CompendiumSeeder>();
 builder.Services.AddScoped<ParticipantNameBackfill>();
+builder.Services.AddScoped<Companion.Application.Characters.CharacterService>();
+builder.Services.AddScoped<Companion.Application.Catalog.CatalogService>();
 builder.Services.AddSingleton<ICompendiumSeedSource, EmbeddedCompendiumSeedSource>();
 builder.Services.AddSingleton<CreatureImageBackoff>();
 // No automatic redirects: the host allowlist is checked once, before the request.
@@ -126,6 +128,7 @@ app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();
 app.MapCreatureEndpoints();
+app.MapCharacterEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 
