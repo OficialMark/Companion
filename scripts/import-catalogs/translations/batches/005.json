@@ -1,0 +1,162 @@
+{
+  "sprig-of-mistletoe": {
+    "name": "Ramo de Visco",
+    "text": null
+  },
+  "spyglass": {
+    "name": "Luneta",
+    "text": "Objetos vistos através de uma Luneta são ampliados para o dobro do seu tamanho."
+  },
+  "staff": {
+    "name": "Cajado",
+    "text": null
+  },
+  "string": {
+    "name": "Barbante",
+    "text": "O Barbante tem 3 metros de comprimento. Você pode dar um nó nele com a ação Usar."
+  },
+  "studded-leather-armor": {
+    "name": "Armadura de Couro Batido",
+    "text": null
+  },
+  "tent": {
+    "name": "Tenda",
+    "text": "Uma Tenda abriga para dormir até duas criaturas Pequenas ou Médias."
+  },
+  "thieves-tools": {
+    "name": "Ferramentas de Ladrão",
+    "text": "Atributo: Destreza.\n\nUsar: Abrir uma fechadura (CD 15), Desarmar uma armadilha (CD 15)."
+  },
+  "three-dragon-ante": {
+    "name": "Aposta dos Três Dragões",
+    "text": "Atributo: Sabedoria.\n\nUsar: Perceber se alguém está trapaceando (CD 10), Vencer o jogo (CD 20)."
+  },
+  "tinderbox": {
+    "name": "Pederneira",
+    "text": "Uma Pederneira é um pequeno recipiente com sílex, fuzil de aço e isca (geralmente um pano seco embebido em óleo leve) usados para acender uma fogueira. Usá-la para acender uma Vela, um Lampião, uma Lanterna ou uma Tocha (ou qualquer outra coisa com combustível exposto) exige uma Ação Bônus. Acender qualquer outro fogo leva 1 minuto."
+  },
+  "tinkers-tools": {
+    "name": "Ferramentas de Funileiro",
+    "text": "Atributo: Destreza.\n\nUsar: Montar um item Minúsculo feito de sucata, que se desmancha em 1 minuto (CD 10).\n\nFabricar: Mosquete, Pistola, Sino, Lanterna Furta-Fogo, Garrafa, Lanterna Coberta, Armadilha de Caça, Fechadura, Algemas, Espelho, Pá, Apito de Sinalização, Pederneira."
+  },
+  "torch": {
+    "name": "Tocha",
+    "text": "Uma Tocha queima por 1 hora, emitindo Luz Plena em um raio de 6 metros e Penumbra por mais 6 metros. Quando você realiza a ação Atacar, pode atacar com a Tocha, usando-a como uma arma simples corpo a corpo. Se acertar, o alvo sofre 1 de dano de fogo."
+  },
+  "trident": {
+    "name": "Tridente",
+    "text": null
+  },
+  "vial": {
+    "name": "Frasco",
+    "text": "Um Frasco comporta até 4 onças."
+  },
+  "viol": {
+    "name": "Viola",
+    "text": "Atributo: Carisma.\n\nUsar: Tocar uma melodia conhecida (CD 10), Improvisar uma canção (CD 15)."
+  },
+  "wand": {
+    "name": "Varinha",
+    "text": null
+  },
+  "warhammer": {
+    "name": "Martelo de Guerra",
+    "text": null
+  },
+  "war-pick": {
+    "name": "Picareta de Guerra",
+    "text": null
+  },
+  "waterskin": {
+    "name": "Odre",
+    "text": "Um Odre comporta até 4 quartilhos. Se você não beber água suficiente, corre o risco de desidratação (veja “Glossário de Regras”)."
+  },
+  "weavers-tools": {
+    "name": "Ferramentas de Tecelão",
+    "text": "Atributo: Destreza.\n\nUsar: Remendar um rasgo em uma roupa (CD 10), costurar um desenho Minúsculo (CD 10).\n\nFabricar: Armadura Acolchoada, Cesto, Saco de Dormir, Cobertor, Roupas Finas, Rede, Túnica, Corda, Saco, Barbante, Tenda, Roupas de Viajante."
+  },
+  "whip": {
+    "name": "Chicote",
+    "text": null
+  },
+  "woodcarvers-tools": {
+    "name": "Ferramentas de Entalhador",
+    "text": "Atributo: Destreza.\n\nUsar: Entalhar um padrão na madeira (CD 10).\n\nFabricar: Clava, Clava Grande, Bordão, Zarabatana, Dardo, Besta de Mão, Besta Pesada, Besta Leve, Arco Longo, Arco Curto, Cristal, Orbe, Bordão, Bastão, Cajado, Varinha, Flechas, Virotes, Ramo de Visco, Cajado, Varinha de Teixo, Pena de Escrever, Agulhas."
+  },
+  "yew-wand": {
+    "name": "Varinha de Teixo",
+    "text": null
+  },
+  "adamantine-armor": {
+    "name": "Armadura de Adamante",
+    "text": "Armadura (qualquer média ou pesada, exceto Gibão de Peles)\n\nEsta armadura é reforçada com adamante, uma das substâncias mais duras que existem. Enquanto você a estiver vestindo, qualquer Acerto Crítico contra você se torna um acerto normal."
+  },
+  "ammunition-1": {
+    "name": "Munição, +1",
+    "text": "Arma (Incomum)\n\nVocê recebe um bônus nas jogadas de ataque e nas jogadas de dano feitas com esta munição mágica. O bônus é determinado pela raridade da munição. Depois que atinge um alvo, a munição deixa de ser mágica.\n\nEsta munição costuma ser encontrada ou vendida em quantidades de dez ou vinte peças. Dez peças desta munição equivalem em valor a uma poção da mesma raridade."
+  },
+  "ammunition-2": {
+    "name": "Munição, +2",
+    "text": "Arma (Rara)\n\nVocê recebe um bônus de +2 nas jogadas de ataque e nas jogadas de dano feitas com esta munição mágica. O bônus é determinado pela raridade da munição. Depois que atinge um alvo, a munição deixa de ser mágica.\n\nEsta munição costuma ser encontrada ou vendida em quantidades de dez ou vinte peças. Dez peças desta munição equivalem em valor a uma poção da mesma raridade."
+  },
+  "ammunition-3": {
+    "name": "Munição, +3",
+    "text": "Arma (Muito Rara)\n\nVocê recebe um bônus de +3 nas jogadas de ataque e nas jogadas de dano feitas com esta munição mágica. O bônus é determinado pela raridade da munição. Depois que atinge um alvo, a munição deixa de ser mágica.\n\nEsta munição costuma ser encontrada ou vendida em quantidades de dez ou vinte peças. Dez peças desta munição equivalem em valor a uma poção da mesma raridade."
+  },
+  "ammunition-of-slaying": {
+    "name": "Munição Assassina",
+    "text": "Arma (qualquer munição)\n\nEsta munição mágica foi feita para matar criaturas de um tipo específico, que o Mestre escolhe ou determina aleatoriamente rolando na tabela abaixo. Se uma criatura desse tipo sofrer dano da munição, ela faz um teste de resistência de Constituição CD 17, sofrendo 6d10 de dano de força adicional se falhar, ou metade desse dano adicional se passar.\n\nDepois de causar seu dano adicional a uma criatura, a munição deixa de ser mágica.\n\n| 1d100 | Tipo de Criatura |\n|---|---|\n| 01-10 | Aberrações |\n| 11-15 | Bestas |\n| 16-20 | Celestiais |\n| 21-25 | Constructos |\n| 26-35 | Dragões |\n| 36-45 | Elementais |\n| 46-50 | Humanoides |\n| 51-60 | Feéricos |\n| 61-70 | Corruptores |\n| 71-75 | Gigantes |\n| 76-80 | Monstruosidades |\n| 81-85 | Limos |\n| 86-90 | Plantas |\n| 91-00 | Mortos-Vivos |"
+  },
+  "amulet-of-health": {
+    "name": "Amuleto da Saúde",
+    "text": "Item maravilhoso\n\nSua Constituição é 19 enquanto você usa este amuleto. Ele não tem efeito sobre você se sua Constituição for 19 ou maior sem ele."
+  },
+  "amulet-of-proof-against-detection-and-location": {
+    "name": "Amuleto à Prova de Detecção e Localização",
+    "text": "Item maravilhoso\n\nEnquanto estiver usando este amuleto, você não pode ser alvo de magias de Adivinhação nem ser percebido por sensores mágicos de vidência, a menos que permita."
+  },
+  "amulet-of-the-planes": {
+    "name": "Amuleto dos Planos",
+    "text": "Item maravilhoso\n\nEnquanto estiver usando este amuleto, você pode realizar uma ação de Magia para nomear um local que conheça em outro plano de existência. Em seguida, faça um teste de Inteligência (Arcanismo) CD 15. Se passar no teste, você conjura *Viagem Planar*. Se falhar, você e cada criatura e objeto a até 4,5 metros de você viajam para um destino aleatório, determinado rolando 1d100 e consultando a tabela a seguir.\n\n| 1d100 | Destino |\n|---|---|\n| 01–60 | Local aleatório no plano que você nomeou |\n| 61–70 | Local aleatório em um Plano Interior, determinado rolando 1d6: com **1,** o Plano do Ar; com **2,** o Plano da Terra; com **3,** o Plano do Fogo; com **4,** o Plano da Água; com **5,** a Agrestia das Fadas; com **6,** o Pendor das Sombras |\n| 71–80 | Local aleatório em um Plano Exterior, determinado rolando 1d8: com **1,** Arbórea; com **2,** Arcádia; com **3,** as Terras Selvagens; com **4,** Bytopia; com **5,** Elísio; com **6,** Mechanus; com **7,** o Monte Celestia; com **8,** Ysgard |\n| 81–90 | Local aleatório em um Plano Exterior, determinado rolando 1d8: com **1,** o Abismo; com **2,** Aqueronte; com **3,** Carceri; com **4,** Geena; com **5,** Hades; com **6,** Limbo; com **7,** os Nove Infernos; com **8,** Pandemônio |\n| 91–00 | Local aleatório no Plano Astral |"
+  },
+  "animated-shield": {
+    "name": "Escudo Animado",
+    "text": "Armadura (Escudo)\n\nEnquanto estiver segurando este Escudo, você pode realizar uma Ação Bônus para animá-lo. O Escudo salta no ar e flutua no seu espaço para protegê-lo como se você o estivesse empunhando, deixando suas mãos livres. O Escudo permanece animado por 1 minuto, até você realizar uma Ação Bônus para encerrar este efeito, ou até você morrer ou ficar na condição Incapacitado; nesse momento, o Escudo cai no chão ou na sua mão, se você tiver uma livre."
+  },
+  "apparatus-of-the-crab": {
+    "name": "Aparato do Caranguejo",
+    "text": "Item maravilhoso\n\nÀ primeira vista, este item parece ser um barril de ferro lacrado pesando 250 quilos. O barril tem uma trava oculta, que pode ser encontrada com um teste bem-sucedido de Inteligência (Investigação) CD 20. Soltar a trava destranca uma escotilha em uma das extremidades do barril, permitindo que duas criaturas Médias ou menores rastejem para dentro. Dez alavancas ficam enfileiradas na extremidade oposta, cada uma em posição neutra, podendo ser movidas para cima ou para baixo. Quando certas alavancas são usadas, o aparato se transforma até parecer uma lagosta gigante.\n\nO *Aparato do Caranguejo* é um objeto Grande com as seguintes estatísticas: CA 20; PV 200; Deslocamento 9 m, Natação 9 m (ou 0 m para ambos se as pernas não estiverem estendidas); Imunidade a dano de veneno e psíquico.\n\nPara ser usado como veículo, o aparato precisa de um piloto. Enquanto a escotilha do aparato estiver fechada, o compartimento fica hermético e à prova d’água. O compartimento contém ar suficiente para 10 horas de respiração, divididas pelo número de criaturas que respiram dentro dele.\n\nO aparato flutua na água. Ele também pode submergir até uma profundidade de 270 metros. Abaixo disso, o veículo sofre 2d6 de dano contundente a cada minuto por causa da pressão.\n\nUma criatura no compartimento pode realizar a ação Usar para mover até duas alavancas do aparato para cima ou para baixo. Depois de cada uso, a alavanca volta à posição neutra. Cada alavanca, da esquerda para a direita, funciona como mostrado na tabela Alavancas do Aparato do Caranguejo.\n\nTabela: Alavancas do Aparato do Caranguejo\n\n| Alavanca | Para cima | Para baixo |\n|---|---|---|\n| 1 | As pernas se estendem, permitindo que o aparato ande e nade. | As pernas se recolhem, reduzindo o Deslocamento e o Deslocamento de Natação do aparato a 0 e impedindo que ele se beneficie de bônus de deslocamento. |\n| 2 | A veneziana da janela frontal se abre. | A veneziana da janela frontal se fecha. |\n| 3 | As venezianas das janelas laterais se abrem (duas de cada lado). | As venezianas das janelas laterais se fecham (duas de cada lado). |\n| 4 | Duas pinças se estendem da parte da frente do aparato. | As pinças se recolhem. |\n| 5 | Cada pinça estendida faz o seguinte ataque corpo a corpo: +8 para acertar, alcance 1,5 m. *Acerto:* 7 (2d6) de dano contundente. | Cada pinça estendida faz o seguinte ataque corpo a corpo: +8 para acertar, alcance 1,5 m. *Acerto:* O alvo fica na condição Agarrado (CD 15 para escapar). |\n| 6 | O aparato anda ou nada para a frente, desde que suas pernas estejam estendidas. | O aparato anda ou nada para trás, desde que suas pernas estejam estendidas. |\n| 7 | O aparato gira 90 graus no sentido anti-horário, desde que suas pernas estejam estendidas. | O aparato gira 90 graus no sentido horário, desde que suas pernas estejam estendidas. |\n| 8 | Peças semelhantes a olhos emitem Luz Plena em um raio de 9 metros e Penumbra por mais 9 metros. | A luz se apaga. |\n| 9 | O aparato afunda até 6 metros se estiver em um líquido. | O aparato sobe até 6 metros se estiver em um líquido. |\n| 10 | A escotilha traseira se destrava e se abre. | A escotilha traseira se fecha e se lacra. |"
+  },
+  "armor-1": {
+    "name": "Armadura +1",
+    "text": "Armadura (qualquer leve, média ou pesada)\n\nVocê recebe um bônus de +1 na Classe de Armadura enquanto estiver vestindo esta armadura."
+  },
+  "armor-2": {
+    "name": "Armadura +2",
+    "text": "Armadura (qualquer leve, média ou pesada)\n\nVocê recebe um bônus de +2 na Classe de Armadura enquanto estiver vestindo esta armadura."
+  },
+  "armor-3": {
+    "name": "Armadura +3",
+    "text": "Armadura (qualquer leve, média ou pesada)\n\nVocê recebe um bônus de +3 na Classe de Armadura enquanto estiver vestindo esta armadura."
+  },
+  "armor-of-invulnerability": {
+    "name": "Armadura da Invulnerabilidade",
+    "text": "Armadura (Armadura de Placas)\n\nVocê tem Resistência a dano contundente, perfurante e cortante enquanto veste esta armadura.\n\nCarapaça Metálica. Você pode realizar uma ação de Magia para conceder a si mesmo Imunidade a dano contundente, perfurante e cortante por 10 minutos ou até não estar mais vestindo a armadura. Depois que esta propriedade for usada, ela não pode ser usada novamente até o próximo amanhecer."
+  },
+  "armor-of-resistance": {
+    "name": "Armadura de Resistência",
+    "text": "Armadura (qualquer leve, média ou pesada)\n\nVocê tem Resistência a um tipo de dano enquanto veste esta armadura. O Mestre escolhe o tipo ou o determina aleatoriamente rolando na tabela a seguir.\n\n| 1d10 | Tipo de Dano |\n|---|---|\n| 1 | Ácido |\n| 2 | Gélido |\n| 3 | Fogo |\n| 4 | Força |\n| 5 | Elétrico |\n| 6 | Necrótico |\n| 7 | Veneno |\n| 8 | Psíquico |\n| 9 | Radiante |\n| 10 | Trovejante |"
+  },
+  "armor-of-vulnerability": {
+    "name": "Armadura da Vulnerabilidade",
+    "text": "Armadura (qualquer leve, média ou pesada)\n\nEnquanto estiver vestindo esta armadura, você tem Resistência a um dos seguintes tipos de dano: contundente, perfurante ou cortante. O Mestre escolhe o tipo ou o determina aleatoriamente.\n\nMaldição. Esta armadura é amaldiçoada, fato que só é revelado quando a magia *Identificação* é conjurada na armadura ou quando você se sintoniza com ela. Sintonizar-se com a armadura amaldiçoa você até que seja alvo da magia *Remover Maldição* ou de magia semelhante; remover a armadura não encerra a maldição. Enquanto estiver amaldiçoado, você tem Vulnerabilidade a dois dos três tipos de dano associados à armadura (não aquele ao qual ela concede Resistência)."
+  },
+  "arrow-catching-shield": {
+    "name": "Escudo Apanhador de Flechas",
+    "text": "Armadura (Escudo)\n\nVocê recebe um bônus de +2 na Classe de Armadura contra jogadas de ataque à distância enquanto empunha este Escudo. Esse bônus se soma ao bônus normal do Escudo na CA.\n\nSempre que um atacante fizer uma jogada de ataque à distância contra um alvo a até 1,5 metro de você, você pode realizar uma Reação para se tornar o alvo do ataque no lugar dele."
+  },
+  "bag-of-beans": {
+    "name": "Saco de Feijões",
+    "text": "Item maravilhoso\n\nEste pesado saco de pano contém 3d4 feijões secos quando encontrado. O saco pesa um quarto de quilo, independentemente de quantos feijões contenha, e se torna um item não mágico quando não contém mais nenhum feijão.\n\nSe você despejar um ou mais feijões para fora do saco, eles explodem em uma Esfera de 3 metros de raio centrada neles. Todos os feijões despejados são destruídos na explosão, e cada criatura na Esfera, incluindo você, faz um teste de resistência de Destreza CD 15, sofrendo 5d4 de dano de força se falhar, ou metade desse dano se passar.\n\nSe você tirar um feijão do saco, plantá-lo em terra ou areia e depois regá-lo, o feijão desaparece e produz um efeito 1 minuto depois a partir do solo onde foi plantado. O Mestre pode escolher um efeito da tabela a seguir ou determiná-lo aleatoriamente.\n\n| 1d100 | Efeito |\n|---|---|\n| 01 | Brotam 5d4 cogumelos venenosos. Se uma criatura comer um cogumelo, role qualquer dado. Com um resultado ímpar, quem comeu precisa ser bem-sucedido em um teste de resistência de Constituição CD 15 ou sofre 5d6 de dano de veneno e fica na condição Envenenado por 1 hora. Com um resultado par, quem comeu recebe 5d6 pontos de vida temporários por 1 hora. |\n| 02–10 | Um gêiser irrompe e jorra água, cerveja, maionese, chá, vinagre, vinho ou óleo (à escolha do Mestre) a 9 metros de altura por 1d4 minutos. |\n| 11–20 | Brota um **Ente**. Role qualquer dado. Com um resultado ímpar, o ente é Caótico e Mau. Com um resultado par, o ente é Caótico e Bom. |\n| 21–30 | Uma estátua de pedra animada, mas imóvel, à sua semelhança se ergue e faz ameaças verbais contra você. Se você a deixar e outros se aproximarem, ela descreve você como o mais hediondo dos vilões e manda os recém-chegados encontrá-lo e atacá-lo. Se você estiver no mesmo plano de existência que a estátua, ela sabe onde você está. A estátua se torna inanimada após 24 horas. |\n| 31–40 | Uma fogueira de chamas verdes surge e queima por 24 horas ou até ser apagada. |\n| 41–50 | Brotam três **Fungos Gritadores**. |\n| 51–60 | 1d4 + 4 sapos rosa-choque rastejam para fora. Sempre que um sapo é tocado, ele se transforma em um monstro Grande ou menor à escolha do Mestre, que age de acordo com sua tendência e sua natureza. O monstro permanece por 1 minuto e então desaparece em uma nuvem de fumaça rosa-choque. |\n| 61–70 | Um **Bulette** faminto escava até a superfície e ataca. |\n| 71–80 | Cresce uma árvore frutífera. Ela tem 1d10 + 20 frutas, 1d8 das quais funcionam como poções determinadas aleatoriamente. A árvore desaparece após 1 hora. As frutas colhidas permanecem e mantêm qualquer magia por 30 dias. |\n| 81–90 | Surge um ninho com 1d4 + 3 ovos com as cores do arco-íris. Qualquer criatura que comer um ovo faz um teste de resistência de Constituição CD 20. Se passar, a criatura aumenta permanentemente em 1 seu menor valor de atributo, escolhendo aleatoriamente entre valores igualmente baixos. Se falhar, a criatura sofre 10d6 de dano de força por uma explosão interna. |\n| 91–95 | Uma pirâmide com base quadrada de 18 metros de lado irrompe do chão. Dentro dela há uma câmara funerária que contém uma **Múmia,** um **Senhor das Múmias** ou algum outro Morto-Vivo à escolha do Mestre. Seu sarcófago contém um tesouro à escolha do Mestre. |\n| 96–00 | Brota um pé de feijão gigante, que cresce até uma altura à escolha do Mestre. O topo leva aonde o Mestre escolher, como a uma bela vista, ao castelo de um gigante das nuvens ou a outro plano de existência. |"
+  }
+}
