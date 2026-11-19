@@ -11,10 +11,10 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Bootstrap do worktree: `pnpm install` em `frontend/`, `dotnet restore backend/Companion.slnx`. Rodar `dotnet test backend/tests/Companion.UnitTests` e `pnpm --dir frontend test` e registrar a linha de base (quantos passam) em `specs/011-ficha-jogador/checklists/baseline.md`
-- [ ] T002 [P] Tornar o proxy de dev configurável: `NUXT_API_TARGET` (padrão `http://localhost:8080`) para `/api` e `/hubs` em `frontend/nuxt.config.ts`; documentar em `README.md`
-- [ ] T003 [P] Guarda do e2e: em `frontend/playwright.config.ts`, os specs novos (`tests/e2e/player-*.spec.ts`) falham na inicialização se `E2E_BASE_URL` não estiver definido ou apontar para a porta 3636. Teste em `frontend/tests/e2e-guard.spec.ts` (Vitest) para a função de checagem extraída em `frontend/tests/e2e/guard.ts`
-- [ ] T004 [P] Criar `backend/tests/Fixtures/` com `dice-expressions.cases.json` e `character-rules.cases.json` vazios (schema documentado no topo de cada arquivo) e copiar ambos para a saída dos testes em `backend/tests/Companion.UnitTests/Companion.UnitTests.csproj`
+- [X] T001 Bootstrap do worktree: `pnpm install` em `frontend/`, `dotnet restore backend/Companion.slnx`. Rodar `dotnet test backend/tests/Companion.UnitTests` e `pnpm --dir frontend test` e registrar a linha de base (quantos passam) em `specs/011-ficha-jogador/checklists/baseline.md`
+- [X] T002 [P] Tornar o proxy de dev configurável: `NUXT_API_TARGET` (padrão `http://localhost:8080`) para `/api` e `/hubs` em `frontend/nuxt.config.ts`; documentar em `README.md`
+- [X] T003 [P] Guarda do e2e: em `frontend/playwright.config.ts`, os specs novos (`tests/e2e/player-*.spec.ts`) falham na inicialização se `E2E_BASE_URL` não estiver definido ou apontar para a porta 3636. Teste em `frontend/tests/e2e-guard.spec.ts` (Vitest) para a função de checagem extraída em `frontend/tests/e2e/guard.ts`
+- [X] T004 [P] Criar `backend/tests/Fixtures/` com `dice-expressions.cases.json` e `character-rules.cases.json` vazios (schema documentado no topo de cada arquivo) e copiar ambos para a saída dos testes em `backend/tests/Companion.UnitTests/Companion.UnitTests.csproj`
 
 ## Phase 2: Foundational (bloqueia todas as histórias)
 

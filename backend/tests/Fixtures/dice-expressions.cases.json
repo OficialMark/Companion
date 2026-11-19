@@ -1,0 +1,4 @@
+{
+  "$comment": "Spec 011, contracts/dice-expression.md. Shared by backend (DiceExpressionGroupingTests) and frontend (roll-expression.spec.ts). Each case: input (string the server parses), canonical (expected Normalized, null when error), error (substring of the expected message, null when valid), roundTrip (true when the frontend generator must be able to produce `canonical` exactly; then `build` holds the generator input).",
+  "cases": []
+}

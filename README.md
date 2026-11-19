@@ -95,7 +95,11 @@ npm install
 npm run dev
 ```
 
-O servidor de desenvolvimento Nuxt encaminha `/api` e `/hubs` para uma API local na porta 8080.
+O servidor de desenvolvimento Nuxt encaminha `/api` e `/hubs` para uma API local na porta 8080. Para apontar para outra API (por exemplo, uma instância de validação ao lado da stack em uso), defina `NUXT_API_TARGET`:
+
+```powershell
+$env:NUXT_API_TARGET = 'http://localhost:5311'; npm run dev -- --port 3611
+```
 
 ## Documentação Spec Kit
 

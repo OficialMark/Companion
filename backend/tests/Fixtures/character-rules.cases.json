@@ -1,0 +1,4 @@
+{
+  "$comment": "Spec 011, data-model.md (CharacterStats). Read by CharacterRulesTests. Each case: name, sheet (partial CharacterSheet input, missing fields use defaults), items (InventoryItem inputs), spells, expect (dotted paths into CharacterStats with the expected value).",
+  "cases": []
+}
