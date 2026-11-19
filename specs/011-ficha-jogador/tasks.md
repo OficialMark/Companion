@@ -83,7 +83,7 @@
 - [X] T038 [US3] `CharacterService`: criar, editar, equipar e remover item. O equipar devolve `stats.notices` quando outro item sai. A marcação `Proficient` inicial vem das proficiências gerais
 - [X] T039 [US3] Rotas `…/me/character/items` (POST, PUT, POST equip, DELETE) em `CharacterEndpoints.cs`
 - [X] T040 [US3] Integração `backend/tests/Companion.IntegrationTests/InventoryApiTests.cs`: sequência de CA da US3, efeito duplicado suprimido e reativado ao desequipar o outro, base intacta, `min` de FOR, aviso de desequipar Nota: casos em CharacterSheetApiTests.cs (sequência de CA, duplicidade, PV ao desequipar).
-- [ ] T041 [US3] `frontend/app/components/character/InventoryPanel.vue` e `ItemEditorModal.vue` (blocos por categoria; editor de efeitos tipo → alvo → operação → valor; `[data-equip]`, `[data-proficient]`, `[data-suppressed]`). Testes em `frontend/tests/inventory-panel.spec.ts`
+- [X] T041 [US3] `frontend/app/components/character/InventoryPanel.vue` e `ItemEditorModal.vue` (blocos por categoria; editor de efeitos tipo → alvo → operação → valor; `[data-equip]`, `[data-proficient]`, `[data-suppressed]`). Testes em `frontend/tests/inventory-panel.spec.ts`
 - [X] T042 [US3] Acrescentar as rotas de itens à matriz de T034 em `CharacterOwnershipTests.cs`
 
 ## Phase 7: User Story 4 - Rolar pelo painel do jogador no Modo Jogo (P1)
@@ -135,7 +135,7 @@
 - [ ] T061 [US7] `CatalogService` e `backend/src/Companion.Api/Endpoints/CatalogEndpoints.cs` (busca por `SearchKey`, filtros, paginação, `attribution` só nos itens). `CharacterService` ganha: item do catálogo (cópia), magias com CRUD, magia do catálogo (409 se repetida) e dano da magia em `stats.spellRolls`
 - [X] T062 [US7] Integração em `backend/tests/Companion.IntegrationTests/CatalogApiTests.cs`: busca sem acento, filtros, cópia independente do catálogo, catálogo atualizado não muda a cópia, item personalizado sobrevive a um seed vazio, fonte "fora do ar" (seed source que lança exceção) mantém a API saudável Nota: CatalogApiTests.cs (5 casos); parse do seed real das 361 magias em CatalogSeedParsingTests.cs.
 - [X] T063 [US7] Acrescentar as rotas de magias e de "do catálogo" à matriz de T034
-- [ ] T064 [US7] `frontend/app/components/character/CatalogPicker.vue` (itens e magias, busca com espera, filtros, paginação, "Adicionar", atribuição só nos itens) e `SpellList.vue` (aba Magias, editor de magia personalizada, CD e ataque mágico do `stats`). Testes em `frontend/tests/catalog-picker.spec.ts` e `spell-list.spec.ts`
+- [X] T064 [US7] `frontend/app/components/character/CatalogPicker.vue` (itens e magias, busca com espera, filtros, paginação, "Adicionar", atribuição só nos itens) e `SpellList.vue` (aba Magias, editor de magia personalizada, CD e ataque mágico do `stats`). Testes em `frontend/tests/catalog-picker.spec.ts` e `spell-list.spec.ts`
 
 ## Phase 11: Polish & Cross-Cutting
 
