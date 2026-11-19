@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<{
   hitPointsHidden?: boolean
   /** Master view only: the token's whole footprint is under fog (players do not see it). */
   fogged?: boolean
+  /** The token opens a sheet on right-click / Shift+F10 (spec 010); announced to assistive tech. */
+  hasSheet?: boolean
 }>(), { defeated: false, photo: null, isCurrentTurn: false, currentHitPoints: null, maxHitPoints: null, footprintSize: 1, hitPointsHidden: false, fogged: false })
 
 // The token's visual radius/text/bars all scale with its footprint (FR-012),
@@ -60,11 +62,14 @@ const accessibleLabel = computed(() => {
   if (healthRatio.value !== null) parts.push(`vida ${props.currentHitPoints ?? 0} de ${props.maxHitPoints}${props.hitPointsHidden ? ' (oculta aos jogadores)' : ''}`)
   if (statusConditions.value.length) parts.push(`condições: ${conditionListLabel(statusConditions.value)}`)
   parts.push(`coluna ${(props.token.column ?? 0) + 1}, linha ${(props.token.row ?? 0) + 1}`)
+  if (props.hasSheet) parts.push('Shift+F10 abre a ficha')
   return parts.join(', ')
 })
 const emit = defineEmits<{
   select: [token: BattlemapToken]
   dragstart: [event: PointerEvent, token: BattlemapToken]
+  /** Keyboard equivalent of a right-click (Shift+F10 or the Menu key). */
+  context: [token: BattlemapToken]
 }>()
 // Small corner badge marking defeated (0 HP) combatants; drawn in SVG so it scales with zoom.
 const badge = computed(() => Math.max(7, props.size * .17))
@@ -85,6 +90,8 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
     :aria-label="accessibleLabel"
     @keydown.enter.prevent="emit('select', token)"
     @keydown.space.prevent="emit('select', token)"
+    @keydown.shift.exact.f10.prevent="emit('context', token)"
+    @keydown.context-menu.prevent="emit('context', token)"
     @pointerdown.stop="emit('dragstart', $event, token)"
     @click.stop
   >
