@@ -3,6 +3,8 @@ import type { AbilityKey, Creature, RollPreset } from '~/types/creatures'
 export const ROLL_DICE = [4, 6, 8, 10, 12, 20, 100] as const
 export const MIN_BONUS = -20
 export const MAX_BONUS = 20
+/** How long a creature roll's settled dice and total stay on screen (spec 010). */
+export const RESULT_HOLD_MS = 2000
 export const MAX_COUNT = 20
 export const DEFAULT_PRESET: RollPreset = { count: 1, die: 20, ability: null, bonus: 0 }
 

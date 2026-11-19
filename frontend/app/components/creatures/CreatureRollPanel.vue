@@ -3,7 +3,7 @@ import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import type { Creature, RollPreset } from '~/types/creatures'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
-import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, ROLL_DICE, buildExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
+import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, RESULT_HOLD_MS, ROLL_DICE, buildExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
 
 /**
  * Roll for a creature (spec 008, US5): dice count, die, ability modifier and an extra value.
@@ -41,12 +41,33 @@ function step(field: 'count' | 'bonus', delta: number) {
 }
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 
+// The settled dice and their total stay on screen for RESULT_HOLD_MS (spec 010). The button is
+// free again as soon as the result is revealed: a new roll interrupts the hold.
+let holdTimer: ReturnType<typeof setTimeout> | undefined
+const stage = ref<HTMLElement | null>(null)
+function clearAnimation() {
+  clearTimeout(holdTimer); holdTimer = undefined
+  rollingDice.value = []; settled.value = false; rollingTotals.value = []
+}
+// The sheet can close mid-roll: the roll is still revealed (it already happened on the server and
+// belongs in the history), but nothing may scroll or start a timer on a panel that is gone.
+let disposed = false
+onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer) })
+/** The panel sits mid-sheet: bring the dice and the result into view instead of below the fold. */
+function revealStage() {
+  if (disposed) return
+  void nextTick(() => stage.value?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }))
+}
+
 async function roll() {
   if (!store.session || offline.value || busy.value) return
   const preset = clampPreset({ ...draft })
   busy.value = true; error.value = ''
+  clearAnimation()
+  let revealedOk = false
   try {
     rollingDice.value = diceForAnimation(expression.value); settled.value = false; rollingTotals.value = []
+    revealStage()
     const startedAt = performance.now()
     const result = await api.rollDice(store.session, expression.value, false, props.label)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
@@ -56,17 +77,21 @@ async function roll() {
       store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50)
     }
     last.value = revealed
+    revealedOk = true
+    revealStage()
     emit('rolled', revealed, preset)
+    if (!disposed) holdTimer = setTimeout(clearAnimation, RESULT_HOLD_MS)
   } catch (exception) {
     error.value = (exception as Error).message
   } finally {
-    rollingDice.value = []; settled.value = false; rollingTotals.value = []; busy.value = false
+    if (!revealedOk) clearAnimation()
+    busy.value = false
   }
 }
 </script>
 
 <template>
-  <section class="creature-roll" aria-labelledby="creature-roll-title">
+  <section class="creature-roll" aria-labelledby="creature-roll-title" :data-roll-showing="rollingDice.length ? (settled ? 'result' : 'rolling') : undefined">
     <h3 id="creature-roll-title" class="creature-section-title"><Icon name="lucide:dices" />Rolar para {{ label }}</h3>
 
     <div class="creature-roll-row">
@@ -120,7 +145,9 @@ async function roll() {
       </button>
     </div>
 
-    <DiceRollAnimation v-if="rollingDice.length" :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
+      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+    </div>
     <p v-else-if="last" class="roll-last" aria-live="polite">
       <Icon name="lucide:sparkles" />Último resultado: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small>
     </p>

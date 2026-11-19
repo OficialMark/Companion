@@ -12,7 +12,12 @@ export function useCompanionApi() {
 
   async function problem(response: Response) {
     const details = await response.json().catch(() => ({})) as ProblemDetails
-    const error = new Error(details.detail || details.title || 'Não foi possível concluir a operação.')
+    // The rate limiters (join: 12/min per IP; admin: 8/min per IP; 1-minute fixed windows)
+    // answer 429 with an empty body, so "wait a minute" is always true.
+    const fallback = response.status === 429
+      ? 'Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.'
+      : 'Não foi possível concluir a operação.'
+    const error = new Error(details.detail || details.title || fallback)
     ;(error as Error & { status?: number }).status = response.status
     return error
   }

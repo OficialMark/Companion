@@ -241,6 +241,33 @@ function closeAttackAreaPanel() {
 
 const areaTokens = computed(() => positionedTokens.value.filter(token => areaGeometry(token) !== null))
 
+/**
+ * The sheet a right-click (or Shift+F10 / Menu key) opens for this token (spec 010). Today only
+ * the master's creature tokens have one; player character sheets will plug in here.
+ */
+function sheetFor(token: BattlemapToken): { creatureId: string } | null {
+  return props.isMaster && token.creatureId ? { creatureId: token.creatureId } : null
+}
+
+const hasSheetTokens = computed(() => positionedTokens.value.some(token => sheetFor(token)))
+
+/**
+ * Right-click / context key: the token's sheet when it has one, else the token menu as before.
+ * Same guards for mouse and keyboard: nothing in fog mode (it owns the board) or offline.
+ */
+function openTokenContext(token: BattlemapToken) {
+  if (fog.active.value || !props.online) return
+  const sheet = sheetFor(token)
+  if (!sheet) {
+    selectToken(token)
+    return
+  }
+  // Any open token menu goes away, not only this token's: closing the sheet must not bring back
+  // another token's menu with a pending move.
+  if (selectedParticipantId.value) closeAttackAreaPanel()
+  emit('open-creature-sheet', token.participantId, sheet.creatureId, token.displayName)
+}
+
 function selectToken(token: BattlemapToken) {
   if (!props.online || !controllable(token)) return
   if (selectedParticipantId.value === token.participantId) {
@@ -313,11 +340,12 @@ function clickSurface(event: MouseEvent) {
 function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
   suppressSurfaceClick = false
   if (fog.active.value) return
-  // Middle button: nothing. Right button: open/close the menu without dragging (the
-  // context menu is suppressed on the board). Only the primary button/touch/pen drags.
+  // Middle button: nothing. Right button: the token's sheet, or its menu when it has no sheet,
+  // without dragging (the browser menu is suppressed on the board). Only the primary
+  // button/touch/pen drags.
   if (event.button === 1) return
   if (event.button === 2) {
-    selectToken(token)
+    openTokenContext(token)
     return
   }
   selectToken(token)
@@ -725,6 +753,8 @@ onBeforeUnmount(() => observer?.disconnect())
           :fogged="foggedForMaster(token)"
           @select="selectToken"
           @dragstart="startTokenDrag"
+          :has-sheet="Boolean(sheetFor(token))"
+          @context="openTokenContext"
         />
       </g>
     </svg>
@@ -738,7 +768,7 @@ onBeforeUnmount(() => observer?.disconnect())
       :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
       :is-marker="Boolean(activeAttackAreaToken.isMarker)"
       :hit-points-hidden="panelHitPointsHidden(activeAttackAreaToken)"
-      :can-open-sheet="isMaster && Boolean(activeAttackAreaToken.creatureId)"
+      :can-open-sheet="Boolean(sheetFor(activeAttackAreaToken))"
       @open-sheet="emit('open-creature-sheet', activeAttackAreaToken!.participantId, activeAttackAreaToken!.creatureId!, activeAttackAreaToken!.displayName)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
@@ -783,7 +813,7 @@ onBeforeUnmount(() => observer?.disconnect())
         <template v-if="!online">Conexão necessária para mover pinos.</template>
         <template v-else-if="fog.active.value">Modo névoa: os jogadores não veem as áreas cobertas nem as criaturas dentro delas.</template>
         <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
-        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.</template>
+        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.<template v-if="hasSheetTokens"> Botão direito (ou Shift+F10) numa criatura abre a ficha.</template></template>
       </span>
     </p>
   </div>
