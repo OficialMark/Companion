@@ -32,7 +32,7 @@ public sealed class EncounterService(
         try
         {
             var combatant = encounter.AddCombatant(Guid.NewGuid(), request.Name, request.InitiativeModifier,
-                currentHitPoints: request.CurrentHitPoints);
+                currentHitPoints: request.CurrentHitPoints, maxHitPoints: request.MaxHitPoints);
             db.Add(combatant);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
@@ -56,7 +56,7 @@ public sealed class EncounterService(
                 foreach (var participant in onlinePlayers)
                 {
                     var combatant = encounter.AddCombatant(Guid.NewGuid(), participant.DisplayName,
-                        participant.InitiativeModifier ?? 0, participant.Id, participant.CurrentHitPoints);
+                        participant.InitiativeModifier ?? 0, participant.Id, participant.CurrentHitPoints, participant.MaxHitPoints);
                     db.Add(combatant);
                 }
             }
@@ -67,7 +67,7 @@ public sealed class EncounterService(
         Guid campaignId, Guid encounterId, Guid combatantId, string token,
         UpdateCombatantRequest request, CancellationToken cancellationToken) =>
         MutateMasterAsync(campaignId, encounterId, token,
-            encounter => encounter.UpdateCombatant(combatantId, request.Name, request.InitiativeModifier, request.CurrentHitPoints), cancellationToken);
+            encounter => encounter.UpdateCombatant(combatantId, request.Name, request.InitiativeModifier, request.CurrentHitPoints, request.MaxHitPoints), cancellationToken);
 
     public async Task<EncounterDto> UpdateHitPointsAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token,
@@ -88,6 +88,25 @@ public sealed class EncounterService(
         return DtoMapper.ToDto(encounter, participant);
     }
 
+    public Task<EncounterDto> SetHitPointsVisibilityAsync(
+        Guid campaignId, Guid encounterId, Guid combatantId, string token,
+        SetHitPointsVisibilityRequest request, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter =>
+        {
+            var combatant = encounter.Combatants.FirstOrDefault(x => x.Id == combatantId)
+                ?? throw new AppException(AppErrorKind.NotFound, "Combatente não encontrado.");
+            combatant.SetHitPointsHidden(request.Hidden);
+        }, cancellationToken);
+
+    public Task<EncounterDto> SetAllCreatureHitPointsVisibilityAsync(
+        Guid campaignId, Guid encounterId, string token,
+        SetHitPointsVisibilityRequest request, CancellationToken cancellationToken) =>
+        MutateMasterAsync(campaignId, encounterId, token, encounter =>
+        {
+            foreach (var creature in encounter.Combatants.Where(x => x.IsCreature))
+                creature.SetHitPointsHidden(request.Hidden);
+        }, cancellationToken);
+
     public async Task<EncounterDto> RemoveCombatantAsync(
         Guid campaignId, Guid encounterId, Guid combatantId, string token, CancellationToken cancellationToken)
     {
@@ -97,6 +116,8 @@ public sealed class EncounterService(
         foreach (var position in positions) db.Remove(position);
         var areas = db.AttackAreas.Where(x => x.CombatantId == combatantId).ToArray();
         foreach (var area in areas) db.Remove(area);
+        var appearances = db.TokenAppearances.Where(x => x.CombatantId == combatantId).ToArray();
+        foreach (var appearance in appearances) db.Remove(appearance);
         try { encounter.RemoveCombatant(combatantId); }
         catch (Exception exception) when (exception is InvalidOperationException or ArgumentException)
         { throw new AppException(AppErrorKind.Validation, exception.Message); }

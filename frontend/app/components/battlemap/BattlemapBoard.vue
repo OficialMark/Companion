@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import type { BattlemapSnapshot, BattlemapToken } from '~/types/campaign'
+import type { BattlemapSnapshot, BattlemapToken, Combatant, EncounterStatus, Participant } from '~/types/campaign'
 import { useBattlemapViewport } from '~/composables/useBattlemapViewport'
 import { useAttackAreas, type AttackAreaDraft } from '~/composables/useAttackAreas'
+import { useTokenAppearance, type TokenAppearanceDraft } from '~/composables/useTokenAppearance'
 import { attackAreaGeometry } from '~/utils/attackAreaGeometry'
+import { useFogOfWar } from '~/composables/useFogOfWar'
+import { maskPath } from '~/utils/fogMask'
 import BattlemapTokenMarker from './BattlemapToken.vue'
 import AttackAreaPanel from './AttackAreaPanel.vue'
+import FogToolbar from './FogToolbar.vue'
 
 const props = withDefaults(defineProps<{
   battlemap: BattlemapSnapshot
@@ -13,12 +17,34 @@ const props = withDefaults(defineProps<{
   isMaster: boolean
   online: boolean
   pendingParticipantId?: string | null
-}>(), { pendingParticipantId: null })
+  defeatedIds?: string[]
+  /** participantId -> profile photo URL; player tokens with a photo show it instead of initials. */
+  avatars?: Record<string, string>
+  combatants?: Combatant[]
+  encounterStatus?: EncounterStatus | null
+  participants?: Participant[]
+  /** A fog save is in flight (store.fogSaving). */
+  fogSaving?: boolean
+}>(), { pendingParticipantId: null, defeatedIds: () => [], avatars: () => ({}), combatants: () => [], encounterStatus: null, participants: () => [], fogSaving: false })
 const emit = defineEmits<{
   move: [participantId: string, column: number | null, row: number | null]
   'attack-area-commit': [tokenId: string, draft: AttackAreaDraft]
   'attack-area-remove': [tokenId: string]
+  'token-appearance-commit': [tokenId: string, draft: TokenAppearanceDraft]
+  'create-marker': [label: string]
+  'marker-remove': [markerId: string]
+  'fog-commit': [mask: string | null]
+  /** combatantId = null applies to every creature of the encounter. */
+  'hit-points-visibility': [combatantId: string | null, hidden: boolean]
 }>()
+
+const newMarkerLabel = ref('')
+function submitNewMarker() {
+  const label = newMarkerLabel.value.trim()
+  if (!label) return
+  emit('create-marker', label)
+  newMarkerLabel.value = ''
+}
 
 const columns = computed(() => props.battlemap.columns)
 const rows = computed(() => props.battlemap.rows)
@@ -29,6 +55,15 @@ const cursor = reactive({ column: 0, row: 0 })
 const dragParticipantId = ref<string | null>(null)
 const dragPointer = reactive({ x: 0, y: 0, moved: false })
 const panPointer = reactive({ active: false, x: 0, y: 0, moved: false })
+// The browser synthesizes a `click` after every pointerup. Because startTokenDrag
+// captures the pointer on the surface, that click lands on the SURFACE (not on the
+// token) and clickSurface would treat it as "move the selected token here": for a 2x2+
+// token or a stacked one the cell under the cursor differs from the anchor, so the token
+// jumped and its menu closed as soon as the left button was released (right-click worked
+// only because it fires no click). Armed when a token pointer session ends, consumed by
+// the next surface click, and cleared on any new pointerdown so it can never swallow a
+// later, genuine click even when the browser emits no click at all.
+let suppressSurfaceClick = false
 const activePointers = new Map<number, { x: number; y: number }>()
 let pinchStartDistance = 0
 let observer: ResizeObserver | null = null
@@ -41,20 +76,130 @@ const selectedToken = computed(() =>
   props.battlemap.tokens.find(token => token.participantId === selectedParticipantId.value) ?? null)
 const mapWidth = computed(() => columns.value * viewport.cellSize.value)
 const mapHeight = computed(() => rows.value * viewport.cellSize.value)
+const defeatedSet = computed(() => new Set(props.defeatedIds))
+const photoFor = (token: BattlemapToken) => token.isCreature ? null : props.avatars[token.participantId] ?? null
+// The board follows the map proportion (within sensible height limits), so wide
+// maps don't leave a tall empty frame and tall maps get more vertical room.
+const boardStyle = computed(() => ({ '--map-ratio': `${columns.value} / ${rows.value}` }))
+
+// Fog of war (spec 007, US4). Players get an opaque layer; the master a translucent one.
+const fog = useFogOfWar(computed(() => props.battlemap.fogMask), columns, rows, computed(() => props.fogSaving))
+const fogPatternId = computed(() => `fog-pattern-${props.battlemap.id}`)
+const fogPathD = computed(() => maskPath(fog.mask.value, columns.value, rows.value, viewport.cellSize.value))
+const fogHover = ref<{ column: number; row: number } | null>(null)
+const fogBrushPreview = computed(() => {
+  if (!fog.active.value || fog.tool.value !== 'brush' || !fogHover.value || fog.rectPreview.value) return null
+  const half = Math.floor((fog.brushSize.value - 1) / 2)
+  return { column: fogHover.value.column - half, row: fogHover.value.row - half, size: fog.brushSize.value }
+})
+function toggleFogMode() {
+  if (!props.isMaster || !props.online) return
+  if (fog.active.value) { exitFogMode(); return }
+  closeAttackAreaPanel()
+  fog.active.value = true
+}
+function exitFogMode() {
+  if (fog.stroking.value) fog.cancel()
+  fog.active.value = false
+  fogHover.value = null
+}
+function fogFillAll(covered: boolean) {
+  emit('fog-commit', fog.fillAll(covered))
+}
+watch(() => props.online, online => { if (!online && fog.active.value) exitFogMode() })
+watch(() => props.isMaster, master => { if (!master) exitFogMode() })
+
+// Master-owned tokens are hidden from players when fully fogged; the master sees them dimmed.
+function masterOwned(token: BattlemapToken) {
+  if (token.isCreature) return true
+  if (!token.isMarker) return false
+  return !props.participants.some(item => item.id === token.ownerParticipantId && item.role === 'Player')
+}
+function foggedForMaster(token: BattlemapToken) {
+  return props.isMaster && masterOwned(token) && fog.tokenFogged(token.column, token.row, token.footprintSize ?? 1)
+}
+
+// HP visibility (spec 007, US3). A creature token's participantId is its Combatant.id.
+const combatantsById = computed(() => new Map(props.combatants.map(item => [item.id, item])))
+function creatureCombatant(token: BattlemapToken) {
+  return token.isCreature ? combatantsById.value.get(token.participantId) ?? null : null
+}
+function hitPointsHiddenFor(token: BattlemapToken) {
+  return props.isMaster && Boolean(creatureCombatant(token)?.isHitPointsHidden)
+}
+/** Toggle state for the token menu: null hides the toggle (players, characters, markers). */
+function panelHitPointsHidden(token: BattlemapToken) {
+  if (!props.isMaster) return null
+  const combatant = creatureCombatant(token)
+  return combatant ? Boolean(combatant.isHitPointsHidden) : null
+}
+const creatureCombatants = computed(() => props.combatants.filter(item => !item.participantId))
+const allCreatureHitPointsHidden = computed(() =>
+  creatureCombatants.value.length > 0 && creatureCombatants.value.every(item => item.isHitPointsHidden))
 
 function controllable(token: BattlemapToken) {
-  return props.isMaster || (!token.isCreature && token.participantId === props.currentParticipantId)
+  if (props.isMaster) return true
+  if (token.isMarker) return token.ownerParticipantId === props.currentParticipantId
+  return !token.isCreature && token.participantId === props.currentParticipantId
+}
+
+// A creature token's `participantId` field actually holds its Combatant.id (see
+// BattlemapService.ToSnapshot); a player token's `participantId` matches
+// Combatant.participantId. Both cases are covered by checking either field.
+const currentTurnTokenId = computed(() => {
+  if (props.encounterStatus !== 'Active') return null
+  const current = props.combatants.find(item => item.isCurrent)
+  if (!current) return null
+  return current.participantId ?? current.id
+})
+function isCurrentTurn(token: BattlemapToken) {
+  return currentTurnTokenId.value !== null && currentTurnTokenId.value === token.participantId
+}
+
+// Resolved client-side (not carried on BattlemapTokenDto) so it stays in sync with
+// HP mutations, which broadcast via EncounterInvalidated/ParticipantsChanged, not
+// BattlemapInvalidated. See specs/006-battlemap-combat-ux/data-model.md.
+// Memoized as a computed lookup map (instead of a per-call linear scan) since the
+// template reads it twice per token (current/max), for every token, every render.
+const healthByTokenId = computed(() => {
+  const map = new Map<string, { current: number | null; max: number | null }>()
+  const combatantsByTokenId = new Map(props.combatants.map(item => [item.participantId ?? item.id, item]))
+  const participantsById = new Map(props.participants.map(item => [item.id, item]))
+  for (const token of props.battlemap.tokens) {
+    if (token.isMarker) continue
+    const combatant = combatantsByTokenId.get(token.participantId)
+    if (combatant) {
+      if (combatant.maxHitPoints != null) map.set(token.participantId, { current: combatant.currentHitPoints, max: combatant.maxHitPoints })
+      continue
+    }
+    const participant = participantsById.get(token.participantId)
+    if (participant?.maxHitPoints != null) map.set(token.participantId, { current: participant.currentHitPoints, max: participant.maxHitPoints })
+  }
+  return map
+})
+function healthFor(token: BattlemapToken): { current: number | null; max: number | null } | null {
+  return healthByTokenId.value.get(token.participantId) ?? null
 }
 
 const attackAreas = useAttackAreas()
+const tokenAppearance = useTokenAppearance()
 const attackAreaMaxRadius = computed(() => Math.max(columns.value, rows.value))
 const activeAttackAreaToken = computed(() =>
   selectedToken.value && controllable(selectedToken.value) ? selectedToken.value : null)
 
+function footprintSize(token: BattlemapToken) {
+  return token.footprintSize ?? 1
+}
+
+// A token spanning N cells (footprintSize) is anchored at its stored
+// column/row (top-left cell) but visually centered over its whole N×N span,
+// so its attack area and stacking offset originate from the middle of the
+// creature, not from the corner cell (FR-012).
 function tokenOrigin(token: BattlemapToken) {
+  const span = footprintSize(token)
   return {
-    x: (token.column! + .5) * viewport.cellSize.value,
-    y: (token.row! + .5) * viewport.cellSize.value
+    x: (token.column! + span / 2) * viewport.cellSize.value,
+    y: (token.row! + span / 2) * viewport.cellSize.value
   }
 }
 
@@ -83,7 +228,10 @@ function selectTokenForArea(token: BattlemapToken) {
 }
 
 function closeAttackAreaPanel() {
-  if (selectedParticipantId.value) attackAreas.clearPreview(selectedParticipantId.value)
+  if (selectedParticipantId.value) {
+    attackAreas.clearPreview(selectedParticipantId.value)
+    tokenAppearance.clearPreview(selectedParticipantId.value)
+  }
   selectedParticipantId.value = null
 }
 
@@ -94,6 +242,7 @@ function selectToken(token: BattlemapToken) {
   if (selectedParticipantId.value === token.participantId) {
     selectedParticipantId.value = null
     attackAreas.clearPreview(token.participantId)
+    tokenAppearance.clearPreview(token.participantId)
     return
   }
   selectedParticipantId.value = token.participantId
@@ -124,14 +273,31 @@ function isInsideMap(column: number, row: number) {
 function commitCell(column: number, row: number) {
   if (!props.online || !selectedParticipantId.value) return
   if (!isInsideMap(column, row)) return
+  // A click resolving to the selected token's OWN current cell is never a
+  // real destination choice — it is either the browser's click event
+  // auto-synthesized right after this same tap's pointerup (setPointerCapture
+  // in startTokenDrag retargets it onto the surface, bypassing the token
+  // entirely), or a pointless self-click. Either way, committing it would
+  // immediately clear the selection that this same tap just set, closing the
+  // interaction panel before the user can use it. Ignoring it here (instead
+  // of a timing-based suppression flag) leaves genuinely different
+  // destination clicks — the documented select-then-tap-elsewhere flow —
+  // completely unaffected.
+  if (selectedToken.value?.column === column && selectedToken.value?.row === row) return
   cursor.column = column
   cursor.row = row
   emit('move', selectedParticipantId.value, column, row)
   attackAreas.clearPreview(selectedParticipantId.value)
+  tokenAppearance.clearPreview(selectedParticipantId.value)
   selectedParticipantId.value = null
 }
 
 function clickSurface(event: MouseEvent) {
+  if (suppressSurfaceClick) {
+    suppressSurfaceClick = false
+    return
+  }
+  if (fog.active.value) return
   if (panPointer.moved) {
     panPointer.moved = false
     return
@@ -141,6 +307,15 @@ function clickSurface(event: MouseEvent) {
 }
 
 function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
+  suppressSurfaceClick = false
+  if (fog.active.value) return
+  // Middle button: nothing. Right button: open/close the menu without dragging (the
+  // context menu is suppressed on the board). Only the primary button/touch/pen drags.
+  if (event.button === 1) return
+  if (event.button === 2) {
+    selectToken(token)
+    return
+  }
   selectToken(token)
   if (!props.online || !controllable(token)) return
   dragParticipantId.value = token.participantId
@@ -162,15 +337,44 @@ function pointerMidpoint(rect: DOMRect) {
   return { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }
 }
 
+function startPan(event: PointerEvent) {
+  panPointer.active = true
+  panPointer.x = event.clientX
+  panPointer.y = event.clientY
+  panPointer.moved = false
+}
+
 function pointerDown(event: PointerEvent) {
+  suppressSurfaceClick = false
+  // A pan that ended without a click (right/middle button) must not swallow the next click.
+  panPointer.moved = false
+  // A primary pointer going down means no other pointer is really active: drop entries
+  // whose pointerup was lost (released outside the window, focus change), so a stale
+  // one can never turn the next press into a "pinch" or leave a fog stroke hanging.
+  if (event.isPrimary !== false) {
+    activePointers.clear()
+    if (fog.stroking.value) commitFogStroke()
+  }
   activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
   surface.value?.setPointerCapture?.(event.pointerId)
   if (activePointers.size === 2) {
+    // Second finger: pinch wins over painting/panning; an in-progress fog stroke is undone.
+    if (fog.stroking.value) fog.cancel()
     panPointer.active = false
     pinchStartDistance = pointerDistance()
     return
   }
-  if (activePointers.size > 1 || selectedParticipantId.value || dragParticipantId.value) return
+  if (activePointers.size > 1 || dragParticipantId.value) return
+  // Right/middle drag always pans (the only mouse pan while fog mode paints with the left button).
+  if (event.button === 1 || event.button === 2) {
+    startPan(event)
+    return
+  }
+  if (fog.active.value) {
+    fog.begin(cellFromEvent(event))
+    return
+  }
+  if (selectedParticipantId.value) return
   panPointer.active = true
   panPointer.x = event.clientX
   panPointer.y = event.clientY
@@ -178,6 +382,14 @@ function pointerDown(event: PointerEvent) {
 }
 
 function pointerMove(event: PointerEvent) {
+  if (fog.active.value) {
+    const cell = cellFromEvent(event)
+    if (!fogHover.value || fogHover.value.column !== cell.column || fogHover.value.row !== cell.row) fogHover.value = cell
+    if (fog.stroking.value && activePointers.size === 1) {
+      fog.extend(cell)
+      return
+    }
+  }
   if (dragParticipantId.value) {
     const dx = event.clientX - dragPointer.x
     const dy = event.clientY - dragPointer.y
@@ -208,7 +420,9 @@ function pointerMove(event: PointerEvent) {
 function pointerUp(event: PointerEvent) {
   activePointers.delete(event.pointerId)
   if (activePointers.size < 2) pinchStartDistance = 0
+  if (fog.stroking.value) commitFogStroke()
   if (dragParticipantId.value) {
+    suppressSurfaceClick = true
     const tokenId = dragParticipantId.value
     const dx = event.clientX - dragPointer.x
     const dy = event.clientY - dragPointer.y
@@ -221,6 +435,7 @@ function pointerUp(event: PointerEvent) {
       if (!isInsideMap(cell.column, cell.row)) {
         emit('move', tokenId, null, null)
         attackAreas.clearPreview(tokenId)
+        tokenAppearance.clearPreview(tokenId)
         selectedParticipantId.value = null
       } else {
         commitCell(cell.column, cell.row)
@@ -232,6 +447,25 @@ function pointerUp(event: PointerEvent) {
   panPointer.active = false
 }
 
+function commitFogStroke() {
+  const mask = fog.end()
+  if (mask !== undefined) emit('fog-commit', mask)
+}
+
+/** Capture lost without a pointerup (e.g. window blur): finish what that pointer was doing. */
+function lostPointerCapture(event: PointerEvent) {
+  if (activePointers.has(event.pointerId)) pointerUp(event)
+}
+
+function pointerCancel(event: PointerEvent) {
+  if (fog.stroking.value) fog.cancel()
+  pointerUp(event)
+}
+
+function pointerLeave() {
+  fogHover.value = null
+}
+
 function wheel(event: WheelEvent) {
   event.preventDefault()
   const rect = surface.value?.getBoundingClientRect()
@@ -241,9 +475,11 @@ function wheel(event: WheelEvent) {
 
 function keydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
-    closeAttackAreaPanel()
+    if (fog.active.value) exitFogMode()
+    else closeAttackAreaPanel()
     return
   }
+  if (fog.active.value) return
   const delta = event.shiftKey ? 5 : 1
   if (event.key === 'ArrowLeft') cursor.column = Math.max(0, cursor.column - delta)
   else if (event.key === 'ArrowRight') cursor.column = Math.min(columns.value - 1, cursor.column + delta)
@@ -255,6 +491,7 @@ function keydown(event: KeyboardEvent) {
 }
 
 function stackOffset(token: BattlemapToken) {
+  if (footprintSize(token) > 1) return { x: 0, y: 0 }
   const sameCell = positionedTokens.value.filter(item => item.column === token.column && item.row === token.row)
   const index = sameCell.findIndex(item => item.participantId === token.participantId)
   const distance = Math.min(10, viewport.cellSize.value * .2)
@@ -264,12 +501,22 @@ function stackOffset(token: BattlemapToken) {
   }
 }
 
+function tokenCenter(token: BattlemapToken) {
+  const origin = tokenOrigin(token)
+  const offset = stackOffset(token)
+  return { x: origin.x + offset.x, y: origin.y + offset.y }
+}
+
 onMounted(() => {
   viewport.reset()
   if (surface.value && typeof ResizeObserver !== 'undefined') {
+    let measured = false
     observer = new ResizeObserver(entries => {
       const rect = entries[0]?.contentRect
-      if (rect) viewport.resize(rect.width, rect.height)
+      if (!rect) return
+      viewport.resize(rect.width, rect.height)
+      // First real measurement: pick the initial zoom from the actual board size.
+      if (!measured && rect.width > 0 && rect.height > 0) { measured = true; viewport.reset() }
     })
     observer.observe(surface.value)
   }
@@ -279,18 +526,57 @@ onBeforeUnmount(() => observer?.disconnect())
 
 <template>
   <div class="battlemap-shell">
-    <div class="battlemap-toolbar" aria-label="Controles do mapa">
-      <button class="icon-button" type="button" aria-label="Diminuir zoom" @click="viewport.zoom(1 / 1.2)">−</button>
-      <span>{{ Math.round(viewport.cellSize.value) }} px</span>
-      <button class="icon-button" type="button" aria-label="Aumentar zoom" @click="viewport.zoom(1.2)">+</button>
-      <button class="button ghost" type="button" @click="viewport.fit">Ajustar mapa</button>
-      <button class="button ghost" type="button" @click="viewport.reset">Escala 40 px</button>
+    <div class="battlemap-toolbar" role="toolbar" aria-label="Controles do mapa">
+      <div class="toolbar-group">
+        <button class="icon-button" type="button" aria-label="Diminuir zoom" title="Diminuir zoom" @click="viewport.zoom(1 / 1.2)"><Icon name="lucide:zoom-out" /></button>
+        <span class="zoom-label" :title="`${Math.round(viewport.cellSize.value)} px por célula`">{{ Math.round(viewport.cellSize.value) }} px</span>
+        <button class="icon-button" type="button" aria-label="Aumentar zoom" title="Aumentar zoom" @click="viewport.zoom(1.2)"><Icon name="lucide:zoom-in" /></button>
+      </div>
+      <div v-if="isMaster" class="toolbar-group">
+        <button
+          class="button compact"
+          :class="fog.active.value ? 'primary' : 'ghost'"
+          type="button"
+          data-fog-toggle
+          :aria-pressed="fog.active.value"
+          :disabled="!online"
+          title="Ocultar ou revelar partes do mapa"
+          @click="toggleFogMode"
+        ><Icon name="lucide:cloud-fog" /><span>Névoa</span></button>
+        <button
+          v-if="creatureCombatants.length"
+          class="button ghost compact"
+          type="button"
+          data-hp-visibility-all
+          :aria-pressed="allCreatureHitPointsHidden"
+          :disabled="!online"
+          :title="allCreatureHitPointsHidden ? 'Mostrar a vida das criaturas aos jogadores' : 'Ocultar a vida das criaturas dos jogadores'"
+          @click="emit('hit-points-visibility', null, !allCreatureHitPointsHidden)"
+        ><Icon :name="allCreatureHitPointsHidden ? 'lucide:eye-off' : 'lucide:eye'" /><span>{{ allCreatureHitPointsHidden ? 'HP oculto' : 'HP visível' }}</span></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="button ghost compact" type="button" title="Mostrar o mapa inteiro" @click="viewport.fit"><Icon name="lucide:maximize" /><span>Ajustar mapa</span></button>
+        <button class="button ghost compact" type="button" title="Voltar à escala padrão de 40 px por célula" @click="viewport.defaultScale"><Icon name="lucide:rotate-ccw" /><span>Escala 40 px</span></button>
+      </div>
     </div>
+
+    <FogToolbar
+      v-if="fog.active.value"
+      v-model:mode="fog.mode.value"
+      v-model:tool="fog.tool.value"
+      v-model:brush-size="fog.brushSize.value"
+      :busy="fog.stroking.value"
+      @cover-all="fogFillAll(true)"
+      @reveal-all="fogFillAll(false)"
+      @close="exitFogMode"
+    />
 
     <svg
       ref="surface"
       data-board-surface
       class="battlemap-board"
+      :class="{ 'fog-editing': fog.active.value }"
+      :style="boardStyle"
       :viewBox="`0 0 ${viewport.viewportWidth.value} ${viewport.viewportHeight.value}`"
       role="application"
       tabindex="0"
@@ -299,27 +585,26 @@ onBeforeUnmount(() => observer?.disconnect())
       @pointerdown="pointerDown"
       @pointermove="pointerMove"
       @pointerup="pointerUp"
-      @pointercancel="pointerUp"
+      @pointercancel="pointerCancel"
+      @lostpointercapture="lostPointerCapture"
+      @pointerleave="pointerLeave"
+      @contextmenu.prevent
       @wheel="wheel"
       @keydown="keydown"
     >
-      <defs>
-        <clipPath :id="`battlemap-clip-${battlemap.id}`">
-          <rect :width="mapWidth" :height="mapHeight" />
-        </clipPath>
-      </defs>
       <g :transform="`translate(${-viewport.pan.x} ${-viewport.pan.y})`">
+        <rect class="battlemap-backdrop" :width="mapWidth" :height="mapHeight" />
+        <!-- preserveAspectRatio="none": the whole image always fills the grid area and is
+             never cropped; the grid suggestion in BattlemapSetup keeps any stretch negligible. -->
         <image
           :href="imageSource"
           :width="mapWidth"
           :height="mapHeight"
-          preserveAspectRatio="xMidYMid slice"
-          :clip-path="`url(#battlemap-clip-${battlemap.id})`"
+          preserveAspectRatio="none"
         />
         <rect class="battlemap-boundary" :width="mapWidth" :height="mapHeight" />
         <line
-          v-if="battlemap.isGridVisible"
-          v-for="line in verticalLines"
+          v-for="line in (battlemap.isGridVisible ? verticalLines : [])"
           :key="`v-${line}`"
           data-grid-line
           class="battlemap-grid-line"
@@ -329,8 +614,7 @@ onBeforeUnmount(() => observer?.disconnect())
           :y2="mapHeight"
         />
         <line
-          v-if="battlemap.isGridVisible"
-          v-for="line in horizontalLines"
+          v-for="line in (battlemap.isGridVisible ? horizontalLines : [])"
           :key="`h-${line}`"
           data-grid-line
           class="battlemap-grid-line"
@@ -338,6 +622,43 @@ onBeforeUnmount(() => observer?.disconnect())
           :y1="line * viewport.cellSize.value"
           :x2="mapWidth"
           :y2="line * viewport.cellSize.value"
+        />
+        <defs v-if="fogPathD">
+          <!-- Soft "cloud" texture so fog reads as unexplored map, not as the empty board around it. -->
+          <pattern :id="fogPatternId" patternUnits="userSpaceOnUse" width="64" height="64">
+            <rect width="64" height="64" fill="#1b1721" />
+            <circle cx="14" cy="18" r="16" fill="#25202d" opacity=".75" />
+            <circle cx="46" cy="40" r="20" fill="#221d2a" opacity=".7" />
+            <circle cx="56" cy="8" r="10" fill="#29233a" opacity=".5" />
+            <circle cx="20" cy="54" r="9" fill="#28223a" opacity=".45" />
+          </pattern>
+        </defs>
+        <path
+          v-if="fogPathD"
+          data-fog-layer
+          class="battlemap-fog"
+          :class="{ master: isMaster }"
+          :fill="`url(#${fogPatternId})`"
+          :d="fogPathD"
+        />
+        <rect
+          v-if="fog.rectPreview.value"
+          data-fog-rect-preview
+          class="fog-rect-preview"
+          :class="fog.mode.value"
+          :x="fog.rectPreview.value.column * viewport.cellSize.value"
+          :y="fog.rectPreview.value.row * viewport.cellSize.value"
+          :width="(fog.rectPreview.value.right - fog.rectPreview.value.column + 1) * viewport.cellSize.value"
+          :height="(fog.rectPreview.value.bottom - fog.rectPreview.value.row + 1) * viewport.cellSize.value"
+        />
+        <rect
+          v-if="fogBrushPreview"
+          class="fog-brush-preview"
+          :class="fog.mode.value"
+          :x="fogBrushPreview.column * viewport.cellSize.value"
+          :y="fogBrushPreview.row * viewport.cellSize.value"
+          :width="fogBrushPreview.size * viewport.cellSize.value"
+          :height="fogBrushPreview.size * viewport.cellSize.value"
         />
         <rect
           v-if="selectedToken"
@@ -379,12 +700,20 @@ onBeforeUnmount(() => observer?.disconnect())
           v-for="token in positionedTokens"
           :key="token.participantId"
           :token="token"
-          :x="(token.column! + .5) * viewport.cellSize.value + stackOffset(token).x"
-          :y="(token.row! + .5) * viewport.cellSize.value + stackOffset(token).y"
+          :x="tokenCenter(token).x"
+          :y="tokenCenter(token).y"
           :size="viewport.cellSize.value"
+          :footprint-size="footprintSize(token)"
           :selected="selectedParticipantId === token.participantId"
           :controllable="controllable(token)"
           :pending="pendingParticipantId === token.participantId"
+          :defeated="defeatedSet.has(token.participantId)"
+          :photo="photoFor(token)"
+          :is-current-turn="isCurrentTurn(token)"
+          :current-hit-points="healthFor(token)?.current ?? null"
+          :max-hit-points="healthFor(token)?.max ?? null"
+          :hit-points-hidden="hitPointsHiddenFor(token)"
+          :fogged="foggedForMaster(token)"
           @select="selectToken"
           @dragstart="startTokenDrag"
         />
@@ -396,29 +725,53 @@ onBeforeUnmount(() => observer?.disconnect())
       :draft="attackAreas.draftFor(activeAttackAreaToken)"
       :has-existing="Boolean(activeAttackAreaToken.attackArea)"
       :max-radius="attackAreaMaxRadius"
+      :token-name="activeAttackAreaToken.displayName"
+      :appearance-draft="tokenAppearance.draftFor(activeAttackAreaToken)"
+      :is-marker="Boolean(activeAttackAreaToken.isMarker)"
+      :hit-points-hidden="panelHitPointsHidden(activeAttackAreaToken)"
       @change="draft => attackAreas.preview(activeAttackAreaToken!.participantId, draft)"
       @commit="draft => emit('attack-area-commit', activeAttackAreaToken!.participantId, draft)"
       @remove="emit('attack-area-remove', activeAttackAreaToken!.participantId)"
+      @appearance-change="draft => tokenAppearance.preview(activeAttackAreaToken!.participantId, draft)"
+      @appearance-commit="draft => emit('token-appearance-commit', activeAttackAreaToken!.participantId, draft)"
+      @remove-token="emit('marker-remove', activeAttackAreaToken!.participantId)"
+      @hit-points-visibility="hidden => emit('hit-points-visibility', activeAttackAreaToken!.participantId, hidden)"
       @close="closeAttackAreaPanel"
     />
 
-    <div v-if="reserveTokens.length" class="battlemap-reserve" aria-label="Pinos na reserva">
-      <span>Reserva</span>
+    <div v-if="reserveTokens.length" class="battlemap-reserve" role="group" aria-label="Pinos na reserva">
+      <p class="reserve-label"><Icon name="lucide:package" />Reserva</p>
       <button
         v-for="token in reserveTokens"
         :key="token.participantId"
         :data-participant-id="token.participantId"
         class="reserve-token"
-        :class="{ selected: selectedParticipantId === token.participantId }"
+        :class="[{ selected: selectedParticipantId === token.participantId, defeated: defeatedSet.has(token.participantId) }, `token-color-${token.colorKey}`]"
         type="button"
         :disabled="!online || !controllable(token)"
+        :title="controllable(token) ? `Selecionar ${token.displayName} e escolher uma célula` : token.displayName"
         @click="selectToken(token)"
-      >{{ token.initials }} <span>{{ token.displayName }}</span></button>
+      ><span class="reserve-initials" :class="{ 'has-photo': photoFor(token) }"><img v-if="photoFor(token)" :src="photoFor(token)!" alt="" draggable="false"><template v-else>{{ token.initials }}</template></span> <span class="reserve-name">{{ token.displayName }}</span><Icon v-if="defeatedSet.has(token.participantId)" name="lucide:skull" class="reserve-kind" /></button>
     </div>
-    <p class="battlemap-status" aria-live="polite">
-      <template v-if="!online">Conexão necessária para mover pinos.</template>
-      <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
-      <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.</template>
+    <form v-if="online" class="battlemap-new-marker" aria-label="Inserir token representativo" @submit.prevent="submitNewMarker">
+      <input
+        v-model="newMarkerLabel"
+        data-new-marker-label
+        type="text"
+        maxlength="40"
+        aria-label="Nome do novo token"
+        placeholder="Nome do token (ex.: Lobo invocado)"
+      >
+      <button data-new-marker-submit class="button ghost compact" type="submit" :disabled="!newMarkerLabel.trim()" @click.prevent="submitNewMarker"><Icon name="lucide:map-pin-plus" /><span>Inserir token</span></button>
+    </form>
+    <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
+      <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />
+      <span>
+        <template v-if="!online">Conexão necessária para mover pinos.</template>
+        <template v-else-if="fog.active.value">Modo névoa: os jogadores não veem as áreas cobertas nem as criaturas dentro delas.</template>
+        <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
+        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.</template>
+      </span>
     </p>
   </div>
 </template>

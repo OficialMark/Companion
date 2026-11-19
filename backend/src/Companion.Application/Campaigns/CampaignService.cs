@@ -56,7 +56,7 @@ public sealed class CampaignService(
         var campaign = db.Campaigns.FirstOrDefault(x => x.Id == campaignId)
             ?? throw new AppException(AppErrorKind.NotFound, "Campanha não encontrada.");
         var participantEntities = db.Participants.Where(x => x.CampaignId == campaignId).OrderBy(x => x.CreatedAt).AsEnumerable().ToArray();
-        var participants = participantEntities.Select(x => ToDto(x, x.Id == current.Id)).ToArray();
+        var participants = participantEntities.Select(ToDto).ToArray();
         var participantNames = participantEntities.ToDictionary(x => x.Id, x => x.DisplayName);
         var rolls = db.DiceRolls.Where(x => x.CampaignId == campaignId && x.RevealedAt != null)
             .OrderByDescending(x => x.CreatedAt).Take(50).AsEnumerable()
@@ -71,7 +71,7 @@ public sealed class CampaignService(
         }
         var playerCode = db.CampaignAccessCodes.First(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player).Code;
         return Task.FromResult(new CampaignSnapshot(new CampaignDto(campaign.Id, playerCode, campaign.Name),
-            ToDto(current, true), participants, rolls, encounterDto));
+            ToDto(current), participants, rolls, encounterDto));
     }
 
     public Task<ParticipantDto> UpdateInitiativeModifierAsync(
@@ -89,16 +89,67 @@ public sealed class CampaignService(
         try
         {
             participant.UpdateCombatProfile(request.InitiativeModifier,
-                preserveHitPoints ? participant.CurrentHitPoints : request.CurrentHitPoints);
+                preserveHitPoints ? participant.CurrentHitPoints : request.CurrentHitPoints,
+                preserveHitPoints ? participant.MaxHitPoints : request.MaxHitPoints);
         }
         catch (ArgumentOutOfRangeException exception)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
         await db.SaveChangesAsync(cancellationToken);
-        var ownerDto = ToDto(participant, true);
+        var ownerDto = ToDto(participant);
         await notifier.NotifyAsync(campaignId, "ParticipantUpdated", ToDto(participant), cancellationToken);
         return ownerDto;
+    }
+
+    public async Task<ParticipantDto> UploadAvatarAsync(
+        Guid campaignId, string token, byte[] content, string mediaType, CancellationToken cancellationToken)
+    {
+        var participant = authorization.Require(campaignId, token);
+        if (content.Length is < 1 or > ParticipantAvatar.MaxImageBytes)
+            throw new AppException(AppErrorKind.Validation, "A foto deve ter no máximo 1 MB.");
+        if (!ImageFormat.IsValid(content, mediaType))
+            throw new AppException(AppErrorKind.Validation, "A foto deve ser PNG, JPEG ou WebP válido.");
+        var now = timeProvider.GetUtcNow();
+        var avatar = db.ParticipantAvatars.FirstOrDefault(x => x.ParticipantId == participant.Id);
+        if (avatar is null)
+        {
+            avatar = new ParticipantAvatar(participant.Id, content, mediaType, now);
+            db.Add(avatar);
+        }
+        else
+        {
+            avatar.Replace(content, mediaType, now);
+        }
+        participant.SetAvatarRevision(avatar.Revision);
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.NotifyAsync(campaignId, "ParticipantUpdated", ToDto(participant), cancellationToken);
+        return ToDto(participant);
+    }
+
+    public async Task<ParticipantDto> RemoveAvatarAsync(Guid campaignId, string token, CancellationToken cancellationToken)
+    {
+        var participant = authorization.Require(campaignId, token);
+        var avatar = db.ParticipantAvatars.FirstOrDefault(x => x.ParticipantId == participant.Id);
+        if (avatar is not null) db.Remove(avatar);
+        participant.SetAvatarRevision(null);
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.NotifyAsync(campaignId, "ParticipantUpdated", ToDto(participant), cancellationToken);
+        return ToDto(participant);
+    }
+
+    public Task<ParticipantAvatarDto> GetAvatarAsync(
+        Guid campaignId, Guid participantId, Guid revision, string token, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        authorization.Require(campaignId, token);
+        var belongsToCampaign = db.Participants.Any(x => x.Id == participantId && x.CampaignId == campaignId);
+        var avatar = belongsToCampaign
+            ? db.ParticipantAvatars.FirstOrDefault(x => x.ParticipantId == participantId && x.Revision == revision)
+            : null;
+        if (avatar is null)
+            throw new AppException(AppErrorKind.NotFound, "A foto solicitada não está mais disponível.");
+        return Task.FromResult(new ParticipantAvatarDto(avatar.Content, avatar.MediaType, avatar.Revision));
     }
 
     public IReadOnlyList<ParticipantDto> GetParticipants(Guid campaignId) =>
@@ -123,9 +174,9 @@ public sealed class CampaignService(
         return (selected[0], selected[1]);
     }
 
-    private ParticipantDto ToDto(Participant participant, bool includeHitPoints = false) =>
-        new(participant.Id, participant.DisplayName, participant.Role, presence.IsOnline(participant.Id),
-            participant.InitiativeModifier, includeHitPoints ? participant.CurrentHitPoints : null);
+    // Vida (atual e máxima) visível a todos os participantes (FR-009a) — não filtrada por observador.
+    private ParticipantDto ToDto(Participant participant) =>
+        DtoMapper.ToDto(participant, presence.IsOnline(participant.Id));
 
     internal static DiceRollDto ToDto(DiceRoll roll, string displayName)
     {

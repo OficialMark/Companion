@@ -38,6 +38,56 @@ public sealed class Battlemap
     public DateTimeOffset UpdatedAt { get; private set; }
     public byte[] Version { get; private set; } = [];
 
+    /// <summary>
+    /// Fog of war as a row-major bitset (cell index = row * Columns + column; bit i % 8
+    /// of byte i / 8). Null means the whole map is revealed.
+    /// </summary>
+    public byte[]? FogMask { get; private set; }
+
+    public static int FogMaskLengthFor(int columns, int rows) => (columns * rows + 7) / 8;
+    public int FogMaskLength => FogMaskLengthFor(Columns, Rows);
+    public const int MaxFogMaskBytes = (MaxGridSize * MaxGridSize + 7) / 8;
+
+    public void SetFog(byte[]? mask)
+    {
+        if (mask is null) { FogMask = null; return; }
+        if (mask.Length != FogMaskLength)
+            throw new ArgumentException(
+                $"A névoa deve ter {FogMaskLength} bytes para um grid de {Columns}x{Rows}.", nameof(mask));
+        var copy = mask.ToArray();
+        // Bits past the last cell are padding and must never count as fog.
+        var cells = Columns * Rows;
+        var tailBits = cells % 8;
+        if (tailBits != 0) copy[^1] &= (byte)((1 << tailBits) - 1);
+        FogMask = copy.All(b => b == 0) ? null : copy;
+    }
+
+    public bool IsCellFogged(int column, int row)
+    {
+        if (FogMask is null || !Contains(column, row)) return false;
+        var index = row * Columns + column;
+        return (FogMask[index / 8] & (1 << (index % 8))) != 0;
+    }
+
+    /// <summary>
+    /// True when every in-grid cell of the footprint anchored at (column,row) is fogged.
+    /// A token partly in revealed cells stays visible.
+    /// </summary>
+    public bool IsAreaFogged(int column, int row, int footprintSize)
+    {
+        if (FogMask is null) return false;
+        var span = Math.Max(1, footprintSize);
+        var any = false;
+        for (var r = row; r < row + span; r++)
+        for (var c = column; c < column + span; c++)
+        {
+            if (!Contains(c, r)) continue;
+            any = true;
+            if (!IsCellFogged(c, r)) return false;
+        }
+        return any;
+    }
+
     public void Replace(
         byte[] imageContent,
         string imageMediaType,
@@ -81,6 +131,8 @@ public sealed class Battlemap
         if (safeName.Length == 0) safeName = "battlemap";
         if (safeName.Length > 255) safeName = safeName[..255];
 
+        // The fog bitset is indexed by grid shape; a different grid invalidates it.
+        if (columns != Columns || rows != Rows) FogMask = null;
         ImageContent = imageContent.ToArray();
         ImageMediaType = imageMediaType;
         ImageFileName = safeName;

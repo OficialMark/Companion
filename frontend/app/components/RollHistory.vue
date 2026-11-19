@@ -11,20 +11,20 @@ function time(value: string) {
   <section class="panel history-panel" aria-labelledby="history-title">
     <div class="panel-heading">
       <div>
-        <p class="eyebrow">Resultados públicos</p>
+        <p class="eyebrow"><Icon name="lucide:history" />Resultados públicos</p>
         <h2 id="history-title">Histórico</h2>
       </div>
-      <span class="count-pill">{{ rolls.length }}</span>
+      <span class="count-pill" :title="`${rolls.length} rolagens`">{{ rolls.length }}</span>
     </div>
     <div v-if="rolls.length === 0" class="empty-state">
-      <span class="empty-die" aria-hidden="true">◇</span>
+      <span class="state-icon" aria-hidden="true"><Icon name="lucide:dices" size="1.6rem" /></span>
       <p>A primeira rolagem ainda está esperando.</p>
     </div>
     <ol v-else class="roll-list" aria-live="polite">
       <li v-for="roll in rolls" :key="roll.id">
         <div class="roll-meta">
           <strong>{{ roll.displayName }}</strong>
-          <span>{{ time(roll.createdAt) }}</span>
+          <span><Icon name="lucide:clock" />{{ time(roll.createdAt) }}</span>
         </div>
         <div class="roll-command">{{ roll.expression }}</div>
         <div class="roll-attempts">

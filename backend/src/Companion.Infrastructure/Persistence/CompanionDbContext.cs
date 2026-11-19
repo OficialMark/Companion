@@ -10,6 +10,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignAccessCode> CampaignAccessCodes => Set<CampaignAccessCode>();
     public DbSet<Participant> Participants => Set<Participant>();
+    public DbSet<ParticipantAvatar> ParticipantAvatars => Set<ParticipantAvatar>();
     public DbSet<DiceRoll> DiceRolls => Set<DiceRoll>();
     public DbSet<Encounter> Encounters => Set<Encounter>();
     public DbSet<Combatant> Combatants => Set<Combatant>();
@@ -18,10 +19,13 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<Battlemap> Battlemaps => Set<Battlemap>();
     public DbSet<BattlemapTokenPosition> BattlemapTokenPositions => Set<BattlemapTokenPosition>();
     public DbSet<AttackArea> AttackAreas => Set<AttackArea>();
+    public DbSet<BattlemapTokenAppearance> TokenAppearances => Set<BattlemapTokenAppearance>();
+    public DbSet<BattlemapMarker> BattlemapMarkers => Set<BattlemapMarker>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
     IQueryable<Participant> ICompanionDbContext.Participants => Participants;
+    IQueryable<ParticipantAvatar> ICompanionDbContext.ParticipantAvatars => ParticipantAvatars;
     IQueryable<DiceRoll> ICompanionDbContext.DiceRolls => DiceRolls;
     IQueryable<Encounter> ICompanionDbContext.Encounters => Encounters;
     IQueryable<Combatant> ICompanionDbContext.Combatants => Combatants;
@@ -30,10 +34,14 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<Battlemap> ICompanionDbContext.Battlemaps => Battlemaps;
     IQueryable<BattlemapTokenPosition> ICompanionDbContext.BattlemapTokenPositions => BattlemapTokenPositions;
     IQueryable<AttackArea> ICompanionDbContext.AttackAreas => AttackAreas;
+    IQueryable<BattlemapTokenAppearance> ICompanionDbContext.TokenAppearances => TokenAppearances;
+    IQueryable<BattlemapMarker> ICompanionDbContext.BattlemapMarkers => BattlemapMarkers;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
     void ICompanionDbContext.Add(Participant participant) => Participants.Add(participant);
+    void ICompanionDbContext.Add(ParticipantAvatar avatar) => ParticipantAvatars.Add(avatar);
+    void ICompanionDbContext.Remove(ParticipantAvatar avatar) => ParticipantAvatars.Remove(avatar);
     void ICompanionDbContext.Add(DiceRoll diceRoll) => DiceRolls.Add(diceRoll);
     void ICompanionDbContext.Add(Encounter encounter) => Encounters.Add(encounter);
     void ICompanionDbContext.Add(Combatant combatant) => Combatants.Add(combatant);
@@ -44,6 +52,10 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(BattlemapTokenPosition position) => BattlemapTokenPositions.Remove(position);
     void ICompanionDbContext.Add(AttackArea area) => AttackAreas.Add(area);
     void ICompanionDbContext.Remove(AttackArea area) => AttackAreas.Remove(area);
+    void ICompanionDbContext.Add(BattlemapTokenAppearance appearance) => TokenAppearances.Add(appearance);
+    void ICompanionDbContext.Remove(BattlemapTokenAppearance appearance) => TokenAppearances.Remove(appearance);
+    void ICompanionDbContext.Add(BattlemapMarker marker) => BattlemapMarkers.Add(marker);
+    void ICompanionDbContext.Remove(BattlemapMarker marker) => BattlemapMarkers.Remove(marker);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type {
   AttackAreaShape, BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
-  DamageAppliedEvent, DiceRoll, Encounter, Participant, Session
+  DamageAppliedEvent, DiceRoll, Encounter, Participant, Session, StatusCondition
 } from '~/types/campaign'
 
 const SESSION_KEY = 'companion.session.v1'
@@ -11,17 +11,24 @@ export const useCampaignStore = defineStore('campaign', {
     session: null as Session | null,
     snapshot: null as CampaignSnapshot | null,
     battlemap: null as BattlemapSnapshot | null,
+    /** A fog PUT is in flight; later strokes are coalesced into fogQueued (latest wins). */
+    fogSaving: false,
+    fogQueued: undefined as string | null | undefined,
     battlemapImageSource: '' as string,
     battlemapLoading: false,
     pendingBattlemapTokenId: null as string | null,
     connection: 'offline' as 'offline' | 'connecting' | 'online',
     error: '' as string,
     seenEvents: [] as string[],
-    damageEffects: {} as Record<string, { amount: number; nonce: string }>
+    damageEffects: {} as Record<string, { amount: number; nonce: string }>,
+    /** Loaded profile photos, keyed by participant id (object URLs of the fetched blobs). */
+    avatars: {} as Record<string, { revision: string; url: string }>
   }),
   getters: {
     isMaster: state => state.session?.role === 'Master',
-    ready: state => Boolean(state.session && state.snapshot)
+    ready: state => Boolean(state.session && state.snapshot),
+    /** participantId -> object URL of the photo, for every participant that has one loaded. */
+    avatarUrls: state => Object.fromEntries(Object.entries(state.avatars).map(([id, avatar]) => [id, avatar.url])) as Record<string, string>
   },
   actions: {
     loadSession() {
@@ -35,6 +42,7 @@ export const useCampaignStore = defineStore('campaign', {
       this.session = session
       this.snapshot = null
       this.clearBattlemap()
+      this.clearAvatars()
       if (import.meta.client) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     },
     clearBattlemap() {
@@ -45,11 +53,49 @@ export const useCampaignStore = defineStore('campaign', {
       this.battlemapImageSource = ''
       this.pendingBattlemapTokenId = null
     },
+    clearAvatars() {
+      if (typeof window !== 'undefined') for (const avatar of Object.values(this.avatars)) URL.revokeObjectURL(avatar.url)
+      this.avatars = {}
+    },
+    /** Fetches photos whose revision changed and drops the ones that were removed. */
+    async syncAvatars() {
+      if (typeof window === 'undefined' || !this.session || !this.snapshot) return
+      const wanted = new Map<string, string>()
+      for (const participant of [...this.snapshot.participants, this.snapshot.currentParticipant]) {
+        if (participant.avatarRevision) wanted.set(participant.id, participant.avatarRevision)
+      }
+      for (const [id, avatar] of Object.entries(this.avatars)) {
+        if (wanted.get(id) !== avatar.revision) {
+          URL.revokeObjectURL(avatar.url)
+          delete this.avatars[id]
+        }
+      }
+      const session = this.session
+      await Promise.all([...wanted].filter(([id]) => !this.avatars[id]).map(async ([id, revision]) => {
+        try {
+          const blob = await useCompanionApi().participantAvatar(session, id, revision)
+          // Another sync may have raced us; keep whichever matches the current revision.
+          if (this.session !== session || this.avatars[id]?.revision === revision) return
+          this.avatars[id] = { revision, url: URL.createObjectURL(blob) }
+        } catch {
+          // A missing photo just falls back to the initials.
+        }
+      }))
+    },
+    /** Applies the participant returned by the API after changing one's own profile. */
+    applyOwnParticipant(updated: Participant) {
+      if (!this.snapshot) return
+      this.snapshot.currentParticipant = { ...updated, currentHitPoints: updated.currentHitPoints ?? this.snapshot.currentParticipant.currentHitPoints }
+      const index = this.snapshot.participants.findIndex(participant => participant.id === updated.id)
+      if (index >= 0) this.snapshot.participants[index] = { ...this.snapshot.participants[index]!, avatarRevision: updated.avatarRevision }
+      void this.syncAvatars()
+    },
     clearSession() {
       this.session = null
       this.snapshot = null
       this.seenEvents = []
       this.clearBattlemap()
+      this.clearAvatars()
       if (import.meta.client) localStorage.removeItem(SESSION_KEY)
     },
     async refresh() {
@@ -61,6 +107,7 @@ export const useCampaignStore = defineStore('campaign', {
           next.activeEncounter = this.snapshot.activeEncounter
         }
         this.snapshot = next
+        void this.syncAvatars()
         await this.refreshBattlemap()
         this.error = ''
       } catch (error) {
@@ -159,6 +206,91 @@ export const useCampaignStore = defineStore('campaign', {
         this.error = (error as Error).message
       }
     },
+    async setTokenAppearance(tokenId: string, footprintSize: number, statusConditions: StatusCondition[]) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().setTokenAppearance(
+          this.session,
+          this.battlemap.encounterId,
+          tokenId,
+          { footprintSize, statusConditions }
+        )
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    /**
+     * Persists the fog mask. Saves are serialized: while one PUT is in flight, newer masks
+     * are coalesced and only the latest is sent next, so two quick strokes can never land
+     * on the server out of order (each PUT carries the whole mask, last write wins).
+     * On failure the server state wins (refetch) and the error is shown.
+     */
+    async setFog(mask: string | null) {
+      if (!this.session || !this.battlemap) return false
+      if (this.connection !== 'online') {
+        this.error = 'Conexão necessária para alterar a névoa.'
+        await this.refreshBattlemap().catch(() => {})
+        return false
+      }
+      if (this.fogSaving) {
+        this.fogQueued = mask
+        return true
+      }
+      this.fogSaving = true
+      try {
+        let next: string | null = mask
+        for (;;) {
+          const result = await useCompanionApi().setFog(this.session, this.battlemap.encounterId, next)
+          if (this.fogQueued === undefined) {
+            this.battlemap = result
+            break
+          }
+          next = this.fogQueued
+          this.fogQueued = undefined
+        }
+        this.error = ''
+        return true
+      } catch (error) {
+        this.error = `A névoa não foi salva: ${(error as Error).message}`
+        this.fogQueued = undefined
+        await this.refreshBattlemap().catch(() => {})
+        return false
+      } finally {
+        this.fogSaving = false
+      }
+    },
+    async setHitPointsVisibility(combatantId: string | null, hidden: boolean) {
+      const encounter = this.snapshot?.activeEncounter
+      if (!this.session || !encounter) return
+      try {
+        const next = combatantId
+          ? await useCompanionApi().setHitPointsVisibility(this.session, encounter.id, combatantId, hidden)
+          : await useCompanionApi().setAllHitPointsVisibility(this.session, encounter.id, hidden)
+        this.updateActiveEncounter(next)
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async createMarker(label: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().createMarker(this.session, this.battlemap.encounterId, { label })
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
+    async removeMarker(markerId: string) {
+      if (!this.session || !this.battlemap) return
+      try {
+        this.battlemap = await useCompanionApi().removeMarker(this.session, this.battlemap.encounterId, markerId)
+        this.error = ''
+      } catch (error) {
+        this.error = (error as Error).message
+      }
+    },
     async applyEvent(event: CampaignEvent) {
       if (event.type === 'CampaignDeleted') {
         this.clearSession()
@@ -201,6 +333,7 @@ export const useCampaignStore = defineStore('campaign', {
             currentHitPoints: participant.currentHitPoints ?? this.snapshot.currentParticipant.currentHitPoints
           }
         }
+        void this.syncAvatars()
       } else if (event.type === 'EncounterEnded') {
         this.snapshot.activeEncounter = null
         this.clearBattlemap()
@@ -213,6 +346,7 @@ export const useCampaignStore = defineStore('campaign', {
       if (!this.snapshot || this.seenEvents.includes(event.eventId)) return
       this.seenEvents = [event.eventId, ...this.seenEvents].slice(0, 200)
       this.snapshot.participants = event.payload
+      void this.syncAvatars()
     }
   }
 })

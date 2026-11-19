@@ -227,6 +227,165 @@ public sealed class BattlemapApiTests(CompanionApiFactory factory) : ApiTestBase
         removedAgain.EnsureSuccessStatusCode();
     }
 
+    [Fact]
+    public async Task Owner_and_master_can_set_token_appearance_but_other_player_cannot()
+    {
+        var master = await CreateCampaign("appearance-auth");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var other = await Join(master.PlayerCode, "Borin");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        (await Move(player, encounter.Id, player.ParticipantId, 3, 4, null)).EnsureSuccessStatusCode();
+
+        var ownerSet = await SetAppearance(player, encounter.Id, player.ParticipantId, 3, ["Stunned", "Blinded"]);
+        ownerSet.EnsureSuccessStatusCode();
+        var snapshot = (await ownerSet.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var token = Assert.Single(snapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal(3, token.FootprintSize);
+        Assert.Equal(["Stunned", "Blinded"], token.StatusConditions);
+
+        var forbidden = await SetAppearance(other, encounter.Id, player.ParticipantId, 2, []);
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+
+        var masterSet = await SetAppearance(master, encounter.Id, player.ParticipantId, 5, []);
+        masterSet.EnsureSuccessStatusCode();
+        var masterSnapshot = (await masterSet.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var updatedToken = Assert.Single(masterSnapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal(5, updatedToken.FootprintSize);
+        Assert.Empty(updatedToken.StatusConditions!);
+    }
+
+    [Fact]
+    public async Task Token_appearance_defaults_to_no_conditions_when_field_is_omitted()
+    {
+        var master = await CreateCampaign("appearance-omitted-conditions");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        (await Move(player, encounter.Id, player.ParticipantId, 3, 4, null)).EnsureSuccessStatusCode();
+
+        // Raw JSON body omitting "statusConditions" entirely (rather than the
+        // strongly-typed request helper, which always serializes every
+        // property) — this is what a client that forgets the field, or an
+        // older client version, would actually send.
+        var request = Authenticated(HttpMethod.Put,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/battlemap/tokens/{player.ParticipantId}/appearance",
+            player, new { footprintSize = 2 });
+        var response = await Client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        var snapshot = (await response.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var token = Assert.Single(snapshot.Tokens, x => x.ParticipantId == player.ParticipantId);
+        Assert.Equal(2, token.FootprintSize);
+        Assert.Empty(token.StatusConditions!);
+    }
+
+    [Fact]
+    public async Task Token_appearance_rejects_footprint_size_outside_one_to_five()
+    {
+        var master = await CreateCampaign("appearance-validation");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        var added = await Client.SendAsync(Authenticated(
+            HttpMethod.Post,
+            $"/api/campaigns/{master.CampaignId}/encounters/{encounter.Id}/combatants",
+            master,
+            new AddCombatantRequest("Goblin", 2, 8)));
+        var encounterDto = (await added.Content.ReadFromJsonAsync<EncounterDto>(JsonOptions))!;
+        var creature = Assert.Single(encounterDto.Combatants, x => x.ParticipantId is null);
+
+        var tooLarge = await SetAppearance(master, encounter.Id, creature.Id, 6, []);
+        Assert.Equal(HttpStatusCode.BadRequest, tooLarge.StatusCode);
+
+        var unknownCondition = await SetAppearance(master, encounter.Id, creature.Id, 1, ["NotACondition"]);
+        Assert.Equal(HttpStatusCode.BadRequest, unknownCondition.StatusCode);
+    }
+
+    [Fact]
+    public async Task Player_creates_reposition_and_configure_own_marker_but_other_player_cannot()
+    {
+        var master = await CreateCampaign("marker-lifecycle");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var other = await Join(master.PlayerCode, "Borin");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+
+        var created = await CreateMarker(player, encounter.Id, "Lobo invocado");
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var snapshot = (await created.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var marker = Assert.Single(snapshot.Tokens, x => x.IsMarker);
+        Assert.Equal("Lobo invocado", marker.DisplayName);
+        Assert.Equal(player.ParticipantId, marker.OwnerParticipantId);
+        Assert.Null(marker.Column);
+
+        var ownerMove = await Move(player, encounter.Id, marker.ParticipantId, 4, 5, marker.PositionVersion);
+        ownerMove.EnsureSuccessStatusCode();
+        var movedSnapshot = (await ownerMove.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var movedMarker = Assert.Single(movedSnapshot.Tokens, x => x.IsMarker);
+        Assert.Equal(4, movedMarker.Column);
+
+        var forbiddenMove = await Move(other, encounter.Id, marker.ParticipantId, 1, 1, movedMarker.PositionVersion);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenMove.StatusCode);
+
+        var ownerArea = await SetAttackArea(player, encounter.Id, marker.ParticipantId, "Circle", 2, null, null);
+        ownerArea.EnsureSuccessStatusCode();
+        var areaSnapshot = (await ownerArea.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        Assert.NotNull(Assert.Single(areaSnapshot.Tokens, x => x.IsMarker).AttackArea);
+
+        var ownerAppearance = await SetAppearance(player, encounter.Id, marker.ParticipantId, 2, ["Prone"]);
+        ownerAppearance.EnsureSuccessStatusCode();
+        var appearanceSnapshot = (await ownerAppearance.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        var configuredMarker = Assert.Single(appearanceSnapshot.Tokens, x => x.IsMarker);
+        Assert.Equal(2, configuredMarker.FootprintSize);
+        Assert.Equal(["Prone"], configuredMarker.StatusConditions);
+
+        var forbiddenAppearance = await SetAppearance(other, encounter.Id, marker.ParticipantId, 1, []);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenAppearance.StatusCode);
+
+        var forbiddenRemove = await RemoveMarker(other, encounter.Id, marker.ParticipantId);
+        Assert.Equal(HttpStatusCode.Forbidden, forbiddenRemove.StatusCode);
+
+        var removed = await RemoveMarker(player, encounter.Id, marker.ParticipantId);
+        removed.EnsureSuccessStatusCode();
+        var afterRemove = (await removed.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!;
+        Assert.DoesNotContain(afterRemove.Tokens, x => x.IsMarker);
+    }
+
+    [Fact]
+    public async Task Master_can_remove_any_players_marker()
+    {
+        var master = await CreateCampaign("marker-master-remove");
+        var player = await Join(master.PlayerCode, "Ayla");
+        var encounter = await CreateEncounter(master);
+        (await Configure(master, encounter.Id, TinyPng, "image/png", "map.png", 10, 10)).EnsureSuccessStatusCode();
+        var created = await CreateMarker(player, encounter.Id, "Marcador");
+        var marker = Assert.Single((await created.Content.ReadFromJsonAsync<BattlemapSnapshotDto>(JsonOptions))!.Tokens, x => x.IsMarker);
+
+        var removed = await RemoveMarker(master, encounter.Id, marker.ParticipantId);
+        removed.EnsureSuccessStatusCode();
+    }
+
+    private Task<HttpResponseMessage> CreateMarker(SessionResponse session, Guid encounterId, string label) =>
+        Client.SendAsync(Authenticated(
+            HttpMethod.Post,
+            $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/markers",
+            session,
+            new CreateMarkerRequest(label)));
+
+    private Task<HttpResponseMessage> RemoveMarker(SessionResponse session, Guid encounterId, Guid markerId) =>
+        Client.SendAsync(Authenticated(
+            HttpMethod.Delete,
+            $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/markers/{markerId}",
+            session));
+
+    private Task<HttpResponseMessage> SetAppearance(
+        SessionResponse session, Guid encounterId, Guid tokenId, int footprintSize, IReadOnlyList<string> statusConditions) =>
+        Client.SendAsync(Authenticated(
+            HttpMethod.Put,
+            $"/api/campaigns/{session.CampaignId}/encounters/{encounterId}/battlemap/tokens/{tokenId}/appearance",
+            session,
+            new SetTokenAppearanceRequest(footprintSize, statusConditions)));
+
     private Task<HttpResponseMessage> SetAttackArea(
         SessionResponse session, Guid encounterId, Guid tokenId, string shape, int radius, int? width, int? directionDegrees) =>
         Client.SendAsync(Authenticated(

@@ -19,6 +19,9 @@ export interface Participant {
   isOnline: boolean
   initiativeModifier: number | null
   currentHitPoints: number | null
+  maxHitPoints: number | null
+  /** Revision of the profile photo; null/undefined when the participant has none. */
+  avatarRevision?: string | null
 }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 export interface DiceRollResult { sequence: number; terms: DiceTermResult[]; modifier: number; total: number }
@@ -42,7 +45,10 @@ export interface Combatant {
   creationOrder: number
   isCurrent: boolean
   currentHitPoints: number | null
+  maxHitPoints: number | null
   isDefeated?: boolean
+  /** Master hid this creature's HP from players; players receive null HP when true. */
+  isHitPointsHidden?: boolean
 }
 export interface Encounter {
   id: string
@@ -90,6 +96,10 @@ export interface SetAttackAreaRequest {
   width: number | null
   directionDegrees: number | null
 }
+export type StatusCondition =
+  | 'Stunned' | 'Restrained' | 'Blinded' | 'Poisoned' | 'Invisible' | 'Prone'
+  | 'Paralyzed' | 'Bleeding' | 'Grappled' | 'Deafened' | 'Frightened' | 'Charmed'
+  | 'Unconscious' | 'Petrified' | 'Incapacitated' | 'Exhausted' | 'Concentrating' | 'Burning'
 export interface BattlemapToken {
   participantId: string
   displayName: string
@@ -99,7 +109,18 @@ export interface BattlemapToken {
   row: number | null
   positionVersion: string | null
   isCreature?: boolean
+  isMarker?: boolean
+  ownerParticipantId?: string | null
   attackArea?: AttackArea | null
+  footprintSize?: number
+  statusConditions?: StatusCondition[]
+}
+export interface SetTokenAppearanceRequest {
+  footprintSize: number
+  statusConditions: StatusCondition[]
+}
+export interface CreateMarkerRequest {
+  label: string
 }
 export interface BattlemapSnapshot {
   id: string
@@ -114,6 +135,8 @@ export interface BattlemapSnapshot {
   imageFileName: string
   updatedAt: string
   tokens: BattlemapToken[]
+  /** Fog of war: base64 row-major bitset (1 = covered); null = fully revealed. */
+  fogMask?: string | null
 }
 export interface ReplaceBattlemapResult { battlemap: BattlemapSnapshot; returnedToReserve: string[] }
 export interface MoveBattlemapTokenRequest { column: number | null; row: number | null; expectedPositionVersion: string | null }

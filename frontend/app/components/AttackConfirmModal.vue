@@ -27,12 +27,15 @@ onBeforeUnmount(() => {
 <template>
   <div class="modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="attack-confirm-title">
     <div class="modal-panel attack-confirm-modal">
-      <p class="eyebrow">Resultado: <strong>{{ roll.total }}</strong></p>
+      <span class="modal-icon" aria-hidden="true"><Icon name="lucide:target" size="1.6rem" /></span>
+      <p class="eyebrow">Resultado do d20</p>
+      <strong class="attack-confirm-total">{{ roll.total }}</strong>
       <h2 id="attack-confirm-title">Acertou?</h2>
       <div class="button-row">
-        <button ref="confirmButton" class="button primary attack-hit-confirm" type="button" @click="respond(true)">Sim</button>
-        <button class="button ghost attack-hit-deny" type="button" @click="respond(false)">Não</button>
+        <button ref="confirmButton" class="button primary attack-hit-confirm" type="button" @click="respond(true)"><Icon name="lucide:check" />Sim</button>
+        <button class="button ghost attack-hit-deny" type="button" @click="respond(false)"><Icon name="lucide:x" />Não</button>
       </div>
+      <span class="modal-timer" aria-hidden="true" />
     </div>
   </div>
 </template>

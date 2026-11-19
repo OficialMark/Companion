@@ -34,6 +34,16 @@ public static class EncounterEndpoints
             HttpRequest request, EncounterService service, CancellationToken ct) =>
             Results.Ok(await service.UpdateHitPointsAsync(
                 campaignId, encounterId, combatantId, Token(request), body, ct)));
+        group.MapPut("/{encounterId:guid}/combatants/{combatantId:guid}/hit-points-visibility", async (
+            Guid campaignId, Guid encounterId, Guid combatantId, SetHitPointsVisibilityRequest body,
+            HttpRequest request, EncounterService service, CancellationToken ct) =>
+            Results.Ok(await service.SetHitPointsVisibilityAsync(
+                campaignId, encounterId, combatantId, Token(request), body, ct)));
+        group.MapPut("/{encounterId:guid}/hit-points-visibility", async (
+            Guid campaignId, Guid encounterId, SetHitPointsVisibilityRequest body,
+            HttpRequest request, EncounterService service, CancellationToken ct) =>
+            Results.Ok(await service.SetAllCreatureHitPointsVisibilityAsync(
+                campaignId, encounterId, Token(request), body, ct)));
         group.MapDelete("/{encounterId:guid}/combatants/{combatantId:guid}", async (
             Guid campaignId, Guid encounterId, Guid combatantId,
             HttpRequest request, EncounterService service, CancellationToken ct) =>

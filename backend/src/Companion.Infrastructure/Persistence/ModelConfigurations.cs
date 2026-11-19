@@ -1,5 +1,6 @@
 using Companion.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Companion.Infrastructure.Persistence;
@@ -37,9 +38,22 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.TokenHash).HasMaxLength(32).IsRequired();
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10);
         builder.Property(x => x.CurrentHitPoints);
+        builder.Property(x => x.MaxHitPoints);
         builder.HasIndex(x => x.TokenHash).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class ParticipantAvatarConfiguration : IEntityTypeConfiguration<ParticipantAvatar>
+{
+    public void Configure(EntityTypeBuilder<ParticipantAvatar> builder)
+    {
+        builder.ToTable("ParticipantAvatars");
+        builder.HasKey(x => x.ParticipantId);
+        builder.Property(x => x.Content).HasColumnType("varbinary(max)").IsRequired();
+        builder.Property(x => x.MediaType).HasMaxLength(32).IsRequired();
+        builder.HasOne<Participant>().WithOne().HasForeignKey<ParticipantAvatar>(x => x.ParticipantId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -81,6 +95,8 @@ public sealed class CombatantConfiguration : IEntityTypeConfiguration<Combatant>
         builder.ToTable("Combatants");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(60).IsRequired();
+        builder.Property(x => x.IsHitPointsHidden);
+        builder.Ignore(x => x.IsCreature);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.EncounterId, x.CreationOrder }).IsUnique();
         builder.HasIndex(x => new { x.EncounterId, x.ParticipantId }).IsUnique()
@@ -123,6 +139,8 @@ public sealed class BattlemapConfiguration : IEntityTypeConfiguration<Battlemap>
         builder.Property(x => x.ImageMediaType).HasMaxLength(32).IsRequired();
         builder.Property(x => x.ImageFileName).HasMaxLength(255).IsRequired();
         builder.Property(x => x.IsGridVisible).HasDefaultValue(true);
+        builder.Property(x => x.FogMask).HasColumnType($"varbinary({Battlemap.MaxFogMaskBytes})");
+        builder.Ignore(x => x.FogMaskLength);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => x.EncounterId).IsUnique();
         builder.HasOne<Encounter>().WithOne().HasForeignKey<Battlemap>(x => x.EncounterId).OnDelete(DeleteBehavior.Cascade);
@@ -138,13 +156,66 @@ public sealed class BattlemapTokenPositionConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
         builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.MarkerId }).IsUnique().HasFilter("[MarkerId] IS NOT NULL");
         builder.HasIndex(x => x.BattlemapId);
         builder.ToTable(table => table.HasCheckConstraint(
             "CK_BattlemapTokenPositions_Owner",
-            "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)"));
+            "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1"));
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class BattlemapMarkerConfiguration : IEntityTypeConfiguration<BattlemapMarker>
+{
+    public void Configure(EntityTypeBuilder<BattlemapMarker> builder)
+    {
+        builder.ToTable("BattlemapMarkers");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Label).HasMaxLength(40).IsRequired();
+        builder.HasIndex(x => x.BattlemapId);
+        builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.OwnerParticipantId).OnDelete(DeleteBehavior.NoAction);
+    }
+}
+
+public sealed class BattlemapTokenAppearanceConfiguration : IEntityTypeConfiguration<BattlemapTokenAppearance>
+{
+    public void Configure(EntityTypeBuilder<BattlemapTokenAppearance> builder)
+    {
+        builder.ToTable("BattlemapTokenAppearances");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Version).IsRowVersion();
+        var statusConditions = builder.Property(x => x.StatusConditions)
+            .HasField("_statusConditions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasConversion(
+                list => string.Join(',', list),
+                csv => string.IsNullOrEmpty(csv)
+                    ? new List<StatusCondition>()
+                    : csv.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<StatusCondition>).ToList())
+            .HasColumnName("StatusConditions")
+            .HasMaxLength(512);
+        statusConditions.Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<StatusCondition>>(
+            (left, right) => (left ?? Array.Empty<StatusCondition>()).SequenceEqual(right ?? Array.Empty<StatusCondition>()),
+            value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),
+            value => value.ToList()));
+        builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.MarkerId }).IsUnique().HasFilter("[MarkerId] IS NOT NULL");
+        builder.ToTable(table => table.HasCheckConstraint(
+            "CK_BattlemapTokenAppearances_Owner",
+            "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1"));
+        builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
     }
 }
 
@@ -158,12 +229,16 @@ public sealed class AttackAreaConfiguration : IEntityTypeConfiguration<AttackAre
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.BattlemapId, x.ParticipantId }).IsUnique().HasFilter("[ParticipantId] IS NOT NULL");
         builder.HasIndex(x => new { x.BattlemapId, x.CombatantId }).IsUnique().HasFilter("[CombatantId] IS NOT NULL");
+        builder.HasIndex(x => new { x.BattlemapId, x.MarkerId }).IsUnique().HasFilter("[MarkerId] IS NOT NULL");
         builder.HasIndex(x => x.BattlemapId);
         builder.ToTable(table => table.HasCheckConstraint(
             "CK_AttackAreas_Owner",
-            "([ParticipantId] IS NOT NULL AND [CombatantId] IS NULL) OR ([ParticipantId] IS NULL AND [CombatantId] IS NOT NULL)"));
+            "(CASE WHEN [ParticipantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [CombatantId] IS NOT NULL THEN 1 ELSE 0 END) + " +
+            "(CASE WHEN [MarkerId] IS NOT NULL THEN 1 ELSE 0 END) = 1"));
         builder.HasOne<Battlemap>().WithMany().HasForeignKey(x => x.BattlemapId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Participant>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Combatant>().WithMany().HasForeignKey(x => x.CombatantId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<BattlemapMarker>().WithMany().HasForeignKey(x => x.MarkerId).OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -47,28 +47,35 @@ onMounted(() => {
 <template>
   <main class="admin-shell">
     <section class="panel admin-login" aria-labelledby="admin-title">
+      <span class="state-icon" aria-hidden="true"><Icon name="lucide:shield" size="1.5rem" /></span>
       <p class="eyebrow">Operação da instalação</p>
       <h1 id="admin-title">Administração</h1>
       <form class="stack" @submit.prevent="load">
         <label>Credencial administrativa<input v-model="adminKey" type="password" required autocomplete="current-password"></label>
-        <button class="button primary" :disabled="busy" type="submit">{{ busy ? 'Verificando…' : 'Acessar mesas' }}</button>
+        <button class="button primary" :disabled="busy" type="submit"><Icon :name="busy ? 'lucide:loader-circle' : 'lucide:key-round'" :class="{ spin: busy }" />{{ busy ? 'Verificando…' : 'Acessar mesas' }}</button>
       </form>
-      <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+      <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
     </section>
 
     <section v-if="authenticated" class="panel admin-campaigns" aria-live="polite">
-      <div class="panel-heading"><div><p class="eyebrow">Mesas existentes</p><h2>{{ campaigns.length }} mesa(s)</h2></div><button class="button ghost" :disabled="busy" @click="load">Atualizar</button></div>
-      <p v-if="!campaigns.length">Nenhuma mesa armazenada.</p>
+      <div class="panel-heading">
+        <div><p class="eyebrow"><Icon name="lucide:layout-list" />Mesas existentes</p><h2>{{ campaigns.length }} mesa(s)</h2></div>
+        <button class="button ghost" :disabled="busy" @click="load"><Icon name="lucide:refresh-cw" :class="{ spin: busy }" />Atualizar</button>
+      </div>
+      <div v-if="!campaigns.length" class="empty-state">
+        <span class="state-icon" aria-hidden="true"><Icon name="lucide:inbox" size="1.5rem" /></span>
+        <p>Nenhuma mesa armazenada.</p>
+      </div>
       <div v-else class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Mesa</th><th>Presença</th><th>Jogador</th><th>Mestre</th><th></th></tr></thead>
+          <thead><tr><th>Mesa</th><th>Presença</th><th>Jogador</th><th>Mestre</th><th><span class="sr-only">Ações</span></th></tr></thead>
           <tbody>
             <tr v-for="campaign in campaigns" :key="campaign.id">
-              <td><strong>{{ campaign.name }}</strong><small>{{ new Date(campaign.createdAt).toLocaleString('pt-BR') }} · {{ campaign.participantCount }} participante(s)</small></td>
-              <td><span :class="['presence-dot', { online: campaign.onlineCount > 0 }]" />{{ campaign.onlineCount }} online</td>
-              <td><code>{{ campaign.playerCode }}</code></td>
-              <td><code>{{ campaign.masterCode }}</code></td>
-              <td><button class="button ghost danger" :disabled="busy" type="button" @click="remove(campaign)">Excluir</button></td>
+              <td class="admin-campaign-cell"><strong>{{ campaign.name }}</strong><small><Icon name="lucide:calendar" />{{ new Date(campaign.createdAt).toLocaleString('pt-BR') }} · <Icon name="lucide:users" />{{ campaign.participantCount }} participante(s)</small></td>
+              <td data-label="Presença"><span :class="['presence-dot', { online: campaign.onlineCount > 0 }]" />{{ campaign.onlineCount }} online</td>
+              <td data-label="Jogador"><code>{{ campaign.playerCode }}</code></td>
+              <td data-label="Mestre"><code>{{ campaign.masterCode }}</code></td>
+              <td><button class="button ghost danger" :disabled="busy" type="button" @click="remove(campaign)"><Icon name="lucide:trash-2" />Excluir</button></td>
             </tr>
           </tbody>
         </table>

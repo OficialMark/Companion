@@ -7,6 +7,7 @@ public interface ICompanionDbContext
     IQueryable<Campaign> Campaigns { get; }
     IQueryable<CampaignAccessCode> CampaignAccessCodes { get; }
     IQueryable<Participant> Participants { get; }
+    IQueryable<ParticipantAvatar> ParticipantAvatars { get; }
     IQueryable<DiceRoll> DiceRolls { get; }
     IQueryable<Encounter> Encounters { get; }
     IQueryable<Combatant> Combatants { get; }
@@ -15,10 +16,14 @@ public interface ICompanionDbContext
     IQueryable<Battlemap> Battlemaps { get; }
     IQueryable<BattlemapTokenPosition> BattlemapTokenPositions { get; }
     IQueryable<AttackArea> AttackAreas { get; }
+    IQueryable<BattlemapTokenAppearance> TokenAppearances { get; }
+    IQueryable<BattlemapMarker> BattlemapMarkers { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
     void Add(Participant participant);
+    void Add(ParticipantAvatar avatar);
+    void Remove(ParticipantAvatar avatar);
     void Add(DiceRoll diceRoll);
     void Add(Encounter encounter);
     void Add(Combatant combatant);
@@ -29,6 +34,10 @@ public interface ICompanionDbContext
     void Remove(BattlemapTokenPosition position);
     void Add(AttackArea area);
     void Remove(AttackArea area);
+    void Add(BattlemapTokenAppearance appearance);
+    void Remove(BattlemapTokenAppearance appearance);
+    void Add(BattlemapMarker marker);
+    void Remove(BattlemapMarker marker);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<bool> DeleteCampaignAggregateAsync(Guid campaignId, CancellationToken cancellationToken = default);
 }

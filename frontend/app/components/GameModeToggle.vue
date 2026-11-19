@@ -5,10 +5,13 @@ const gameMode = useGameMode()
 <template>
   <button
     class="button ghost game-mode-toggle"
+    :class="{ active: gameMode.active.value }"
     type="button"
     :aria-pressed="gameMode.active.value"
+    :title="gameMode.active.value ? 'Voltar à visão completa' : 'Ativar Modo Jogo (interface enxuta para o combate)'"
     @click="gameMode.toggle()"
   >
-    {{ gameMode.active.value ? 'Voltar à visão completa' : 'Modo Jogo' }}
+    <Icon :name="gameMode.active.value ? 'lucide:layout-dashboard' : 'lucide:swords'" />
+    <span class="toggle-label">{{ gameMode.active.value ? 'Voltar à visão completa' : 'Modo Jogo' }}</span>
   </button>
 </template>
