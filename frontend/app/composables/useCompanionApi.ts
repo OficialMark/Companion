@@ -55,6 +55,8 @@ export function useCompanionApi() {
   }
 
   return {
+    /** Low-level call, used by feature composables such as useCharacterApi (spec 011). */
+    request,
     createCampaign: (campaignName: string, displayName: string) => request<Session>('/campaigns', { method: 'POST', body: JSON.stringify({ campaignName, displayName }) }),
     joinCampaign: (code: string, displayName: string) => request<Session>('/campaigns/join', { method: 'POST', body: JSON.stringify({ code, displayName }) }),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),

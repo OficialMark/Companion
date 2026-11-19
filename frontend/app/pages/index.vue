@@ -76,7 +76,7 @@ async function copyCode() {
 
 // Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
 // Master's screen (spec 009): the table, or the full-width creature compendium. Kept in the URL.
-const { view } = useMasterView()
+const { view } = useAppView()
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
 watch(() => store.isMaster, master => { if (!master) creatures.close() })
@@ -130,11 +130,11 @@ onBeforeUnmount(() => {
 <template>
   <CampaignAccess v-if="!store.session" />
   <main v-else class="app-shell">
-    <header class="topbar" :class="{ 'has-view-nav': store.isMaster }">
+    <header class="topbar" :class="{ 'has-view-nav': store.isMaster || store.session.role === 'Player' }">
       <div class="brand-inline"><span class="mini-mark" aria-hidden="true">20</span><strong>Companion</strong><span v-if="store.isMaster && store.snapshot" class="brand-campaign" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span></div>
       <!-- display: contents on desktop (nav and campaign are grid columns); its own row on phones. -->
       <div class="topbar-center">
-      <MasterViewNav />
+      <ViewNav />
       <div v-if="store.snapshot" class="campaign-heading">
         <span class="campaign-name" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span>
         <button

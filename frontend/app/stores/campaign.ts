@@ -306,6 +306,11 @@ export const useCampaignStore = defineStore('campaign', {
         if (payload.encounterId === this.snapshot.activeEncounter?.id) await this.refreshBattlemap()
         return
       }
+      if (event.type === 'CharacterChanged') {
+        // Spec 011: only the id travels; the owner's other devices reload their own sheet.
+        await useCharacterStore().onRemoteChange((event.payload as { participantId: string }).participantId)
+        return
+      }
       if (event.type === 'DamageApplied') {
         const payload = event.payload as DamageAppliedEvent
         for (const target of payload.targets) {
