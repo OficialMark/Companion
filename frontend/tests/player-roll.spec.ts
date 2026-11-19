@@ -154,8 +154,8 @@ describe('resolveRoll: US5 advantage and repetitions', () => {
   it('scenario 3: disadvantage', () => {
     expect(resolve({ ...base, advantage: 'Disadvantage' }).expression).toBe('2#(d20 + 2d6 + 5) menor')
   })
-  it('scenario 4: 3 repetitions (unlabeled stays in the legacy form the server returns)', () => {
-    expect(resolve({ ...base, repetitions: 3 }).expression).toBe('3#1d20+2d6+5')
+  it('scenario 4: 3 repetitions are always bracketed (request 7.1)', () => {
+    expect(resolve({ ...base, repetitions: 3 }).expression).toBe('3#[d20 + 2d6 + 5]')
     expect(resolve({ kind: 'Check', source: { type: 'ability', ability: 'Str' }, repetitions: 3 }).expression).toBe('3#[d20 + (FOR) 3]')
   })
   it('scenario 5: 3 repetitions with advantage', () => {

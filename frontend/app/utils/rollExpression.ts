@@ -8,8 +8,8 @@
  * Regras:
  * - Dados na ordem fixa d20, d12, d10, d8, d6, d4, d100, antes das constantes. Dado com quantidade 0 some.
  * - Partes com valor 0 somem. Rótulo vazio (depois de tirar espaços) vira constante sem rótulo.
- * - Sem rótulo e sem vantagem/desvantagem: forma legada compacta, igual ao servidor
- *   (`1d20+2d6+5`, `3#1d20+5`; as constantes viram um único modificador).
+ * - Uma rolagem só, sem rótulo e sem vantagem/desvantagem: forma legada compacta, igual ao servidor
+ *   (`1d20+2d6+5`; as constantes viram um único modificador). Com repetição, sempre `N#[...]`.
  * - Com rótulo ou seleção: forma espaçada (`d20 + (FOR) 3`, `2#(d20 + 5) maior`, `3#[d20 + (FOR) 3]`),
  *   uma constante por parte, na ordem das partes.
  */
@@ -72,7 +72,9 @@ export function buildExpression(input: RollExpressionInput): string {
   if (dice.length === 0) return ''
   const repetitions = input.repetitions
 
-  if (input.selection === 'none' && parts.every(part => part.label === null)) {
+  // Repetition is always written with brackets (request 7.1: make the repeated part explicit), so the
+  // compact legacy form is only used for a single roll with no labels and no selection.
+  if (input.selection === 'none' && repetitions === 1 && parts.every(part => part.label === null)) {
     const modifier = parts.reduce((sum, part) => sum + part.value, 0)
     const terms = dice.map(({ count, faces }) => die(count, faces, true)).join('+')
     const suffix = modifier > 0 ? `+${modifier}` : modifier < 0 ? `${modifier}` : ''

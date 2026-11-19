@@ -191,6 +191,7 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   const source = config.source
   const kind = config.kind
   let sourceDice: DiceCounts = {}
+  let flatTotal: number | null = null
   let parts: RollPart[] = []
   let label = kind === 'Free' ? 'Rolagem livre' : KIND_LABEL[kind]
   let error: string | null = null
@@ -225,6 +226,12 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
       const damage = source.versatile && weapon.versatile ? weapon.versatile : weapon.damage
       sourceDice = diceFromNotation(damage.dice)
       parts = statParts(damage.parts)
+      // Fixed damage (the SRD blowgun deals 1): no dice to roll, it is a constant.
+      if (/^\d+$/.test(damage.dice.trim())) {
+        const flat = Number(damage.dice.trim())
+        parts = [{ label: 'dano', value: flat }, ...parts]
+        flatTotal = parts.reduce((sum, part) => sum + part.value, 0)
+      }
       label = `Dano: ${weapon.name}${source.versatile && weapon.versatile ? ' (duas mãos)' : ''}`
     }
   } else if (source?.type === 'spell') {
@@ -248,6 +255,9 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   }
 
   const dice = addDice(sourceDice, config.dice)
+  if (!error && flatTotal !== null && Object.values(dice).every(count => !count)) {
+    error = `Dano fixo de ${flatTotal}: não precisa rolar.`
+  }
   parts = [...parts, ...config.extraModifiers.map(extra => ({ label: extra.label?.trim() ? extra.label : null, value: extra.value }))]
   const selection = selectionOf(config.advantage)
   const input: RollExpressionInput = { dice, parts, selection, repetitions: config.repetitions }

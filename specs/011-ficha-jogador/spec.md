@@ -137,10 +137,10 @@ Vantagem executa a expressão completa duas vezes e fica com o maior total; desv
 **Acceptance Scenarios**:
 
 1. **Given** a expressão "d20 + 5 + 2d6" sem vantagem nem desvantagem, **When** o jogador rola, **Then** há uma execução e um total.
-2. **Given** a mesma expressão com vantagem, **When** ele olha a tela, **Then** vê "2#(d20 + 5 + 2d6) maior"; **When** rola, **Then** o servidor executa a expressão completa duas vezes e o resultado é o maior dos dois totais, mostrando os dois.
-3. **Given** a mesma expressão com desvantagem, **When** ele rola, **Then** a tela mostrava "2#(d20 + 5 + 2d6) menor" e o resultado é o menor dos dois totais.
-4. **Given** 3 repetições sem vantagem, **When** ele olha a tela, **Then** vê "3#[d20 + 5 + 2d6]" e recebe 3 totais independentes.
-5. **Given** 3 repetições com vantagem, **When** ele olha a tela, **Then** vê "3#[2#(d20 + 5 + 2d6) maior]" e recebe 3 totais, cada um o maior de duas execuções completas.
+2. **Given** a mesma expressão com vantagem, **When** ele olha a tela, **Then** vê "2#(d20 + 2d6 + 5) maior" (dados antes das constantes); **When** rola, **Then** o servidor executa a expressão completa duas vezes e o resultado é o maior dos dois totais, mostrando os dois.
+3. **Given** a mesma expressão com desvantagem, **When** ele rola, **Then** a tela mostrava "2#(d20 + 2d6 + 5) menor" e o resultado é o menor dos dois totais.
+4. **Given** 3 repetições sem vantagem, **When** ele olha a tela, **Then** vê "3#[d20 + 2d6 + 5]" e recebe 3 totais independentes.
+5. **Given** 3 repetições com vantagem, **When** ele olha a tela, **Then** vê "3#[2#(d20 + 2d6 + 5) maior]" e recebe 3 totais, cada um o maior de duas execuções completas.
 6. **Given** uma configuração cuja execução ultrapassaria os limites de dados ou repetições, **When** o jogador tenta rolar, **Then** a tela avisa antes de enviar e o servidor também recusa; nenhuma repetição é cortada ou ignorada em silêncio.
 
 ---

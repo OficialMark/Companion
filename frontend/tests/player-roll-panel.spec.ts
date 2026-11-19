@@ -105,7 +105,7 @@ describe('PlayerRollPanel', () => {
 
     await wrapper.get('[data-advantage="none"]').trigger('click')
     await wrapper.get('[data-repetitions]').setValue('3')
-    expect(expression(wrapper)).toBe('3#1d20+2d6+5')
+    expect(expression(wrapper)).toBe('3#[d20 + 2d6 + 5]')
     await wrapper.get('[data-advantage="advantage"]').trigger('click')
     expect(expression(wrapper)).toBe('3#[2#(d20 + 2d6 + 5) maior]')
 

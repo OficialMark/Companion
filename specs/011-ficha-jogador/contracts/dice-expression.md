@@ -58,7 +58,8 @@ ROTULO      = 1..16 caracteres de letras (com acento), dígitos, espaço, "+", "
 
 Entrada: `{ dice: { d20: 1, d6: 2, … }, parts: [{ label, value }], selection: 'none' | 'advantage' | 'disadvantage', repetitions }`.
 
-- Sem rótulo (com valor diferente de 0) e sem seleção, o gerador emite a **forma legada compacta**, porque é isso que o servidor devolve para essa entrada: `{ d20: 1, d6: 2 }` + `5` vira `1d20+2d6+5`, e com 3 repetições `3#1d20+2d6+5`. Assim a string gerada é sempre igual ao `Normalized`, sem exceção.
+- Uma rolagem só, sem rótulo (com valor diferente de 0) e sem seleção: **forma legada compacta**, porque é isso que o servidor devolve para essa entrada (`{ d20: 1, d6: 2 }` + `5` vira `1d20+2d6+5`).
+- **Repetição sempre entre colchetes** (pedido, item 7.1: deixar explícito o trecho repetido): com 3 repetições, `3#[d20 + 2d6 + 5]`. Os colchetes fazem o servidor tratar a entrada como forma nova, então a string gerada continua igual ao `Normalized`.
 - Com rótulo ou seleção, emite a forma nova espaçada (`d20 + (FOR) 3`, `2#(d20 + 5) maior`, `3#[2#(d20) menor]`).
 - Ordem dos dados: d20, d12, d10, d8, d6, d4, d100. O servidor preserva a ordem de entrada, então `d6 + d8` digitado à mão continua `d6 + d8`.
 - Partes com valor 0 e dados com quantidade 0 são omitidos. Rótulo vazio vira constante sem rótulo. Sem nenhum dado, devolve `''`.
