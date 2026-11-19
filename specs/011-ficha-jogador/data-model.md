@@ -88,7 +88,7 @@ Um para um com `Participant` de papel Jogador. PK = `ParticipantId`.
 | `op` | `add` (soma) ou `min` ("passa a ser pelo menos": vale o maior entre o valor atual e este) |
 | `value` | int −30..30 para `add`; 0..300 para `min`; nulo para `resistance`, `immunity`, `condition`, `text` |
 
-**Chave de duplicidade (FR-016)**: `type|target(minúsculo, sem espaços nas pontas)|op|value`. Dois efeitos de itens diferentes com a mesma chave valem uma vez; o primeiro por `SortOrder` vence e o outro é reportado em `stats.suppressedEffects`. Tipos novos entram no enum e no `CharacterRules`, sem código por item.
+**Chave de duplicidade (FR-016)**: `NOME DO ITEM (maiúsculas, espaços normalizados)|type|target(minúsculo)|op|value` (`CharacterRules.DuplicateKey`). O nome do item entra na chave porque o pedido exige comparar a definição do efeito, não bônus parecidos: dois Anéis de Proteção não acumulam, Anel e Manto de Proteção acumulam (regra do 5e: efeitos de mesmo nome não se combinam). Dois efeitos com a mesma chave valem uma vez; o primeiro por `SortOrder` vence e o outro é reportado em `stats.suppressedEffects`. Tipos novos entram no enum e no `CharacterRules`, sem código por item.
 
 ## CharacterSpell (nova)
 
