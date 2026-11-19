@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { Session } from '~/types/campaign'
 import type { Character, CharacterSheetData } from '~/types/character'
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
@@ -98,7 +99,7 @@ export const useCharacterStore = defineStore('character', {
       if (this.stale) await this.flush()
     },
     /** Item, spell and roll actions: the server answers with the whole recalculated character. */
-    async run(action: (api: ReturnType<typeof useCharacterApi>, session: ReturnType<typeof this.session>) => Promise<Character>) {
+    async run(action: (api: ReturnType<typeof useCharacterApi>, session: Session) => Promise<Character>) {
       this.error = ''
       try {
         const character = await action(useCharacterApi(), this.session())

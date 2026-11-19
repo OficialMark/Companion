@@ -129,4 +129,4 @@ O mestre adiciona de 1 a 20 cópias ao combate pela ficha, pelo formulário "Com
 
 O compêndio é semeado no primeiro startup da API a partir de `backend/src/Companion.Infrastructure/Persistence/Seed/creatures.pocketdm.json`, de forma idempotente. As imagens do compêndio são buscadas pelo servidor sob demanda e guardadas no banco.
 
-**Créditos:** tradução e curadoria © [Pocket DM](https://pocketdm.com.br/monstros), usadas com autorização. Conteúdo SRD sob [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) (Wizards of the Coast). Para reimportar, veja [`scripts/import-creatures/README.md`](scripts/import-creatures/README.md).
+**Licença:** conteúdo SRD sob [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) (Wizards of the Coast). Para reimportar, veja [`scripts/import-creatures/README.md`](scripts/import-creatures/README.md).

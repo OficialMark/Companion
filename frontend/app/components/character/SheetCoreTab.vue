@@ -179,8 +179,8 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
             <Icon :name="(draft.skills[skill.key] ?? 'None') === 'Expertise' ? 'lucide:star' : (draft.skills[skill.key] ?? 'None') === 'Proficient' ? 'lucide:circle-check' : 'lucide:circle'" />
           </button>
           <span class="skill-name">{{ skill.name }} <small>({{ ABILITY_LABEL[skill.ability] }})</small></span>
-          <strong class="skill-bonus" :data-derived="`skill-${skill.key}`" :title="stats.skills[skill.key].parts.map(p => `${p.source} ${signed(p.value)}`).join(' · ')">
-            {{ signed(stats.skills[skill.key].bonus) }}
+          <strong class="skill-bonus" :data-derived="`skill-${skill.key}`" :title="(stats.skills[skill.key]?.parts ?? []).map(p => `${p.source} ${signed(p.value)}`).join(' · ')">
+            {{ signed(stats.skills[skill.key]?.bonus ?? 0) }}
           </strong>
         </li>
       </ul>

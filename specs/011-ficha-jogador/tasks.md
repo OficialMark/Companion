@@ -61,9 +61,9 @@
 - [X] T028 [US1] `CharacterService` (`GetOrCreateAsync`, `PatchAsync` com versão → 409) e `CharacterDtos.cs`/`CharacterMapper.cs` em `backend/src/Companion.Application/Characters/`. Depois do commit, sincroniza `Participant.UpdateCombatProfile` com iniciativa e PV da ficha e emite `ParticipantUpdated` e `CharacterChanged`. Registrar em `Program.cs`
 - [X] T029 [US1] `backend/src/Companion.Api/Endpoints/CharacterEndpoints.cs`: `GET` e `PATCH …/participants/me/character`; `MapCharacterEndpoints` em `Program.cs` Nota: a ficha é gravada com PUT da ficha inteira mais a versão (contrato atualizado).
 - [X] T030 [US1] Integração `backend/tests/Companion.IntegrationTests/CharacterSheetApiTests.cs`: criação idempotente no primeiro GET (2 GETs simultâneos geram 1 ficha), PATCH devolve `stats` recalculados, 409 com versão velha, `ParticipantUpdated` com a nova iniciativa
-- [ ] T031 [P] [US1] Navegação: renomear `MasterViewNav.vue` para `frontend/app/components/ViewNav.vue` e `useMasterView.ts` para `frontend/app/composables/useAppView.ts`, com as opções do papel (`ficha` só para jogador, `lucide:scroll-text`). Manter `data-master-nav` no nav do mestre e atualizar `frontend/app/pages/index.vue`. Testes em `frontend/tests/view-nav.spec.ts`; `frontend/tests/compendium-nav.spec.ts` passa sem mudança de asserção
-- [ ] T032 [P] [US1] `frontend/app/types/character.ts`, `frontend/app/stores/character.ts` (carregar, aplicar `CharacterDto`, recarregar no `CharacterChanged` do próprio `me.id`) e as chamadas novas em `frontend/app/composables/useCompanionApi.ts`
-- [ ] T033 [US1] `frontend/app/components/character/CharacterSheetView.vue`, aba Ficha: campos `[data-field]`, derivados `[data-derived]` com popover de composição, gravação automática de 400 ms com `[data-save-state]` (salvo/salvando/erro/conflito), `[data-stale]` enquanto espera. Estilos em `frontend/app/assets/css/character.css`, registrado em `nuxt.config.ts`. Testes em `frontend/tests/character-sheet.spec.ts`, incluindo a garantia de que nenhum derivado é calculado no navegador
+- [X] T031 [P] [US1] Navegação: renomear `MasterViewNav.vue` para `frontend/app/components/ViewNav.vue` e `useMasterView.ts` para `frontend/app/composables/useAppView.ts`, com as opções do papel (`ficha` só para jogador, `lucide:scroll-text`). Manter `data-master-nav` no nav do mestre e atualizar `frontend/app/pages/index.vue`. Testes em `frontend/tests/view-nav.spec.ts`; `frontend/tests/compendium-nav.spec.ts` passa sem mudança de asserção
+- [X] T032 [P] [US1] `frontend/app/types/character.ts`, `frontend/app/stores/character.ts` (carregar, aplicar `CharacterDto`, recarregar no `CharacterChanged` do próprio `me.id`) e as chamadas novas em `frontend/app/composables/useCompanionApi.ts`
+- [X] T033 [US1] `frontend/app/components/character/CharacterSheetView.vue`, aba Ficha: campos `[data-field]`, derivados `[data-derived]` com popover de composição, gravação automática de 400 ms com `[data-save-state]` (salvo/salvando/erro/conflito), `[data-stale]` enquanto espera. Estilos em `frontend/app/assets/css/character.css`, registrado em `nuxt.config.ts`. Testes em `frontend/tests/character-sheet.spec.ts`, incluindo a garantia de que nenhum derivado é calculado no navegador
 
 ## Phase 5: User Story 2 - Ninguém mexe na ficha dos outros (P1)
 
@@ -71,7 +71,7 @@
 **Independent Test**: com A, B e C (outra campanha), toda tentativa cruzada é recusada e nada muda.
 
 - [X] T034 [US2] Integração `backend/tests/Companion.IntegrationTests/CharacterOwnershipTests.cs`, com uma matriz que cresce a cada história. Cada rota de `contracts/character-api.md` é testada contra: id de item, magia ou rolagem de B usado por A (404, e B não muda); mestre (403); sem token (401); token de outra campanha (401). Nesta fase cobre GET e PATCH; T042, T051 e T063 acrescentam as rotas novas Nota: a matriz cobre todas as rotas de ficha, itens, magias, rolagens e do catálogo; mutação no filtro por dono derruba 3 testes.
-- [ ] T035 [US2] Um endereço `?tela=ficha` aberto pelo mestre e `?tela=compendio` aberto pelo jogador caem na Mesa. Teste em `frontend/tests/view-nav.spec.ts`
+- [X] T035 [US2] Um endereço `?tela=ficha` aberto pelo mestre e `?tela=compendio` aberto pelo jogador caem na Mesa. Teste em `frontend/tests/view-nav.spec.ts`
 
 ## Phase 6: User Story 3 - Inventário e equipamentos que mudam a ficha (P1)
 
@@ -139,7 +139,7 @@
 
 ## Phase 11: Polish & Cross-Cutting
 
-- [ ] T065 [P] Remover o crédito ao Pocket DM de `frontend/app/components/creatures/CreatureLibrary.vue:126` (FR-040), ajustar os testes que o verificam e registrar a decisão em `scripts/import-creatures/README.md`
+- [X] T065 [P] Remover o crédito ao Pocket DM de `frontend/app/components/creatures/CreatureLibrary.vue:126` (FR-040), ajustar os testes que o verificam e registrar a decisão em `scripts/import-creatures/README.md`
 - [ ] T066 E2E `frontend/tests/e2e/player-sheet.spec.ts`, nos projetos desktop e Pixel 7, contra `E2E_BASE_URL` da instância própria. Cobre o roteiro do quickstart, os passos 1 a 8: conta por nome em 2 contextos, ficha, mochila com CA, Modo Jogo com vantagem e repetição, rolagem salva e o mestre intacto. Verifica alvos de 44 px e ausência de rolagem horizontal em 375 px, no padrão de `compendium-sheet.spec.ts`
 - [ ] T067 Rodar a suíte completa: `dotnet test backend/Companion.slnx`, `pnpm --dir frontend test`, `pnpm --dir frontend exec nuxt typecheck`, `node --test scripts/import-catalogs/ scripts/import-creatures/`, e o e2e da feature junto com `compendium-sheet` e `token-sheet-shortcut` na instância própria. Registrar os números em `specs/011-ficha-jogador/checklists/baseline.md` e compará-los com T001
 - [ ] T068 Revisão crítica fria (CLAUDE.md, "Fan-out + harsh critic"). Agentes sem contexto da construção, um por eixo: (a) segurança e posse, tentando ler ou alterar a ficha de outro; (b) atacante de regras, re-quebrando CA, duplicidade, proficiência e vantagem com entradas vizinhas; (c) UX em 1280 e 375 px contra a rubrica do SC-010; (d) leitura do diff da migration e do backfill. Cada achado vira tarefa nova neste arquivo, e as evidências ficam no scratchpad da sessão

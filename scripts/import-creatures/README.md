@@ -117,3 +117,7 @@ Every run writes `last-run-report.md` and prints it: slugs on the index, parsed 
 reason), skipped restricted pages, counts per source book and size, and how many creatures lack
 `hitPoints`, `armorClass`, any ability score or `imageUrl`. The run passes when 100% of index slugs were
 attempted and at least 98% of the non-skipped creatures have HP, AC and all six abilities.
+
+## Crédito na interface
+
+A equipe do Pocket DM autorizou o uso e pediu que o app não exiba crédito a ela (spec 011, FR-040, 2026-11-19). O app mostra só o aviso da licença CC BY 4.0 do conteúdo SRD.

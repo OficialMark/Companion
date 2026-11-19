@@ -80,6 +80,9 @@ const { view } = useAppView()
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
 watch(() => store.isMaster, master => { if (!master) creatures.close() })
+// Spec 011: the player's own sheet; a new session (another account) starts from scratch.
+const character = useCharacterStore()
+watch(() => store.session?.participantToken, () => character.reset())
 // Board photos: participants' avatars plus library images of creature tokens.
 watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
   for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
@@ -167,7 +170,13 @@ onBeforeUnmount(() => {
       <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
-      <template v-if="view === 'compendio'">
+      <template v-if="view === 'ficha'">
+        <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert">
+          <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
+        </p>
+        <CharacterSheetView />
+      </template>
+      <template v-else-if="view === 'compendio'">
         <!-- The Mesa shows this inside its welcome row; the Compendium has none, so it gets its own. -->
         <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert" data-compendio-offline>
           <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.

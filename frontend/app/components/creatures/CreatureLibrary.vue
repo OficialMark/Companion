@@ -123,7 +123,7 @@ onBeforeUnmount(() => clearTimeout(debounce))
 
     <p class="creature-credit">
       <Icon name="lucide:book-marked" />
-      Compêndio em português por <a href="https://pocketdm.com.br/monstros" target="_blank" rel="noopener">Pocket DM</a>, usado com autorização.
+      <!-- Spec 011, FR-040: the Pocket DM team authorized the use and asked for no credit. The SRD license notice stays. -->
       Conteúdo SRD sob <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (Wizards of the Coast).
     </p>
   </section>
