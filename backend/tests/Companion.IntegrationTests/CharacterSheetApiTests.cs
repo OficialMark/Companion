@@ -23,6 +23,24 @@ public sealed class CharacterSheetApiTests(CompanionApiFactory factory) : Charac
     }
 
     [Fact]
+    public async Task First_open_keeps_the_hp_the_player_gave_the_table_and_syncs_the_table_at_once()
+    {
+        var (master, player) = await Table();
+        var manual = await Send(HttpMethod.Put, $"/api/campaigns/{player.CampaignId}/participants/me/combat-profile", player,
+            new Application.Contracts.UpdateCombatProfileRequest(4, 25, 30));
+        manual.EnsureSuccessStatusCode();
+
+        var sheet = await Get(player);
+
+        Assert.Equal(30, sheet.Sheet.BaseMaxHitPoints);
+        Assert.Equal(25, sheet.Sheet.CurrentHitPoints);
+        var participant = (await Snapshot(master)).Participants.Single(x => x.Id == player.ParticipantId);
+        Assert.Equal(sheet.Stats.Initiative.Value, participant.InitiativeModifier);
+        Assert.Equal(25, participant.CurrentHitPoints);
+        Assert.Equal(30, participant.MaxHitPoints);
+    }
+
+    [Fact]
     public async Task Saving_base_values_returns_recalculated_stats_and_survives_a_reload()
     {
         var (_, player) = await Table();

@@ -223,11 +223,28 @@ public sealed class CharacterService(
         if (sheet is null && !createIfMissing) throw new AppException(AppErrorKind.NotFound, NoSheetYet);
         if (sheet is null)
         {
-            sheet = new CharacterSheet(participant.Id, timeProvider.GetUtcNow());
+            var now = timeProvider.GetUtcNow();
+            sheet = new CharacterSheet(participant.Id, now);
+            // A new sheet starts from the HP the player already gave the table, and from then on the sheet
+            // is the only source of initiative and HP (FR-010): sync the participant in the same commit,
+            // so the table never shows the old manual numbers next to a sheet that says otherwise.
+            if (participant.MaxHitPoints is >= 1 and <= 9_999)
+            {
+                var max = participant.MaxHitPoints.Value;
+                var current = Math.Clamp(participant.CurrentHitPoints ?? max, 0, max);
+                sheet.Update(sheet.Data with { BaseMaxHitPoints = max, CurrentHitPoints = current }, now);
+            }
+
+            var stats = CharacterRules.Compute(sheet.Data, [], []);
+            var before = (participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints);
+            participant.UpdateCombatProfile(Math.Clamp(stats.Initiative.Value, -100, 100), sheet.Data.CurrentHitPoints, stats.MaxHitPoints.Value);
+            var profileChanged = before != (participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints);
             db.Add(sheet);
             try
             {
                 await db.SaveChangesAsync(cancellationToken);
+                if (profileChanged)
+                    await notifier.NotifyAsync(campaignId, "ParticipantUpdated", DtoMapper.ToDto(participant, presence.IsOnline(participant.Id)), cancellationToken);
             }
             catch (Exception exception) when (exception.GetType().Name is "DbUpdateException")
             {
