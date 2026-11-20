@@ -31,4 +31,9 @@ describe('native select colors', () => {
     expect(contrast(group.color, group.background)).toBeGreaterThanOrEqual(4.5)
     expect(contrast(option.color, option.background)).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('the sheet picker of the master is a dark field, not the white default of the browser', () => {
+    const panel = readFileSync(resolve(__dirname, '../app/assets/css/roll-panel.css'), 'utf8')
+    expect(panel).toMatch(/\.master-roll-source select\s*\{[^}]*background:\s*var\(--panel-high\)[^}]*color:\s*var\(--ink\)/)
+  })
 })
