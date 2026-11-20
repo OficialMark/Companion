@@ -151,7 +151,6 @@ async function journey(page: Page, width: number) {
   await page.getByRole('button', { name: 'Compêndio' }).click()
   await expect(page).toHaveURL(/tela=compendio/)
   await expect(page.getByRole('heading', { level: 1, name: 'Compêndio' })).toBeVisible()
-  await expect(page.locator('.master-code-panel')).toHaveCount(0)
   await expect(page.locator('.creature-card').first()).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { level: 1, name: 'Compêndio' })).toBeVisible()
@@ -207,7 +206,7 @@ async function journey(page: Page, width: number) {
   // Back to the Mesa in one click; a player never gets the Compendium.
   await page.getByRole('button', { name: 'Mesa', exact: true }).click()
   await expect(page).not.toHaveURL(/tela=compendio/)
-  await expect(page.locator('.master-code-panel')).toBeVisible()
+  await expect(page.locator('.dashboard-grid')).toBeVisible()
 
   const playerContext = await page.context().browser()!.newContext({ viewport: page.viewportSize()! })
   const player = await playerContext.newPage()

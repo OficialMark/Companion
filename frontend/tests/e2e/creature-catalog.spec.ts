@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { setSheetProfile } from './sheet-profile'
 
 // Spec 008 end to end: the master finds the catalog everywhere it is needed (tab, combat
 // preparation, board), publishes a map that is already fogged, and adds reinforcements mid-combat.
@@ -76,10 +77,7 @@ for (const width of [1280, 1024, 375]) {
     await player.locator('[data-board-surface]').scrollIntoViewIfNeeded()
     await shot(player, '4-player-fogged')
     // Combat only starts when everyone has HP: the player fills in their profile.
-    await player.getByLabel('Modificador de iniciativa').fill('3')
-    await player.locator('#own-hit-points').fill('24')
-    await player.getByRole('button', { name: 'Salvar', exact: true }).click()
-    await expect(player.getByText('Perfil de combate salvo.')).toBeVisible()
+    await setSheetProfile(player, { dexterity: 16, hp: 24 })
 
     // 4. Start combat, then add a reinforcement from the board's catalog.
     await page.getByRole('button', { name: 'Rolar iniciativas', exact: true }).click()

@@ -101,11 +101,15 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
   })
 
   const stubs = {
+    MasterRollPanel: {
+      props: ['gameMode'], emits: ['rolled-d20'],
+      template: `<div data-stub="master-roll-panel" :data-game-mode="String(gameMode)"><button data-fake-d20 @click="$emit('rolled-d20', { id: 'q1', total: 12 })" /></div>`
+    },
     PlayerRollPanel: PanelStub, QuickDiceRoller: QuickStub, AttackConfirmModal: ConfirmStub, DamageRollModal: DamageStub, InventoryPanel: InventoryStub,
     DiceRoller: { template: '<div data-stub="dice-roller" />' },
     CampaignAccess: true, ViewNav: true, GameModeToggle: true, ConnectionStatus: true, UserMenu: true, CharacterSheetView: true,
     CreatureLibrary: true, CreatureSheetModal: true, BattlemapBoard: true, BattlemapSetup: true, EncounterSetup: true,
-    InitiativeTracker: true, CombatAttack: true, ParticipantsPanel: true, RollHistory: true, InitiativeModifier: true
+    InitiativeTracker: true, CombatAttack: true, ParticipantsPanel: true, RollHistory: true, SheetSummaryBar: true
   }
 
   function setup({ role = 'Player' as 'Player' | 'Master', combatant = true } = {}) {
@@ -176,11 +180,11 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     wrapper.unmount()
   })
 
-  it('the master keeps the quick roller and no character is loaded', async () => {
+  it('the master gets the creature roll panel (spec 012) and no character is loaded', async () => {
     setup({ role: 'Master' })
     const wrapper = await mountPage()
     expect(characterApi.getCharacter).not.toHaveBeenCalled()
-    expect(wrapper.find('[data-stub="quick-dice-roller"]').exists()).toBe(true)
+    expect(wrapper.get('[data-stub="master-roll-panel"]').attributes('data-game-mode')).toBe('true')
     expect(wrapper.find('[data-stub="player-roll-panel"]').exists()).toBe(false)
     // Quick d20: "Acertou?" then the damage roller without a prefilled expression, as before.
     await wrapper.get('[data-fake-d20]').trigger('click')
@@ -190,13 +194,21 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     wrapper.unmount()
   })
 
-  it('outside the Modo Jogo nothing changes: the full dice roller', async () => {
+  it('spec 012: outside the Modo Jogo the player also rolls from the sheet', async () => {
     setup()
     useGameMode().exit()
     const wrapper = await mountPage()
-    expect(wrapper.find('[data-stub="dice-roller"]').exists()).toBe(true)
-    expect(wrapper.find('[data-stub="player-roll-panel"]').exists()).toBe(false)
-    expect(characterApi.getCharacter).not.toHaveBeenCalled()
+    expect(characterApi.getCharacter).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-stub="player-roll-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-stub="dice-roller"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('spec 012: the master outside the Modo Jogo gets the creature roll panel in full-view mode', async () => {
+    setup({ role: 'Master' })
+    useGameMode().exit()
+    const wrapper = await mountPage()
+    expect(wrapper.get('[data-stub="master-roll-panel"]').attributes('data-game-mode')).toBe('false')
     wrapper.unmount()
   })
 

@@ -36,6 +36,8 @@ public sealed class CatalogItem
     public string? Cost { get; private set; }
     public InventoryItemData Template { get; private set; } = null!;
     public string SearchKey { get; private set; } = string.Empty;
+    /// <summary>Normalized name, English name and description: what the broad search (spec 012) matches.</summary>
+    public string SearchText { get; private set; } = string.Empty;
     public bool IsRemovedFromCatalog { get; private set; }
 
     /// <summary>
@@ -80,6 +82,7 @@ public sealed class CatalogItem
         Cost = cost;
         Template = template;
         SearchKey = Creature.BuildSearchKey(Name, NameEn);
+        SearchText = CatalogText.SearchText(Name, NameEn, template.Description);
         IsRemovedFromCatalog = false;
     }
 
@@ -113,6 +116,8 @@ public sealed class CatalogSpell
     public Guid Id { get; private set; }
     public string Slug { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
+    /// <summary>Official English name (spec 012), from the fixed PT→EN table of the importer.</summary>
+    public string? NameEn { get; private set; }
     public int Level { get; private set; }
     public string? School { get; private set; }
     public bool Ritual { get; private set; }
@@ -121,6 +126,8 @@ public sealed class CatalogSpell
     public string? HigherLevels { get; private set; }
     public CharacterSpellData Template { get; private set; } = null!;
     public string SearchKey { get; private set; } = string.Empty;
+    /// <summary>Normalized name, English name and description: what the broad search (spec 012) matches.</summary>
+    public string SearchText { get; private set; } = string.Empty;
     public bool IsRemovedFromCatalog { get; private set; }
 
     public void Apply(CatalogSpellFields fields)
@@ -132,7 +139,9 @@ public sealed class CatalogSpell
         if (JsonSerializer.Serialize(classes).Length > MaxClassesJsonLength)
             throw new ArgumentException($"classes: a lista passa de {MaxClassesJsonLength} caracteres.");
         var higherLevels = CatalogText.Optional(fields.HigherLevels, MaxHigherLevelsLength, "higherLevels");
+        var nameEn = CatalogText.Optional(fields.NameEn, CatalogItem.MaxNameEnLength, "nameEn");
         Name = template.Name;
+        NameEn = nameEn;
         Level = template.Level;
         School = template.School;
         Ritual = template.Ritual;
@@ -140,18 +149,36 @@ public sealed class CatalogSpell
         Classes = classes;
         HigherLevels = higherLevels;
         Template = template;
-        SearchKey = Creature.Normalize(Name);
+        SearchKey = Creature.BuildSearchKey(Name, NameEn);
+        SearchText = CatalogText.SearchText(Name, NameEn, template.Description);
         IsRemovedFromCatalog = false;
     }
 
     public void MarkRemoved() => IsRemovedFromCatalog = true;
 }
 
-public sealed record CatalogSpellFields(CharacterSpellData Template, IReadOnlyList<string> Classes, string? HigherLevels);
+public sealed record CatalogSpellFields(CharacterSpellData Template, IReadOnlyList<string> Classes, string? HigherLevels, string? NameEn = null);
 
 /// <summary>Length checks of the catalog columns; <see cref="ArgumentException"/> makes the seeder skip the row.</summary>
-public static class CatalogText
+public static partial class CatalogText
 {
+    /// <summary>
+    /// The text the broad search matches (spec 012): name, English name and description without HTML,
+    /// lowercase and accent-free like <see cref="Creature.Normalize"/>, whitespace collapsed.
+    /// </summary>
+    public static string SearchText(string name, string? nameEn, string? description)
+    {
+        var plain = Tags().Replace(description ?? string.Empty, " ");
+        var joined = string.Join(" | ", new[] { name, nameEn, System.Net.WebUtility.HtmlDecode(plain) }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        return Spaces().Replace(Creature.Normalize(joined), " ").Trim();
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex("<[^>]*>")]
+    private static partial System.Text.RegularExpressions.Regex Tags();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
+    private static partial System.Text.RegularExpressions.Regex Spaces();
+
     /// <summary>Slugs are compared trimmed and in lowercase, like the unique index (case-insensitive collation).</summary>
     public static string NormalizeSlug(string? slug) => (slug ?? string.Empty).Trim().ToLowerInvariant();
 

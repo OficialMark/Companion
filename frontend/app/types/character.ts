@@ -210,6 +210,8 @@ export interface CatalogItem {
 export interface CatalogSpellSummary {
   id: string
   name: string
+  /** Official English name (spec 012); null when unknown. */
+  nameEn?: string | null
   level: number
   school: string | null
   ritual: boolean
@@ -220,6 +222,7 @@ export interface CatalogSpellSummary {
 export interface CatalogSpell {
   id: string
   name: string
+  nameEn?: string | null
   level: number
   classes: string[]
   higherLevels: string | null

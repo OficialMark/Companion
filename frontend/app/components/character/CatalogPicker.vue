@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { CatalogItemQuery, CatalogItemSummary, CatalogSpellSummary, Character, ItemCategory } from '~/types/character'
+import type { CatalogItem, CatalogItemQuery, CatalogItemSummary, CatalogSpell, CatalogSpellSummary, Character, ItemCategory } from '~/types/character'
 import { CATEGORY_LABEL } from '~/types/character'
 import { CATEGORY_ORDER } from './ItemEditorModal.vue'
 import { focusAfterRender } from '~/utils/focus'
+import CatalogDetail from './CatalogDetail.vue'
 
 /**
  * Pick items or spells from the catalogs (spec 011, US7). Search waits for a pause in typing,
@@ -10,7 +11,11 @@ import { focusAfterRender } from '~/utils/focus'
  * never replaces the results of a newer search. The SRD credit appears only for items; the
  * spell catalog carries no credit by the owners' request.
  */
-const props = defineProps<{ mode: 'items' | 'spells' }>()
+/**
+ * `browse` (spec 012): the master's Compêndio tab. Inline instead of a modal, read-only (no Adicionar),
+ * each row opens its full details.
+ */
+const props = withDefaults(defineProps<{ mode: 'items' | 'spells'; browse?: boolean }>(), { browse: false })
 const emit = defineEmits<{ close: [] }>()
 
 /** The backend DTO has these fields; the shared TS type may not have them yet. */
@@ -215,6 +220,36 @@ function backFromBase() {
 }
 
 function close() { emit('close') }
+
+/** Browse mode: one open row at a time, its details fetched once. */
+const openId = ref<string | null>(null)
+const detailLoadingId = ref<string | null>(null)
+const detailError = ref('')
+const itemDetails = reactive(new Map<string, CatalogItem>())
+const spellDetails = reactive(new Map<string, CatalogSpell>())
+async function toggleDetail(id: string) {
+  if (openId.value === id) { openId.value = null; return }
+  openId.value = id; detailError.value = ''
+  const have = props.mode === 'items' ? itemDetails.has(id) : spellDetails.has(id)
+  if (have) return
+  detailLoadingId.value = id
+  try {
+    const api = useCharacterApi()
+    const session = character.session()
+    if (props.mode === 'items') itemDetails.set(id, await api.getCatalogItem(session, id))
+    else spellDetails.set(id, await api.getCatalogSpell(session, id))
+  } catch (error) {
+    if (openId.value === id) detailError.value = errorMessage(error)
+  } finally {
+    if (detailLoadingId.value === id) detailLoadingId.value = null
+  }
+}
+/** In the modal Esc is ours (and stops there); the Compêndio browser leaves it to the page. */
+function onEscapeKey(event: KeyboardEvent) {
+  if (props.browse) return
+  event.stopPropagation()
+  onEscape()
+}
 /** Esc steps back from the base step first; from the first step it closes the picker. */
 function onEscape() {
   if (baseFor.value) backFromBase()
@@ -224,6 +259,7 @@ function onEscape() {
 onMounted(async () => {
   opener = document.activeElement
   void load()
+  if (props.browse) return
   await nextTick()
   searchInput.value?.focus()
 })
@@ -232,25 +268,26 @@ onBeforeUnmount(() => {
   clearTimeout(baseTimer)
   sequence++
   baseSequence++
-  if (opener instanceof HTMLElement) opener.focus()
+  if (!props.browse && opener instanceof HTMLElement) opener.focus()
 })
 </script>
 
 <template>
-  <div class="modal-overlay sheet-modal-overlay" @keydown.esc.stop="onEscape" @click.self="close">
+  <div :class="browse ? 'catalog-browser-host' : 'modal-overlay sheet-modal-overlay'" @keydown.esc="onEscapeKey" @click.self="browse || close()">
     <div
-      class="modal-panel sheet-modal catalog-picker"
-      role="dialog"
-      aria-modal="true"
+      :class="browse ? 'panel catalog-browser' : 'modal-panel sheet-modal catalog-picker'"
+      :role="browse ? 'region' : 'dialog'"
+      :aria-modal="browse ? undefined : 'true'"
       aria-labelledby="catalog-picker-title"
       :data-catalog-picker="mode"
+      :data-catalog-browse="browse ? '' : undefined"
     >
       <header class="sheet-modal-header">
         <div>
           <p class="eyebrow"><Icon :name="mode === 'items' ? 'lucide:backpack' : 'lucide:wand-sparkles'" />Catálogo</p>
           <h2 id="catalog-picker-title">{{ baseFor ? 'Escolha a base' : title }}</h2>
         </div>
-        <button type="button" class="icon-button" aria-label="Fechar" @click="close"><Icon name="lucide:x" /></button>
+        <button v-if="!browse" type="button" class="icon-button" aria-label="Fechar" @click="close"><Icon name="lucide:x" /></button>
       </header>
 
       <p v-if="status" class="form-success" role="status" data-catalog-status><Icon name="lucide:check" />{{ status }}</p>
@@ -294,7 +331,7 @@ onBeforeUnmount(() => {
               v-model="search"
               type="search"
               inputmode="search"
-              :placeholder="mode === 'items' ? 'Buscar item (PT ou EN)' : 'Buscar magia'"
+              :placeholder="mode === 'items' ? 'Buscar item: nome, inglês ou descrição' : 'Buscar magia: nome, inglês ou descrição'"
               :aria-label="mode === 'items' ? 'Buscar item' : 'Buscar magia'"
               data-catalog-search
             >
@@ -345,25 +382,41 @@ onBeforeUnmount(() => {
                   <span v-if="item.requiresBaseItem" class="item-badge subtle">escolha a base</span>
                 </p>
               </div>
-              <button type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${item.name}`" data-add-catalog @click="addItem(item)">
+              <button v-if="browse" type="button" class="button ghost small" :aria-expanded="openId === item.id" :aria-controls="`catalog-detail-${item.id}`" :aria-label="`Detalhes de ${item.name}`" data-catalog-detail-toggle @click="toggleDetail(item.id)">
+                <Icon :name="openId === item.id ? 'lucide:chevron-up' : 'lucide:chevron-down'" />Detalhes
+              </button>
+              <button v-else type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${item.name}`" data-add-catalog @click="addItem(item)">
                 <Icon :name="addingId === item.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === item.id }" />Adicionar
               </button>
+              <div v-if="browse && openId === item.id" :id="`catalog-detail-${item.id}`" class="catalog-row-detail">
+                <p v-if="detailLoadingId === item.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
+                <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
+                <CatalogDetail v-else :item="itemDetails.get(item.id)" />
+              </div>
             </li>
           </ul>
 
           <ul v-else class="catalog-list" :class="{ 'is-loading': loading }">
             <li v-for="spell in spells" :key="spell.id" class="catalog-row" :data-catalog-id="spell.id">
               <div class="catalog-row-main">
-                <p class="catalog-row-name">{{ spell.name }}</p>
+                <p class="catalog-row-name">{{ spell.name }} <small v-if="spell.nameEn">{{ spell.nameEn }}</small></p>
                 <p class="catalog-row-meta">
                   <span>{{ levelLabel(spell.level) }}<template v-if="spell.school">, {{ spell.school }}</template></span>
                   <span v-if="spell.concentration" class="item-badge subtle" title="Concentração">C</span>
                   <span v-if="spell.ritual" class="item-badge subtle" title="Ritual">R</span>
                 </p>
               </div>
-              <button type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${spell.name}`" data-add-catalog @click="addSpell(spell)">
+              <button v-if="browse" type="button" class="button ghost small" :aria-expanded="openId === spell.id" :aria-controls="`catalog-detail-${spell.id}`" :aria-label="`Detalhes de ${spell.name}`" data-catalog-detail-toggle @click="toggleDetail(spell.id)">
+                <Icon :name="openId === spell.id ? 'lucide:chevron-up' : 'lucide:chevron-down'" />Detalhes
+              </button>
+              <button v-else type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${spell.name}`" data-add-catalog @click="addSpell(spell)">
                 <Icon :name="addingId === spell.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === spell.id }" />Adicionar
               </button>
+              <div v-if="browse && openId === spell.id" :id="`catalog-detail-${spell.id}`" class="catalog-row-detail">
+                <p v-if="detailLoadingId === spell.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
+                <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
+                <CatalogDetail v-else :spell="spellDetails.get(spell.id)" />
+              </div>
             </li>
           </ul>
         </div>

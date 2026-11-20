@@ -64,6 +64,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("nvarchar(260)");
 
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -116,6 +120,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
+                    b.Property<string>("NameEn")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
                     b.Property<bool>("Ritual")
                         .HasColumnType("bit");
 
@@ -127,6 +135,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(260)
                         .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Slug")
                         .IsRequired()

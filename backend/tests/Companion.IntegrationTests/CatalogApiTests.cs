@@ -46,14 +46,21 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
         var all = await Page<CatalogSpellSummaryDto>(player, "spells?pageSize=1");
         var fireball = await Page<CatalogSpellSummaryDto>(player, "spells?q=bola%20de%20fogo");
         var level3Mage = await Page<CatalogSpellSummaryDto>(player, "spells?level=3&class=mago&pageSize=50");
-        var accentless = await Page<CatalogSpellSummaryDto>(player, "spells?q=evocacao");
+        var accentless = await Page<CatalogSpellSummaryDto>(player, "spells?q=misseis%20magicos");
 
-        Assert.Equal(361, all.Total);
+        // Other tests add catalog rows to the shared database (slugs "spell-…"): count the seed only.
+        using (var scope = Services.CreateScope())
+            Assert.Equal(361, scope.ServiceProvider.GetRequiredService<CompanionDbContext>().CatalogSpells.Count(x => !x.Slug.StartsWith("spell-")));
+        Assert.True(all.Total >= 361);
         Assert.Null(all.Attribution);
         Assert.Contains(fireball.Items, x => x.Name == "Bola de Fogo" && x.Level == 3);
         Assert.All(level3Mage.Items, x => Assert.Contains("mago", x.Classes));
         Assert.True(level3Mage.Total > 10);
-        Assert.Equal(0, accentless.Total); // the name is searched, not the school
+        Assert.Contains(accentless.Items, x => x.Name == "Mísseis Mágicos");
+        // Spec 012: the seeded English names are searchable (the source has only the Portuguese name).
+        var english = await Page<CatalogSpellSummaryDto>(player, "spells?q=fireball");
+        Assert.Equal("Bola de Fogo", english.Items.First().Name);
+        Assert.Equal("Fireball", english.Items.First().NameEn);
     }
 
     [Fact]

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { CREATURE_SIZE_LABELS, ORIGIN_LABELS, type CreatureOrigin, type CreatureSize, type CreatureSummary } from '~/types/creatures'
 
+/** `embedded` (spec 012): inside the Compêndio tabs, which own the page title. */
+const props = withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
+
 /** Creature library tab (spec 008, US3): search, filters, cards, pagination, credit. */
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
@@ -47,7 +50,8 @@ onBeforeUnmount(() => clearTimeout(debounce))
     <div class="panel-heading">
       <div>
         <p class="eyebrow"><Icon name="lucide:book-open" />Bestiário da mesa</p>
-        <h1 id="creature-library-title">Compêndio</h1>
+        <h2 v-if="props.embedded" id="creature-library-title">Criaturas</h2>
+        <h1 v-else id="creature-library-title">Compêndio</h1>
         <p class="creature-library-lead">Consulte, filtre e edite as criaturas do compêndio, ou crie as suas.</p>
       </div>
       <div class="creature-library-actions">

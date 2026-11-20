@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { setSheetProfile } from './sheet-profile'
 
 test('imports online player modifier and supports master edits', async ({ page, browser }) => {
   await page.goto('/')
@@ -15,10 +16,7 @@ test('imports online player modifier and supports master edits', async ({ page, 
   await player.getByLabel('Código da campanha').fill(playerCode)
   await player.getByLabel('Seu nome').fill('Guerreiro')
   await player.getByRole('button', { name: 'Entrar na campanha' }).click()
-  await player.getByLabel('Modificador de iniciativa').fill('3')
-  await player.getByLabel('Vida atual', { exact: true }).last().fill('24')
-  await player.getByRole('button', { name: 'Salvar', exact: true }).click()
-  await expect(player.getByText('Perfil de combate salvo.')).toBeVisible()
+  await setSheetProfile(player, { dexterity: 16, hp: 24 })
 
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
   await page.getByRole('button', { name: 'Rolar iniciativas', exact: true }).click()

@@ -277,22 +277,11 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .fatal-state h1 { color: var(--ink); margin: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-.master-code-panel { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; margin-bottom: 18px; border: 1px solid rgba(215,174,93,.25); border-radius: 14px; padding: 12px 18px; background: rgba(215,174,93,.06); }
-.master-code-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--gold); background: rgba(215,174,93,.1); }
-.master-code-panel p { margin: 0; line-height: 1.45; }
-.master-code-panel details { display: flex; align-items: center; gap: 10px; }
-.master-code-panel summary { min-height: 44px; display: inline-flex; align-items: center; gap: 7px; color: var(--gold-soft); font-weight: 700; cursor: pointer; list-style: none; }
-.master-code-panel summary::-webkit-details-marker { display: none; }
-.master-code-panel details[open] summary { color: var(--muted); }
 
 /* Player combat profile */
-.modifier-panel { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 18px; }
-.modifier-panel h2, .modifier-panel p { margin-bottom: 6px; }
-.modifier-panel > div > p:not(.eyebrow) { color: var(--muted); }
 .modifier-form { display: grid; grid-template-columns: minmax(190px, 1fr) minmax(140px, .75fr) auto; align-items: end; gap: 10px; }
 .combat-profile-field { display: grid; gap: 6px; min-width: 0; }
 .combat-profile-field input { width: 100%; min-width: 0; }
-.modifier-panel > .form-success, .modifier-panel > .form-error, .modifier-panel > .field-hint { grid-column: 1 / -1; }
 /* With a character sheet (spec 011, FR-010): initiative and max HP are read-only values from it. */
 .combat-profile-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
 .combat-profile-value { min-height: 44px; display: flex; align-items: center; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
@@ -413,9 +402,6 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   .combatant-form label:first-child, .combatant-form .button { grid-column: 1 / -1; }
   .button-row .button { flex: 1 1 auto; }
   .button-row .push-end { margin-left: 0; }
-  .master-code-panel { grid-template-columns: auto minmax(0, 1fr); padding: 12px 14px; }
-  .master-code-panel details { grid-column: 1 / -1; flex-wrap: wrap; }
-  .modifier-panel { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
   .modifier-form { grid-template-columns: 1fr 1fr; }
   .modifier-form .button { grid-column: 1 / -1; }
   .initiative-list li { padding: 10px; }
@@ -442,3 +428,53 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .spin { animation: none; }
 }
+
+/* Native select lists (spec 012, FR-008): the browser paints options and group titles white unless told
+   otherwise. Group titles sit one tone darker than the options so the categories stand apart. */
+select option { background: #241d23; color: #f8f0e5; }
+select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-weight: 700; }
+
+/* Master's code in the top bar (spec 012, FR-009): masked until the eye is pressed. */
+.master-code-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 1px solid rgba(215,174,93,.25); border-radius: 10px; padding: 0 4px 0 10px; color: var(--gold-soft); background: rgba(215,174,93,.06); }
+.master-code-label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+.master-code-value { min-width: 6ch; font-family: ui-monospace, monospace; font-size: .95rem; letter-spacing: .08em; color: var(--ink); }
+.master-code-eye { width: 44px; height: 44px; }
+/* Below 1100 px: only the key and the eye while hidden, so the campaign name keeps its room in the top bar. */
+@media (max-width: 1100px) {
+  .master-code-label { display: none; }
+  .master-code-toggle { padding: 0 0 0 8px; gap: 2px; }
+  .master-code-toggle:not(.is-visible) .master-code-value { display: none; }
+}
+
+/* Player's sheet summary at the foot of the Mesa and its overview (spec 012, US3). */
+.sheet-summary { position: sticky; bottom: 12px; z-index: 5; margin-top: 18px; }
+.dashboard:has(.sheet-summary) { padding-bottom: 24px; }
+.sheet-summary-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 0; }
+.sheet-summary-button { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 56px; padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: 14px; color: var(--ink); background: var(--panel-high); box-shadow: 0 10px 30px rgba(0,0,0,.35); cursor: pointer; text-align: left; }
+.sheet-summary-button:disabled { cursor: progress; opacity: .8; }
+.sheet-summary-button:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
+.sheet-summary-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; margin-right: auto; }
+.sheet-summary-stat { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+.sheet-summary-stat .icon { color: var(--gold); }
+.sheet-summary-chevron { color: var(--muted); }
+.sheet-overview { width: min(560px, 100%); display: grid; gap: 14px; }
+.sheet-overview-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.sheet-overview-head h2 { margin: 0; }
+.sheet-overview-subtitle { margin: 2px 0 0; color: var(--muted); }
+.sheet-overview-hp { display: grid; gap: 8px; }
+.sheet-overview-hp-value { display: flex; align-items: baseline; gap: 6px; font-size: 1.1rem; }
+.sheet-overview-hp-value strong { font-size: 2rem; font-variant-numeric: tabular-nums; }
+.sheet-overview-hp-value .icon { color: #ef8c8c; align-self: center; }
+.hp-meter { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.hp-meter span { display: block; height: 100%; background: linear-gradient(90deg, #b44a4a, #e07a5f); transition: width .2s; }
+.sheet-overview-hp-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sheet-overview-hp-form input { width: 96px; min-height: 40px; }
+.sheet-overview-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 0; }
+.sheet-overview-stats > div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.sheet-overview-stats dt { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: .78rem; }
+.sheet-overview-stats dd { margin: 2px 0 0; font-size: 1.2rem; font-weight: 700; }
+.sheet-overview-abilities { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.sheet-overview-abilities th, .sheet-overview-abilities td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: center; }
+.sheet-overview-abilities thead th { color: var(--muted); font-size: .78rem; font-weight: 600; }
+.sheet-overview-abilities td.proficient { color: var(--gold-soft); font-weight: 700; }
+.sheet-overview-conditions { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-soft); }

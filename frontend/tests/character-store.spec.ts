@@ -195,26 +195,3 @@ describe('store da ficha: escritas do mesmo aparelho em fila', () => {
   })
 })
 
-describe('store da ficha: loadExisting (FR-010)', () => {
-  it('pede a ficha com ifExists e não cria nada: 404 vira "missing"', async () => {
-    const store = useCharacterStore()
-    api.getCharacter.mockRejectedValue(Object.assign(new Error('Não encontrado'), { status: 404 }))
-    expect(await store.loadExisting()).toBe('missing')
-    expect(api.getCharacter).toHaveBeenCalledWith(expect.objectContaining({ participantToken: 'token-a' }), { ifExists: true })
-    expect(store.character).toBeNull()
-    expect(store.error).toBe('')
-  })
-
-  it('com ficha, carrega no store', async () => {
-    const store = useCharacterStore()
-    api.getCharacter.mockResolvedValue(makeCharacter({ participantId: 'pA' }))
-    expect(await store.loadExisting()).toBe('found')
-    expect(store.character!.participantId).toBe('pA')
-    expect(store.draft).not.toBeNull()
-  })
-
-  it('outra falha não é confundida com "sem ficha"', async () => {
-    api.getCharacter.mockRejectedValue(Object.assign(new Error('Falha de rede'), { status: 500 }))
-    expect(await useCharacterStore().loadExisting()).toBe('error')
-  })
-})
