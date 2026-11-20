@@ -89,6 +89,24 @@ describe('Tela Ficha', () => {
     expect(api.saveSheet.mock.calls[0]![1].characterName).toBe('Loren')
   })
 
+  it('preserva o espaço final em Traços quando o autosave devolve texto normalizado', async () => {
+    const normalized = makeCharacter()
+    normalized.sheet.traits = 'Ataque'
+    api.saveSheet.mockResolvedValue(normalized)
+    const wrapper = mount(CharacterSheetView, { global: { stubs } })
+    await flushPromises()
+    const traits = wrapper.get('[data-field="traits"]')
+    await traits.setValue('Ataque ')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    await flushPromises()
+
+    expect((traits.element as HTMLTextAreaElement).value).toBe('Ataque ')
+    expect(useCharacterStore().draft!.traits).toBe('Ataque ')
+    expect(useCharacterStore().character!.sheet.traits).toBe('Ataque')
+    await traits.setValue('Ataque extra')
+    expect(useCharacterStore().draft!.traits).toBe('Ataque extra')
+  })
+
   it('conflito de versão pede para recarregar, sem fingir que salvou', async () => {
     api.saveSheet.mockRejectedValue(Object.assign(new Error('A ficha mudou.'), { status: 409 }))
     const wrapper = mount(CharacterSheetView, { global: { stubs } })
