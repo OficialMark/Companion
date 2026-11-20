@@ -113,7 +113,16 @@ public sealed record CharacterSheetData(
             if (range > 0) senses[normalized] = range;
         }
 
+        foreach (var code in SavingThrowProficiencies ?? [])
+            if (!Enum.IsDefined(code)) throw new ArgumentException("Salvaguarda inválida na ficha.");
+        if (UnarmoredAbility is { } unarmored && !Enum.IsDefined(unarmored))
+            throw new ArgumentException("Atributo da Defesa sem Armadura inválido.");
+        if (SpellcastingAbility is { } casting && !Enum.IsDefined(casting))
+            throw new ArgumentException("Atributo de conjuração inválido.");
+
         var general = GeneralProficiencies ?? GeneralProficiencies.None;
+        foreach (var type in general.Armor ?? [])
+            if (!Enum.IsDefined(type)) throw new ArgumentException("Tipo de armadura inválido nas proficiências.");
         general = general with
         {
             Armor = (general.Armor ?? []).Distinct().Order().ToArray(),
@@ -151,6 +160,17 @@ public sealed record WeaponData(
     string? Mastery)
 {
     public const string Finesse = "finesse";
+    public const int MaxProperties = 10;
+    public const int MaxTagLength = 30;
+
+    /// <summary>
+    /// The closed list of weapon properties (data-model.md, WeaponProperty). Same keys as the item
+    /// seed and frontend/app/components/character/ItemEditorModal.vue (WEAPON_PROPERTIES).
+    /// </summary>
+    public static readonly IReadOnlySet<string> KnownProperties = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "finesse", "light", "heavy", "two-handed", "thrown", "ammunition", "loading", "reach", "versatile", "range"
+    };
 
     public bool Has(string property) => Properties.Contains(property, StringComparer.OrdinalIgnoreCase);
 }
@@ -204,21 +224,38 @@ public sealed record InventoryItemData(
         {
             case ItemCategory.Weapon:
                 weapon = Weapon ?? throw new ArgumentException("Informe os dados da arma (dano e tipo).");
+                if (!Enum.IsDefined(weapon.Kind) || !Enum.IsDefined(weapon.Class))
+                    throw new ArgumentException("Tipo ou categoria de arma inválido.");
+                if (weapon.AbilityOverride is { } overrideAbility && !Enum.IsDefined(overrideAbility))
+                    throw new ArgumentException("Atributo da arma inválido.");
+                var properties = (weapon.Properties ?? []).Select(x => (x ?? string.Empty).Trim().ToLowerInvariant())
+                    .Where(x => x.Length > 0).Distinct().ToArray();
+                if (properties.Length > WeaponData.MaxProperties)
+                    throw new ArgumentException($"Uma arma pode ter até {WeaponData.MaxProperties} propriedades.");
+                if (properties.FirstOrDefault(x => !WeaponData.KnownProperties.Contains(x)) is { } unknown)
+                    throw new ArgumentException($"Propriedade de arma desconhecida: {(unknown.Length > WeaponData.MaxTagLength ? unknown[..WeaponData.MaxTagLength] + "..." : unknown)}.");
+                var mastery = string.IsNullOrWhiteSpace(weapon.Mastery) ? null : weapon.Mastery.Trim();
+                if (mastery is { Length: > WeaponData.MaxTagLength })
+                    throw new ArgumentException($"A maestria da arma deve ter até {WeaponData.MaxTagLength} caracteres.");
+                var damageType = string.IsNullOrWhiteSpace(weapon.DamageType) ? null : weapon.DamageType.Trim();
+                if (damageType is { Length: > WeaponData.MaxTagLength })
+                    throw new ArgumentException($"O tipo de dano deve ter até {WeaponData.MaxTagLength} caracteres.");
                 weapon = weapon with
                 {
                     DamageDice = DiceNotation.Single(weapon.DamageDice, "O dano da arma"),
                     VersatileDice = string.IsNullOrWhiteSpace(weapon.VersatileDice)
                         ? null
                         : DiceNotation.Single(weapon.VersatileDice, "O dano versátil"),
-                    DamageType = string.IsNullOrWhiteSpace(weapon.DamageType) ? null : weapon.DamageType.Trim(),
-                    Properties = (weapon.Properties ?? []).Select(x => x.Trim().ToLowerInvariant())
-                        .Where(x => x.Length > 0).Distinct().ToArray()
+                    DamageType = damageType,
+                    Properties = properties,
+                    Mastery = mastery
                 };
                 if (weapon.RangeNormal is < 0 or > 3000 || weapon.RangeLong is < 0 or > 3000)
                     throw new ArgumentException("O alcance da arma deve ficar entre 0 e 3000 metros.");
                 break;
             case ItemCategory.Armor:
                 armor = Armor ?? throw new ArgumentException("Informe a CA e o tipo da armadura.");
+                if (!Enum.IsDefined(armor.Type)) throw new ArgumentException("Tipo de armadura inválido.");
                 if (armor.BaseAc is < 0 or > 30) throw new ArgumentException("A CA da armadura deve ficar entre 0 e 30.");
                 if (armor.StrengthMin is < 1 or > 30) throw new ArgumentException("A Força mínima deve ficar entre 1 e 30.");
                 break;
@@ -280,6 +317,8 @@ public sealed record CharacterSpellData(
         if (string.IsNullOrEmpty(name) || name.Length > 80) throw new ArgumentException("O nome da magia deve ter entre 1 e 80 caracteres.");
         if (Level is < 0 or > 9) throw new ArgumentException("O nível da magia deve ficar entre 0 e 9.");
         if (!Enum.IsDefined(AttackKind)) throw new ArgumentException("Tipo de rolagem da magia inválido.");
+        if (SaveAbility is { } saveAbility && !Enum.IsDefined(saveAbility))
+            throw new ArgumentException("Atributo da salvaguarda da magia inválido.");
         if (AttackKind == SpellAttackKind.Save && SaveAbility is null)
             throw new ArgumentException("Escolha o atributo da salvaguarda da magia.");
 

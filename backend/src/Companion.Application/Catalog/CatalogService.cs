@@ -116,5 +116,11 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         return new CatalogSpellDto(spell.Id, spell.Name, spell.Level, spell.Classes, spell.HigherLevels, spell.Template);
     }
 
-    private static (int Page, int Size) Paging(int page, int size) => (Math.Max(1, page), Math.Clamp(size, 1, 50));
+    public const int MaxPage = 100_000;
+
+    /// <summary>
+    /// Page 1..100000 and size 1..50, so the offset (page - 1) * size stays under 5 million and never
+    /// overflows into a negative Skip (page=2147483647 used to be a 500). A page past the end is empty.
+    /// </summary>
+    public static (int Page, int Size) Paging(int page, int size) => (Math.Clamp(page, 1, MaxPage), Math.Clamp(size, 1, 50));
 }

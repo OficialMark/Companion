@@ -31,9 +31,15 @@ public sealed class CharacterService(
         public List<string> Notices { get; } = [];
     }
 
-    public async Task<CharacterDto> GetAsync(Guid campaignId, string token, CancellationToken cancellationToken)
+    public const string NoSheetYet = "Você ainda não tem ficha.";
+
+    /// <summary>
+    /// Returns the caller's sheet. With <paramref name="ifExists"/> a missing sheet is a 404 and is
+    /// not created (the combat profile panel asks this way, so looking never creates a sheet).
+    /// </summary>
+    public async Task<CharacterDto> GetAsync(Guid campaignId, string token, CancellationToken cancellationToken, bool ifExists = false)
     {
-        var loaded = await LoadAsync(campaignId, token, cancellationToken);
+        var loaded = await LoadAsync(campaignId, token, cancellationToken, createIfMissing: !ifExists);
         return ToDto(loaded, CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded)));
     }
 
@@ -185,7 +191,13 @@ public sealed class CharacterService(
         change(loaded);
 
         var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded));
-        if (loaded.Sheet.ClampCurrentHitPoints(stats.MaxHitPoints.Value, timeProvider.GetUtcNow())) db.MarkModified(loaded.Sheet);
+        loaded.Sheet.ClampCurrentHitPoints(stats.MaxHitPoints.Value, timeProvider.GetUtcNow());
+        // Every write updates the sheet row with the version read at load (or the client's version, set
+        // by SaveSheetAsync) as the expected original. Two writes of the same owner that read the same
+        // version cannot both commit: the second gets DbUpdateConcurrencyException (409) and its whole
+        // SaveChanges rolls back. This is what keeps the 200 item limit and the one armor rule under
+        // parallel requests, since those checks run on the lists loaded in memory.
+        db.MarkModified(loaded.Sheet);
 
         // FR-010: the table (initiative order, HP bars) uses the same numbers as the sheet.
         var after = (stats.Initiative.Value, loaded.Sheet.Data.CurrentHitPoints, stats.MaxHitPoints.Value);
@@ -201,13 +213,14 @@ public sealed class CharacterService(
         return ToDto(loaded, stats);
     }
 
-    private async Task<Loaded> LoadAsync(Guid campaignId, string token, CancellationToken cancellationToken)
+    private async Task<Loaded> LoadAsync(Guid campaignId, string token, CancellationToken cancellationToken, bool createIfMissing = true)
     {
         var participant = authorization.Require(campaignId, token);
         if (participant.Role != ParticipantRole.Player)
             throw new AppException(AppErrorKind.Forbidden, "Somente jogadores possuem ficha pessoal.");
 
         var sheet = db.CharacterSheets.FirstOrDefault(x => x.ParticipantId == participant.Id);
+        if (sheet is null && !createIfMissing) throw new AppException(AppErrorKind.NotFound, NoSheetYet);
         if (sheet is null)
         {
             sheet = new CharacterSheet(participant.Id, timeProvider.GetUtcNow());

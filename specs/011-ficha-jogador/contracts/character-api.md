@@ -38,7 +38,12 @@ Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nun
 | Método | Rota | Corpo | Resposta |
 |---|---|---|---|
 | GET | `/api/campaigns/{id}/participants/me/character` | — | `CharacterDto`. Cria a ficha padrão se não existir (idempotente; corrida resolvida pela PK). |
+| GET | `/api/campaigns/{id}/participants/me/character?ifExists=true` | — | `CharacterDto` se a ficha existe; 404 "Você ainda não tem ficha." sem criar a ficha (T073). |
 | PUT | `/api/campaigns/{id}/participants/me/character` | `{ data: CharacterSheetData, version }` (ficha inteira) | `CharacterDto` · 409 se `version` velha |
+
+**Concorrência (T072).** Toda escrita da ficha (salvar ficha, itens, equipar, magias, rolagens salvas) grava a linha `CharacterSheets` conferindo a versão: a que o cliente mandou no PUT da ficha, ou a lida no começo da requisição nas outras rotas. Duas escritas simultâneas do mesmo dono não passam juntas: a segunda recebe 409 e nada dela é gravado. Isso garante o teto de 200 itens e uma armadura e um escudo equipados mesmo com pedidos em paralelo. Toda escrita muda `version`, então o cliente usa sempre a versão da última resposta.
+
+**Perfil de combate (T073, FR-010).** Com ficha, `PUT /api/campaigns/{id}/participants/me/combat-profile` e `PUT …/participants/me/initiative-modifier` respondem 409 "Iniciativa e vida vêm da sua ficha. Edite pela aba Ficha." e não mudam nada: iniciativa e PV da mesa vêm da ficha. Jogador sem ficha continua editando o perfil manual como antes.
 
 ## Inventário
 
@@ -50,7 +55,9 @@ Toda escrita devolve o `CharacterDto` inteiro, já recalculado. Assim a tela nun
 | POST | `…/me/character/items/{itemId}/equip` | `{equipped: bool}` | `CharacterDto`, com `notices` quando outro item saiu |
 | DELETE | `…/me/character/items/{itemId}` | — | `CharacterDto` |
 
-Validação de `InventoryItemInput`: categoria exige o bloco correspondente (`weapon`, `armor`, `shield`); `damageDice` e `versatileDice` aceitam só `NdM` válidos pela gramática; `effects` até 20 itens, cada um validado contra a tabela de `ItemEffect`.
+Validação de `InventoryItemInput`: categoria exige o bloco correspondente (`weapon`, `armor`, `shield`); `damageDice` e `versatileDice` aceitam só `NdM` válidos pela gramática; `weapon.properties` só da lista fechada `finesse`, `light`, `heavy`, `two-handed`, `thrown`, `ammunition`, `loading`, `reach`, `versatile`, `range` (até 10); `weapon.mastery` e `weapon.damageType` até 30 caracteres; `effects` até 20 itens, cada um validado contra a tabela de `ItemEffect`.
+
+Enums (T071): todo enum de entrada (ficha, item, efeito, magia, rolagem salva) precisa ser um valor definido. Um número fora da lista (por exemplo `"op": 5`) responde 400 com mensagem em PT, nunca 500 nem valor gravado.
 
 ## Magias do personagem
 
@@ -70,6 +77,8 @@ Validação de `InventoryItemInput`: categoria exige o bloco correspondente (`we
 | POST | `…/me/character/rolls/{rollId}/duplicate` | — | `CharacterDto` (201) |
 | DELETE | `…/me/character/rolls/{rollId}` | — | `CharacterDto` |
 
+`SavedRollInput.versatile` (bool, padrão `false`, T074): rolagem de dano com a arma em duas mãos, usa o `versatileDice` da arma. Só vale com `kind = Damage` e `inventoryItemId`; fora disso → 400. Rolagens gravadas antes do campo leem `false`.
+
 `SavedRollInput.icon` fora de `SavedRollIcons.All` → 400. `inventoryItemId` / `characterSpellId` de outro dono → 400 ("Item não encontrado na sua ficha.").
 
 A execução de uma rolagem salva usa a rota de dados existente: o frontend monta a expressão com `stats` atuais e chama `POST /api/campaigns/{id}/dice-rolls` com `label = nome da rolagem`. A rota de dados aceita a gramática nova (ver `dice-expression.md`).
@@ -78,7 +87,7 @@ A execução de uma rolagem salva usa a rota de dados existente: o frontend mont
 
 | Método | Rota | Query | Resposta |
 |---|---|---|---|
-| GET | `/api/campaigns/{id}/catalog/items` | `q`, `category`, `rarity`, `page` (1..), `pageSize` (≤50) | `{items: CatalogItemSummaryDto[], total, page, pageSize, attribution}` |
+| GET | `/api/campaigns/{id}/catalog/items` | `q`, `category`, `rarity`, `page` (1..100000, valores fora são trazidos para o limite), `pageSize` (≤50) | `{items: CatalogItemSummaryDto[], total, page, pageSize, attribution}` |
 | GET | `/api/campaigns/{id}/catalog/items/{itemId}` | — | `CatalogItemDto` |
 | GET | `/api/campaigns/{id}/catalog/spells` | `q`, `level`, `school`, `class`, `ritual`, `concentration`, `page`, `pageSize` | `{items: CatalogSpellSummaryDto[], total, page, pageSize}` |
 | GET | `/api/campaigns/{id}/catalog/spells/{spellId}` | — | `CatalogSpellDto` |

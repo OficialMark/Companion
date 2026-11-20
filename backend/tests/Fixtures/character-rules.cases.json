@@ -206,6 +206,115 @@
       "sheet": { "wisdom": 16, "level": 5, "spellcastingAbility": "Wis" },
       "spells": [{ "name": "Raio Guiador", "level": 1, "attackKind": "Attack", "damageDice": "4d6", "damageType": "radiante", "addAbilityToDamage": true }],
       "expect": { "spellRolls.0.attackBonus": 6, "spellRolls.0.damage.dice": "4d6", "spellRolls.0.damage.parts.0.value": 3 }
+    },
+    {
+      "name": "T075: Amuleto da Saúde no nível 5 com PV 40 e CON 10 dá 60 PV máximos",
+      "sheet": { "level": 5, "constitution": 10, "baseMaxHitPoints": 40, "currentHitPoints": 40 },
+      "items": [{ "name": "Amuleto da Saúde", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "con", "op": "Min", "value": 19 }] }],
+      "expect": {
+        "abilities.con.final": 19, "abilities.con.modifier": 4, "maxHitPoints.value": 60,
+        "maxHitPoints.parts.length": 2, "maxHitPoints.parts.1.label": "CON", "maxHitPoints.parts.1.value": 20,
+        "maxHitPoints.parts.1.source": "Constituição alterada por item"
+      }
+    },
+    {
+      "name": "T075: item que reduz CON tira PV por nível",
+      "sheet": { "level": 3, "constitution": 14, "baseMaxHitPoints": 30, "currentHitPoints": 30 },
+      "items": [{ "name": "Colar Amaldiçoado", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "con", "op": "Add", "value": -4 }] }],
+      "expect": { "abilities.con.modifier": 0, "maxHitPoints.value": 24, "maxHitPoints.parts.1.value": -6 }
+    },
+    {
+      "name": "T075: CON com mudança que não altera o modificador não mexe nos PV",
+      "sheet": { "level": 5, "constitution": 14, "baseMaxHitPoints": 40, "currentHitPoints": 40 },
+      "items": [{ "name": "Pedra Fraca", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "con", "op": "Add", "value": 1 }] }],
+      "expect": { "abilities.con.final": 15, "maxHitPoints.value": 40, "maxHitPoints.parts.length": 1 }
+    },
+    {
+      "name": "T075: Dardo (à distância com acuidade) usa FOR quando é maior",
+      "sheet": { "strength": 16, "dexterity": 10 },
+      "items": [{ "name": "Dardo", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "weapon": { "damageDice": "1d4", "damageType": "perfurante", "kind": "Ranged", "class": "Simple", "properties": ["finesse", "thrown"] } }],
+      "expect": { "weaponRolls.0.ability": "Str", "weaponRolls.0.attackBonus": 5, "weaponRolls.0.damage.parts.0.value": 3 }
+    },
+    {
+      "name": "T075: Dardo usa DES quando é maior",
+      "sheet": { "strength": 10, "dexterity": 16 },
+      "items": [{ "name": "Dardo", "category": "Weapon", "quantity": 1, "equipped": true, "proficient": true, "weapon": { "damageDice": "1d4", "damageType": "perfurante", "kind": "Ranged", "class": "Simple", "properties": ["finesse", "thrown"] } }],
+      "expect": { "weaponRolls.0.ability": "Dex", "weaponRolls.0.attackBonus": 5 }
+    },
+    {
+      "name": "T075: FOR 30 com Cinto +2 fica em 30 e as partes somam 30",
+      "sheet": { "strength": 30 },
+      "items": [{ "name": "Cinto", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Ability", "target": "str", "op": "Add", "value": 2 }] }],
+      "expect": {
+        "abilities.str.final": 30, "abilities.str.parts.length": 3, "abilities.str.parts.1.value": 2,
+        "abilities.str.parts.2.label": "limite", "abilities.str.parts.2.value": -2, "abilities.str.parts.2.source": "Limite da regra"
+      }
+    },
+    {
+      "name": "T075: PV máximos com piso 1 mostram a parte do limite",
+      "sheet": { "baseMaxHitPoints": 5, "currentHitPoints": 5 },
+      "items": [{ "name": "Maldição", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "MaxHp", "op": "Add", "value": -10 }] }],
+      "expect": { "maxHitPoints.value": 1, "maxHitPoints.parts.length": 3, "maxHitPoints.parts.2.label": "limite", "maxHitPoints.parts.2.value": 6 }
+    },
+    {
+      "name": "T075: CA com piso 0 mostra a parte do limite",
+      "sheet": { "dexterity": 1, "unarmoredBaseArmorClass": 0 },
+      "expect": { "armorClass.value": 0, "armorClass.parts.length": 3, "armorClass.parts.2.label": "limite", "armorClass.parts.2.value": 5 }
+    },
+    {
+      "name": "T075: efeito repetido dentro do mesmo item é reportado como suprimido",
+      "items": [{ "name": "Anel Duplo", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Add", "value": 1 }, { "type": "ArmorClass", "op": "Add", "value": 1 }] }],
+      "expect": {
+        "armorClass.value": 11, "suppressedEffects.length": 1,
+        "suppressedEffects.0.itemName": "Anel Duplo", "suppressedEffects.0.keptItemName": "Anel Duplo"
+      }
+    },
+    {
+      "name": "B8: bônus em todas as perícias",
+      "sheet": { "dexterity": 14 },
+      "items": [{ "name": "Pedra da Sorte", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "SkillBonus", "target": "all", "op": "Add", "value": 1 }] }],
+      "expect": { "skills.atletismo.bonus": 1, "skills.furtividade.bonus": 3, "skills.arcanismo.bonus": 1, "passivePerception.value": 11 }
+    },
+    {
+      "name": "B8: bônus numa perícia só",
+      "items": [{ "name": "Botas Élficas", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "SkillBonus", "target": "furtividade", "op": "Add", "value": 2 }] }],
+      "expect": { "skills.furtividade.bonus": 2, "skills.acrobacia.bonus": 0 }
+    },
+    {
+      "name": "B8: efeito de iniciativa",
+      "sheet": { "dexterity": 14 },
+      "items": [{ "name": "Pedra de Alerta", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Initiative", "op": "Add", "value": 2 }] }],
+      "expect": { "initiative.value": 4, "initiative.parts.length": 2, "initiative.parts.1.value": 2 }
+    },
+    {
+      "name": "B8: deslocamento somado e o maior mínimo vence",
+      "items": [
+        { "name": "Botas Velozes", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Speed", "target": "walk", "op": "Add", "value": 3 }] },
+        { "name": "Asas Curtas", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Speed", "target": "fly", "op": "Min", "value": 9 }] },
+        { "name": "Asas Longas", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Speed", "target": "fly", "op": "Min", "value": 18 }] }
+      ],
+      "expect": { "speed.walk.value": 12, "speed.fly.value": 18, "speed.fly.parts.length": 1, "speed.fly.parts.0.value": 18 }
+    },
+    {
+      "name": "T075: deslocamento negativo fica em 0 com a parte do limite",
+      "items": [{ "name": "Grilhões", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Speed", "target": "walk", "op": "Add", "value": -30 }] }],
+      "expect": { "speed.walk.value": 0, "speed.walk.parts.length": 3, "speed.walk.parts.2.label": "limite", "speed.walk.parts.2.value": 21 }
+    },
+    {
+      "name": "B8: deslocamento mínimo abaixo do atual não muda nada",
+      "items": [{ "name": "Botas Lentas", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Speed", "target": "walk", "op": "Min", "value": 6 }] }],
+      "expect": { "speed.walk.value": 9, "speed.walk.parts.length": 1 }
+    },
+    {
+      "name": "B8: CA mínima vence a CA calculada mais baixa",
+      "sheet": { "dexterity": 12 },
+      "items": [{ "name": "Braçadeiras de Casca", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "ArmorClass", "op": "Min", "value": 16 }] }],
+      "expect": { "armorClass.value": 16, "armorClass.parts.length": 3, "armorClass.parts.2.value": 5 }
+    },
+    {
+      "name": "B8: sentido mínimo sem sentido base",
+      "items": [{ "name": "Óculos da Noite", "category": "Gear", "quantity": 1, "equipped": true, "effects": [{ "type": "Vision", "target": "darkvision", "op": "Min", "value": 18 }] }],
+      "expect": { "senses.darkvision.value": 18, "senses.darkvision.parts.length": 1 }
     }
   ]
 }

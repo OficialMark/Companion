@@ -48,6 +48,8 @@ public sealed record ItemEffect(EffectType Type, string? Target, EffectOp Op, in
     /// <summary>Returns the effect with a normalized target, or throws <see cref="ArgumentException"/> in PT-BR.</summary>
     public ItemEffect Validated()
     {
+        if (!Enum.IsDefined(Type)) throw new ArgumentException("Tipo de efeito desconhecido.");
+        if (!Enum.IsDefined(Op)) throw new ArgumentException("Operação do efeito inválida: use somar ou valor mínimo.");
         var target = Target is null ? null : string.Join(' ', Target.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         if (string.IsNullOrEmpty(target)) target = null;
         if (target is { Length: > MaxTargetLength })

@@ -47,6 +47,27 @@ public sealed class CharacterRulesTests
         }
     }
 
+    /// <summary>FR-007 (T075): the breakdown always adds up to the value shown, limits included.</summary>
+    [Theory]
+    [MemberData(nameof(CaseNames))]
+    public void Parts_always_add_up_to_the_final_value(string name)
+    {
+        var stats = Run(LoadCases().Single(x => x["name"]!.GetValue<string>() == name));
+        static void Sums(string what, int value, IEnumerable<StatPart> parts) =>
+            Assert.True(parts.Sum(x => x.Value) == value, $"{what}: partes somam {parts.Sum(x => x.Value)}, valor {value}");
+
+        foreach (var (key, ability) in stats.Abilities) Sums($"atributo {key}", ability.Final, ability.Parts);
+        foreach (var (key, save) in stats.SavingThrows) Sums($"salvaguarda {key}", save.Bonus, save.Parts);
+        foreach (var (key, skill) in stats.Skills) Sums($"perícia {key}", skill.Bonus, skill.Parts);
+        Sums("percepção passiva", stats.PassivePerception.Value, stats.PassivePerception.Parts);
+        Sums("iniciativa", stats.Initiative.Value, stats.Initiative.Parts);
+        Sums("CA", stats.ArmorClass.Value, stats.ArmorClass.Parts);
+        Sums("PV máximos", stats.MaxHitPoints.Value, stats.MaxHitPoints.Parts);
+        if (stats.SpellSaveDc is { } dc) Sums("CD", dc.Value, dc.Parts);
+        if (stats.SpellAttackBonus is { } spellAttack) Sums("ataque de magia", spellAttack.Value, spellAttack.Parts);
+        foreach (var weapon in stats.WeaponRolls) Sums($"ataque {weapon.Name}", weapon.AttackBonus, weapon.Attack);
+    }
+
     [Fact]
     public void Compute_never_changes_base_values_after_equipping_sequences()
     {

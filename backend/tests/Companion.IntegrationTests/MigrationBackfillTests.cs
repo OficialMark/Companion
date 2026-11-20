@@ -23,6 +23,58 @@ public sealed class MigrationBackfillTests(CompanionApiFactory factory)
 
     private sealed record Legacy(Guid Id, Guid CampaignId, string Name, ParticipantRole Role, DateTimeOffset CreatedAt, ParticipantCredential Credential);
 
+    /// <summary>
+    /// T076: o Down das migrations da spec 011 não pode encolher DiceRolls.Expression para 128. Com uma
+    /// rolagem de 200 caracteres (que o domínio aceita) o ALTER falhava com "would be truncated".
+    /// </summary>
+    [Fact]
+    public async Task Rolling_back_keeps_dice_expressions_longer_than_128_characters()
+    {
+        var connection = new SqlConnectionStringBuilder(factory.ConnectionString)
+        {
+            InitialCatalog = $"Rollback_{Guid.NewGuid():N}"
+        }.ConnectionString;
+        var options = new DbContextOptionsBuilder<CompanionDbContext>().UseSqlServer(connection).Options;
+        var now = DateTimeOffset.UtcNow;
+        var campaign = new Campaign(Guid.NewGuid(), "Mesa", now);
+        var participant = new Participant(Guid.NewGuid(), campaign.Id, "Loren", ParticipantRole.Player, new ParticipantTokenService().Create().Hash, now);
+        var expression = "d20 + " + string.Join(" + ", Enumerable.Repeat("(prof) 1", 24)); // 6 + 24 * 8 + 23 * 3 = 267 > 200
+        expression = expression[..200];
+        try
+        {
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.Database.MigrateAsync();
+                db.Add(campaign);
+                db.Add(participant);
+                await db.SaveChangesAsync();
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO [DiceRolls] ([Id], [CampaignId], [ParticipantId], [ClientRequestId], [CreatedAt], [Expression], [Label], [Modifier], [RevealedAt], [Total], [ValuesJson])
+                    VALUES ({Guid.NewGuid()}, {campaign.Id}, {participant.Id}, {Guid.NewGuid()}, {now}, {expression}, {null as string}, 0, {now}, 10, {"[]"});
+                    """);
+            }
+
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.GetService<IMigrator>().MigrateAsync(MigrationBefore);
+                var stored = await db.Database.SqlQuery<string>($"SELECT [Expression] AS [Value] FROM [DiceRolls]").SingleAsync();
+                Assert.Equal(expression, stored);
+            }
+
+            // And forward again: the Up's widen is a no-op on a 256 column.
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.Database.MigrateAsync();
+                Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            }
+        }
+        finally
+        {
+            await using var db = new CompanionDbContext(options);
+            await db.Database.EnsureDeletedAsync();
+        }
+    }
+
     [Fact]
     public async Task Legacy_participants_survive_the_migration_and_the_backfill()
     {

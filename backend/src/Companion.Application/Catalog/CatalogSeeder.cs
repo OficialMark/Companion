@@ -81,23 +81,32 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
     private SeedResult SeedItems(byte[] bytes)
     {
         var seed = JsonSerializer.Deserialize<ItemSeedFile>(bytes, Json) ?? throw new InvalidOperationException("Seed de itens vazio.");
-        var existing = db.CatalogItems.ToDictionary(x => x.Slug, StringComparer.Ordinal);
+        // Slugs compared trimmed and lowercase, like the unique index (case-insensitive collation):
+        // "Foo" and "foo " are the same row, so the second is skipped instead of failing SaveChanges.
+        var existing = db.CatalogItems.ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var skipped = new List<string>();
         var changed = 0;
         foreach (var entry in seed.Items ?? [])
         {
-            if (string.IsNullOrWhiteSpace(entry.Slug) || !seen.Add(entry.Slug)) continue;
+            var slug = CatalogText.NormalizeSlug(entry.Slug);
+            if (slug.Length == 0) continue;
+            if (!seen.Add(slug))
+            {
+                skipped.Add($"{slug}: slug repetido");
+                continue;
+            }
+
             try
             {
                 var fields = ToFields(entry);
-                if (existing.TryGetValue(entry.Slug, out var item)) item.Apply(fields);
-                else db.Add(new CatalogItem(Guid.NewGuid(), entry.Slug, fields));
+                if (existing.TryGetValue(slug, out var item)) item.Apply(fields);
+                else db.Add(new CatalogItem(Guid.NewGuid(), slug, fields));
                 changed++;
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NullReferenceException)
             {
-                skipped.Add($"{entry.Slug}: {exception.Message}");
+                skipped.Add($"{slug}: {exception.Message}");
             }
         }
 
@@ -109,23 +118,32 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
     private SeedResult SeedSpells(byte[] bytes)
     {
         var seed = JsonSerializer.Deserialize<SpellSeedFile>(bytes, Json) ?? throw new InvalidOperationException("Seed de magias vazio.");
-        var existing = db.CatalogSpells.ToDictionary(x => x.Slug, StringComparer.Ordinal);
+        // Slugs compared trimmed and lowercase, like the unique index (case-insensitive collation):
+        // "Foo" and "foo " are the same row, so the second is skipped instead of failing SaveChanges.
+        var existing = db.CatalogSpells.ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var skipped = new List<string>();
         var changed = 0;
         foreach (var entry in seed.Spells ?? [])
         {
-            if (string.IsNullOrWhiteSpace(entry.Slug) || !seen.Add(entry.Slug)) continue;
+            var slug = CatalogText.NormalizeSlug(entry.Slug);
+            if (slug.Length == 0) continue;
+            if (!seen.Add(slug))
+            {
+                skipped.Add($"{slug}: slug repetido");
+                continue;
+            }
+
             try
             {
                 var fields = ToFields(entry);
-                if (existing.TryGetValue(entry.Slug, out var spell)) spell.Apply(fields);
-                else db.Add(new CatalogSpell(Guid.NewGuid(), entry.Slug, fields));
+                if (existing.TryGetValue(slug, out var spell)) spell.Apply(fields);
+                else db.Add(new CatalogSpell(Guid.NewGuid(), slug, fields));
                 changed++;
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NullReferenceException)
             {
-                skipped.Add($"{entry.Slug}: {exception.Message}");
+                skipped.Add($"{slug}: {exception.Message}");
             }
         }
 
