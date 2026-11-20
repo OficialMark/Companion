@@ -122,7 +122,7 @@ Depois do deploy, a ficha do Vashkar (Paladino 5, Juramento da Conquista) tem De
 - Itens e magias da campanha seguem o escopo da campanha, não da conta do mestre: um mestre com duas campanhas edita cada uma separadamente.
 - O catálogo é visível para todos os participantes da campanha (como hoje); só a escrita é do mestre.
 - Características não fazem cálculos automáticos (não somam bônus); são texto com contador. Efeitos mecânicos continuam nos itens.
-- Destruição Divina segue o Livro do Jogador 2024: pode ser conjurada sem gastar espaço de magia 1 vez por descanso longo (contador 1/1), e também gastando espaços de magia normalmente. Sentido Divino, Cura pelas Mãos e Canalizar Divindade seguem os números já registrados na ficha do Vashkar (5 usos, reserva de 25 PV, 1 uso por descanso curto).
+- Destruição Divina segue o Livro do Jogador 2014 (decisão do Marcos, 2026-11-20): sem contador próprio; cada uso gasta um espaço de magia de paladino. Sentido Divino, Cura pelas Mãos e Canalizar Divindade seguem os números já registrados na ficha do Vashkar (5 usos, reserva de 25 PV, 1 uso por descanso curto).
 - Sem histórico de uso nem log de quem gastou: o contador é o estado atual.
 - Fora de escopo: o mestre ver a ficha de um jogador. Hoje não existe essa tela para nenhuma parte da ficha; as características ficam na ficha do próprio jogador.
 - As características ganham uma aba própria na ficha ("Características"), ao lado de Mochila e Magias.
