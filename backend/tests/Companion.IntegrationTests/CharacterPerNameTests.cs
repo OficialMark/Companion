@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Companion.Domain.Characters;
+using Companion.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Companion.IntegrationTests;
 
@@ -70,5 +72,39 @@ public sealed class CharacterPerNameTests(CompanionApiFactory factory) : Charact
         Assert.Null((await Get(b)).Sheet.CharacterName);
         var missing = await Send(HttpMethod.Get, $"{Base(b)}?ifExists=true", b);
         Assert.Equal(HttpStatusCode.OK, missing.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_write_in_one_campaign_updates_the_table_of_every_campaign_with_that_name()
+    {
+        var name = $"Ivo {Suffix()}";
+        var (_, inA) = await Table(name);
+        var (masterB, inB) = await Table(name);
+
+        await SaveSheet(inA, await Get(inA), x => x with { Dexterity = 16 });
+
+        // B never opened the sheet: its table still gets the sheet's initiative without a read there.
+        var tableB = await Send(HttpMethod.Get, $"/api/campaigns/{inB.CampaignId}/snapshot", masterB);
+        var snapshot = (await tableB.Content.ReadFromJsonAsync<Application.Contracts.CampaignSnapshot>(JsonOptions))!;
+        Assert.Equal(3, snapshot.Participants.Single(x => x.Id == inB.ParticipantId).InitiativeModifier);
+    }
+
+    [Fact]
+    public async Task A_sheet_whose_key_drifted_from_the_name_key_is_adopted_not_a_permanent_error()
+    {
+        var name = $"Ugo {Suffix()}";
+        var (_, inA) = await Table(name);
+        await SaveSheet(inA, await Get(inA), x => x with { CharacterName = "Ugo" });
+        using (var scope = Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
+            var drift = "DRIFT:" + inA.ParticipantId;
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE CharacterSheets SET OwnerKey = {drift} WHERE ParticipantId = {inA.ParticipantId}");
+        }
+
+        var exists = await Send(HttpMethod.Get, $"{Base(inA)}?ifExists=true", inA);
+        Assert.Equal(HttpStatusCode.OK, exists.StatusCode);
+        Assert.Equal("Ugo", (await Get(inA)).Sheet.CharacterName);
     }
 }
