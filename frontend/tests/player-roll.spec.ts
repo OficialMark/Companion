@@ -216,6 +216,25 @@ describe('saved rolls keep references (FR-034)', () => {
     expect(panel).toEqual({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword' }, dice: { d4: 1 }, extraModifiers: [{ label: 'Guia', value: 1 }], advantage: 'Advantage', repetitions: 2 })
     expect(savedRollFromConfig(panel, '  Ataque com espada ', 'lucide:sword')).toEqual(data)
   })
+  it('T074: a two-handed damage roll survives the trip through the saved roll (d10, not d8)', () => {
+    const panel = config({ kind: 'Damage', source: { type: 'weapon', itemId: 'sword', versatile: true } })
+    expect(resolveRoll(panel, stats, fighter).expression).toBe('d10 + (FOR) 3 + (arma) 1')
+    const saved = savedRollFromConfig(panel, 'Espada com duas mãos', 'lucide:sword')
+    expect(saved.versatile).toBe(true)
+    const back = configFromSavedRoll(saved)
+    expect(back.source).toEqual({ type: 'weapon', itemId: 'sword', versatile: true })
+    expect(resolveRoll(back, stats, fighter).expression).toBe('d10 + (FOR) 3 + (arma) 1')
+    expect(resolveRoll(back, stats, fighter).label).toBe('Dano: Espada Longa (duas mãos)')
+  })
+  it('T074: versatile goes as true only for weapon damage (the server rejects it elsewhere)', () => {
+    const attack = config({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword', versatile: true } })
+    expect(savedRollFromConfig(attack, 'X', 'lucide:sword').versatile).toBe(false)
+    expect(savedRollFromConfig(config({ kind: 'Damage', source: { type: 'weapon', itemId: 'sword' } }), 'X', 'lucide:sword').versatile).toBe(false)
+    expect(savedRollFromConfig(config({ kind: 'Damage', source: { type: 'spell', spellId: 'fireball' } }), 'X', 'lucide:flame').versatile).toBe(false)
+    // An old saved roll without the field, or a flag left on an attack, loads as one hand.
+    expect(configFromSavedRoll(savedRollData({ kind: 'Damage', versatile: undefined })).source).toEqual({ type: 'weapon', itemId: 'sword' })
+    expect(configFromSavedRoll(savedRollData({ kind: 'Attack', versatile: true })).source).toEqual({ type: 'weapon', itemId: 'sword' })
+  })
   it('stores exactly one reference per source type', () => {
     expect(savedRollFromConfig(config({ kind: 'Check', source: { type: 'skill', key: 'furtividade' } }), 'Furtivo', 'lucide:footprints')).toMatchObject({
       skill: 'furtividade', ability: null, savingThrow: null, inventoryItemId: null, characterSpellId: null

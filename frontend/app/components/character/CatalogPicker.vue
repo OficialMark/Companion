@@ -2,6 +2,7 @@
 import type { CatalogItemQuery, CatalogItemSummary, CatalogSpellSummary, Character, ItemCategory } from '~/types/character'
 import { CATEGORY_LABEL } from '~/types/character'
 import { CATEGORY_ORDER } from './ItemEditorModal.vue'
+import { focusAfterRender } from '~/utils/focus'
 
 /**
  * Pick items or spells from the catalogs (spec 011, US7). Search waits for a pause in typing,
@@ -24,6 +25,7 @@ const SPELL_CLASSES = ['bardo', 'bruxo', 'clérigo', 'druida', 'feiticeiro', 'ma
 
 const character = useCharacterStore()
 const searchInput = ref<HTMLInputElement | null>(null)
+const baseSearchInput = ref<HTMLInputElement | null>(null)
 let opener: Element | null = null
 
 const search = ref('')
@@ -155,6 +157,8 @@ function openBaseStep(item: ItemSummary) {
   status.value = ''
   actionError.value = ''
   void loadBase()
+  // The list the focus was on is gone: move it to the new step so the keyboard and the screen reader follow.
+  void focusAfterRender(() => baseSearchInput.value)
 }
 
 async function loadBase() {
@@ -200,15 +204,22 @@ async function chooseBase(base: ItemSummary) {
   if (ok) {
     status.value = `${target.name} (${base.name}) foi para a mochila.`
     baseFor.value = null
+    void focusAfterRender(() => searchInput.value)
   }
 }
 
 function backFromBase() {
   baseFor.value = null
   actionError.value = ''
+  void focusAfterRender(() => searchInput.value)
 }
 
 function close() { emit('close') }
+/** Esc steps back from the base step first; from the first step it closes the picker. */
+function onEscape() {
+  if (baseFor.value) backFromBase()
+  else close()
+}
 
 onMounted(async () => {
   opener = document.activeElement
@@ -226,7 +237,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="modal-overlay sheet-modal-overlay" @keydown.esc.stop="close" @click.self="close">
+  <div class="modal-overlay sheet-modal-overlay" @keydown.esc.stop="onEscape" @click.self="close">
     <div
       class="modal-panel sheet-modal catalog-picker"
       role="dialog"
@@ -252,7 +263,7 @@ onBeforeUnmount(() => {
         </p>
         <label class="catalog-search">
           <Icon name="lucide:search" />
-          <input v-model="baseSearch" type="search" inputmode="search" placeholder="Filtrar pelo nome" aria-label="Filtrar itens base" data-base-search>
+          <input ref="baseSearchInput" v-model="baseSearch" type="search" inputmode="search" placeholder="Filtrar pelo nome" aria-label="Filtrar itens base" data-base-search>
         </label>
         <p v-if="baseLoading" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
         <p v-else-if="baseError" class="form-error" role="alert">{{ baseError }}</p>
@@ -263,7 +274,7 @@ onBeforeUnmount(() => {
               <p class="catalog-row-name">{{ base.name }} <small v-if="base.nameEn">{{ base.nameEn }}</small></p>
               <p v-if="base.subcategory" class="catalog-row-meta">{{ base.subcategory }}</p>
             </div>
-            <button type="button" class="button secondary small" :disabled="addingId !== null" data-choose-base @click="chooseBase(base)">
+            <button type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Escolher ${base.name}`" data-choose-base @click="chooseBase(base)">
               <Icon name="lucide:check" />Escolher
             </button>
           </li>
@@ -334,7 +345,7 @@ onBeforeUnmount(() => {
                   <span v-if="item.requiresBaseItem" class="item-badge subtle">escolha a base</span>
                 </p>
               </div>
-              <button type="button" class="button secondary small" :disabled="addingId !== null" data-add-catalog @click="addItem(item)">
+              <button type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${item.name}`" data-add-catalog @click="addItem(item)">
                 <Icon :name="addingId === item.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === item.id }" />Adicionar
               </button>
             </li>
@@ -350,7 +361,7 @@ onBeforeUnmount(() => {
                   <span v-if="spell.ritual" class="item-badge subtle" title="Ritual">R</span>
                 </p>
               </div>
-              <button type="button" class="button secondary small" :disabled="addingId !== null" data-add-catalog @click="addSpell(spell)">
+              <button type="button" class="button secondary small" :disabled="addingId !== null" :aria-label="`Adicionar ${spell.name}`" data-add-catalog @click="addSpell(spell)">
                 <Icon :name="addingId === spell.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === spell.id }" />Adicionar
               </button>
             </li>

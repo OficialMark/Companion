@@ -23,7 +23,7 @@ public sealed class CampaignService(
         var credential = tokens.Create();
         var now = timeProvider.GetUtcNow();
         var campaign = new Campaign(Guid.NewGuid(), campaignName, now);
-        var master = new Participant(Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Master, UnusableTokenHash(), now);
+        var master = new Participant(Guid.NewGuid(), campaign.Id, displayName, ParticipantRole.Master, credential.Hash, now);
         db.Add(campaign);
         db.Add(new CampaignAccessCode(playerCode, campaign.Id, ParticipantRole.Player));
         db.Add(new CampaignAccessCode(masterCode, campaign.Id, ParticipantRole.Master));
@@ -76,7 +76,7 @@ public sealed class CampaignService(
             return (existing, false);
         }
 
-        var participant = new Participant(Guid.NewGuid(), campaignId, displayName, role, UnusableTokenHash(), now);
+        var participant = new Participant(Guid.NewGuid(), campaignId, displayName, role, sessionHash, now);
         var session = new ParticipantSession(Guid.NewGuid(), participant.Id, campaignId, sessionHash, now);
         db.Add(participant);
         db.Add(session);
@@ -108,12 +108,10 @@ public sealed class CampaignService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// <c>Participants.TokenHash</c> é NOT NULL e único, mas desde a spec 011 a autorização lê só
-    /// <c>ParticipantSessions</c>. Conta nova recebe 32 bytes aleatórios que não são o SHA-256 de
-    /// nenhum token entregue, então a coluna não autoriza ninguém. A remoção fica para uma feature futura.
-    /// </summary>
-    private static byte[] UnusableTokenHash() => RandomNumberGenerator.GetBytes(ParticipantSession.TokenHashLength);
+    // Participants.TokenHash (NOT NULL, único): desde a spec 011 a autorização lê só ParticipantSessions,
+    // mas a conta nova grava aqui o hash da primeira sessão (único, porque o hash da sessão é único).
+    // Assim, se a API voltar para a versão anterior (que autoriza por esta coluna), o primeiro aparelho
+    // de cada conta continua entrando (T076).
 
     public Task<CampaignSnapshot> GetSnapshotAsync(Guid campaignId, string token, CancellationToken cancellationToken)
     {
@@ -140,6 +138,8 @@ public sealed class CampaignService(
             ToDto(current), participants, rolls, encounterDto));
     }
 
+    public const string CombatProfileFromSheet = "Iniciativa e vida vêm da sua ficha. Edite pela aba Ficha.";
+
     public Task<ParticipantDto> UpdateInitiativeModifierAsync(
         Guid campaignId, string token, UpdateInitiativeModifierRequest request, CancellationToken cancellationToken) =>
         UpdateCombatProfileAsync(campaignId, token,
@@ -152,6 +152,11 @@ public sealed class CampaignService(
         var participant = authorization.Require(campaignId, token);
         if (participant.Role != ParticipantRole.Player)
             throw new AppException(AppErrorKind.Forbidden, "Somente jogadores possuem perfil de combate.");
+        // FR-010: with a sheet, initiative and HP are calculated from it (CharacterService keeps the
+        // participant in sync). Editing them here would make the table and the sheet disagree.
+        var ownerKey = Companion.Domain.Characters.CharacterOwner.Key(participant);
+        if (db.CharacterSheets.Any(x => x.OwnerKey == ownerKey))
+            throw new AppException(AppErrorKind.Conflict, CombatProfileFromSheet);
         try
         {
             participant.UpdateCombatProfile(request.InitiativeModifier,

@@ -23,6 +23,104 @@ public sealed class MigrationBackfillTests(CompanionApiFactory factory)
 
     private sealed record Legacy(Guid Id, Guid CampaignId, string Name, ParticipantRole Role, DateTimeOffset CreatedAt, ParticipantCredential Credential);
 
+    /// <summary>
+    /// T076: o Down das migrations da spec 011 não pode encolher DiceRolls.Expression para 128. Com uma
+    /// rolagem de 200 caracteres (que o domínio aceita) o ALTER falhava com "would be truncated".
+    /// </summary>
+    [Fact]
+    public async Task Rolling_back_keeps_dice_expressions_longer_than_128_characters()
+    {
+        var connection = new SqlConnectionStringBuilder(factory.ConnectionString)
+        {
+            InitialCatalog = $"Rollback_{Guid.NewGuid():N}"
+        }.ConnectionString;
+        var options = new DbContextOptionsBuilder<CompanionDbContext>().UseSqlServer(connection).Options;
+        var now = DateTimeOffset.UtcNow;
+        var campaign = new Campaign(Guid.NewGuid(), "Mesa", now);
+        var participant = new Participant(Guid.NewGuid(), campaign.Id, "Loren", ParticipantRole.Player, new ParticipantTokenService().Create().Hash, now);
+        var expression = "d20 + " + string.Join(" + ", Enumerable.Repeat("(prof) 1", 24)); // 6 + 24 * 8 + 23 * 3 = 267 > 200
+        expression = expression[..200];
+        try
+        {
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.Database.MigrateAsync();
+                db.Add(campaign);
+                db.Add(participant);
+                await db.SaveChangesAsync();
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO [DiceRolls] ([Id], [CampaignId], [ParticipantId], [ClientRequestId], [CreatedAt], [Expression], [Label], [Modifier], [RevealedAt], [Total], [ValuesJson])
+                    VALUES ({Guid.NewGuid()}, {campaign.Id}, {participant.Id}, {Guid.NewGuid()}, {now}, {expression}, {null as string}, 0, {now}, 10, {"[]"});
+                    """);
+            }
+
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.GetService<IMigrator>().MigrateAsync(MigrationBefore);
+                var stored = await db.Database.SqlQuery<string>($"SELECT [Expression] AS [Value] FROM [DiceRolls]").SingleAsync();
+                Assert.Equal(expression, stored);
+            }
+
+            // And forward again: the Up's widen is a no-op on a 256 column.
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.Database.MigrateAsync();
+                Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+            }
+        }
+        finally
+        {
+            await using var db = new CompanionDbContext(options);
+            await db.Database.EnsureDeletedAsync();
+        }
+    }
+
+    /// <summary>
+    /// 2026-11-20: sheets move from "one per participant" to "one per player name". The same name with a
+    /// sheet in two campaigns keeps the newest as the account's sheet; the older one stays in the table
+    /// (nothing is deleted) under a LEGACY key. Sheets of other names keep their own key.
+    /// </summary>
+    [Fact]
+    public async Task Sheet_owner_backfill_keeps_the_newest_sheet_per_name_and_deletes_nothing()
+    {
+        var connection = new SqlConnectionStringBuilder(factory.ConnectionString) { InitialCatalog = $"Owner_{Guid.NewGuid():N}" }.ConnectionString;
+        var options = new DbContextOptionsBuilder<CompanionDbContext>().UseSqlServer(connection).Options;
+        var older = DateTimeOffset.UtcNow.AddDays(-2);
+        var newer = DateTimeOffset.UtcNow.AddDays(-1);
+        Guid campaignA = Guid.NewGuid(), campaignB = Guid.NewGuid(), lorenA = Guid.NewGuid(), lorenB = Guid.NewGuid(), mira = Guid.NewGuid();
+        try
+        {
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.GetService<IMigrator>().MigrateAsync("20261119185009_AddCharacterSheetTables");
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO [Campaigns] ([Id], [Name], [CreatedAt]) VALUES ({campaignA}, {"A"}, {older}), ({campaignB}, {"B"}, {older});
+                    INSERT INTO [Participants] ([Id], [CampaignId], [DisplayName], [NameKey], [Role], [TokenHash], [CreatedAt]) VALUES
+                        ({lorenA}, {campaignA}, {"Loren"}, {"LOREN"}, {"Player"}, {Guid.NewGuid().ToByteArray().Concat(Guid.NewGuid().ToByteArray()).ToArray()}, {older}),
+                        ({lorenB}, {campaignB}, {"Loren"}, {"LOREN"}, {"Player"}, {Guid.NewGuid().ToByteArray().Concat(Guid.NewGuid().ToByteArray()).ToArray()}, {older}),
+                        ({mira}, {campaignA}, {"Mira"}, {null as string}, {"Player"}, {Guid.NewGuid().ToByteArray().Concat(Guid.NewGuid().ToByteArray()).ToArray()}, {older});
+                    INSERT INTO [CharacterSheets] ([ParticipantId], [Data], [CreatedAt], [UpdatedAt]) VALUES
+                        ({lorenA}, {"{}"}, {older}, {older}), ({lorenB}, {"{}"}, {older}, {newer}), ({mira}, {"{}"}, {older}, {older});
+                    """);
+            }
+
+            await using (var db = new CompanionDbContext(options))
+            {
+                await db.Database.MigrateAsync();
+                var keys = await db.Database.SqlQuery<string>($"SELECT CONCAT(CONVERT(nvarchar(36), [ParticipantId]), '=', [OwnerKey]) AS [Value] FROM [CharacterSheets]").ToListAsync();
+                Assert.Equal(3, keys.Count);
+                Assert.Contains($"{lorenB}=LOREN".ToUpperInvariant(), keys.Select(x => x.ToUpperInvariant()));
+                Assert.Contains($"{lorenA}=LEGACY:{lorenA}".ToUpperInvariant(), keys.Select(x => x.ToUpperInvariant()));
+                Assert.Contains($"{mira}=MIRA".ToUpperInvariant(), keys.Select(x => x.ToUpperInvariant()));
+            }
+        }
+        finally
+        {
+            await using var db = new CompanionDbContext(options);
+            await db.Database.EnsureDeletedAsync();
+        }
+    }
+
     [Fact]
     public async Task Legacy_participants_survive_the_migration_and_the_backfill()
     {

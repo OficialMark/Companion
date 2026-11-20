@@ -284,7 +284,11 @@ export function weaponDamageExpression(config: RollConfig, stats: CharacterStats
 /** Saved roll (references only, FR-034) to panel configuration. */
 export function configFromSavedRoll(data: SavedRollData): RollConfig {
   let source: RollSource = null
-  if (data.inventoryItemId) source = { type: 'weapon', itemId: data.inventoryItemId }
+  if (data.inventoryItemId) {
+    source = data.versatile && data.kind === 'Damage'
+      ? { type: 'weapon', itemId: data.inventoryItemId, versatile: true }
+      : { type: 'weapon', itemId: data.inventoryItemId }
+  }
   else if (data.characterSpellId) source = { type: 'spell', spellId: data.characterSpellId }
   else if (data.skill) source = { type: 'skill', key: data.skill }
   else if (data.savingThrow) source = { type: 'save', ability: data.savingThrow }
@@ -316,6 +320,8 @@ export function savedRollFromConfig(config: RollConfig, name: string, icon: stri
     savingThrow: source?.type === 'save' ? source.ability : null,
     inventoryItemId: source?.type === 'weapon' ? source.itemId : null,
     characterSpellId: source?.type === 'spell' ? source.spellId : null,
+    // The server accepts it only for weapon damage; anything else always goes as false.
+    versatile: config.kind === 'Damage' && source?.type === 'weapon' && source.versatile === true,
     extraModifiers: config.extraModifiers.map(extra => ({ label: extra.label?.trim() ? extra.label.trim() : null, value: extra.value })),
     advantage: config.advantage,
     repetitions: config.repetitions

@@ -14,7 +14,7 @@ test('master publishes a fixed battlemap and player moves own token', async ({ p
   await page.getByRole('button', { name: 'Entrar como mestre' }).click()
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
 
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByLabel('Imagem do battlemap').setInputFiles({
     name: 'dungeon.png',
     mimeType: 'image/png',
     buffer: tinyPng
@@ -24,19 +24,19 @@ test('master publishes a fixed battlemap and player moves own token', async ({ p
   await page.getByRole('button', { name: 'Publicar battlemap' }).click()
   await expect(page.locator('[data-board-surface]')).toBeVisible()
   const desktopHeight = await page.locator('[data-board-surface]').evaluate(element => element.getBoundingClientRect().height)
-  expect(desktopHeight).toBeGreaterThanOrEqual(360)
+  if (test.info().project.name === 'desktop') expect(desktopHeight).toBeGreaterThanOrEqual(360)
   await page.getByRole('button', { name: 'Ajustar mapa' }).click()
   await page.getByRole('button', { name: 'Escala 40 px' }).click()
 
   const playerContext = await browser.newContext()
   const player = await playerContext.newPage()
   await player.goto('/')
-  await player.getByRole('button', { name: 'Entrar com código' }).click()
+  await player.getByRole('tab', { name: 'Entrar com código' }).click()
   await player.getByLabel('Código da campanha').fill(playerCode)
   await player.getByLabel('Seu nome').fill('Exploradora')
   await player.getByRole('button', { name: 'Entrar na campanha' }).click()
   await expect(player.locator('[data-board-surface]')).toBeVisible()
-  await player.getByRole('button', { name: /Exploradora/ }).click()
+  await player.locator('.reserve-token', { hasText: 'Exploradora' }).click()
   await player.locator('[data-board-surface]').click({ position: { x: 120, y: 120 } })
   await expect(player.getByText(/Arraste seu pino/)).toBeVisible()
   await player.locator('[data-board-surface]').focus()
@@ -55,13 +55,15 @@ test('single click/tap opens the token interaction panel with size and condition
   await page.getByRole('button', { name: 'Entrar como mestre' }).click()
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
 
-  await page.locator('input[type="file"]').setInputFiles({
+  await page.getByLabel('Imagem do battlemap').setInputFiles({
     name: 'dungeon.png',
     mimeType: 'image/png',
     buffer: tinyPng
   })
   await page.getByLabel('Colunas do grid').fill('20')
   await page.getByLabel('Linhas do grid').fill('20')
+  // Spec 007 publishes new maps fully fogged; this test is about the token panel, so no fog.
+  await page.locator('[data-fog-publish-toggle]').setChecked(false, { force: true })
   await page.getByRole('button', { name: 'Publicar battlemap' }).click()
   await expect(page.locator('[data-board-surface]')).toBeVisible()
 
@@ -70,7 +72,7 @@ test('single click/tap opens the token interaction panel with size and condition
   const playerContext = await browser.newContext()
   const player = await playerContext.newPage()
   await player.goto('/')
-  await player.getByRole('button', { name: 'Entrar com código' }).click()
+  await player.getByRole('tab', { name: 'Entrar com código' }).click()
   await player.getByLabel('Código da campanha').fill(playerCode)
   await player.getByLabel('Seu nome').fill('Jogador do gesto')
   await player.getByRole('button', { name: 'Entrar na campanha' }).click()
@@ -79,8 +81,9 @@ test('single click/tap opens the token interaction panel with size and condition
   // Placing the pin: select the reserve token, then a cell (two clicks, two
   // different targets — not the gesture under test). The regression this
   // test guards is what happens next: a SINGLE click on the now-placed token.
-  await player.getByRole('button', { name: /Jogador do gesto/ }).click()
-  await player.locator('[data-board-surface]').click({ position: { x: 80, y: 80 } })
+  // The board is wider than the grid (letterbox); its center is always inside a cell.
+  await player.locator('.reserve-token', { hasText: 'Jogador do gesto' }).click()
+  await player.locator('[data-board-surface]').click()
 
   const token = player.locator('[data-battlemap-token]').first()
   await token.click()
@@ -92,11 +95,14 @@ test('single click/tap opens the token interaction panel with size and condition
   await expect(panel.locator('.token-condition-option')).toHaveCount(18)
 
   // SC-007: touch targets stay usable without manual zoom or horizontal scroll.
+  // The panel has tabs (Área, Token, Condições); size lives in the Token tab.
+  await panel.locator('[data-tab="token"]').click()
   const sizeButtonBox = await panel.locator('.token-size-option').first().boundingBox()
   expect(sizeButtonBox?.height ?? 0).toBeGreaterThanOrEqual(40)
   await expect(page.locator('body')).not.toHaveCSS('overflow-x', 'scroll')
 
   await panel.locator('.token-size-option').nth(2).click()
+  await panel.locator('[data-tab="conditions"]').click()
   await panel.locator('[data-condition="Stunned"]').click()
   await expect(panel.locator('[data-condition="Stunned"]')).toHaveClass(/selected/)
 })

@@ -25,7 +25,12 @@ export function useCharacterApi() {
   }
 
   return {
-    getCharacter: (session: Session) => send<Character>(session, base(session)),
+    /**
+     * The caller's character. By default the server creates an empty sheet on the first read; with
+     * `ifExists` it answers 404 instead (FR-010: the combat profile only reads an existing sheet).
+     */
+    getCharacter: (session: Session, options: { ifExists?: boolean } = {}) =>
+      send<Character>(session, `${base(session)}${options.ifExists ? '?ifExists=true' : ''}`),
     saveSheet: (session: Session, sheet: CharacterSheetData, version: string) =>
       send<Character>(session, base(session), json('PUT', { data: sheet, version })),
 

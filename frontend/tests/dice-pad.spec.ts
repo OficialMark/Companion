@@ -25,9 +25,9 @@ describe('DicePad', () => {
     const { wrapper } = mountPad({ d6: 3 })
     expect(wrapper.findAll('[data-die]').map(die => die.attributes('data-die'))).toEqual(['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'])
     const d6 = wrapper.get('[data-die="d6"]')
-    expect(d6.attributes('aria-label')).toBe('d6, 3 selecionados. Clique soma, segure para tirar')
+    expect(d6.attributes('aria-label')).toBe('d6, 3 selecionados. Clique soma, segure para tirar. No teclado, Delete ou - tira um')
     expect(d6.get('.dice-pad-badge').text()).toBe('3')
-    expect(wrapper.get('[data-die="d4"]').attributes('aria-label')).toBe('d4, nenhum selecionado. Clique soma, segure para tirar')
+    expect(wrapper.get('[data-die="d4"]').attributes('aria-label')).toBe('d4, nenhum selecionado. Clique soma, segure para tirar. No teclado, Delete ou - tira um')
     expect(wrapper.get('[data-die="d4"]').find('.dice-pad-badge').exists()).toBe(false)
   })
 
@@ -37,7 +37,7 @@ describe('DicePad', () => {
     await wrapper.get('[data-die="d6"]').trigger('click')
     await wrapper.get('[data-die="d20"]').trigger('click')
     expect(value.value).toEqual({ d6: 2, d20: 1 })
-    expect(wrapper.get('[data-die="d6"]').attributes('aria-label')).toBe('d6, 2 selecionados. Clique soma, segure para tirar')
+    expect(wrapper.get('[data-die="d6"]').attributes('aria-label')).toBe('d6, 2 selecionados. Clique soma, segure para tirar. No teclado, Delete ou - tira um')
   })
 
   it('holding 500 ms removes one and the click on release does not add one', async () => {

@@ -292,7 +292,10 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .modifier-form { display: grid; grid-template-columns: minmax(190px, 1fr) minmax(140px, .75fr) auto; align-items: end; gap: 10px; }
 .combat-profile-field { display: grid; gap: 6px; min-width: 0; }
 .combat-profile-field input { width: 100%; min-width: 0; }
-.modifier-panel > .form-success, .modifier-panel > .form-error { grid-column: 1 / -1; }
+.modifier-panel > .form-success, .modifier-panel > .form-error, .modifier-panel > .field-hint { grid-column: 1 / -1; }
+/* With a character sheet (spec 011, FR-010): initiative and max HP are read-only values from it. */
+.combat-profile-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+.combat-profile-value { min-height: 44px; display: flex; align-items: center; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 
 /* Admin */
 .admin-shell { min-height: var(--vh); width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 48px 0; display: grid; align-content: start; gap: 20px; }

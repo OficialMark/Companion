@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Companion.Domain.Characters;
 using Companion.Domain.Models;
 
@@ -11,10 +12,16 @@ public sealed class CatalogItem
 {
     private CatalogItem() { }
 
+    public const int MaxSlugLength = 160;
+    public const int MaxNameEnLength = 120;
+    public const int MaxSubcategoryLength = 80;
+    public const int MaxRarityLength = 30;
+    public const int MaxCostLength = 40;
+
     public CatalogItem(Guid id, string slug, CatalogItemFields fields)
     {
         Id = id;
-        Slug = slug;
+        Slug = CatalogText.Slug(slug, MaxSlugLength);
         Apply(fields);
     }
 
@@ -40,8 +47,8 @@ public sealed class CatalogItem
     public void Apply(CatalogItemFields fields)
     {
         var raw = fields.Template;
-        RequiresBaseItem = (raw.Category == ItemCategory.Weapon && raw.Weapon is null) ||
-                           (raw.Category == ItemCategory.Armor && raw.Armor is null);
+        var requiresBaseItem = (raw.Category == ItemCategory.Weapon && raw.Weapon is null) ||
+                               (raw.Category == ItemCategory.Armor && raw.Armor is null);
         // Validate everything else with a stand-in block, then keep the block empty.
         var probe = raw.Category switch
         {
@@ -57,13 +64,20 @@ public sealed class CatalogItem
             Weapon = raw.Category == ItemCategory.Weapon && raw.Weapon is null ? null : probe.Validated().Weapon,
             Armor = raw.Category == ItemCategory.Armor && raw.Armor is null ? null : probe.Validated().Armor
         };
+        // Every value is checked against its column (CharacterConfigurations) before anything is
+        // assigned, so a bad seed row throws here and is skipped, instead of failing the whole SaveChanges.
+        var nameEn = CatalogText.Optional(fields.NameEn, MaxNameEnLength, "nameEn");
+        var subcategory = CatalogText.Optional(fields.Subcategory, MaxSubcategoryLength, "subcategory");
+        var rarity = CatalogText.Optional(fields.Rarity, MaxRarityLength, "rarity");
+        var cost = CatalogText.Optional(fields.Cost, MaxCostLength, "cost");
+        RequiresBaseItem = requiresBaseItem;
         Name = template.Name;
-        NameEn = string.IsNullOrWhiteSpace(fields.NameEn) ? null : fields.NameEn.Trim();
+        NameEn = nameEn;
         Category = template.Category;
-        Subcategory = string.IsNullOrWhiteSpace(fields.Subcategory) ? null : fields.Subcategory.Trim();
-        Rarity = string.IsNullOrWhiteSpace(fields.Rarity) ? null : fields.Rarity.Trim();
+        Subcategory = subcategory;
+        Rarity = rarity;
         RequiresAttunement = fields.RequiresAttunement;
-        Cost = string.IsNullOrWhiteSpace(fields.Cost) ? null : fields.Cost.Trim();
+        Cost = cost;
         Template = template;
         SearchKey = Creature.BuildSearchKey(Name, NameEn);
         IsRemovedFromCatalog = false;
@@ -85,10 +99,14 @@ public sealed class CatalogSpell
 {
     private CatalogSpell() { }
 
+    public const int MaxSlugLength = 120;
+    public const int MaxHigherLevelsLength = 4000;
+    public const int MaxClassesJsonLength = 400;
+
     public CatalogSpell(Guid id, string slug, CatalogSpellFields fields)
     {
         Id = id;
-        Slug = slug;
+        Slug = CatalogText.Slug(slug, MaxSlugLength);
         Apply(fields);
     }
 
@@ -108,13 +126,19 @@ public sealed class CatalogSpell
     public void Apply(CatalogSpellFields fields)
     {
         var template = fields.Template.Validated();
+        string[] classes = (fields.Classes ?? []).Select(x => (x ?? string.Empty).Trim().ToLowerInvariant())
+            .Where(x => x.Length > 0).Distinct().Order().ToArray();
+        // Same serializer settings as the column (default encoder): the stored JSON has this length.
+        if (JsonSerializer.Serialize(classes).Length > MaxClassesJsonLength)
+            throw new ArgumentException($"classes: a lista passa de {MaxClassesJsonLength} caracteres.");
+        var higherLevels = CatalogText.Optional(fields.HigherLevels, MaxHigherLevelsLength, "higherLevels");
         Name = template.Name;
         Level = template.Level;
         School = template.School;
         Ritual = template.Ritual;
         Concentration = template.Concentration;
-        Classes = (fields.Classes ?? []).Select(x => x.Trim().ToLowerInvariant()).Where(x => x.Length > 0).Distinct().Order().ToArray();
-        HigherLevels = string.IsNullOrWhiteSpace(fields.HigherLevels) ? null : fields.HigherLevels.Trim();
+        Classes = classes;
+        HigherLevels = higherLevels;
         Template = template;
         SearchKey = Creature.Normalize(Name);
         IsRemovedFromCatalog = false;
@@ -124,3 +148,26 @@ public sealed class CatalogSpell
 }
 
 public sealed record CatalogSpellFields(CharacterSpellData Template, IReadOnlyList<string> Classes, string? HigherLevels);
+
+/// <summary>Length checks of the catalog columns; <see cref="ArgumentException"/> makes the seeder skip the row.</summary>
+public static class CatalogText
+{
+    /// <summary>Slugs are compared trimmed and in lowercase, like the unique index (case-insensitive collation).</summary>
+    public static string NormalizeSlug(string? slug) => (slug ?? string.Empty).Trim().ToLowerInvariant();
+
+    public static string Slug(string? slug, int max)
+    {
+        var normalized = NormalizeSlug(slug);
+        if (normalized.Length is 0 || normalized.Length > max)
+            throw new ArgumentException($"slug: deve ter entre 1 e {max} caracteres.");
+        return normalized;
+    }
+
+    public static string? Optional(string? value, int max, string field)
+    {
+        var trimmed = value?.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return null;
+        if (trimmed.Length > max) throw new ArgumentException($"{field}: passa de {max} caracteres.");
+        return trimmed;
+    }
+}

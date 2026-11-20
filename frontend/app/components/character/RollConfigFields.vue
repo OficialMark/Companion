@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { radioGroupKeydown } from '~/utils/focus'
 import type { AdvantageMode, Character, CharacterStats, RollKind } from '~/types/character'
 import { ABILITY_LABEL, ABILITY_NAME, ABILITY_ORDER, SKILLS, abilityKey } from '~/types/character'
 import DicePad from '~/components/character/DicePad.vue'
@@ -18,7 +19,12 @@ const props = withDefaults(defineProps<{
   stats: CharacterStats | null
   character: Character | null
   disabled?: boolean
-}>(), { disabled: false })
+  /**
+   * Roll panel only (SC-006): with exactly one equipped weapon and an untouched configuration, start
+   * on its attack, so "attack with advantage" is Vantagem + Rolar. Happens once per mount.
+   */
+  preselectSingleWeapon?: boolean
+}>(), { disabled: false, preselectSingleWeapon: false })
 const emit = defineEmits<{ 'update:modelValue': [value: RollConfig] }>()
 
 const NO_DICE = 'Escolha pelo menos um dado.'
@@ -78,6 +84,19 @@ function selectSource(key: string) {
   const kind = defaultKindFor(source, props.modelValue.kind, props.stats)
   emit('update:modelValue', applyRollDefaults({ ...props.modelValue, source, kind }))
 }
+let preselectDone = false
+function untouched(config: RollConfig) {
+  return !config.source && config.kind === 'Free' && !Object.values(config.dice).some(Boolean)
+    && !config.extraModifiers.length && config.advantage === 'None' && config.repetitions === 1
+}
+watch(() => [props.stats, weapons.value.map(weapon => weapon.itemId).join('|')] as const, () => {
+  if (!props.preselectSingleWeapon || preselectDone || !props.stats) return
+  preselectDone = true
+  const only = weapons.value.length === 1 ? weapons.value[0]! : null
+  // Through selectSource, so the armor rule (automatic disadvantage) applies as on a manual pick.
+  if (only && untouched(props.modelValue)) selectSource(`weapon:${only.itemId}`)
+}, { immediate: true })
+
 function selectKind(kind: RollKind) {
   if (!allowedKinds.value.includes(kind)) return
   emit('update:modelValue', applyRollDefaults({ ...props.modelValue, kind }))
@@ -163,7 +182,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
       </label>
     </div>
 
-    <div class="roll-segment" role="radiogroup" aria-label="Tipo de rolagem">
+    <div class="roll-segment" role="radiogroup" aria-label="Tipo de rolagem" @keydown="radioGroupKeydown">
       <button
         v-for="kind in KIND_ORDER"
         :key="kind"
@@ -173,6 +192,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         :class="{ selected: modelValue.kind === kind }"
         :data-kind="kind.toLowerCase()"
         :aria-checked="modelValue.kind === kind"
+        :tabindex="modelValue.kind === kind ? 0 : -1"
         :disabled="disabled || !allowedKinds.includes(kind)"
         @click="selectKind(kind)"
       >{{ KIND_LABEL[kind] }}</button>
@@ -194,7 +214,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
       <Icon name="lucide:info" />O d20 do {{ modelValue.kind === 'Check' ? 'teste' : 'ataque' }} já entra na expressão; os dados acima se somam a ele.
     </p>
 
-    <div class="roll-segment three" role="radiogroup" aria-label="Vantagem ou desvantagem">
+    <div class="roll-segment three" role="radiogroup" aria-label="Vantagem ou desvantagem" @keydown="radioGroupKeydown">
       <button
         v-for="mode in ADVANTAGES"
         :key="mode"
@@ -204,6 +224,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         :class="{ selected: modelValue.advantage === mode }"
         :data-advantage="ADVANTAGE_KEY[mode]"
         :aria-checked="modelValue.advantage === mode"
+        :tabindex="modelValue.advantage === mode ? 0 : -1"
         :disabled="disabled"
         @click="selectAdvantage(mode)"
       ><Icon :name="ADVANTAGE_ICON[mode]" />{{ ADVANTAGE_LABEL[mode] }}</button>

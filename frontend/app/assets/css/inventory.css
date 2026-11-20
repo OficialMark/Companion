@@ -47,7 +47,10 @@
 .inventory--compact { gap: 10px; }
 .inventory--compact .inventory-item { padding: 8px 10px; gap: 6px; border-radius: 12px; }
 .inventory--compact .inventory-item-stats { font-size: .8rem; }
-.inventory--compact .item-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Toggles keep a short visible text ("Equipar", "Prof."): the title tooltip never shows on touch. */
+.inventory--compact .item-toggle { padding: 0 8px; gap: 4px; }
+/* Focus lands on the list after a removal; it is a landing spot, not a control. */
+.inventory:focus, .spell-list:focus, .saved-roll-list:focus { outline: none; }
 
 /* Modals of the sheet: full width on phones, sticky action bar. */
 .sheet-modal { width: min(640px, 100%); max-height: calc(var(--vh) * .92); padding-bottom: 0; }

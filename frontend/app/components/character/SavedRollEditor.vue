@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { radioGroupKeydown } from '~/utils/focus'
 import type { SavedRoll } from '~/types/character'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import { MAX_ROLL_NAME, cloneConfig, configFromSavedRoll, emptyConfig, resolveRoll, savedRollFromConfig, type RollConfig } from '~/utils/playerRoll'
@@ -62,7 +63,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
       <fieldset class="saved-roll-icons">
         <legend>Ícone</legend>
-        <div class="saved-roll-icon-grid" role="radiogroup" aria-label="Ícone da rolagem">
+        <div class="saved-roll-icon-grid" role="radiogroup" aria-label="Ícone da rolagem" @keydown="radioGroupKeydown">
           <button
             v-for="option in SAVED_ROLL_ICONS"
             :key="option"
@@ -72,6 +73,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             :class="{ selected: icon === option }"
             :data-icon="option"
             :aria-checked="icon === option"
+            :tabindex="icon === option ? 0 : -1"
             :aria-label="SAVED_ROLL_ICON_LABEL[option]"
             :title="SAVED_ROLL_ICON_LABEL[option]"
             @click="icon = option"

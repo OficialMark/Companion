@@ -59,10 +59,10 @@ public sealed class CharacterOwnershipTests(CompanionApiFactory factory) : Chara
     [Fact]
     public async Task A_player_cannot_touch_another_players_items_spells_or_rolls_by_id()
     {
-        var (_, attacker) = await Table("Atacante");
+        var (_, attacker) = await Table($"Atacante {Suffix()}");
         var master = await CreateCampaign(Suffix());
-        var victimSession = await Join(master.PlayerCode, "Vítima");
-        var sameTableAttacker = await Join(master.PlayerCode, "Atacante");
+        var victimSession = await Join(master.PlayerCode, $"Vítima {Suffix()}");
+        var sameTableAttacker = await Join(master.PlayerCode, $"Atacante {Suffix()}");
         var victim = await PrepareVictim(victimSession);
 
         foreach (var who in new[] { sameTableAttacker, attacker })
@@ -87,8 +87,8 @@ public sealed class CharacterOwnershipTests(CompanionApiFactory factory) : Chara
     public async Task A_saved_roll_cannot_reference_another_players_weapon()
     {
         var master = await CreateCampaign(Suffix());
-        var victim = await PrepareVictim(await Join(master.PlayerCode, "Vítima"));
-        var attacker = await Join(master.PlayerCode, "Atacante");
+        var victim = await PrepareVictim(await Join(master.PlayerCode, $"Vítima {Suffix()}"));
+        var attacker = await Join(master.PlayerCode, $"Atacante {Suffix()}");
 
         var response = await Send(HttpMethod.Post, $"{Base(attacker)}/rolls", attacker, new SaveRollRequest(RollFor(victim.ItemId)));
 
@@ -100,9 +100,9 @@ public sealed class CharacterOwnershipTests(CompanionApiFactory factory) : Chara
     public async Task Master_no_session_and_other_campaign_sessions_are_refused_everywhere()
     {
         var master = await CreateCampaign(Suffix());
-        var victimSession = await Join(master.PlayerCode, "Vítima");
+        var victimSession = await Join(master.PlayerCode, $"Vítima {Suffix()}");
         var victim = await PrepareVictim(victimSession);
-        var outsider = (await Table("Forasteiro")).Player;
+        var outsider = (await Table($"Forasteiro {Suffix()}")).Player;
         var anonymous = victimSession with { ParticipantToken = string.Empty };
 
         foreach (var (method, path, body) in AllRoutes(master.CampaignId, victim))

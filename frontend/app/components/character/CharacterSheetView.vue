@@ -3,6 +3,7 @@ import SheetCoreTab from '~/components/character/SheetCoreTab.vue'
 import InventoryPanel from '~/components/character/InventoryPanel.vue'
 import SpellList from '~/components/character/SpellList.vue'
 import SavedRollList from '~/components/character/SavedRollList.vue'
+import { RELOAD_DISCARDS_EDITS, useSheetAutosaveGuards } from '~/stores/character'
 /**
  * The player's "Ficha" screen (spec 011, US1). Tabs for the sheet, the bag, spells and saved rolls.
  * Loads the caller's own character; the server decides whose it is from the session (FR-003).
@@ -25,6 +26,28 @@ const SAVE_LABEL: Record<string, string> = {
 
 onMounted(() => { if (!character.character) void character.load() })
 onBeforeUnmount(() => { void character.flush() })
+useSheetAutosaveGuards()
+
+/** After a conflict the newer server version wins; local edits not saved yet are lost, so ask first. */
+function reloadSheet() {
+  if (character.stale && !window.confirm(RELOAD_DISCARDS_EDITS)) return
+  void character.load()
+}
+
+// WAI-ARIA tabs: roving tabindex, arrows move and select (automatic activation), Home and End jump.
+const tabId = (key: Tab) => `character-tab-${key}`
+function onTabKeydown(event: KeyboardEvent, index: number) {
+  const last = TABS.length - 1
+  const next = event.key === 'ArrowRight' ? (index === last ? 0 : index + 1)
+    : event.key === 'ArrowLeft' ? (index === 0 ? last : index - 1)
+      : event.key === 'Home' ? 0
+        : event.key === 'End' ? last
+          : null
+  if (next === null) return
+  event.preventDefault()
+  tab.value = TABS[next]!.key
+  document.getElementById(tabId(TABS[next]!.key))?.focus()
+}
 
 const title = computed(() => character.draft?.characterName || store.session?.displayName || 'Seu personagem')
 const subtitle = computed(() => {
@@ -56,7 +79,7 @@ const subtitle = computed(() => {
         </template>
         <template v-else-if="character.saveState === 'conflict'">
           <Icon name="lucide:refresh-ccw" />{{ SAVE_LABEL.conflict }}
-          <button type="button" class="button ghost small" data-reload-sheet @click="character.load()">Recarregar ficha</button>
+          <button type="button" class="button ghost small" data-reload-sheet @click="reloadSheet">Recarregar ficha</button>
         </template>
       </p>
     </header>
@@ -72,14 +95,18 @@ const subtitle = computed(() => {
     <template v-else>
       <nav class="character-tabs" role="tablist" aria-label="Partes da ficha">
         <button
-          v-for="item in TABS"
+          v-for="(item, index) in TABS"
+          :id="tabId(item.key)"
           :key="item.key"
           type="button"
           role="tab"
           class="character-tab"
           :data-tab="item.key"
           :aria-selected="tab === item.key"
+          aria-controls="character-tab-panel"
+          :tabindex="tab === item.key ? 0 : -1"
           @click="tab = item.key"
+          @keydown="onTabKeydown($event, index)"
         >
           <Icon :name="item.icon" /><span>{{ item.label }}</span>
         </button>
@@ -88,7 +115,7 @@ const subtitle = computed(() => {
       <ul v-if="character.notices.length" class="character-notices" role="status">
         <li v-for="notice in character.notices" :key="notice"><Icon name="lucide:info" />{{ notice }}</li>
       </ul>
-      <div class="character-tab-panel" role="tabpanel">
+      <div id="character-tab-panel" class="character-tab-panel" role="tabpanel" tabindex="0" :aria-labelledby="tabId(tab)">
         <SheetCoreTab v-if="tab === 'ficha'" />
         <InventoryPanel v-else-if="tab === 'mochila'" />
         <SpellList v-else-if="tab === 'magias'" />

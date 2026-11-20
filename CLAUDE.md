@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Skill permanente:** no início de toda tarefa neste repositório, e de novo depois de qualquer compactação, invoque a skill `how-to-work` (`.claude/skills/how-to-work/SKILL.md`). Ela tem estas mesmas regras e é carregada automaticamente pelo hook `SessionStart` de `.claude/settings.json`.
+
 ## How to work (high-level mindset)
 
 **This section is non-negotiable and must never be removed.**

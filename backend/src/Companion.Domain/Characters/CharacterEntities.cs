@@ -9,15 +9,27 @@ public sealed class CharacterSheet
 {
     private CharacterSheet() { }
 
-    public CharacterSheet(Guid participantId, DateTimeOffset now)
+    public CharacterSheet(Guid participantId, string ownerKey, DateTimeOffset now)
     {
         ParticipantId = participantId;
+        OwnerKey = ownerKey;
         Data = CharacterSheetData.Default;
         CreatedAt = now;
         UpdatedAt = now;
     }
 
+    /// <summary>
+    /// Row id, also the key items, spells and rolls hang from: the participant that first opened the
+    /// sheet. It is no longer the owner: the sheet belongs to <see cref="OwnerKey"/> and survives that
+    /// participant and its campaign (2026-11-20 decision).
+    /// </summary>
     public Guid ParticipantId { get; private set; }
+
+    /// <summary>
+    /// The account: the normalized player name (<see cref="CharacterOwner.Key"/>). The same name in any
+    /// campaign opens this same sheet. Unique; legacy duplicates keep a "LEGACY:" key and are unused.
+    /// </summary>
+    public string OwnerKey { get; private set; } = string.Empty;
     public CharacterSheetData Data { get; private set; } = CharacterSheetData.Default;
     public byte[] Version { get; private set; } = [];
     public DateTimeOffset CreatedAt { get; private set; }

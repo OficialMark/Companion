@@ -100,6 +100,24 @@ describe('Aba Magias', () => {
     expect(api.removeSpell).toHaveBeenCalledWith(expect.anything(), 'Escudo Arcano')
   })
 
+  it('T078: o foco vai para "Confirmar", volta à lixeira ao cancelar e cai na lista depois de remover', async () => {
+    loaded(book())
+    api.removeSpell.mockResolvedValue(makeCharacter())
+    const wrapper = mount(SpellList, { attachTo: document.body })
+    const row = '[data-spell-id="Escudo Arcano"]'
+    await wrapper.get(`${row} [data-remove-spell]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get(`${row} [data-confirm-remove]`).element)
+    await wrapper.get(`${row} [data-cancel-remove]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get(`${row} [data-remove-spell]`).element)
+    await wrapper.get(`${row} [data-remove-spell]`).trigger('click')
+    await wrapper.get(`${row} [data-confirm-remove]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-spell-list]').element)
+    wrapper.unmount()
+  })
+
   it('nova magia: salvaguarda exige o atributo e grava no formato do servidor', async () => {
     loaded(makeCharacter())
     api.addSpell.mockResolvedValue(makeCharacter())
