@@ -144,7 +144,7 @@ describe('Características', () => {
     await editor.trigger('submit')
     await flushPromises()
     expect(api.addFeature).toHaveBeenCalledWith(expect.anything(), {
-      name: 'Sentido Divino', source: 'Paladino 5', description: null, maxUses: 5, currentUses: 5, recovery: 'LongRest'
+      name: 'Sentido Divino', source: 'Paladino 5', description: null, maxUses: 5, currentUses: 5, recovery: 'LongRest', effects: []
     })
     expect(wrapper.find('[data-feature-editor]').exists()).toBe(false)
     wrapper.unmount()
@@ -188,5 +188,82 @@ describe('Características', () => {
     const wrapper = mount(FeatureList)
     expect(wrapper.findAll('[data-restore]').map(button => button.attributes('aria-label')))
       .toEqual(['Restaurar todos os usos de Sentido Divino', 'Restaurar todos os usos de Canalizar Divindade'])
+  })
+})
+
+describe('Características com efeitos (spec 014)', () => {
+  it('o editor cria Duelismo: bônus de dano +2, corpo a corpo de uma mão', async () => {
+    useCharacterStore().apply(withFeatures([]), { resetDraft: true })
+    api.addFeature.mockResolvedValue(withFeatures([]))
+    const wrapper = mount(FeatureList, { attachTo: document.body })
+    await wrapper.get('[data-new-feature]').trigger('click')
+    const editor = wrapper.get('[data-feature-editor]')
+    await editor.get('[data-feature-field="name"]').setValue('Estilo de Luta: Duelismo')
+    await editor.get('[data-add-effect]').trigger('click')
+    await editor.get('[data-effect-type]').setValue('DamageBonus')
+    expect(editor.findAll('[data-effect-target] option').map(x => x.text())).toContain('corpo a corpo de uma mão')
+    await editor.get('[data-effect-target]').setValue('melee-one-handed')
+    await editor.get('[data-effect-value]').setValue('2')
+    await editor.trigger('submit')
+    await flushPromises()
+    expect(api.addFeature).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      name: 'Estilo de Luta: Duelismo',
+      maxUses: null,
+      effects: [{ type: 'DamageBonus', target: 'melee-one-handed', op: 'Add', value: 2 }]
+    }))
+    wrapper.unmount()
+  })
+
+  it('efeito sem valor é recusado no formulário', async () => {
+    useCharacterStore().apply(withFeatures([]), { resetDraft: true })
+    const wrapper = mount(FeatureList, { attachTo: document.body })
+    await wrapper.get('[data-new-feature]').trigger('click')
+    const editor = wrapper.get('[data-feature-editor]')
+    await editor.get('[data-feature-field="name"]').setValue('Sem valor')
+    await editor.get('[data-add-effect]').trigger('click')
+    await editor.get('[data-effect-value]').setValue('')
+    await editor.trigger('submit')
+    await flushPromises()
+    expect(api.addFeature).not.toHaveBeenCalled()
+    expect(editor.get('[data-feature-error]').text()).toContain('Informe o valor do efeito')
+    wrapper.unmount()
+  })
+
+  it('editar mantém os efeitos já salvos e o card mostra cada um', async () => {
+    const duel = feature('duel', 0, {
+      name: 'Estilo de Luta: Duelismo',
+      effects: [{ type: 'DamageBonus', target: 'melee-one-handed', op: 'Add', value: 2 }, { type: 'Resistance', target: 'fogo', op: 'Add', value: null }]
+    })
+    useCharacterStore().apply(withFeatures([duel]), { resetDraft: true })
+    api.saveFeature.mockResolvedValue(withFeatures([duel]))
+    const wrapper = mount(FeatureList, { attachTo: document.body })
+    expect(wrapper.findAll('[data-feature-effects] li').map(x => x.text()))
+      .toEqual(['Bônus de dano +2 (corpo a corpo de uma mão)', 'Resistência: fogo'])
+
+    await wrapper.get('[data-edit-feature]').trigger('click')
+    const editor = wrapper.get('[data-feature-editor]')
+    expect(editor.findAll('[data-effect-row]')).toHaveLength(2)
+    await editor.get('[data-feature-field="name"]').setValue('Duelismo')
+    await editor.trigger('submit')
+    await flushPromises()
+    expect(api.saveFeature).toHaveBeenCalledWith(expect.anything(), 'duel', expect.objectContaining({
+      name: 'Duelismo',
+      effects: [{ type: 'DamageBonus', target: 'melee-one-handed', op: 'Add', value: 2 }, { type: 'Resistance', target: 'fogo', op: 'Add', value: null }]
+    }))
+    wrapper.unmount()
+  })
+
+  it('característica antiga sem efeitos abre e salva com lista vazia', async () => {
+    const old = feature('old', 0, { name: 'Sentido Divino' })
+    delete (old.data as Partial<typeof old.data>).effects
+    useCharacterStore().apply(withFeatures([old]), { resetDraft: true })
+    api.saveFeature.mockResolvedValue(withFeatures([old]))
+    const wrapper = mount(FeatureList, { attachTo: document.body })
+    expect(wrapper.find('[data-feature-effects]').exists()).toBe(false)
+    await wrapper.get('[data-edit-feature]').trigger('click')
+    await wrapper.get('[data-feature-editor]').trigger('submit')
+    await flushPromises()
+    expect(api.saveFeature).toHaveBeenCalledWith(expect.anything(), 'old', expect.objectContaining({ effects: [] }))
+    wrapper.unmount()
   })
 })

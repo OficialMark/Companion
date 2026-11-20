@@ -313,7 +313,7 @@ describe('Editor de item', () => {
     expect(options('[data-effect-target]')).toEqual(['visão no escuro', 'percepção às cegas', 'sentido sísmico', 'visão verdadeira'])
 
     await row().get('[data-effect-type]').setValue('AttackBonus')
-    expect(options('[data-effect-target]')).toEqual(['todos', 'corpo a corpo', 'à distância', 'magia'])
+    expect(options('[data-effect-target]')).toEqual(['todos', 'corpo a corpo', 'corpo a corpo de uma mão', 'à distância', 'magia'])
     expect(row().find('[data-effect-op]').exists()).toBe(false)
 
     await row().get('[data-effect-type]').setValue('SkillBonus')

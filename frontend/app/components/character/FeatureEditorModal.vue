@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { toRaw } from 'vue'
-import type { CharacterFeature, CharacterFeatureData, FeatureRecovery } from '~/types/character'
+import type { CharacterFeature, CharacterFeatureData, FeatureRecovery, ItemEffect } from '~/types/character'
 import { RECOVERY_LABEL } from '~/types/character'
+import { effectsError, normalizeEffects } from '~/utils/effects'
+import EffectRowsEditor from './EffectRowsEditor.vue'
 
 /**
  * Create or edit a class, species or feat feature (spec 013, US2). The counter is optional; the server
- * keeps the uses already spent when the feature is edited and starts a new counter full.
+ * keeps the uses already spent when the feature is edited and starts a new counter full. Spec 014: the
+ * effects are the same as an item's and always count (Duelismo: dano +2, corpo a corpo de uma mão).
  */
 const props = defineProps<{ feature?: CharacterFeature | null }>()
 const emit = defineEmits<{ close: [] }>()
@@ -20,7 +23,8 @@ const form = reactive({
   hasCounter: source ? source.maxUses !== null : false,
   maxUses: source?.maxUses ?? 1,
   // A feature with a counter keeps its recovery ("Não recupera" included); a new counter starts on long rest.
-  recovery: (source && source.maxUses !== null ? source.recovery : 'LongRest') as FeatureRecovery
+  recovery: (source && source.maxUses !== null ? source.recovery : 'LongRest') as FeatureRecovery,
+  effects: (source?.effects ?? []) as ItemEffect[]
 })
 const localError = ref('')
 const saving = ref(false)
@@ -35,7 +39,7 @@ function validate(): string {
     const max = Number(form.maxUses)
     if (!Number.isInteger(max) || max < 1 || max > 999) return 'Os usos máximos devem ficar entre 1 e 999.'
   }
-  return ''
+  return effectsError(form.effects)
 }
 
 function payload(): CharacterFeatureData {
@@ -48,7 +52,8 @@ function payload(): CharacterFeatureData {
     // The server owns the counter: it keeps the uses already spent (capped by a lower maximum) and
     // starts a new counter full, whatever this field says.
     currentUses: max ?? 0,
-    recovery: max === null ? 'None' : form.recovery
+    recovery: max === null ? 'None' : form.recovery,
+    effects: normalizeEffects(structuredClone(toRaw(form.effects)))
   }
 }
 
@@ -120,6 +125,11 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
           </label>
         </div>
       </fieldset>
+
+      <EffectRowsEditor
+        v-model="form.effects"
+        hint="Nenhum efeito. Use efeitos para o que muda números e rolagens, como Duelismo (bônus de dano +2, corpo a corpo de uma mão)."
+      />
 
       <label class="sheet-field">
         <span>Descrição</span>

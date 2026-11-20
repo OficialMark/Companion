@@ -130,6 +130,44 @@ public sealed class CharacterFeatureApiTests(CompanionApiFactory factory) : Char
     }
 
     [Fact]
+    public async Task A_feature_effect_changes_the_weapon_damage_and_removing_it_reverts()
+    {
+        // Spec 014: Duelismo, +2 damage with a one-handed melee weapon.
+        var (_, player) = await Table();
+        var sheet = await AddItem(player, Weapon("Martelo de Guerra"));
+        var before = sheet.Stats.WeaponRolls.Single().Damage.Parts.Sum(x => x.Value);
+
+        var dueling = Feature("Estilo de Luta: Duelismo") with
+        {
+            Effects = [new ItemEffect(EffectType.DamageBonus, ItemEffect.MeleeOneHanded, EffectOp.Add, 2)]
+        };
+        sheet = await Add(player, dueling);
+        var damage = sheet.Stats.WeaponRolls.Single().Damage;
+        Assert.Equal(before + 2, damage.Parts.Sum(x => x.Value));
+        Assert.Contains(damage.Parts, x => x.Source == "Estilo de Luta: Duelismo" && x.Value == 2);
+        Assert.Equal(ItemEffect.MeleeOneHanded, Assert.Single(Named(sheet, "Estilo de Luta: Duelismo").Data.Effects!).Target);
+
+        // A fresh read computes the same (the effect is stored, not only answered).
+        Assert.Equal(before + 2, (await Get(player)).Stats.WeaponRolls.Single().Damage.Parts.Sum(x => x.Value));
+
+        sheet = await Ok(HttpMethod.Delete, $"{Base(player)}/features/{Named(sheet, "Estilo de Luta: Duelismo").Id}", player);
+        Assert.Equal(before, sheet.Stats.WeaponRolls.Single().Damage.Parts.Sum(x => x.Value));
+    }
+
+    [Fact]
+    public async Task An_invalid_feature_effect_is_refused_in_portuguese()
+    {
+        var (_, player) = await Table();
+        var response = await Send(HttpMethod.Post, $"{Base(player)}/features", player, new SaveFeatureRequest(Feature("Ruim") with
+        {
+            Effects = [new ItemEffect(EffectType.DamageBonus, "duas maos", EffectOp.Add, 2)]
+        }));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("corpo a corpo de uma mão", await response.Content.ReadAsStringAsync());
+        Assert.Empty((await Get(player)).Features);
+    }
+
+    [Fact]
     public async Task The_same_player_name_in_another_campaign_sees_the_same_features()
     {
         var name = $"Vash {Suffix()}";

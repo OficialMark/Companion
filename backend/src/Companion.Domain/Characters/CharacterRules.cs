@@ -13,29 +13,38 @@ public static class CharacterRules
     public const string LimitLabel = "limite";
     public const string LimitSource = "Limite da regra";
 
-    private sealed record ActiveEffect(ItemEntry Item, ItemEffect Effect)
+    /// <summary>An effect that counts, with where it comes from: an equipped item or a feature (spec 014).</summary>
+    private sealed record ActiveEffect(Guid OwnerId, string OwnerName, ItemEffect Effect)
     {
-        public string Label => RollLabel.Sanitize(Item.Data.Name);
-        public StatPart Part(int value) => new(Label, value, Item.Data.Name, Item.Id);
+        public string Label => RollLabel.Sanitize(OwnerName);
+        public StatPart Part(int value) => new(Label, value, OwnerName, OwnerId);
     }
 
     /// <summary>Proficiency bonus by level: +2 at 1-4, +3 at 5-8, +4 at 9-12, +5 at 13-16, +6 at 17-20.</summary>
     public static int ProficiencyBonus(int level) => 2 + (Math.Clamp(level, 1, 20) - 1) / 4;
 
+    /// <summary>
+    /// <paramref name="features"/> (spec 014): their effects always count, like an equipped item's, after the
+    /// items' (so a repeated effect is kept on the item and reported on the feature).
+    /// </summary>
     public static CharacterStats Compute(
         CharacterSheetData sheet,
         IReadOnlyList<ItemEntry> items,
-        IReadOnlyList<SpellEntry> spells)
+        IReadOnlyList<SpellEntry> spells,
+        IReadOnlyList<FeatureEntry>? features = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         items ??= [];
         spells ??= [];
+        features ??= [];
 
         var equipped = items
             .Where(x => x.Data.Equipped && InventoryItemData.IsEquippable(x.Data.Category))
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToArray();
-        var (active, suppressed) = ActiveEffects(equipped);
+        var sources = equipped.Select(x => (x.Id, x.Data.Name, (IReadOnlyList<ItemEffect>)x.Data.Effects))
+            .Concat(features.OrderBy(x => x.SortOrder).ThenBy(x => x.Id).Select(x => (x.Id, x.Data.Name, x.Data.EffectList())));
+        var (active, suppressed) = ActiveEffects(sources);
         var warnings = new List<string>();
         var proficiency = ProficiencyBonus(sheet.Level);
 
@@ -139,7 +148,7 @@ public static class CharacterRules
         var hitPointParts = new List<StatPart> { new("base", sheet.BaseMaxHitPoints, "PV máximos base") };
         var conDifference = Mod(AbilityCode.Con) - Abilities.Modifier(sheet.Constitution);
         if (conDifference != 0)
-            hitPointParts.Add(new StatPart("CON", conDifference * sheet.Level, "Constituição alterada por item"));
+            hitPointParts.Add(new StatPart("CON", conDifference * sheet.Level, "Constituição alterada por item ou característica"));
         var maxHitPoints = Finish(hitPointParts, active.Where(x => x.Effect.Type == EffectType.MaxHp), floor: 1);
 
         // Speed
@@ -237,17 +246,24 @@ public static class CharacterRules
                 ? Mod(AbilityCode.Dex) > Mod(AbilityCode.Str) ? AbilityCode.Dex : AbilityCode.Str
                 : weapon.Kind == WeaponKind.Ranged ? AbilityCode.Dex : AbilityCode.Str);
             var range = weapon.Kind == WeaponKind.Ranged ? "ranged" : "melee";
+            // Spec 014 (Duelismo): a melee weapon that is not two-handed, wielded in one hand.
+            var oneHanded = weapon.Kind == WeaponKind.Melee && !weapon.Has("two-handed");
             var attack = new List<StatPart> { ModPart(ability) };
             if (item.Data.Proficient) attack.Add(ProficiencyPart(proficiency));
             if (item.Data.MagicBonus > 0) attack.Add(new StatPart(WeaponBonusLabel, item.Data.MagicBonus, $"{item.Data.Name} (bônus mágico)", item.Id));
             attack.AddRange(AttackEffects(active, EffectType.AttackBonus, range));
+            if (oneHanded) attack.AddRange(ExactTargetEffects(active, EffectType.AttackBonus, ItemEffect.MeleeOneHanded));
 
             var damageParts = new List<StatPart> { ModPart(ability) };
             if (item.Data.MagicBonus > 0) damageParts.Add(new StatPart(WeaponBonusLabel, item.Data.MagicBonus, $"{item.Data.Name} (bônus mágico)", item.Id));
             damageParts.AddRange(AttackEffects(active, EffectType.DamageBonus, range));
+            // The versatile damage is the two-handed grip: one-handed bonuses never reach it.
+            var oneHandedDamage = oneHanded
+                ? [.. damageParts, .. ExactTargetEffects(active, EffectType.DamageBonus, ItemEffect.MeleeOneHanded)]
+                : damageParts;
 
             weaponRolls.Add(new WeaponRoll(item.Id, item.Data.Name, item.Data.Equipped, ability, attack.Sum(x => x.Value), attack,
-                new DamageRoll(weapon.DamageDice, weapon.DamageType, damageParts),
+                new DamageRoll(weapon.DamageDice, weapon.DamageType, oneHandedDamage),
                 weapon.VersatileDice is null ? null : new DamageRoll(weapon.VersatileDice, weapon.DamageType, damageParts)));
         }
 
@@ -290,29 +306,30 @@ public static class CharacterRules
     }
 
     /// <summary>
-    /// Collects effects of equipped items in order. An effect identical to one already counted
-    /// (same <see cref="ItemEffect.DuplicateKey"/>) from another item is reported, not applied.
+    /// Collects effects of equipped items, then of features (spec 014), in order. An effect identical to one
+    /// already counted (same source name and <see cref="ItemEffect.DuplicateKey"/>) is reported, not applied.
     /// The list is rebuilt on every call, so unequipping the kept item lets the other one count.
     /// </summary>
-    private static (List<ActiveEffect> Active, List<SuppressedEffect> Suppressed) ActiveEffects(IEnumerable<ItemEntry> equipped)
+    private static (List<ActiveEffect> Active, List<SuppressedEffect> Suppressed) ActiveEffects(
+        IEnumerable<(Guid Id, string Name, IReadOnlyList<ItemEffect> Effects)> sources)
     {
         var active = new List<ActiveEffect>();
         var suppressed = new List<SuppressedEffect>();
-        var owners = new Dictionary<string, ItemEntry>(StringComparer.Ordinal);
-        foreach (var item in equipped)
+        var owners = new Dictionary<string, (Guid Id, string Name)>(StringComparer.Ordinal);
+        foreach (var (id, name, effects) in sources)
         {
-            foreach (var effect in item.Data.Effects)
+            foreach (var effect in effects)
             {
-                var key = DuplicateKey(item.Data, effect);
+                var key = DuplicateKey(name, effect);
                 if (owners.TryGetValue(key, out var kept))
                 {
-                    // Also when the repeat is inside the same item: it is reported, never silently dropped.
-                    suppressed.Add(new SuppressedEffect(item.Id, item.Data.Name, key, kept.Id, kept.Data.Name));
+                    // Also when the repeat is inside the same source: it is reported, never silently dropped.
+                    suppressed.Add(new SuppressedEffect(id, name, key, kept.Id, kept.Name));
                     continue;
                 }
 
-                owners[key] = item;
-                active.Add(new ActiveEffect(item, effect));
+                owners[key] = (id, name);
+                active.Add(new ActiveEffect(id, name, effect));
             }
         }
 
@@ -326,14 +343,22 @@ public static class CharacterRules
     /// "Anel de Proteção" give +1 CA once, while an "Anel de Proteção" and a "Manto de Proteção"
     /// (+1 CA each) add up to +2.
     /// </summary>
-    public static string DuplicateKey(InventoryItemData item, ItemEffect effect) =>
-        $"{NormalizeName(item.Name)}|{effect.DuplicateKey}";
+    public static string DuplicateKey(InventoryItemData item, ItemEffect effect) => DuplicateKey(item.Name, effect);
+
+    /// <summary>Same rule for any source of effects, items and features alike (spec 014, FR-005).</summary>
+    public static string DuplicateKey(string sourceName, ItemEffect effect) =>
+        $"{NormalizeName(sourceName)}|{effect.DuplicateKey}";
 
     private static string NormalizeName(string name) =>
         string.Join(' ', name.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
 
     private static IEnumerable<StatPart> AttackEffects(IEnumerable<ActiveEffect> active, EffectType type, string target) =>
         active.Where(x => x.Effect.Type == type && (x.Effect.Target == "all" || x.Effect.Target == target))
+            .Select(x => x.Part(x.Effect.Value!.Value));
+
+    /// <summary>Only the effects aimed at exactly this target ("all" is already counted by <see cref="AttackEffects"/>).</summary>
+    private static IEnumerable<StatPart> ExactTargetEffects(IEnumerable<ActiveEffect> active, EffectType type, string target) =>
+        active.Where(x => x.Effect.Type == type && x.Effect.Target == target)
             .Select(x => x.Part(x.Effect.Value!.Value));
 
     /// <summary>Base part plus "add" effects, then the highest "min" effect when it beats the sum.</summary>

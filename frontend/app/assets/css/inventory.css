@@ -155,3 +155,6 @@
 .origin-badge[data-origin="Custom"] { border-color: var(--line-strong); color: var(--gold-soft); }
 .catalog-master-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
 .catalog-extra { display: grid; gap: 10px; }
+
+/* Spec 014: the effects of a feature, one badge each. */
+.feature-effects { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }

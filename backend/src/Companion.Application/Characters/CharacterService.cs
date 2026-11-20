@@ -42,7 +42,7 @@ public sealed class CharacterService(
     public async Task<CharacterDto> GetAsync(Guid campaignId, string token, CancellationToken cancellationToken, bool ifExists = false)
     {
         var loaded = await LoadAsync(campaignId, token, cancellationToken, createIfMissing: !ifExists);
-        var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded));
+        var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded), FeatureEntries(loaded));
         // The same name in another campaign is another participant with the same sheet: bring this
         // table's initiative and HP in line with the sheet the first time it is read there (FR-010).
         var participant = loaded.Participant;
@@ -294,7 +294,7 @@ public sealed class CharacterService(
 
         change(loaded);
 
-        var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded));
+        var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded), FeatureEntries(loaded));
         loaded.Sheet.ClampCurrentHitPoints(stats.MaxHitPoints.Value, timeProvider.GetUtcNow());
         // Every write updates the sheet row with the version read at load (or the client's version, set
         // by SaveSheetAsync) as the expected original. Two writes of the same owner that read the same
@@ -485,6 +485,10 @@ public sealed class CharacterService(
     private static IReadOnlyList<ItemEntry> Entries(Loaded loaded) => loaded.Items.Select(x => x.ToEntry()).ToArray();
 
     private static IReadOnlyList<SpellEntry> SpellEntries(Loaded loaded) => loaded.Spells.Select(x => x.ToEntry()).ToArray();
+
+    /// <summary>Spec 014: the features' effects count in every calculation, like equipped items.</summary>
+    private static IReadOnlyList<FeatureEntry> FeatureEntries(Loaded loaded) =>
+        loaded.Features.Select(x => new FeatureEntry(x.Id, x.SortOrder, x.Data)).ToArray();
 
     private static byte[] ParseVersion(string? version)
     {

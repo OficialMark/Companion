@@ -6,6 +6,9 @@ public sealed record ItemEntry(Guid Id, int SortOrder, InventoryItemData Data);
 /// <summary>A known spell as seen by the rules.</summary>
 public sealed record SpellEntry(Guid Id, CharacterSpellData Data);
 
+/// <summary>A feature of the sheet as the rules see it (spec 014): its effects always count.</summary>
+public sealed record FeatureEntry(Guid Id, int SortOrder, CharacterFeatureData Data);
+
 /// <summary>
 /// One contribution to a final value. <see cref="Label"/> is what the roll expression shows
 /// inside parentheses ("FOR", "prof", "arma", an item name); <see cref="Source"/> names the item

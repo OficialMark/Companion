@@ -2,6 +2,7 @@
 import type { CharacterFeature, RestKind } from '~/types/character'
 import { RECOVERY_LABEL } from '~/types/character'
 import FeatureEditorModal from './FeatureEditorModal.vue'
+import { describeEffect } from '~/utils/effects'
 import { focusAfterRender, rowOf } from '~/utils/focus'
 
 /**
@@ -112,6 +113,9 @@ function usesLabel(feature: CharacterFeature) {
             <span class="inventory-item-title">{{ feature.data.name }}</span>
             <span v-if="feature.data.source" class="item-badge subtle" data-feature-source>{{ feature.data.source }}</span>
           </p>
+          <ul v-if="feature.data.effects?.length" class="feature-effects" aria-label="Efeitos" data-feature-effects>
+            <li v-for="(effect, index) in feature.data.effects" :key="index" class="item-badge magic">{{ describeEffect(effect) }}</li>
+          </ul>
 
           <div v-if="feature.data.maxUses !== null" class="feature-counter" data-feature-counter>
             <button

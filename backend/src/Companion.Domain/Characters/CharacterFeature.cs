@@ -6,8 +6,8 @@ public enum FeatureRecovery { None, ShortRest, LongRest }
 public enum RestKind { Short, Long }
 
 /// <summary>
-/// A class, species or feat feature on a player's sheet (spec 013, US2): text plus an optional use counter.
-/// No mechanics are computed from it; effects that change numbers stay on items.
+/// A class, species or feat feature on a player's sheet (spec 013, US2): text plus an optional use counter,
+/// and (spec 014) effects like an item's, which always count in <see cref="CharacterRules"/>.
 /// </summary>
 public sealed record CharacterFeatureData(
     string Name,
@@ -15,8 +15,16 @@ public sealed record CharacterFeatureData(
     string? Description,
     int? MaxUses,
     int CurrentUses,
-    FeatureRecovery Recovery)
+    FeatureRecovery Recovery,
+    IReadOnlyList<ItemEffect>? Effects = null)
 {
+    /// <summary>
+    /// Mechanical effects (spec 014), the same as an item's, always active while the feature is on the sheet.
+    /// Features saved before spec 014 have no list: read as empty. A method, not a property, so it never
+    /// lands in the stored JSON.
+    /// </summary>
+    public IReadOnlyList<ItemEffect> EffectList() => Effects ?? [];
+
     public const int MaxNameLength = 80;
     public const int MaxSourceLength = 60;
     public const int MaxDescriptionLength = 8000;
@@ -39,12 +47,16 @@ public sealed record CharacterFeatureData(
         if (!Enum.IsDefined(Recovery)) throw new ArgumentException("Recuperação inválida.");
         if (MaxUses is < 1 or > MaxUsesLimit)
             throw new ArgumentException($"Os usos máximos devem ficar entre 1 e {MaxUsesLimit}.");
+        var effects = (Effects ?? []).Select(x => x.Validated()).ToArray();
+        if (effects.Length > ItemEffect.MaxEffectsPerItem)
+            throw new ArgumentException($"Uma característica pode ter até {ItemEffect.MaxEffectsPerItem} efeitos.");
 
         return this with
         {
             Name = name,
             Source = source,
             Description = description,
+            Effects = effects,
             // Without a counter there is nothing to spend nor to recover.
             CurrentUses = MaxUses is { } max ? Math.Clamp(CurrentUses, 0, max) : 0,
             Recovery = MaxUses is null ? FeatureRecovery.None : Recovery
@@ -91,11 +103,12 @@ public sealed class CharacterFeature
     /// <summary>
     /// Replaces the fields. The counter is the server's: the stored current value is kept (the client's is
     /// ignored, so editing the text in one tab never undoes a use spent in another), capped by a lower
-    /// maximum; a counter that was just turned on starts full (FR-015).
+    /// maximum; a counter that was just turned on starts full (FR-015). Spec 014: a body without "effects"
+    /// (a tab opened before the effects existed) keeps the stored effects; an empty list clears them.
     /// </summary>
     public void Update(CharacterFeatureData data)
     {
-        var next = data.Validated();
+        var next = (data.Effects is null ? data with { Effects = Data.Effects } : data).Validated();
         if (next.MaxUses is { } max)
             next = next with { CurrentUses = Data.MaxUses is null ? max : Math.Min(Data.CurrentUses, max) };
         Data = next;

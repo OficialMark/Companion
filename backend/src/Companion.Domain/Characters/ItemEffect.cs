@@ -24,8 +24,14 @@ public sealed record ItemEffect(EffectType Type, string? Target, EffectOp Op, in
         { "walk", "fly", "swim", "climb" };
     public static readonly IReadOnlySet<string> VisionTargets = new HashSet<string>(StringComparer.Ordinal)
         { "darkvision", "blindsight", "tremorsense", "truesight" };
+    /// <summary>
+    /// <see cref="MeleeOneHanded"/> (spec 014, Duelismo): a melee weapon without "two-handed", and never the
+    /// versatile damage, which is the two-handed grip.
+    /// </summary>
+    public const string MeleeOneHanded = "melee-one-handed";
+
     public static readonly IReadOnlySet<string> AttackTargets = new HashSet<string>(StringComparer.Ordinal)
-        { "all", "melee", "ranged", "spell" };
+        { "all", "melee", "ranged", "spell", MeleeOneHanded };
 
     private static bool IsTextual(EffectType type) =>
         type is EffectType.Resistance or EffectType.Immunity or EffectType.Condition or EffectType.Text;
@@ -85,7 +91,8 @@ public sealed record ItemEffect(EffectType Type, string? Target, EffectOp Op, in
                 return this with { Target = lower };
             case EffectType.AttackBonus or EffectType.DamageBonus:
                 lower ??= "all";
-                if (!AttackTargets.Contains(lower)) throw new ArgumentException("Alvo inválido: use todos, corpo a corpo, à distância ou magia.");
+                if (!AttackTargets.Contains(lower))
+                    throw new ArgumentException("Alvo inválido: use todos, corpo a corpo, corpo a corpo de uma mão, à distância ou magia.");
                 if (Op != EffectOp.Add) throw new ArgumentException("Bônus de ataque e de dano só somam.");
                 return this with { Target = lower };
             case EffectType.SaveBonus:

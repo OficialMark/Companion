@@ -214,7 +214,7 @@
       "expect": {
         "abilities.con.final": 19, "abilities.con.modifier": 4, "maxHitPoints.value": 60,
         "maxHitPoints.parts.length": 2, "maxHitPoints.parts.1.label": "CON", "maxHitPoints.parts.1.value": 20,
-        "maxHitPoints.parts.1.source": "Constituição alterada por item"
+        "maxHitPoints.parts.1.source": "Constituição alterada por item ou característica"
       }
     },
     {

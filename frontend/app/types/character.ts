@@ -194,6 +194,8 @@ export interface CharacterFeatureData {
   maxUses: number | null
   currentUses: number
   recovery: FeatureRecovery
+  /** Spec 014: mechanical effects, always active (absent on features saved before it). */
+  effects?: ItemEffect[] | null
 }
 
 export interface CharacterFeature { id: string; sortOrder: number; data: CharacterFeatureData }
