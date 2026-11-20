@@ -79,11 +79,13 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 
     await page.locator('[data-view="mesa"]').click()
 
     // 2. Player account by name.
-    const player = await join(browser, code, 'loren b. vonn neuman', viewport)
+    // Sheets are global per player name: a unique surname per run keeps runs independent.
+    const surname = `neuman${Date.now() % 1000000}`
+    const player = await join(browser, code, `loren b. vonn ${surname}`, viewport)
     await expect(player.locator('[data-view="compendio"]')).toHaveCount(0)
     await player.locator('[data-view="ficha"]').click()
     await expect(player.locator('[data-character-view]')).toBeVisible()
-    await expect(player.getByRole('heading', { level: 1 })).toContainText('Loren B. Vonn Neuman')
+    await expect(player.getByRole('heading', { level: 1 })).toContainText(`Loren B. Vonn N${surname.slice(1)}`)
 
     // 3. Base values -> derived values from the server.
     await setNumber(player, 'dexterity', 16)
@@ -119,7 +121,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 
     await noHorizontalScroll(player)
 
     // 5. Same name, another device: same account and sheet; the first device stays connected.
-    const second = await join(browser, code, 'LOREN B. VONN NEUMAN', viewport)
+    const second = await join(browser, code, `LOREN B. VONN ${surname.toUpperCase()}`, viewport)
     await second.locator('[data-view="ficha"]').click()
     await expect(second.locator('[data-derived="armorClass"] [data-value]')).toHaveText('18')
     await player.reload()
