@@ -88,7 +88,9 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
         var seed = JsonSerializer.Deserialize<ItemSeedFile>(bytes, Json) ?? throw new InvalidOperationException("Seed de itens vazio.");
         // Slugs compared trimmed and lowercase, like the unique index (case-insensitive collation):
         // "Foo" and "foo " are the same row, so the second is skipped instead of failing SaveChanges.
-        var existing = db.CatalogItems.ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
+        // Only global rows: campaign entries (spec 013, FR-009) belong to their master, never to the seed.
+        var existing = db.CatalogItems.Where(x => x.CampaignId == null)
+            .ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var skipped = new List<string>();
         var changed = 0;
@@ -125,7 +127,9 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
         var seed = JsonSerializer.Deserialize<SpellSeedFile>(bytes, Json) ?? throw new InvalidOperationException("Seed de magias vazio.");
         // Slugs compared trimmed and lowercase, like the unique index (case-insensitive collation):
         // "Foo" and "foo " are the same row, so the second is skipped instead of failing SaveChanges.
-        var existing = db.CatalogSpells.ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
+        // Only global rows: campaign entries (spec 013, FR-009) belong to their master, never to the seed.
+        var existing = db.CatalogSpells.Where(x => x.CampaignId == null)
+            .ToDictionary(x => CatalogText.NormalizeSlug(x.Slug), StringComparer.Ordinal);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var skipped = new List<string>();
         var changed = 0;

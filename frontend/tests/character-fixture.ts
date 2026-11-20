@@ -50,6 +50,7 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     savedRolls: [],
     stats,
     notices: [],
+    features: [],
     ...overrides
   }
 }

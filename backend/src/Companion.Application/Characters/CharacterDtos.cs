@@ -19,7 +19,21 @@ public sealed record CharacterDto(
     IReadOnlyList<CharacterSpellDto> Spells,
     IReadOnlyList<SavedRollDto> SavedRolls,
     CharacterStats Stats,
-    IReadOnlyList<string> Notices);
+    IReadOnlyList<string> Notices,
+    IReadOnlyList<CharacterFeatureDto> Features);
+
+/// <summary>A class, species or feat feature with its optional use counter (spec 013, US2).</summary>
+public sealed record CharacterFeatureDto(Guid Id, int SortOrder, CharacterFeatureData Data);
+
+public sealed record SaveFeatureRequest(CharacterFeatureData? Data);
+
+/// <summary>Uses spent (negative) or regained (positive); the server keeps the result between 0 and the maximum.</summary>
+public sealed record FeatureUsesRequest(int Delta);
+
+public sealed record MoveFeatureRequest(int Direction);
+
+/// <summary>Nullable on purpose: an empty body must be refused, not read as the first enum value (a short rest).</summary>
+public sealed record RestRequest(RestKind? Kind);
 
 public sealed record SaveSheetRequest(CharacterSheetData? Data, string? Version);
 

@@ -30,6 +30,7 @@ public interface ICompanionDbContext
     IQueryable<SavedRoll> SavedRolls { get; }
     IQueryable<CatalogItem> CatalogItems { get; }
     IQueryable<CatalogSpell> CatalogSpells { get; }
+    IQueryable<CharacterFeature> CharacterFeatures { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
@@ -74,6 +75,10 @@ public interface ICompanionDbContext
     void Remove(SavedRoll roll);
     void Add(CatalogItem item);
     void Add(CatalogSpell spell);
+    void Remove(CatalogItem item);
+    void Remove(CatalogSpell spell);
+    void Add(CharacterFeature feature);
+    void Remove(CharacterFeature feature);
     /// <summary>Descarta uma ficha nova cuja inserção perdeu a corrida para outra requisição do mesmo dono.</summary>
     void Detach(CharacterSheet sheet);
     /// <summary>Usa a versão que o cliente leu na checagem de concorrência otimista (409 se outra gravação veio antes).</summary>

@@ -19,11 +19,11 @@ public sealed class CatalogSeederHardeningTests
     private const string GoodItem = """{"slug":"rope","name":"Corda","category":"Gear","rarity":null}""";
 
     [Theory]
-    [InlineData("nameEn", 121)]
-    [InlineData("subcategory", 81)]
-    [InlineData("rarity", 31)]
-    [InlineData("cost", 41)]
-    public void Item_text_longer_than_its_column_is_rejected(string field, int length)
+    [InlineData("nameEn", 121, "O nome em inglês deve ter até 120 caracteres.")]
+    [InlineData("subcategory", 81, "A subcategoria deve ter até 80 caracteres.")]
+    [InlineData("rarity", 31, "A raridade deve ter até 30 caracteres.")]
+    [InlineData("cost", 41, "O custo deve ter até 40 caracteres.")]
+    public void Item_text_longer_than_its_column_is_rejected(string field, int length, string message)
     {
         var fields = new CatalogItemFields(
             new InventoryItemData("Corda", ItemCategory.Gear, 1, null, null, null, false, false, 0, null, null, null, []),
@@ -33,7 +33,8 @@ public sealed class CatalogSeederHardeningTests
             false,
             field == "cost" ? new string('c', length) : null);
         var error = Assert.Throws<ArgumentException>(() => new CatalogItem(Guid.NewGuid(), "rope", fields));
-        Assert.StartsWith(field, error.Message);
+        // Spec 013 (FR-008): the master sees this message too, so it names the field in Portuguese.
+        Assert.Equal(message, error.Message);
         // At the limit it fits.
         Assert.Null(Record.Exception(() => new CatalogItem(Guid.NewGuid(), "rope", fields with
         {
@@ -63,7 +64,7 @@ public sealed class CatalogSeederHardeningTests
 
         Assert.Equal(1, result.Upserted);
         Assert.Single(result.Skipped);
-        Assert.StartsWith("bad: rarity", result.Skipped[0]);
+        Assert.StartsWith("bad: A raridade", result.Skipped[0]);
         Assert.Equal(["rope"], FakeDb.Of(db).Added.OfType<CatalogItem>().Select(x => x.Slug));
     }
 
@@ -92,7 +93,7 @@ public sealed class CatalogSeederHardeningTests
         var result = (await seeder.SeedAsync()).Single();
 
         Assert.Equal(1, result.Upserted);
-        Assert.StartsWith("ruim: higherLevels", Assert.Single(result.Skipped));
+        Assert.StartsWith("ruim: O texto de círculos superiores", Assert.Single(result.Skipped));
         Assert.Equal(["bom"], FakeDb.Of(db).Added.OfType<CatalogSpell>().Select(x => x.Slug));
     }
 

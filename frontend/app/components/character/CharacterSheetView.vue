@@ -3,6 +3,7 @@ import SheetCoreTab from '~/components/character/SheetCoreTab.vue'
 import InventoryPanel from '~/components/character/InventoryPanel.vue'
 import SpellList from '~/components/character/SpellList.vue'
 import SavedRollList from '~/components/character/SavedRollList.vue'
+import FeatureList from '~/components/character/FeatureList.vue'
 import { RELOAD_DISCARDS_EDITS, useSheetAutosaveGuards } from '~/stores/character'
 /**
  * The player's "Ficha" screen (spec 011, US1). Tabs for the sheet, the bag, spells and saved rolls.
@@ -11,9 +12,10 @@ import { RELOAD_DISCARDS_EDITS, useSheetAutosaveGuards } from '~/stores/characte
 const character = useCharacterStore()
 const store = useCampaignStore()
 
-type Tab = 'ficha' | 'mochila' | 'magias' | 'rolagens'
+type Tab = 'ficha' | 'caracteristicas' | 'mochila' | 'magias' | 'rolagens'
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'ficha', label: 'Ficha', icon: 'lucide:scroll-text' },
+  { key: 'caracteristicas', label: 'Características', icon: 'lucide:sparkles' },
   { key: 'mochila', label: 'Mochila', icon: 'lucide:backpack' },
   { key: 'magias', label: 'Magias', icon: 'lucide:wand-sparkles' },
   { key: 'rolagens', label: 'Rolagens', icon: 'lucide:dices' }
@@ -117,6 +119,7 @@ const subtitle = computed(() => {
       </ul>
       <div id="character-tab-panel" class="character-tab-panel" role="tabpanel" tabindex="0" :aria-labelledby="tabId(tab)">
         <SheetCoreTab v-if="tab === 'ficha'" />
+        <FeatureList v-else-if="tab === 'caracteristicas'" />
         <InventoryPanel v-else-if="tab === 'mochila'" />
         <SpellList v-else-if="tab === 'magias'" />
         <SavedRollList v-else />

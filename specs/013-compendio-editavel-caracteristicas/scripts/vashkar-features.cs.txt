@@ -1,0 +1,55 @@
+// Spec 013, US3: the Oath of Conquest paladin features of Vashkar, validated by the real domain, as SQL.
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Companion.Domain.Characters;
+
+var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+static string Q(string? s) => s is null ? "NULL" : "N'" + s.Replace("'", "''") + "'";
+
+// Current uses follow vashkard.json: Cura pelas Mãos 0/25 and Sentido Divino 5/5 (rest of the counters full).
+var features = new (CharacterFeatureData Data, int Current)[]
+{
+    (new("Destruição Divina", "Paladino 2",
+        "Quando você acerta uma criatura com um ataque corpo a corpo com arma, pode gastar um espaço de magia para causar dano radiante extra além do dano da arma: 2d8 com um espaço de 1º círculo, mais 1d8 para cada círculo acima do 1º (máximo 5d8). O dano aumenta em 1d8 se o alvo for um morto-vivo ou um corruptor.\n\n" +
+        "Contador: 1 uso por descanso longo sem gastar espaço de magia (regra de 2024). Os usos com espaço de magia não passam por este contador.",
+        1, 0, FeatureRecovery.LongRest), 1),
+    (new("Cura pelas Mãos", "Paladino 1",
+        "Reserva de cura igual a 5 × seu nível de paladino (25 PV). Com uma ação, toque uma criatura e restaure qualquer quantidade de PV da reserva. Gastando 5 pontos da reserva, você cura uma doença ou neutraliza um veneno que afete o alvo (um efeito por uso de 5 pontos). Não funciona em mortos-vivos nem em constructos.",
+        25, 0, FeatureRecovery.LongRest), 0),
+    (new("Sentido Divino", "Paladino 1",
+        "Com uma ação, até o fim do seu próximo turno você sabe a localização de qualquer celestial, corruptor ou morto-vivo a até 18 metros que não esteja atrás de cobertura total, e sabe o tipo (mas não a identidade) dele. Também detecta a presença de qualquer lugar ou objeto consagrado ou profanado nesse alcance.\n\nUsos: 1 + modificador de Carisma (5) por descanso longo.",
+        5, 0, FeatureRecovery.LongRest), 5),
+    (new("Canalizar Divindade", "Juramento da Conquista",
+        "Seu juramento permite canalizar energia divina para alimentar efeitos mágicos. Cada uso escolhe uma das opções do Juramento da Conquista: Presença Conquistadora ou Golpe Guiado. A CD de salvaguarda é a sua CD de magia de paladino (15).",
+        1, 0, FeatureRecovery.ShortRest), 1),
+    (new("Presença Conquistadora", "Canalizar Divindade (Conquista)",
+        "Gaste um uso de Canalizar Divindade e uma ação para exalar uma presença aterradora. Cada criatura à sua escolha a até 9 metros de você faz uma salvaguarda de Sabedoria (CD 15). Quem falha fica amedrontado por 1 minuto e repete a salvaguarda no fim de cada um dos turnos dele, encerrando o efeito em si mesmo num sucesso.",
+        null, 0, FeatureRecovery.None), 0),
+    (new("Golpe Guiado", "Canalizar Divindade (Conquista)",
+        "Ao fazer uma jogada de ataque, gaste um uso de Canalizar Divindade para somar +10 à jogada. Você decide depois de ver o resultado do d20, mas antes de saber se o ataque acerta ou erra.",
+        null, 0, FeatureRecovery.None), 0)
+};
+
+var sql = new StringBuilder("SET NOCOUNT ON;\nSET XACT_ABORT ON;\nBEGIN TRAN;\n");
+sql.Append("DECLARE @pid uniqueidentifier = (SELECT ParticipantId FROM CharacterSheets WHERE OwnerKey = N'VASHKAR');\n");
+sql.Append("IF @pid IS NULL THROW 50001, N'Ficha do Vashkar não encontrada', 1;\n");
+sql.Append("IF EXISTS (SELECT 1 FROM CharacterFeatures WHERE ParticipantId = @pid) THROW 50002, N'Vashkar já tem características', 1;\n");
+var order = 0;
+foreach (var (raw, current) in features)
+{
+    // Through the entity: the same validation and the same "starts full" rule as the API, then the sheet's value.
+    var feature = new CharacterFeature(Guid.NewGuid(), Guid.Empty, order, raw, DateTimeOffset.UtcNow);
+    if (feature.Data.MaxUses is { } max) feature.Spend(current - max);
+    var json = JsonSerializer.Serialize(feature.Data, options);
+    sql.Append($"INSERT INTO CharacterFeatures (Id, ParticipantId, SortOrder, Data, CreatedAt) VALUES ('{Guid.NewGuid()}', @pid, {order}, {Q(json)}, SYSDATETIMEOFFSET());\n");
+    Console.WriteLine($"{order} {feature.Data.Name}: {(feature.Data.MaxUses is null ? "sem contador" : $"{feature.Data.CurrentUses}/{feature.Data.MaxUses} {feature.Data.Recovery}")}");
+    order++;
+}
+// The resources now live in Características: Traços keep only what is not a feature.
+// Only the text loaded earlier today: if the player already edited Traços, it is left alone.
+const string loadedTraits = "Recursos de Paladino:\n- Cura pelas Mãos: 0/25\n- Sentido Divino: 5/5\n- Ataque Extra (2 ataques por ação)\n\nDados de vida: 5d10.";
+sql.Append($"UPDATE CharacterSheets SET Data = JSON_MODIFY(Data, '$.traits', N'Ataque Extra (2 ataques por ação).\n\nDados de vida: 5d10.'), UpdatedAt = SYSDATETIMEOFFSET() WHERE ParticipantId = @pid AND JSON_VALUE(Data, '$.traits') = {Q(loadedTraits)};\n");
+sql.Append("COMMIT;\nPRINT 'OK';\n");
+File.WriteAllText(args[0], sql.ToString(), new UTF8Encoding(false));
+Console.WriteLine($"SQL: {args[0]}");

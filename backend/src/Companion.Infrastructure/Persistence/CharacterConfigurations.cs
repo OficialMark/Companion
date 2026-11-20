@@ -79,6 +79,18 @@ public sealed class CharacterSpellConfiguration : IEntityTypeConfiguration<Chara
     }
 }
 
+public sealed class CharacterFeatureConfiguration : IEntityTypeConfiguration<CharacterFeature>
+{
+    public void Configure(EntityTypeBuilder<CharacterFeature> builder)
+    {
+        builder.ToTable("CharacterFeatures");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Data).AsJson();
+        builder.HasIndex(x => new { x.ParticipantId, x.SortOrder });
+        builder.HasOne<CharacterSheet>().WithMany().HasForeignKey(x => x.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public sealed class SavedRollConfiguration : IEntityTypeConfiguration<SavedRoll>
 {
     public void Configure(EntityTypeBuilder<SavedRoll> builder)
@@ -98,7 +110,7 @@ public sealed class CatalogItemConfiguration : IEntityTypeConfiguration<CatalogI
         builder.ToTable("CatalogItems");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Slug).HasMaxLength(160).IsRequired();
-        builder.HasIndex(x => x.Slug).IsUnique();
+        CampaignScope(builder);
         builder.Property(x => x.Name).HasMaxLength(InventoryItemData.MaxNameLength).IsRequired();
         builder.Property(x => x.NameEn).HasMaxLength(120);
         builder.Property(x => x.Category).HasConversion<string>().HasMaxLength(12);
@@ -110,6 +122,22 @@ public sealed class CatalogItemConfiguration : IEntityTypeConfiguration<CatalogI
         builder.Property(x => x.Template).AsJson();
         builder.HasIndex(x => new { x.IsRemovedFromCatalog, x.Category });
     }
+
+    /// <summary>
+    /// Spec 013, same shape as creatures (spec 008): the slug is unique among global rows only (campaign rows
+    /// get a generated one), a campaign has at most one copy of each global row, and deleting a campaign
+    /// deletes its rows. The base FK is NoAction: global rows are never deleted, only marked removed.
+    /// </summary>
+    internal static void CampaignScope<T>(EntityTypeBuilder<T> builder) where T : class
+    {
+        builder.HasIndex("Slug").IsUnique().HasFilter("[CampaignId] IS NULL");
+        builder.HasIndex("CampaignId", "BaseId").IsUnique().HasFilter("[CampaignId] IS NOT NULL AND [BaseId] IS NOT NULL");
+        // The filtered index above cannot serve "WHERE CampaignId = @c" (every catalog read, campaign delete).
+        builder.HasIndex("CampaignId");
+        builder.HasOne<Campaign>().WithMany().HasForeignKey("CampaignId").OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<T>().WithMany().HasForeignKey("BaseId").OnDelete(DeleteBehavior.NoAction);
+        builder.Ignore("Origin");
+    }
 }
 
 public sealed class CatalogSpellConfiguration : IEntityTypeConfiguration<CatalogSpell>
@@ -119,7 +147,7 @@ public sealed class CatalogSpellConfiguration : IEntityTypeConfiguration<Catalog
         builder.ToTable("CatalogSpells");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
-        builder.HasIndex(x => x.Slug).IsUnique();
+        CatalogItemConfiguration.CampaignScope(builder);
         builder.Property(x => x.Name).HasMaxLength(80).IsRequired();
         builder.Property(x => x.NameEn).HasMaxLength(CatalogItem.MaxNameEnLength);
         builder.Property(x => x.School).HasMaxLength(80);

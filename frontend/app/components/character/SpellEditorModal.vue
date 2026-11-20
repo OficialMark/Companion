@@ -1,16 +1,33 @@
 <script setup lang="ts">
 import { toRaw } from 'vue'
-import type { CharacterSpell, CharacterSpellData } from '~/types/character'
+import type { CatalogSpell, CharacterSpell, CharacterSpellData } from '~/types/character'
 import { ABILITY_LABEL, ABILITY_ORDER } from '~/types/character'
 import { DAMAGE_TYPES, SUM_DICE, compactDice } from './ItemEditorModal.vue'
 
-/** Create or edit one of the character's spells (spec 011, US7). The server validates and recalculates. */
-const props = defineProps<{ spell?: CharacterSpell | null }>()
-const emit = defineEmits<{ close: [] }>()
+/**
+ * Create or edit one of the character's spells (spec 011, US7). The server validates and recalculates.
+ * With `catalog` (spec 013) it edits the master's compendium: English name, classes and "em círculos
+ * superiores" join the form, and saving goes to the catalog API (a compendium spell gets the table's version).
+ */
+const props = defineProps<{ spell?: CharacterSpell | null; catalog?: { entry: CatalogSpell | null } | null }>()
+const emit = defineEmits<{ close: []; saved: [entry: CatalogSpell] }>()
+
+const SPELL_CLASSES = ['bardo', 'bruxo', 'clérigo', 'druida', 'feiticeiro', 'mago', 'paladino', 'patrulheiro']
 
 const character = useCharacterStore()
-const isNew = !props.spell
-const form = reactive<CharacterSpellData>(props.spell ? structuredClone(toRaw(props.spell.data)) : {
+const catalogMode = computed(() => Boolean(props.catalog))
+const entry = props.catalog?.entry ?? null
+const isNew = catalogMode.value ? !entry : !props.spell
+const initial = entry ? entry.template : props.spell?.data
+const extra = reactive({
+  nameEn: entry?.nameEn ?? '',
+  classes: [...(entry?.classes ?? [])],
+  higherLevels: entry?.higherLevels ?? ''
+})
+function toggleClass(value: string) {
+  extra.classes = extra.classes.includes(value) ? extra.classes.filter(x => x !== value) : [...extra.classes, value]
+}
+const form = reactive<CharacterSpellData>(initial ? structuredClone(toRaw(initial)) : {
   name: '', level: 1, school: null, castingTime: '1 ação', range: null, components: null, duration: 'instantânea',
   ritual: false, concentration: false, description: null, attackKind: 'None', saveAbility: null,
   damageDice: null, damageType: null, addAbilityToDamage: false
@@ -50,18 +67,38 @@ function payload(): CharacterSpellData {
   }
 }
 
+async function saveCatalog(data: CharacterSpellData) {
+  const body = { template: data, classes: extra.classes, higherLevels: text(extra.higherLevels), nameEn: text(extra.nameEn) }
+  try {
+    const api = useCharacterApi()
+    const session = character.session()
+    const saved = entry ? await api.saveCatalogSpell(session, entry.id, body) : await api.createCatalogSpell(session, body)
+    emit('saved', saved)
+    return true
+  } catch (error) {
+    localError.value = (error as Error).message || 'Não foi possível salvar no compêndio.'
+    return false
+  }
+}
+
 async function save() {
   localError.value = validate()
   if (localError.value) return
   const data = payload()
   const spell = props.spell
   saving.value = true
-  const ok = await character.run((api, session) => spell ? api.saveSpell(session, spell.id, data) : api.addSpell(session, data))
+  const ok = catalogMode.value
+    ? await saveCatalog(data)
+    : await character.run((api, session) => spell ? api.saveSpell(session, spell.id, data) : api.addSpell(session, data))
   saving.value = false
   if (ok) emit('close')
 }
 
-const shownError = computed(() => localError.value || (saving.value ? '' : character.error))
+const title = computed(() => catalogMode.value
+  ? (isNew ? 'Nova magia do compêndio' : 'Editar magia do compêndio')
+  : (isNew ? 'Nova magia' : 'Editar magia'))
+
+const shownError = computed(() => localError.value || (saving.value || catalogMode.value ? '' : character.error))
 
 onMounted(async () => {
   opener = document.activeElement
@@ -84,9 +121,12 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
       @submit.prevent="save"
     >
       <header class="sheet-modal-header">
-        <h2 id="spell-editor-title">{{ isNew ? 'Nova magia' : 'Editar magia' }}</h2>
+        <h2 id="spell-editor-title">{{ title }}</h2>
         <button type="button" class="icon-button" aria-label="Fechar" @click="emit('close')"><Icon name="lucide:x" /></button>
       </header>
+      <p v-if="entry?.origin === 'Compendium'" class="sheet-hint" data-catalog-copy-hint>
+        <Icon name="lucide:info" /> Salvar cria a versão da mesa desta magia. O original do compêndio não muda e volta se você excluir a versão da mesa.
+      </p>
 
       <div class="sheet-grid">
         <label class="sheet-field wide">
@@ -167,6 +207,29 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
         <span>Descrição</span>
         <textarea v-model="form.description" rows="5" data-spell-field="description" />
       </label>
+
+      <fieldset v-if="catalogMode" class="item-block catalog-extra" data-block="catalog">
+        <legend>Compêndio</legend>
+        <label class="sheet-field">
+          <span>Nome em inglês</span>
+          <input v-model="extra.nameEn" type="text" maxlength="120" data-spell-field="nameEn">
+        </label>
+        <div class="chip-row" role="group" aria-label="Classes que conjuram">
+          <button
+            v-for="value in SPELL_CLASSES"
+            :key="value"
+            type="button"
+            class="chip"
+            :aria-pressed="extra.classes.includes(value)"
+            :data-spell-class="value"
+            @click="toggleClass(value)"
+          >{{ value }}</button>
+        </div>
+        <label class="sheet-field">
+          <span>Em círculos superiores</span>
+          <textarea v-model="extra.higherLevels" rows="2" maxlength="4000" data-spell-field="higherLevels" />
+        </label>
+      </fieldset>
 
       <p v-if="shownError" class="form-error" role="alert" data-spell-error>{{ shownError }}</p>
 

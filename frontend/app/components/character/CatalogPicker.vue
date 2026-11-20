@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { CatalogItem, CatalogItemQuery, CatalogItemSummary, CatalogSpell, CatalogSpellSummary, Character, ItemCategory } from '~/types/character'
-import { CATEGORY_LABEL } from '~/types/character'
-import { CATEGORY_ORDER } from './ItemEditorModal.vue'
+import type { CatalogItem, CatalogItemQuery, CatalogItemSummary, CatalogOrigin, CatalogSpell, CatalogSpellSummary, Character, ItemCategory } from '~/types/character'
+import { CATEGORY_LABEL, ORIGIN_LABEL } from '~/types/character'
+import ItemEditorModal, { CATEGORY_ORDER } from './ItemEditorModal.vue'
+import SpellEditorModal from './SpellEditorModal.vue'
 import { focusAfterRender } from '~/utils/focus'
 import CatalogDetail from './CatalogDetail.vue'
 
@@ -15,7 +16,11 @@ import CatalogDetail from './CatalogDetail.vue'
  * `browse` (spec 012): the master's Compêndio tab. Inline instead of a modal, read-only (no Adicionar),
  * each row opens its full details.
  */
-const props = withDefaults(defineProps<{ mode: 'items' | 'spells'; browse?: boolean }>(), { browse: false })
+/**
+ * `editable` (spec 013): the master creates entries and edits or deletes them from the details. Editing a
+ * compendium entry creates the table's version; deleting that version brings the original back.
+ */
+const props = withDefaults(defineProps<{ mode: 'items' | 'spells'; browse?: boolean; editable?: boolean }>(), { browse: false, editable: false })
 const emit = defineEmits<{ close: [] }>()
 
 /** The backend DTO has these fields; the shared TS type may not have them yet. */
@@ -41,6 +46,8 @@ const level = ref<number | ''>('')
 const spellClass = ref('')
 const ritual = ref(false)
 const concentration = ref(false)
+const origin = ref<CatalogOrigin | ''>('')
+const ORIGINS: CatalogOrigin[] = ['Compendium', 'Edited', 'Custom']
 const page = ref(1)
 
 const items = ref<ItemSummary[]>([])
@@ -83,7 +90,8 @@ async function load() {
     const session = character.session()
     if (props.mode === 'items') {
       const result = await api.listCatalogItems(session, {
-        q: query.value || undefined, category: category.value || undefined, rarity: rarity.value || undefined, page: page.value, pageSize: PAGE_SIZE
+        q: query.value || undefined, category: category.value || undefined, rarity: rarity.value || undefined, page: page.value, pageSize: PAGE_SIZE,
+        origin: origin.value || undefined
       })
       if (id !== sequence) return
       items.value = result.items as ItemSummary[]
@@ -97,7 +105,8 @@ async function load() {
         ritual: ritual.value ? true : null,
         concentration: concentration.value ? true : null,
         page: page.value,
-        pageSize: PAGE_SIZE
+        pageSize: PAGE_SIZE,
+        origin: origin.value || undefined
       })
       if (id !== sequence) return
       spells.value = result.items
@@ -119,7 +128,7 @@ watch(search, (value) => {
     void load()
   }, SEARCH_DELAY_MS)
 })
-watch([category, rarity, level, spellClass, ritual, concentration], () => {
+watch([category, rarity, level, spellClass, ritual, concentration, origin], () => {
   page.value = 1
   void load()
 })
@@ -244,6 +253,99 @@ async function toggleDetail(id: string) {
     if (detailLoadingId.value === id) detailLoadingId.value = null
   }
 }
+// ---- The master's edits (spec 013, US1) ----
+/** The open editor: `entry` null creates a new one. */
+const itemEditor = ref<{ entry: CatalogItem | null } | null>(null)
+const spellEditor = ref<{ entry: CatalogSpell | null } | null>(null)
+const confirmingDeleteId = ref<string | null>(null)
+const deletingId = ref<string | null>(null)
+
+function openNew() {
+  status.value = ''
+  actionError.value = ''
+  if (props.mode === 'items') itemEditor.value = { entry: null }
+  else spellEditor.value = { entry: null }
+}
+
+function openEdit(id: string) {
+  confirmingDeleteId.value = null
+  if (props.mode === 'items') {
+    const entry = itemDetails.get(id)
+    if (entry) itemEditor.value = { entry }
+  } else {
+    const entry = spellDetails.get(id)
+    if (entry) spellEditor.value = { entry }
+  }
+}
+
+/** After a save the list and the details reload; the row of the saved entry (a new id for a first edit) opens. */
+async function afterSave(saved: CatalogItem | CatalogSpell, created: boolean) {
+  itemDetails.clear()
+  spellDetails.clear()
+  if (props.mode === 'items') itemDetails.set(saved.id, saved as CatalogItem)
+  else spellDetails.set(saved.id, saved as CatalogSpell)
+  openId.value = saved.id
+  status.value = created ? `Criado no compêndio da mesa: ${saved.name}.` : `Salvo na versão da mesa: ${saved.name}.`
+  await reloadAndFocus(saved.id)
+}
+
+/**
+ * After a write: reload (stepping back from a page the write emptied) and put the focus on the row's "Editar",
+ * since the button that opened the editor may belong to a row that is gone (the global entry after its first edit).
+ */
+async function reloadAndFocus(id: string | null) {
+  await load()
+  if (!results.value && page.value > 1) {
+    page.value -= 1
+    await load()
+  }
+  const scope = `[data-catalog-picker="${props.mode}"]`
+  await focusAfterRender(() => (id ? document.querySelector<HTMLElement>(`${scope} [data-catalog-id="${id}"] [data-catalog-edit]`) : null)
+    ?? searchInput.value)
+}
+
+function onItemSaved(saved: CatalogItem) { void afterSave(saved, itemEditor.value?.entry === null) }
+function onSpellSaved(saved: CatalogSpell) { void afterSave(saved, spellEditor.value?.entry === null) }
+
+const entryOf = (id: string) => (props.mode === 'items' ? itemDetails.get(id) : spellDetails.get(id)) ?? null
+/** Deleting an edit restores the original, unless the original already left the compendium. */
+const restores = (id: string) => { const entry = entryOf(id); return entry?.origin === 'Edited' && !entry.baseRemoved }
+const confirmText = (id: string) => restores(id) ? 'Voltar ao original do compêndio?' : 'Excluir do compêndio da mesa?'
+const deleteText = (id: string) => confirmingDeleteId.value === id ? 'Confirmar' : restores(id) ? 'Restaurar original' : 'Excluir'
+
+async function removeEntry(id: string) {
+  const entry = entryOf(id)
+  if (!entry || entry.origin === 'Compendium') return
+  if (confirmingDeleteId.value !== id) {
+    confirmingDeleteId.value = id
+    return
+  }
+  deletingId.value = id
+  actionError.value = ''
+  try {
+    const api = useCharacterApi()
+    const session = character.session()
+    const restored = props.mode === 'items' ? await api.deleteCatalogItem(session, id) : await api.deleteCatalogSpell(session, id)
+    itemDetails.clear()
+    spellDetails.clear()
+    confirmingDeleteId.value = null
+    if (restored) {
+      if (props.mode === 'items') itemDetails.set(restored.id, restored as CatalogItem)
+      else spellDetails.set(restored.id, restored as CatalogSpell)
+      openId.value = restored.id
+      status.value = `Versão da mesa excluída: ${restored.name} voltou ao original do compêndio.`
+    } else {
+      openId.value = null
+      status.value = `Excluído do compêndio da mesa: ${entry.name}.`
+    }
+    await reloadAndFocus(restored?.id ?? null)
+  } catch (error) {
+    actionError.value = errorMessage(error)
+  } finally {
+    deletingId.value = null
+  }
+}
+
 /** In the modal Esc is ours (and stops there); the Compêndio browser leaves it to the page. */
 function onEscapeKey(event: KeyboardEvent) {
   if (props.browse) return
@@ -287,6 +389,9 @@ onBeforeUnmount(() => {
           <p class="eyebrow"><Icon :name="mode === 'items' ? 'lucide:backpack' : 'lucide:wand-sparkles'" />Catálogo</p>
           <h2 id="catalog-picker-title">{{ baseFor ? 'Escolha a base' : title }}</h2>
         </div>
+        <button v-if="editable && !baseFor" type="button" class="button primary small" data-catalog-new @click="openNew">
+          <Icon name="lucide:plus" />{{ mode === 'items' ? 'Novo item' : 'Nova magia' }}
+        </button>
         <button v-if="!browse" type="button" class="icon-button" aria-label="Fechar" @click="close"><Icon name="lucide:x" /></button>
       </header>
 
@@ -360,6 +465,10 @@ onBeforeUnmount(() => {
               <button type="button" class="chip" :aria-pressed="concentration" data-filter="concentration" @click="concentration = !concentration">Concentração</button>
             </div>
           </template>
+          <select v-if="editable" v-model="origin" aria-label="Origem" data-filter="origin">
+            <option value="">Todas as origens</option>
+            <option v-for="value in ORIGINS" :key="value" :value="value">{{ ORIGIN_LABEL[value] }}</option>
+          </select>
         </div>
 
         <div class="catalog-results" :aria-busy="loading">
@@ -380,6 +489,7 @@ onBeforeUnmount(() => {
                   <span v-if="item.magicBonus > 0" class="item-badge magic">+{{ item.magicBonus }}</span>
                   <span v-if="item.requiresAttunement" class="item-badge subtle">sintonia</span>
                   <span v-if="item.requiresBaseItem" class="item-badge subtle">escolha a base</span>
+                  <span v-if="item.origin && item.origin !== 'Compendium'" class="item-badge origin-badge" :data-origin="item.origin">{{ ORIGIN_LABEL[item.origin] }}</span>
                 </p>
               </div>
               <button v-if="browse" type="button" class="button ghost small" :aria-expanded="openId === item.id" :aria-controls="`catalog-detail-${item.id}`" :aria-label="`Detalhes de ${item.name}`" data-catalog-detail-toggle @click="toggleDetail(item.id)">
@@ -391,7 +501,19 @@ onBeforeUnmount(() => {
               <div v-if="browse && openId === item.id" :id="`catalog-detail-${item.id}`" class="catalog-row-detail">
                 <p v-if="detailLoadingId === item.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
                 <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
-                <CatalogDetail v-else :item="itemDetails.get(item.id)" />
+                <template v-else>
+                  <CatalogDetail :item="itemDetails.get(item.id)" />
+                  <div v-if="editable && itemDetails.get(item.id)" class="catalog-master-actions" data-catalog-master-actions>
+                    <button type="button" class="button secondary small" data-catalog-edit @click="openEdit(item.id)"><Icon name="lucide:pencil" />Editar</button>
+                    <template v-if="itemDetails.get(item.id)?.origin && itemDetails.get(item.id)?.origin !== 'Compendium'">
+                      <span v-if="confirmingDeleteId === item.id" class="inventory-confirm-label">{{ confirmText(item.id) }}</span>
+                      <button type="button" class="button ghost danger small" :disabled="deletingId === item.id" data-catalog-delete @click="removeEntry(item.id)">
+                        <Icon name="lucide:trash-2" />{{ deleteText(item.id) }}
+                      </button>
+                      <button v-if="confirmingDeleteId === item.id" type="button" class="button ghost small" data-catalog-delete-cancel @click="confirmingDeleteId = null">Cancelar</button>
+                    </template>
+                  </div>
+                </template>
               </div>
             </li>
           </ul>
@@ -404,6 +526,7 @@ onBeforeUnmount(() => {
                   <span>{{ levelLabel(spell.level) }}<template v-if="spell.school">, {{ spell.school }}</template></span>
                   <span v-if="spell.concentration" class="item-badge subtle" title="Concentração">C</span>
                   <span v-if="spell.ritual" class="item-badge subtle" title="Ritual">R</span>
+                  <span v-if="spell.origin && spell.origin !== 'Compendium'" class="item-badge origin-badge" :data-origin="spell.origin">{{ ORIGIN_LABEL[spell.origin] }}</span>
                 </p>
               </div>
               <button v-if="browse" type="button" class="button ghost small" :aria-expanded="openId === spell.id" :aria-controls="`catalog-detail-${spell.id}`" :aria-label="`Detalhes de ${spell.name}`" data-catalog-detail-toggle @click="toggleDetail(spell.id)">
@@ -415,7 +538,19 @@ onBeforeUnmount(() => {
               <div v-if="browse && openId === spell.id" :id="`catalog-detail-${spell.id}`" class="catalog-row-detail">
                 <p v-if="detailLoadingId === spell.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
                 <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
-                <CatalogDetail v-else :spell="spellDetails.get(spell.id)" />
+                <template v-else>
+                  <CatalogDetail :spell="spellDetails.get(spell.id)" />
+                  <div v-if="editable && spellDetails.get(spell.id)" class="catalog-master-actions" data-catalog-master-actions>
+                    <button type="button" class="button secondary small" data-catalog-edit @click="openEdit(spell.id)"><Icon name="lucide:pencil" />Editar</button>
+                    <template v-if="spellDetails.get(spell.id)?.origin && spellDetails.get(spell.id)?.origin !== 'Compendium'">
+                      <span v-if="confirmingDeleteId === spell.id" class="inventory-confirm-label">{{ confirmText(spell.id) }}</span>
+                      <button type="button" class="button ghost danger small" :disabled="deletingId === spell.id" data-catalog-delete @click="removeEntry(spell.id)">
+                        <Icon name="lucide:trash-2" />{{ deleteText(spell.id) }}
+                      </button>
+                      <button v-if="confirmingDeleteId === spell.id" type="button" class="button ghost small" data-catalog-delete-cancel @click="confirmingDeleteId = null">Cancelar</button>
+                    </template>
+                  </div>
+                </template>
               </div>
             </li>
           </ul>
@@ -434,5 +569,7 @@ onBeforeUnmount(() => {
         <p v-if="mode === 'items' && attribution" class="catalog-attribution" data-attribution>{{ attribution }}</p>
       </template>
     </div>
+    <ItemEditorModal v-if="itemEditor" :catalog="itemEditor" @saved="onItemSaved" @close="itemEditor = null" />
+    <SpellEditorModal v-if="spellEditor" :catalog="spellEditor" @saved="onSpellSaved" @close="spellEditor = null" />
   </div>
 </template>

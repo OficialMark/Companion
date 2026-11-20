@@ -50,7 +50,7 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
 
         // Other tests add catalog rows to the shared database (slugs "spell-…"): count the seed only.
         using (var scope = Services.CreateScope())
-            Assert.Equal(361, scope.ServiceProvider.GetRequiredService<CompanionDbContext>().CatalogSpells.Count(x => !x.Slug.StartsWith("spell-")));
+            Assert.Equal(361, scope.ServiceProvider.GetRequiredService<CompanionDbContext>().CatalogSpells.Count(x => x.CampaignId == null && !x.Slug.StartsWith("spell-")));
         Assert.True(all.Total >= 361);
         Assert.Null(all.Attribution);
         Assert.Contains(fireball.Items, x => x.Name == "Bola de Fogo" && x.Level == 3);

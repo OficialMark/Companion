@@ -179,7 +179,35 @@ export interface Character {
   savedRolls: SavedRoll[]
   stats: CharacterStats
   notices: string[]
+  /** Class, species and feat features with an optional use counter (spec 013, US2). */
+  features: CharacterFeature[]
 }
+
+export type FeatureRecovery = 'None' | 'ShortRest' | 'LongRest'
+export type RestKind = 'Short' | 'Long'
+
+export interface CharacterFeatureData {
+  name: string
+  source: string | null
+  description: string | null
+  /** Null: no counter. Otherwise 1..999. */
+  maxUses: number | null
+  currentUses: number
+  recovery: FeatureRecovery
+}
+
+export interface CharacterFeature { id: string; sortOrder: number; data: CharacterFeatureData }
+
+export const RECOVERY_LABEL: Record<FeatureRecovery, string> = {
+  None: 'Não recupera',
+  ShortRest: 'Descanso curto',
+  LongRest: 'Descanso longo'
+}
+
+/** Where a catalog entry comes from (spec 013): the global compendium, the table's edit of it, or the table's own. */
+export type CatalogOrigin = 'Compendium' | 'Edited' | 'Custom'
+
+export const ORIGIN_LABEL: Record<CatalogOrigin, string> = { Compendium: 'Compêndio', Edited: 'Editada', Custom: 'Personalizada' }
 
 export interface CatalogItemSummary {
   id: string
@@ -192,6 +220,7 @@ export interface CatalogItemSummary {
   magicBonus: number
   /** Generic magic weapon or armor ("Arma +1"): adding it asks for a mundane base item. */
   requiresBaseItem: boolean
+  origin?: CatalogOrigin
 }
 
 export interface CatalogItem {
@@ -205,6 +234,28 @@ export interface CatalogItem {
   cost: string | null
   requiresBaseItem: boolean
   template: InventoryItemData
+  origin?: CatalogOrigin
+  /** The global entry an edited entry replaces in this campaign. */
+  baseId?: string | null
+  /** The replaced global entry left the compendium: deleting the edit restores nothing. */
+  baseRemoved?: boolean
+}
+
+/** The master's catalog item form (spec 013): the item itself plus the catalog-only fields. */
+export interface SaveCatalogItem {
+  template: InventoryItemData
+  nameEn: string | null
+  subcategory: string | null
+  rarity: string | null
+  requiresAttunement: boolean
+  cost: string | null
+}
+
+export interface SaveCatalogSpell {
+  template: CharacterSpellData
+  classes: string[]
+  higherLevels: string | null
+  nameEn: string | null
 }
 
 export interface CatalogSpellSummary {
@@ -217,6 +268,7 @@ export interface CatalogSpellSummary {
   ritual: boolean
   concentration: boolean
   classes: string[]
+  origin?: CatalogOrigin
 }
 
 export interface CatalogSpell {
@@ -227,12 +279,15 @@ export interface CatalogSpell {
   classes: string[]
   higherLevels: string | null
   template: CharacterSpellData
+  origin?: CatalogOrigin
+  baseId?: string | null
+  baseRemoved?: boolean
 }
 
 export interface CatalogPage<T> { items: T[]; total: number; page: number; pageSize: number; attribution: string | null }
 
-export interface CatalogItemQuery { q?: string; category?: string; rarity?: string; page?: number; pageSize?: number; mundane?: boolean }
-export interface CatalogSpellQuery { q?: string; level?: number | null; school?: string; class?: string; ritual?: boolean | null; concentration?: boolean | null; page?: number; pageSize?: number }
+export interface CatalogItemQuery { q?: string; category?: string; rarity?: string; page?: number; pageSize?: number; mundane?: boolean; origin?: CatalogOrigin | '' }
+export interface CatalogSpellQuery { q?: string; level?: number | null; school?: string; class?: string; ritual?: boolean | null; concentration?: boolean | null; page?: number; pageSize?: number; origin?: CatalogOrigin | '' }
 
 export const ABILITY_ORDER: AbilityCode[] = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha']
 export const ABILITY_LABEL: Record<AbilityCode, string> = { Str: 'FOR', Dex: 'DES', Con: 'CON', Int: 'INT', Wis: 'SAB', Cha: 'CAR' }
