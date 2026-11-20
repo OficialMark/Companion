@@ -9,6 +9,32 @@ const FOCUSABLE = [
   'a[href]', '[tabindex]:not([tabindex="-1"])'
 ].join(', ')
 
+/**
+ * ARIA radio group keys, attached to the element with role="radiogroup": arrows move to the
+ * previous or next enabled radio (wrapping), Home and End to the first and last. The radio that
+ * receives focus is also selected (clicked), as the WAI-ARIA radio group pattern asks. Pair it with
+ * a roving tabindex (0 on the checked radio, -1 on the others).
+ */
+export function radioGroupKeydown(event: KeyboardEvent) {
+  const group = event.currentTarget as HTMLElement | null
+  if (!group) return
+  const radios = [...group.querySelectorAll<HTMLElement>('[role="radio"]')]
+    .filter(radio => !(radio as HTMLButtonElement).disabled)
+  if (!radios.length) return
+  const index = radios.indexOf(event.target as HTMLElement)
+  let next: number
+  switch (event.key) {
+    case 'ArrowRight': case 'ArrowDown': next = index < 0 ? 0 : (index + 1) % radios.length; break
+    case 'ArrowLeft': case 'ArrowUp': next = index < 0 ? radios.length - 1 : (index - 1 + radios.length) % radios.length; break
+    case 'Home': next = 0; break
+    case 'End': next = radios.length - 1; break
+    default: return
+  }
+  event.preventDefault()
+  radios[next]!.focus()
+  radios[next]!.click()
+}
+
 export function focusableIn(root: ParentNode): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(element => !element.hidden && !element.closest('[inert]'))
 }

@@ -24,6 +24,8 @@ function session() {
 beforeEach(() => {
   vi.useFakeTimers()
   session()
+  // The write queue lives in the module: a mocked request left pending by one test must not block the next.
+  useCharacterStore().reset()
   api.getCharacter.mockReset().mockResolvedValue(makeCharacter())
   api.saveSheet.mockReset()
 })

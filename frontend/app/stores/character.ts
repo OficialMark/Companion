@@ -82,7 +82,10 @@ export const useCharacterStore = defineStore('character', {
       this.loading = true
       this.error = ''
       try {
-        const character = await useCharacterApi().getCharacter(this.session())
+        // In the write queue too: the first GET creates the sheet, and a reload must not overtake a
+        // pending write from this device and then be overwritten by that write's older answer.
+        const session = this.session()
+        const character = await enqueueWrite(() => useCharacterApi().getCharacter(session))
         if (!current()) return
         this.editSequence = this.savedSequence
         this.apply(character, { resetDraft: true })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { radioGroupKeydown } from '~/utils/focus'
 import type { AdvantageMode, Character, CharacterStats, RollKind } from '~/types/character'
 import { ABILITY_LABEL, ABILITY_NAME, ABILITY_ORDER, SKILLS, abilityKey } from '~/types/character'
 import DicePad from '~/components/character/DicePad.vue'
@@ -181,7 +182,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
       </label>
     </div>
 
-    <div class="roll-segment" role="radiogroup" aria-label="Tipo de rolagem">
+    <div class="roll-segment" role="radiogroup" aria-label="Tipo de rolagem" @keydown="radioGroupKeydown">
       <button
         v-for="kind in KIND_ORDER"
         :key="kind"
@@ -191,6 +192,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         :class="{ selected: modelValue.kind === kind }"
         :data-kind="kind.toLowerCase()"
         :aria-checked="modelValue.kind === kind"
+        :tabindex="modelValue.kind === kind ? 0 : -1"
         :disabled="disabled || !allowedKinds.includes(kind)"
         @click="selectKind(kind)"
       >{{ KIND_LABEL[kind] }}</button>
@@ -212,7 +214,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
       <Icon name="lucide:info" />O d20 do {{ modelValue.kind === 'Check' ? 'teste' : 'ataque' }} já entra na expressão; os dados acima se somam a ele.
     </p>
 
-    <div class="roll-segment three" role="radiogroup" aria-label="Vantagem ou desvantagem">
+    <div class="roll-segment three" role="radiogroup" aria-label="Vantagem ou desvantagem" @keydown="radioGroupKeydown">
       <button
         v-for="mode in ADVANTAGES"
         :key="mode"
@@ -222,6 +224,7 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         :class="{ selected: modelValue.advantage === mode }"
         :data-advantage="ADVANTAGE_KEY[mode]"
         :aria-checked="modelValue.advantage === mode"
+        :tabindex="modelValue.advantage === mode ? 0 : -1"
         :disabled="disabled"
         @click="selectAdvantage(mode)"
       ><Icon :name="ADVANTAGE_ICON[mode]" />{{ ADVANTAGE_LABEL[mode] }}</button>
