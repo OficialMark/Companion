@@ -160,6 +160,45 @@ describe('Mochila', () => {
     wrapper.unmount()
   })
 
+  it('T078: o foco acompanha a confirmação de remoção (Confirmar, volta à lixeira, lista depois)', async () => {
+    loaded()
+    api.removeItem.mockResolvedValue(makeCharacter({ items: [longsword] }))
+    const wrapper = mountPanel()
+
+    await wrapper.get('[data-item-id="potion"] [data-remove-item]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-item-id="potion"] [data-confirm-remove]').element)
+
+    await wrapper.get('[data-item-id="potion"] [data-cancel-remove]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-item-id="potion"] [data-remove-item]').element)
+
+    await wrapper.get('[data-item-id="potion"] [data-remove-item]').trigger('click')
+    await wrapper.get('[data-item-id="potion"] [data-confirm-remove]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-inventory]').element)
+    wrapper.unmount()
+  })
+
+  it('T078: no modo compacto os alternadores mantêm texto curto visível', () => {
+    loaded()
+    const wrapper = mount(InventoryPanel, { attachTo: document.body, props: { compact: true, hideTitle: true } })
+    expect(wrapper.get('[data-item-id="sword"] [data-proficient]').text()).toBe('Prof.')
+    expect(wrapper.get('[data-item-id="sword"] [data-equip]').text()).toBe('Equipar')
+    expect(wrapper.get('[data-item-id="chain"] [data-equip]').text()).toBe('Equipado')
+    // The game-mode modal already shows "Mochila": the panel does not repeat it.
+    expect(wrapper.find('#inventory-title').exists()).toBe(false)
+    expect(wrapper.get('[data-inventory]').attributes('aria-label')).toBe('Itens da mochila')
+    wrapper.unmount()
+  })
+
+  it('T078: o CSS do modo compacto não esconde mais o texto dos alternadores', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const css = readFileSync(join(__dirname, '..', 'app', 'assets', 'css', 'inventory.css'), 'utf8')
+    expect(css).not.toMatch(/\.inventory--compact \.item-toggle span\s*\{[^}]*clip/)
+  })
+
   it('"Do catálogo" abre o seletor de itens', async () => {
     loaded()
     const wrapper = mountPanel()

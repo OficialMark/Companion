@@ -8,6 +8,7 @@ import type { DiceRoll, StatusCondition } from '~/types/campaign'
 import { useGameMode } from '~/composables/useGameMode'
 import CreatureLibrary from '~/components/creatures/CreatureLibrary.vue'
 import CreatureSheetModal from '~/components/creatures/CreatureSheetModal.vue'
+import { trapTab } from '~/utils/focus'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const gameMode = useGameMode()
@@ -107,11 +108,24 @@ function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null) {
   pendingDamageExpression.value = damageExpression
   pendingAttackRoll.value = roll
 }
+// Game-mode bag (FR-031, FR-039): a real modal. Focus enters on open, Tab stays inside, focus returns
+// to the "Mochila" button on close. Esc is handled on the overlay itself, so an editor or the catalog
+// opened from the bag (which stop their own Esc) closes first and keeps the bag open.
 const inventoryOpen = ref(false)
-function onInventoryKeydown(event: KeyboardEvent) { if (event.key === 'Escape') inventoryOpen.value = false }
-watch(inventoryOpen, open => {
-  if (open) window.addEventListener('keydown', onInventoryKeydown)
-  else window.removeEventListener('keydown', onInventoryKeydown)
+const inventoryDialog = ref<HTMLElement | null>(null)
+const inventoryHeading = ref<HTMLElement | null>(null)
+function onInventoryKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.stopPropagation()
+    inventoryOpen.value = false
+    return
+  }
+  if (inventoryDialog.value) trapTab(event, inventoryDialog.value)
+}
+watch(inventoryOpen, async (open) => {
+  await nextTick()
+  if (open) inventoryHeading.value?.focus()
+  else document.querySelector<HTMLElement>('[data-open-inventory]')?.focus()
 })
 watch(() => gameMode.active.value, active => { if (!active) inventoryOpen.value = false })
 // Board photos: participants' avatars plus library images of creature tokens.
@@ -314,19 +328,22 @@ onBeforeUnmount(() => {
     />
     <div
       v-if="inventoryOpen && showPlayerPanel"
+      ref="inventoryDialog"
       class="modal-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-inventory-title"
       data-game-inventory
       @click.self="inventoryOpen = false"
+      @keydown="onInventoryKeydown"
     >
-      <div class="modal-panel game-inventory-modal">
+      <!-- tabindex -1: a click on plain text keeps the focus inside the dialog, where Esc is listened. -->
+      <div class="modal-panel game-inventory-modal" tabindex="-1">
         <div class="game-inventory-head">
-          <h2 id="game-inventory-title"><Icon name="lucide:backpack" />Mochila</h2>
+          <h2 id="game-inventory-title" ref="inventoryHeading" tabindex="-1"><Icon name="lucide:backpack" />Mochila</h2>
           <button class="icon-button" type="button" aria-label="Fechar mochila" title="Fechar mochila" data-close-inventory @click="inventoryOpen = false"><Icon name="lucide:x" /></button>
         </div>
-        <InventoryPanel compact />
+        <InventoryPanel compact hide-title />
       </div>
     </div>
   </main>

@@ -48,7 +48,7 @@ function onKeydown(event: KeyboardEvent, die: DieKey) {
 function ariaLabel(die: DieKey) {
   const n = count(die)
   const selected = n === 0 ? 'nenhum selecionado' : n === 1 ? '1 selecionado' : `${n} selecionados`
-  return `${die}, ${selected}. Clique soma, segure para tirar`
+  return `${die}, ${selected}. Clique soma, segure para tirar. No teclado, Delete ou - tira um`
 }
 </script>
 

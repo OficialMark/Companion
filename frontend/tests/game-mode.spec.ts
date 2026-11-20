@@ -67,7 +67,7 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     emits: ['attack-rolled', 'open-inventory'],
     template: `<div data-stub="player-roll-panel">
       <button data-fake-attack @click="$emit('attack-rolled', { id: 'r9', total: 18 }, 'd8 + (FOR) 3 + (arma) 1')" />
-      <button data-fake-inventory @click="$emit('open-inventory')" />
+      <button data-fake-inventory data-open-inventory @click="$emit('open-inventory')" />
     </div>`
   })
   const QuickStub = defineComponent({
@@ -87,7 +87,18 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     emits: ['resolved', 'cancelled'],
     template: `<div data-stub="damage-modal" :data-expression="expression ?? 'none'"><button data-fake-done @click="$emit('resolved')" /></div>`
   })
-  const InventoryStub = defineComponent({ name: 'InventoryPanel', props: { compact: Boolean }, template: `<div data-stub="inventory" :data-compact="compact" />` })
+  // A bag with a nested editor open: the editor stops its own Esc, like ItemEditorModal and CatalogPicker.
+  const nestedEscapes = vi.fn()
+  const InventoryStub = defineComponent({
+    name: 'InventoryPanel',
+    props: { compact: Boolean, hideTitle: Boolean },
+    setup: () => ({ nestedEscapes }),
+    template: `<div data-stub="inventory" :data-compact="compact" :data-hide-title="hideTitle">
+      <button data-stub-first>Novo item</button>
+      <div role="dialog" aria-modal="true" data-stub-nested @keydown.esc.stop="nestedEscapes()"><input data-nested-field></div>
+      <button data-stub-last>Remover</button>
+    </div>`
+  })
 
   const stubs = {
     PlayerRollPanel: PanelStub, QuickDiceRoller: QuickStub, AttackConfirmModal: ConfirmStub, DamageRollModal: DamageStub, InventoryPanel: InventoryStub,
@@ -230,9 +241,49 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     await wrapper.get('[data-close-inventory]').trigger('click')
     expect(wrapper.find('[data-game-inventory]').exists()).toBe(false)
     await wrapper.get('[data-fake-inventory]').trigger('click')
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await wrapper.get('[data-game-inventory] [data-stub-first]').trigger('keydown', { key: 'Escape' })
     await flushPromises()
     expect(wrapper.find('[data-game-inventory]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('T078: one "Mochila" title; focus enters on open, Tab stays inside, focus returns on close', async () => {
+    setup()
+    const wrapper = await mountPage()
+    await wrapper.get('[data-fake-inventory]').trigger('click')
+    await flushPromises()
+    const dialog = wrapper.get('[data-game-inventory]')
+    expect(dialog.findAll('h2').map(h => h.text())).toEqual(['Mochila'])
+    expect(dialog.get('[data-stub="inventory"]').attributes('data-hide-title')).toBe('true')
+    expect(dialog.element.contains(document.activeElement)).toBe(true)
+    expect(document.activeElement).toBe(dialog.get('#game-inventory-title').element)
+
+    // Tab from the last control wraps to the first; Shift+Tab from the first wraps to the last.
+    const last = dialog.get('[data-stub-last]')
+    ;(last.element as HTMLElement).focus()
+    await last.trigger('keydown', { key: 'Tab' })
+    expect(document.activeElement).toBe(dialog.get('[data-close-inventory]').element)
+    await dialog.get('[data-close-inventory]').trigger('keydown', { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(last.element)
+
+    await dialog.get('[data-close-inventory]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-open-inventory]').element)
+    wrapper.unmount()
+  })
+
+  it('T078: Esc inside a nested editor closes the editor only; Esc elsewhere on the window does nothing', async () => {
+    setup()
+    const wrapper = await mountPage()
+    await wrapper.get('[data-fake-inventory]').trigger('click')
+    nestedEscapes.mockReset()
+    await wrapper.get('[data-nested-field]').trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+    expect(nestedEscapes).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-game-inventory]').exists()).toBe(true)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(wrapper.find('[data-game-inventory]').exists()).toBe(true)
     wrapper.unmount()
   })
 })

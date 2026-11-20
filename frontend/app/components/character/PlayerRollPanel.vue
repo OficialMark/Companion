@@ -133,7 +133,7 @@ function openEditor() {
       </button>
     </div>
 
-    <RollConfigFields v-model="config" :stats="stats" :character="character.character" :disabled="busy" />
+    <RollConfigFields v-model="config" :stats="stats" :character="character.character" :disabled="busy" preselect-single-weapon />
 
     <div class="player-roll-actions">
       <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" @click="roll()">

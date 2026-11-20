@@ -128,6 +128,8 @@ export interface SavedRollData {
   savingThrow: AbilityCode | null
   inventoryItemId: string | null
   characterSpellId: string | null
+  /** Two-handed damage of a versatile weapon. Only true with kind Damage and a weapon (SavedRollData.cs). */
+  versatile?: boolean
   extraModifiers: RollModifier[]
   advantage: AdvantageMode
   repetitions: number

@@ -80,7 +80,7 @@ describe('SavedRollEditor', () => {
 
     const expected: SavedRollData = {
       name: 'Ataque com espada', icon: 'lucide:swords', kind: 'Attack', dice: {}, ability: null, skill: null, savingThrow: null,
-      inventoryItemId: 'sword', characterSpellId: null, extraModifiers: [{ label: null, value: 2 }], advantage: 'Disadvantage', repetitions: 1
+      inventoryItemId: 'sword', characterSpellId: null, versatile: false, extraModifiers: [{ label: null, value: 2 }], advantage: 'Disadvantage', repetitions: 1
     }
     expect(characterApi.addRoll).toHaveBeenCalledWith(expect.objectContaining({ campaignId: 'c1' }), expected)
     expect(Object.keys(characterApi.addRoll.mock.calls[0]![1]).sort()).toEqual(Object.keys(expected).sort())
@@ -150,6 +150,24 @@ describe('SavedRollList (aba Rolagens)', () => {
     await flushPromises()
     expect(characterApi.removeRoll).toHaveBeenCalledWith(expect.anything(), 's1')
     expect(list.findAll('[data-saved-roll-item]').map(item => item.attributes('data-saved-roll-item'))).toEqual(['s1b'])
+  })
+
+  it('T078: focus moves to "Remover" on ask, back to the trash can on "Manter", onto the list after removal', async () => {
+    setup(makeFighter({ savedRolls: [savedRoll('s1'), savedRoll('s2', {}, false, 1)] }))
+    characterApi.removeRoll.mockResolvedValue(makeFighter({ savedRolls: [savedRoll('s2')] }))
+    const list = mount(SavedRollList, { attachTo: document.body })
+    const row = '[data-saved-roll-item="s1"]'
+    await list.get(`${row} [data-remove-roll]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(list.get(`${row} [data-confirm-remove]`).element)
+    await list.get(`${row} [data-cancel-remove]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(list.get(`${row} [data-remove-roll]`).element)
+    await list.get(`${row} [data-remove-roll]`).trigger('click')
+    await list.get(`${row} [data-confirm-remove]`).trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(list.get('[data-saved-roll-list]').element)
+    list.unmount()
   })
 
   it('opens the editor to create and to edit', async () => {

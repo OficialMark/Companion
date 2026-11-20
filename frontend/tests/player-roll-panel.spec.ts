@@ -38,6 +38,15 @@ const expression = (wrapper: VueWrapper) => wrapper.get('[data-expression]').tex
 async function pickSource(wrapper: VueWrapper, key: string) {
   await wrapper.get('[data-source-select]').setValue(key)
 }
+/**
+ * The fighter has exactly one equipped weapon, so the panel starts on its attack (SC-006). Tests about
+ * free rolls go back to "no source" and the free kind first, as a player would.
+ */
+async function startFree(wrapper: VueWrapper) {
+  await nextTick()
+  await pickSource(wrapper, 'none')
+  await wrapper.get('[data-kind="free"]').trigger('click')
+}
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -63,8 +72,47 @@ describe('PlayerRollPanel', () => {
     expect(sources).toEqual(expect.arrayContaining(['spell:firebolt', 'spell:fireball', 'ability:Str', 'skill:furtividade', 'save:Dex', 'none']))
   })
 
+  it('SC-006: with exactly one equipped weapon the panel starts on its attack, so advantage is two taps', async () => {
+    const wrapper = setup()
+    await nextTick()
+    expect((wrapper.get('[data-source-select]').element as HTMLSelectElement).value).toBe('weapon:sword')
+    expect(wrapper.get('[data-kind="attack"]').attributes('aria-checked')).toBe('true')
+    expect(expression(wrapper)).toBe('d20 + (FOR) 3 + (prof) 3 + (arma) 1')
+
+    await wrapper.get('[data-advantage="advantage"]').trigger('click')
+    await rollAndSettle(wrapper)
+    expect(api.rollDice).toHaveBeenCalledWith(expect.anything(), '2#(d20 + (FOR) 3 + (prof) 3 + (arma) 1) maior', false, 'Ataque: Espada Longa')
+  })
+
+  it('SC-006: the preselected weapon follows the armor rule like a manual pick', async () => {
+    const character = makeFighter()
+    character.stats.rollDefaults = { disadvantageOnStrDex: true, reason: 'Armadura sem proficiência: desvantagem em FOR e DES.' }
+    const wrapper = setup(character)
+    await nextTick()
+    expect(wrapper.get('[data-advantage="disadvantage"]').attributes('aria-checked')).toBe('true')
+    await pickSource(wrapper, 'skill:arcanismo')
+    expect(wrapper.get('[data-advantage="none"]').attributes('aria-checked')).toBe('true')
+  })
+
+  it('no preselection with two equipped weapons or none', async () => {
+    const two = makeFighter()
+    two.stats.weaponRolls[1]!.equipped = true
+    const wrapper = setup(two)
+    await nextTick()
+    expect(expression(wrapper)).toBe('')
+    expect((wrapper.get('[data-source-select]').element as HTMLSelectElement).value).toBe('none')
+    wrapper.unmount()
+
+    const none = makeFighter()
+    none.stats.weaponRolls[0]!.equipped = false
+    const other = setup(none)
+    await nextTick()
+    expect(expression(other)).toBe('')
+  })
+
   it('updates the expression live as the player builds the roll', async () => {
     const wrapper = setup()
+    await startFree(wrapper)
     expect(expression(wrapper)).toBe('')
     expect(wrapper.get('[data-roll-go]').attributes('disabled')).toBeDefined()
 
@@ -89,6 +137,7 @@ describe('PlayerRollPanel', () => {
 
   it('US5: advantage, disadvantage and repetitions produce the canonical forms', async () => {
     const wrapper = setup()
+    await startFree(wrapper)
     await wrapper.get('[data-die="d20"]').trigger('click')
     await wrapper.get('[data-die="d6"]').trigger('click')
     await wrapper.get('[data-die="d6"]').trigger('click')
@@ -116,6 +165,7 @@ describe('PlayerRollPanel', () => {
 
   it('US5 scenario 6: the limit error shows before sending and disables the roll', async () => {
     const wrapper = setup()
+    await startFree(wrapper)
     await wrapper.get('[data-die="d20"]').trigger('click')
     await wrapper.get('[data-die="d6"]').trigger('click')
     await wrapper.get('[data-die="d6"]').trigger('click')

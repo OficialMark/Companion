@@ -2,6 +2,7 @@
 import type { SavedRoll } from '~/types/character'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { configFromSavedRoll, resolveRoll } from '~/utils/playerRoll'
+import { focusAfterRender, rowOf } from '~/utils/focus'
 
 /**
  * "Rolagens" tab of the sheet (spec 011, US6): the saved rolls with their live expression, built from
@@ -26,16 +27,31 @@ async function duplicate(roll: SavedRoll) {
   await character.run((api, session) => api.duplicateRoll(session, roll.id))
   busyId.value = null
 }
+// Keyboard focus follows the inline confirmation (FR-039): onto "Remover", back to the trash can on
+// "Manter", and onto the list after the roll is gone.
+const root = ref<HTMLElement | null>(null)
+const inRow = (id: string, selector: string) => () => rowOf(root.value, 'data-saved-roll-item', id)?.querySelector<HTMLElement>(selector)
+
+async function askRemove(roll: SavedRoll) {
+  confirmingId.value = roll.id
+  await focusAfterRender(inRow(roll.id, '[data-confirm-remove]'))
+}
+async function cancelRemove(roll: SavedRoll) {
+  confirmingId.value = null
+  await focusAfterRender(inRow(roll.id, '[data-remove-roll]'))
+}
 async function remove(roll: SavedRoll) {
   busyId.value = roll.id
   const ok = await character.run((api, session) => api.removeRoll(session, roll.id))
   busyId.value = null
-  if (ok) confirmingId.value = null
+  if (!ok) return
+  confirmingId.value = null
+  await focusAfterRender(() => root.value)
 }
 </script>
 
 <template>
-  <section class="saved-roll-list" aria-labelledby="saved-rolls-title" data-saved-roll-list>
+  <section ref="root" class="saved-roll-list" aria-labelledby="saved-rolls-title" tabindex="-1" data-saved-roll-list>
     <div class="saved-roll-list-head">
       <h2 id="saved-rolls-title" class="sheet-section-title">Rolagens salvas</h2>
       <button class="button secondary small" type="button" data-new-roll @click="creating = true"><Icon name="lucide:plus" />Nova rolagem</button>
@@ -64,12 +80,12 @@ async function remove(roll: SavedRoll) {
           <button class="button ghost danger small" type="button" data-confirm-remove :disabled="busyId === roll.id" @click="remove(roll)">
             <Icon name="lucide:trash-2" />Remover
           </button>
-          <button class="button ghost small" type="button" data-cancel-remove :disabled="busyId === roll.id" @click="confirmingId = null">Manter</button>
+          <button class="button ghost small" type="button" data-cancel-remove :disabled="busyId === roll.id" @click="cancelRemove(roll)">Manter</button>
         </div>
         <div v-else class="saved-roll-item-actions">
           <button class="icon-button" type="button" data-edit-roll :aria-label="`Editar ${roll.data.name}`" title="Editar" @click="editing = roll"><Icon name="lucide:pencil" /></button>
           <button class="icon-button" type="button" data-duplicate-roll :aria-label="`Duplicar ${roll.data.name}`" title="Duplicar" :disabled="busyId === roll.id" @click="duplicate(roll)"><Icon name="lucide:copy" /></button>
-          <button class="icon-button" type="button" data-remove-roll :aria-label="`Remover ${roll.data.name}`" title="Remover" @click="confirmingId = roll.id"><Icon name="lucide:trash-2" /></button>
+          <button class="icon-button" type="button" data-remove-roll :aria-label="`Remover ${roll.data.name}`" title="Remover" @click="askRemove(roll)"><Icon name="lucide:trash-2" /></button>
         </div>
       </li>
     </ul>
