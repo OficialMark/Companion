@@ -96,25 +96,6 @@ export const useCharacterStore = defineStore('character', {
         if (current()) this.loading = false
       }
     },
-    /**
-     * Loads the character only if the player already has one (FR-010): the combat profile panel must
-     * not create a sheet just by being shown. 'missing' on 404, 'error' on any other failure.
-     */
-    async loadExisting(): Promise<'found' | 'missing' | 'error'> {
-      if (this.character) return 'found'
-      const current = this.ticket()
-      try {
-        const character = await useCharacterApi().getCharacter(this.session(), { ifExists: true })
-        if (!current()) return 'error'
-        if (!this.character) {
-          this.editSequence = this.savedSequence
-          this.apply(character, { resetDraft: true })
-        }
-        return 'found'
-      } catch (error) {
-        return (error as Error & { status?: number }).status === 404 ? 'missing' : 'error'
-      }
-    },
     /** Another device of the same account changed the sheet: reload unless there are unsaved edits here. */
     async onRemoteChange(participantId: string) {
       if (participantId !== useCampaignStore().session?.participantId) return

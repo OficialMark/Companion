@@ -34,11 +34,11 @@ test('mestre: código na barra, compêndio em abas com busca ampla e rolagem por
 
   // US4: the reserved code is masked in the top bar, and the eye toggles it.
   const code = page.locator('[data-master-code-value]')
-  await expect(code).toHaveText(/^•+$/)
+  await expect(code).toContainText('•')
   await page.getByRole('button', { name: 'Mostrar código do mestre' }).click()
   await expect(code).not.toHaveText(/•/)
-  await page.getByRole('button', { name: 'Ocultar código do mestre' }).click()
-  await expect(code).toHaveText(/^•+$/)
+  await page.getByRole('button', { name: 'Mostrar código do mestre' }).click()
+  await expect(code).toContainText('•')
 
   // US2: Compêndio tabs; the English name and the description find spells and items.
   await page.getByRole('button', { name: 'Compêndio' }).click()

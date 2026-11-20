@@ -19,7 +19,8 @@ describe('MasterCodeToggle (spec 012, FR-009)', () => {
     await eye.trigger('click')
     expect(value()).toBe('M-4F2KQZ')
     expect(eye.attributes('aria-pressed')).toBe('true')
-    expect(eye.attributes('aria-label')).toBe('Ocultar código do mestre')
+    // One fixed label; the state is aria-pressed (critic 012: a changing label plus aria-pressed contradicts itself).
+    expect(eye.attributes('aria-label')).toBe('Mostrar código do mestre')
 
     await eye.trigger('click')
     expect(value()).not.toContain('M-4F2KQZ')

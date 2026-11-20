@@ -448,6 +448,8 @@ select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-
 
 /* Player's sheet summary at the foot of the Mesa and its overview (spec 012, US3). */
 .sheet-summary { position: sticky; bottom: 12px; z-index: 5; margin-top: 18px; }
+.dashboard:has(.sheet-summary) { padding-bottom: 24px; }
+.sheet-summary-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 0; }
 .sheet-summary-button { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 56px; padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: 14px; color: var(--ink); background: var(--panel-high); box-shadow: 0 10px 30px rgba(0,0,0,.35); cursor: pointer; text-align: left; }
 .sheet-summary-button:disabled { cursor: progress; opacity: .8; }
 .sheet-summary-button:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 2px; }

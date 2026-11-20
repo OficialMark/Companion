@@ -23,17 +23,22 @@ const candidates = computed(() => (store.snapshot?.activeEncounter?.combatants ?
 
 const selected = ref(FREE)
 const current = computed(() => candidates.value.find(candidate => candidate.id === selected.value) ?? null)
+/** Snapshots are replaced on every table change: watch the combatant and creature ids, not the objects. */
+const currentKey = computed(() => (current.value ? `${current.value.id}|${current.value.creatureId}` : ''))
 const creature = ref<Creature | null>(null)
 const loading = ref(false)
 const error = ref('')
 const notice = ref('')
 const presets = reactive(new Map<string, RollPreset>())
-const preset = computed<RollPreset>(() => (current.value ? presets.get(current.value.id) : null) ?? { ...DEFAULT_PRESET })
+const freshPreset = { ...DEFAULT_PRESET }
+// The same object until the master changes it, so a table update never resets the roll being set up.
+const preset = computed<RollPreset>(() => (current.value ? presets.get(current.value.id) : null) ?? freshPreset)
 
 // Creature sheets do not change during a roll: one fetch per creature while the page is open.
 const cache = new Map<string, Creature>()
 let sequence = 0
-watch(current, async (next) => {
+watch(currentKey, async () => {
+  const next = current.value
   const mine = ++sequence
   creature.value = null; error.value = ''
   if (!next || !store.session) return
@@ -73,8 +78,10 @@ function useShortcut(next: RollPreset) {
   presets.set(current.value.id, { ...next })
   void nextTick(() => document.querySelector<HTMLElement>('[data-master-roll] [data-roll-go]')?.focus())
 }
-function rolled(_roll: DiceRoll, used: RollPreset) {
+function rolled(roll: DiceRoll, used: RollPreset) {
   if (current.value) presets.set(current.value.id, { ...used })
+  // Like the quick d20 of the Modo Jogo: a creature's single d20 (its attack) asks "Acertou?".
+  if (props.gameMode && used.count === 1 && used.die === 20) emit('rolled-d20', roll)
 }
 function openSheet() {
   if (current.value) void creatures.open(current.value.creatureId, { id: current.value.id, name: current.value.name })

@@ -18,6 +18,8 @@ const ORDER: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 const sheet = computed(() => character.draft)
 const stats = computed(() => character.stats)
 const offline = computed(() => store.connection === 'offline')
+/** Offline or in conflict (409): a change could not be saved, so Dano and Cura wait. */
+const blocked = computed(() => offline.value || character.saveState === 'conflict')
 const ready = computed(() => Boolean(sheet.value && stats.value))
 const maxHp = computed(() => stats.value?.maxHitPoints.value ?? 0)
 const amount = ref<number | null>(null)
@@ -41,7 +43,7 @@ const speed = computed(() => {
 function change(kind: 'damage' | 'heal', raw: number | null = amount.value) {
   const data = sheet.value
   const value = hitPointAmount(raw)
-  if (!data || !value || offline.value) return
+  if (!data || !value || blocked.value) return
   const state = { current: data.currentHitPoints, temporary: data.temporaryHitPoints }
   const next = kind === 'damage' ? applyDamage(state, value) : applyHealing(state, value, maxHp.value)
   character.editSheet({ currentHitPoints: next.current, temporaryHitPoints: next.temporary })
@@ -91,12 +93,12 @@ onMounted(() => { void nextTick(() => heading.value?.focus()) })
             <span :style="{ width: `${maxHp ? Math.min(100, (sheet.currentHitPoints / maxHp) * 100) : 0}%` }" />
           </div>
           <form class="sheet-overview-hp-form" @submit.prevent="change('damage')">
-            <button class="icon-button" type="button" aria-label="Menos 1 de vida" title="−1" :disabled="offline || sheet.currentHitPoints + sheet.temporaryHitPoints <= 0" data-hp-minus @click="change('damage', 1)"><Icon name="lucide:minus" /></button>
+            <button class="icon-button" type="button" aria-label="Menos 1 de vida" title="−1" :disabled="blocked || sheet.currentHitPoints + sheet.temporaryHitPoints <= 0" data-hp-minus @click="change('damage', 1)"><Icon name="lucide:minus" /></button>
             <label class="sr-only" for="overview-hp-amount">Quantidade</label>
             <input id="overview-hp-amount" ref="amountInput" v-model.number="amount" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="Valor" data-hp-amount>
-            <button class="icon-button" type="button" aria-label="Mais 1 de vida" title="+1" :disabled="offline || sheet.currentHitPoints >= maxHp" data-hp-plus @click="change('heal', 1)"><Icon name="lucide:plus" /></button>
-            <button class="button danger small" type="submit" :disabled="offline || !hitPointAmount(amount)" data-hp-damage><Icon name="lucide:sword" />Dano</button>
-            <button class="button secondary small" type="button" :disabled="offline || !hitPointAmount(amount)" data-hp-heal @click="change('heal')"><Icon name="lucide:heart-plus" />Cura</button>
+            <button class="icon-button" type="button" aria-label="Mais 1 de vida" title="+1" :disabled="blocked || sheet.currentHitPoints >= maxHp" data-hp-plus @click="change('heal', 1)"><Icon name="lucide:plus" /></button>
+            <button class="button danger small" type="submit" :disabled="blocked || !hitPointAmount(amount)" data-hp-damage><Icon name="lucide:sword" />Dano</button>
+            <button class="button secondary small" type="button" :disabled="blocked || !hitPointAmount(amount)" data-hp-heal @click="change('heal')"><Icon name="lucide:heart-plus" />Cura</button>
           </form>
           <p class="sr-only" aria-live="polite">{{ announce }}</p>
           <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para mudar a vida.</p>

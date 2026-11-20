@@ -49,7 +49,23 @@ describe('SheetSummaryBar', () => {
     expect(wrapper.find('input').exists()).toBe(false) // no editable initiative or HP at the foot any more
 
     await wrapper.get('[data-open-overview]').trigger('click')
-    expect(wrapper.find('[data-sheet-overview]').exists()).toBe(true)
+    // Critic 012 #1: teleported to <body>, out of the sticky bar's stacking context (under the top bar).
+    const overlay = document.querySelector('[data-sheet-overview]')
+    expect(overlay?.parentElement).toBe(document.body)
+    expect(wrapper.find('[data-sheet-overview]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('critic 012 #5: a failed load shows the error and retries instead of spinning forever', async () => {
+    characterApi.getCharacter.mockRejectedValueOnce(Object.assign(new Error('Falha de rede'), { status: 500 }))
+    const wrapper = mount(SheetSummaryBar)
+    await flushPromises()
+    expect(wrapper.get('[data-summary-error]').text()).toContain('Falha de rede')
+    expect(wrapper.text()).not.toContain('Abrindo a ficha')
+    await wrapper.get('[data-summary-retry]').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[data-summary-hp]').text()).toBe('20/30 +4')
+    expect(wrapper.find('[data-summary-error]').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -117,6 +133,18 @@ describe('SheetOverviewModal', () => {
     expect((wrapper.get('[data-hp-damage]').element as HTMLButtonElement).disabled).toBe(true)
     expect((wrapper.get('[data-hp-heal]').element as HTMLButtonElement).disabled).toBe(true)
     expect(wrapper.text()).toContain('Conexão necessária para mudar a vida.')
+    wrapper.unmount()
+  })
+
+  it('critic 012 #4: with the sheet in conflict (409), damage and healing wait for the reload', async () => {
+    const wrapper = await opened()
+    useCharacterStore().saveState = 'conflict'
+    await wrapper.get('[data-hp-amount]').setValue(5)
+    expect((wrapper.get('[data-hp-damage]').element as HTMLButtonElement).disabled).toBe(true)
+    expect((wrapper.get('[data-hp-minus]').element as HTMLButtonElement).disabled).toBe(true)
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.get('[data-overview-hp]').text()).toBe('20')
+    expect(wrapper.find('[data-reload-sheet]').exists()).toBe(true)
     wrapper.unmount()
   })
 

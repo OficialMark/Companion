@@ -4,33 +4,33 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Criar `frontend/app/utils/scrollToResult.ts` (`scrollIntoView` com `block: 'center'`; `behavior: 'auto'` quando `prefers-reduced-motion: reduce`), com teste em `frontend/tests/scroll-to-result.spec.ts`
+- [x] T001 Criar `frontend/app/utils/scrollToResult.ts` (`scrollIntoView` com `block: 'center'`; `behavior: 'auto'` quando `prefers-reduced-motion: reduce`), com teste em `frontend/tests/scroll-to-result.spec.ts`
 
 ## Phase 2: Foundational (busca do catálogo, usada por US2)
 
-- [ ] T002 Gerar `backend/src/Companion.Infrastructure/Persistence/Seed/spells.names-en.json` (slug PT → `{ nameEn, verified }`) e `scripts/import-catalogs/validate-spell-names.mjs`, que confere os nomes contra a lista de magias do SRD 5.2.1 (5e-bits, commit fixado), com teste em `scripts/import-catalogs/validate-spell-names.test.mjs`
-- [ ] T003 Adicionar `CatalogSpell.NameEn`, `SearchText` em `CatalogItem` e `CatalogSpell`, e `CatalogText.SearchText(name, nameEn, description)` (sem HTML, normalizado) em `backend/src/Companion.Domain/Catalog/CatalogEntities.cs`, com teste unitário em `backend/tests/Companion.UnitTests/Catalog/CatalogSearchTextTests.cs`
-- [ ] T004 Configurar as colunas novas em `backend/src/Companion.Infrastructure/Persistence/CharacterConfigurations.cs` e criar a migration `AddCatalogSearchText`
-- [ ] T005 Fazer o seeder aplicar o `nameEn` da tabela e trocar a versão do seed em `backend/src/Companion.Application/Catalog/CatalogSeeder.cs`
-- [ ] T006 Implementar a busca de duas faixas (nome, depois descrição com 3+ caracteres) e expor `nameEn` nos DTOs de magia, em `backend/src/Companion.Application/Catalog/CatalogService.cs` e `Contracts`, com teste de integração em `backend/tests/Companion.IntegrationTests/CatalogSearchTests.cs` (nome EN, descrição, ordem, termo curto)
+- [x] T002 Gerar `backend/src/Companion.Infrastructure/Persistence/Seed/spells.names-en.json` (slug PT → `{ nameEn, verified }`) e `scripts/import-catalogs/validate-spell-names.mjs`, que confere os nomes contra a lista de magias do SRD 5.2.1 (5e-bits, commit fixado), com teste em `scripts/import-catalogs/validate-spell-names.test.mjs`
+- [x] T003 Adicionar `CatalogSpell.NameEn`, `SearchText` em `CatalogItem` e `CatalogSpell`, e `CatalogText.SearchText(name, nameEn, description)` (sem HTML, normalizado) em `backend/src/Companion.Domain/Catalog/CatalogEntities.cs`, com teste unitário em `backend/tests/Companion.UnitTests/Catalog/CatalogSearchTextTests.cs`
+- [x] T004 Configurar as colunas novas em `backend/src/Companion.Infrastructure/Persistence/CharacterConfigurations.cs` e criar a migration `AddCatalogSearchText`
+- [x] T005 Fazer o seeder aplicar o `nameEn` da tabela e trocar a versão do seed em `backend/src/Companion.Application/Catalog/CatalogSeeder.cs`
+- [x] T006 Implementar a busca de duas faixas (nome, depois descrição com 3+ caracteres) e expor `nameEn` nos DTOs de magia, em `backend/src/Companion.Application/Catalog/CatalogService.cs` e `Contracts`, com teste de integração em `backend/tests/Companion.IntegrationTests/CatalogSearchTests.cs` (nome EN, descrição, ordem, termo curto)
 
 ## Phase 3: US1, rolagem completa (P1)
 
-- [ ] T007 [US1] Na visão completa, o jogador usa o `PlayerRollPanel` (carregar a ficha também fora do Modo Jogo) em `frontend/app/pages/index.vue`
-- [ ] T008 [US1] Criar `frontend/app/components/MasterRollPanel.vue`:
+- [x] T007 [US1] Na visão completa, o jogador usa o `PlayerRollPanel` (carregar a ficha também fora do Modo Jogo) em `frontend/app/pages/index.vue`
+- [x] T008 [US1] Criar `frontend/app/components/MasterRollPanel.vue`:
   - seletor com as criaturas do encontro ativo (combatente com `creatureId`) e "Rolagem livre";
   - criatura escolhida → `CreatureRollPanel`;
   - "Rolagem livre" → `DiceRoller` na visão completa ou `QuickDiceRoller` no Modo Jogo;
   - voltar para "Rolagem livre" quando a criatura sai da mesa.
 
   Teste em `frontend/tests/master-roll-panel.spec.ts`.
-- [ ] T009 [US1] Usar o `MasterRollPanel` para o mestre na visão completa e no Modo Jogo, em `frontend/app/pages/index.vue`
-- [ ] T010 [P] [US1] Chamar `scrollToResult` ao revelar o resultado em `PlayerRollPanel.vue`, `creatures/CreatureRollPanel.vue`, `DiceRoller.vue` e `QuickDiceRoller.vue`, com teste em `frontend/tests/scroll-to-result.spec.ts`
+- [x] T009 [US1] Usar o `MasterRollPanel` para o mestre na visão completa e no Modo Jogo, em `frontend/app/pages/index.vue`
+- [x] T010 [P] [US1] Chamar `scrollToResult` ao revelar o resultado em `PlayerRollPanel.vue`, `creatures/CreatureRollPanel.vue`, `DiceRoller.vue` e `QuickDiceRoller.vue`, com teste em `frontend/tests/scroll-to-result.spec.ts`
 
 ## Phase 4: US2, compêndio em abas (P1)
 
-- [ ] T011 [US2] Adicionar o modo `browse` (só leitura, sem botão Adicionar, detalhe expandido) e exibir `nameEn` em `frontend/app/components/character/CatalogPicker.vue`, com teste em `frontend/tests/catalog-picker-browse.spec.ts`
-- [ ] T012 [US2] Criar `frontend/app/components/CompendiumTabs.vue`:
+- [x] T011 [US2] Adicionar o modo `browse` (só leitura, sem botão Adicionar, detalhe expandido) e exibir `nameEn` em `frontend/app/components/character/CatalogPicker.vue`, com teste em `frontend/tests/catalog-picker-browse.spec.ts`
+- [x] T012 [US2] Criar `frontend/app/components/CompendiumTabs.vue`:
   - abas Criaturas, Magias e Itens com `role="tablist"` e navegação por setas;
   - aba ativa em `?aba=`.
 
@@ -38,8 +38,8 @@
 
 ## Phase 5: US3, overview da ficha (P2)
 
-- [ ] T013 [US3] Criar `frontend/app/utils/hitPoints.ts` (`applyHitPointDelta(current, max, delta)` limitado entre 0 e max), com teste em `frontend/tests/hit-points.spec.ts`
-- [ ] T014 [US3] Criar `frontend/app/components/SheetOverviewModal.vue`:
+- [x] T013 [US3] Criar `frontend/app/utils/hitPoints.ts` (`applyHitPointDelta(current, max, delta)` limitado entre 0 e max), com teste em `frontend/tests/hit-points.spec.ts`
+- [x] T014 [US3] Criar `frontend/app/components/SheetOverviewModal.vue`:
   - resumo de atributos, salvaguardas, CA, iniciativa, deslocamento, proficiência e percepção passiva;
   - PV atual, máximo e temporário;
   - Dano, Cura, −1 e +1;
@@ -47,18 +47,18 @@
   - foco preso no modal, e Esc devolve o foco.
 
   Teste em `frontend/tests/sheet-overview.spec.ts`.
-- [ ] T015 [US3] Trocar o `InitiativeModifier.vue` pelo resumo de rodapé que abre o overview (o perfil manual sai) e ajustar os testes existentes do perfil de combate
+- [x] T015 [US3] Trocar o `InitiativeModifier.vue` pelo resumo de rodapé que abre o overview (o perfil manual sai) e ajustar os testes existentes do perfil de combate
 
 ## Phase 6: US4, código do mestre e optgroup (P3)
 
-- [ ] T016 [P] [US4] Mover o código do mestre para a barra superior, mascarado, com botão de olho (`aria-pressed`), e remover o `master-code-panel` em `frontend/app/pages/index.vue`, com teste em `frontend/tests/master-code-toggle.spec.ts`
-- [ ] T017 [P] [US4] Aplicar a regra global de `optgroup` e `option` escuros em `frontend/app/assets/css/main.css` (ou no CSS global existente) e verificar o contraste com `scripts/contrast-check.mjs`
+- [x] T016 [P] [US4] Mover o código do mestre para a barra superior, mascarado, com botão de olho (`aria-pressed`), e remover o `master-code-panel` em `frontend/app/pages/index.vue`, com teste em `frontend/tests/master-code-toggle.spec.ts`
+- [x] T017 [P] [US4] Aplicar a regra global de `optgroup` e `option` escuros em `frontend/app/assets/css/main.css` (ou no CSS global existente) e verificar o contraste com `scripts/contrast-check.mjs`
 
 ## Phase 7: Polish
 
-- [ ] T018 Rodar o e2e `frontend/tests/e2e/mesa-012.spec.ts` (desktop e Pixel 7) com o roteiro do [quickstart.md](quickstart.md), na instância de validação
-- [ ] T019 Rodar a revisão crítica fria do diff, corrigir os achados e rodar `dotnet test backend` e `pnpm --dir frontend test`
-- [ ] T020 Abrir o PR, fazer o merge na main e subir com `docker compose up -d --build api frontend`
+- [x] T018 Rodar o e2e `frontend/tests/e2e/mesa-012.spec.ts` (desktop e Pixel 7) com o roteiro do [quickstart.md](quickstart.md), na instância de validação
+- [x] T019 Rodar a revisão crítica fria do diff, corrigir os achados e rodar `dotnet test backend` e `pnpm --dir frontend test`
+- [x] T020 Abrir o PR, fazer o merge na main e subir com `docker compose up -d --build api frontend`
 
 ## Dependencies
 

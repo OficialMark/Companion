@@ -22,5 +22,7 @@ describe('hit points (spec 012, US3)', () => {
     expect(applyHealing({ current: 10, temporary: 3 }, 5, 42)).toEqual({ current: 15, temporary: 3 })
     expect(applyHealing({ current: 40, temporary: 0 }, 5, 42)).toEqual({ current: 42, temporary: 0 })
     expect(applyHealing({ current: 0, temporary: 0 }, 0, 42)).toEqual({ current: 0, temporary: 0 })
+    // Critic 012 #10: above a lowered maximum, healing never takes life away.
+    expect(applyHealing({ current: 30, temporary: 0 }, 1, 25)).toEqual({ current: 30, temporary: 0 })
   })
 })

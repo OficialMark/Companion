@@ -47,7 +47,11 @@ const facts = computed<Array<[string, string]>>(() => {
   return rows.filter((row): row is [string, string] => Boolean(row[1]))
 })
 const description = computed(() => props.item?.template.description ?? props.spell?.template.description ?? null)
-const higherLevels = computed(() => props.spell?.higherLevels ?? null)
+// "Em Níveis Superiores" is already part of the description (CatalogSeeder): shown once.
+const higherLevels = computed(() => {
+  const text = props.spell?.higherLevels
+  return text && !(description.value ?? '').includes(text.trim()) ? text : null
+})
 </script>
 
 <template>

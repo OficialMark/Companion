@@ -66,6 +66,17 @@ describe('CompendiumTabs', () => {
   })
 })
 
+describe('CompendiumTabs: critic 012 #8', () => {
+  it('two quick arrows move two tabs even before the route updates', async () => {
+    replace.mockImplementation(() => Promise.resolve()) // the URL lags behind
+    const wrapper = mount(CompendiumTabs, { global: { stubs: { CreatureLibrary: { template: '<div />' } } } })
+    await wrapper.get('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+    await wrapper.get('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+    expect(wrapper.get('[data-compendium-tab="itens"]').attributes('aria-selected')).toBe('true')
+    for (const tab of wrapper.findAll('[role="tab"]')) expect(wrapper.find('#' + tab.attributes('aria-controls')).exists()).toBe(true)
+  })
+})
+
 describe('CatalogPicker em modo navegação (Compêndio)', () => {
   it('spells: shows the English name, no Adicionar, and the details on demand (fetched once)', async () => {
     const wrapper = mount(CatalogPicker, { props: { mode: 'spells', browse: true } })
@@ -101,6 +112,33 @@ describe('CatalogPicker em modo navegação (Compêndio)', () => {
     expect(detail).toContain('5 kg')
     expect(detail).toContain('1 PO')
     expect(detail).toContain('Quinze metros.')
+  })
+
+  it('critic 012 #6: a slow detail of another row never leaves the open row empty', async () => {
+    let resolveA!: (value: unknown) => void
+    api.listCatalogItems.mockResolvedValue({ items: [rope, { ...rope, id: 'i2', name: 'Tocha' }], total: 2, page: 1, pageSize: 20, attribution: null })
+    api.getCatalogItem.mockImplementation((_s: unknown, id: string) => id === 'i1' ? new Promise(r => { resolveA = r }) : new Promise(() => {}))
+    const wrapper = mount(CatalogPicker, { props: { mode: 'items', browse: true } })
+    await flushPromises()
+    const toggles = wrapper.findAll('[data-catalog-detail-toggle]')
+    await toggles[0]!.trigger('click')
+    await toggles[1]!.trigger('click')
+    resolveA(ropeDetail)
+    await flushPromises()
+    const open = wrapper.get('[data-catalog-id="i2"] .catalog-row-detail')
+    expect(open.find('[role="status"]').exists()).toBe(true) // still loading B, not an empty detail
+    expect(open.find('[data-catalog-detail]').exists()).toBe(false)
+  })
+
+  it('critic 012 #9: Esc inside the browser is not swallowed', async () => {
+    const wrapper = mount(CatalogPicker, { props: { mode: 'spells', browse: true }, attachTo: document.body })
+    await flushPromises()
+    const seen = vi.fn()
+    document.addEventListener('keydown', seen)
+    wrapper.get('[data-catalog-search]').element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    document.removeEventListener('keydown', seen)
+    expect(seen).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
   })
 
   it('a failed detail shows the error in the row', async () => {

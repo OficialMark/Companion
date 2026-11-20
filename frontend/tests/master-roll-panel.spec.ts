@@ -23,7 +23,7 @@ vi.stubGlobal('useCompanionApi', () => ({ getCreature }))
 vi.stubGlobal('useCreatureStore', () => ({ open }))
 
 const stubs = {
-  CreatureRollPanel: { props: ['creature', 'preset', 'label'], template: '<div data-creature-roll :data-label="label" :data-preset="JSON.stringify(preset)" />' },
+  CreatureRollPanel: { name: 'CreatureRollPanel', props: ['creature', 'preset', 'label'], emits: ['rolled'], template: '<div data-creature-roll :data-label="label" :data-preset="JSON.stringify(preset)" />' },
   DiceRoller: { template: '<div data-free-roller="full" />' },
   QuickDiceRoller: { template: '<div data-free-roller="game" />' }
 }
@@ -65,6 +65,28 @@ describe('MasterRollPanel (spec 012, US1)', () => {
 
     await wrapper.get('[data-open-creature-sheet]').trigger('click')
     expect(open).toHaveBeenCalledWith('cr-goblin', { id: 'cb-1', name: 'Goblin 1' })
+  })
+
+  it('critic 012 #2: a table update (new snapshot objects) keeps the roll being set up and does not refetch', async () => {
+    const wrapper = mount(MasterRollPanel, { global: { stubs } })
+    await wrapper.get('[data-master-roll-source]').setValue('cb-1')
+    await flushPromises()
+    const preset = wrapper.findComponent({ name: 'CreatureRollPanel' }).props('preset')
+    store.snapshot.activeEncounter = { status: 'Active', combatants: combatants.map(c => ({ ...c })) }
+    await flushPromises()
+    // Same preset object: the creature panel's watch would reset its form on a new one.
+    expect(wrapper.findComponent({ name: 'CreatureRollPanel' }).props('preset')).toBe(preset)
+    expect(getCreature).toHaveBeenCalledTimes(1)
+  })
+
+  it('critic 012 #3: in the Modo Jogo a creature d20 asks "Acertou?", a damage roll does not', async () => {
+    const wrapper = mount(MasterRollPanel, { props: { gameMode: true }, global: { stubs } })
+    await wrapper.get('[data-master-roll-source]').setValue('cb-1')
+    await flushPromises()
+    const panel = wrapper.findComponent({ name: 'CreatureRollPanel' })
+    panel.vm.$emit('rolled', { id: 'r1', total: 15 }, { count: 1, die: 20, ability: 'dex', bonus: 0 })
+    panel.vm.$emit('rolled', { id: 'r2', total: 5 }, { count: 1, die: 6, ability: null, bonus: 2 })
+    expect(wrapper.emitted('rolled-d20')).toEqual([[{ id: 'r1', total: 15 }]])
   })
 
   it('a creature that leaves the table falls back to the free roll with a notice', async () => {

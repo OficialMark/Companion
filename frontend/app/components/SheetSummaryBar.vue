@@ -39,9 +39,14 @@ function close() {
         <span class="sheet-summary-stat" data-summary-ac><Icon name="lucide:shield" />CA {{ stats.armorClass.value }}</span>
         <span class="sheet-summary-stat" data-summary-initiative><Icon name="lucide:zap" />{{ initiative }}</span>
       </template>
-      <span v-else class="sheet-summary-stat"><Icon name="lucide:loader-circle" class="spin" />Abrindo a ficha…</span>
+      <span v-else-if="character.loading || !character.error" class="sheet-summary-stat"><Icon name="lucide:loader-circle" class="spin" />Abrindo a ficha…</span>
       <Icon name="lucide:chevron-up" class="sheet-summary-chevron" />
     </button>
-    <SheetOverviewModal v-if="open" @close="close" />
+    <p v-if="!character.character && !character.loading && character.error" class="form-error sheet-summary-error" role="alert" data-summary-error>
+      <Icon name="lucide:circle-alert" />{{ character.error }}
+      <button type="button" class="button ghost small" data-summary-retry @click="character.load()">Tentar de novo</button>
+    </p>
+    <!-- To body: the sticky bar is its own stacking context, which would keep the overlay under the top bar. -->
+    <Teleport to="body"><SheetOverviewModal v-if="open" @close="close" /></Teleport>
   </section>
 </template>

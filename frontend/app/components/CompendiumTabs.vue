@@ -20,8 +20,12 @@ const active = computed<Tab>(() => {
   return TABS.some(tab => tab.key === asked) ? asked as Tab : 'criaturas'
 })
 const buttons = ref<HTMLButtonElement[]>([])
+/** Follows the URL, but moves at once on a key press: two quick arrows must move two tabs. */
+const shown = ref<Tab>(active.value)
+watch(active, value => { shown.value = value })
 
 function select(tab: Tab, focus = false) {
+  shown.value = tab
   if (tab !== active.value) {
     const query = { ...route.query }
     if (tab === 'criaturas') delete query.aba
@@ -32,7 +36,7 @@ function select(tab: Tab, focus = false) {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  const index = TABS.findIndex(tab => tab.key === active.value)
+  const index = TABS.findIndex(tab => tab.key === shown.value)
   const next = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: TABS.length - 1 }[event.key]
   if (next === undefined) return
   event.preventDefault()
@@ -53,18 +57,29 @@ function onKeydown(event: KeyboardEvent) {
           type="button"
           role="tab"
           class="compendium-tab"
-          :aria-selected="active === tab.key"
+          :aria-selected="shown === tab.key"
           :aria-controls="`compendium-panel-${tab.key}`"
-          :tabindex="active === tab.key ? 0 : -1"
+          :tabindex="shown === tab.key ? 0 : -1"
           :data-compendium-tab="tab.key"
           @click="select(tab.key)"
         ><Icon :name="tab.icon" />{{ tab.label }}</button>
       </div>
     </header>
-    <div :id="`compendium-panel-${active}`" role="tabpanel" :aria-labelledby="`compendium-tab-${active}`" :data-compendium-panel="active">
-      <CreatureLibrary v-if="active === 'criaturas'" embedded />
-      <CatalogPicker v-else-if="active === 'magias'" :key="'spells'" mode="spells" browse />
-      <CatalogPicker v-else :key="'items'" mode="items" browse />
+    <!-- One panel per tab (aria-controls always points somewhere); only the shown one is rendered. -->
+    <div
+      v-for="tab in TABS"
+      :id="`compendium-panel-${tab.key}`"
+      :key="tab.key"
+      role="tabpanel"
+      :aria-labelledby="`compendium-tab-${tab.key}`"
+      :hidden="shown !== tab.key"
+      :data-compendium-panel="shown === tab.key ? tab.key : undefined"
+    >
+      <template v-if="shown === tab.key">
+        <CreatureLibrary v-if="tab.key === 'criaturas'" embedded />
+        <CatalogPicker v-else-if="tab.key === 'magias'" mode="spells" browse />
+        <CatalogPicker v-else mode="items" browse />
+      </template>
     </div>
   </div>
 </template>

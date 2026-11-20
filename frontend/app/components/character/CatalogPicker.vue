@@ -223,7 +223,7 @@ function close() { emit('close') }
 
 /** Browse mode: one open row at a time, its details fetched once. */
 const openId = ref<string | null>(null)
-const detailLoading = ref(false)
+const detailLoadingId = ref<string | null>(null)
 const detailError = ref('')
 const itemDetails = reactive(new Map<string, CatalogItem>())
 const spellDetails = reactive(new Map<string, CatalogSpell>())
@@ -232,7 +232,7 @@ async function toggleDetail(id: string) {
   openId.value = id; detailError.value = ''
   const have = props.mode === 'items' ? itemDetails.has(id) : spellDetails.has(id)
   if (have) return
-  detailLoading.value = true
+  detailLoadingId.value = id
   try {
     const api = useCharacterApi()
     const session = character.session()
@@ -241,8 +241,14 @@ async function toggleDetail(id: string) {
   } catch (error) {
     if (openId.value === id) detailError.value = errorMessage(error)
   } finally {
-    detailLoading.value = false
+    if (detailLoadingId.value === id) detailLoadingId.value = null
   }
+}
+/** In the modal Esc is ours (and stops there); the Compêndio browser leaves it to the page. */
+function onEscapeKey(event: KeyboardEvent) {
+  if (props.browse) return
+  event.stopPropagation()
+  onEscape()
 }
 /** Esc steps back from the base step first; from the first step it closes the picker. */
 function onEscape() {
@@ -267,7 +273,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="browse ? 'catalog-browser-host' : 'modal-overlay sheet-modal-overlay'" @keydown.esc.stop="browse || onEscape()" @click.self="browse || close()">
+  <div :class="browse ? 'catalog-browser-host' : 'modal-overlay sheet-modal-overlay'" @keydown.esc="onEscapeKey" @click.self="browse || close()">
     <div
       :class="browse ? 'panel catalog-browser' : 'modal-panel sheet-modal catalog-picker'"
       :role="browse ? 'region' : 'dialog'"
@@ -383,7 +389,7 @@ onBeforeUnmount(() => {
                 <Icon :name="addingId === item.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === item.id }" />Adicionar
               </button>
               <div v-if="browse && openId === item.id" :id="`catalog-detail-${item.id}`" class="catalog-row-detail">
-                <p v-if="detailLoading" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
+                <p v-if="detailLoadingId === item.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
                 <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
                 <CatalogDetail v-else :item="itemDetails.get(item.id)" />
               </div>
@@ -407,7 +413,7 @@ onBeforeUnmount(() => {
                 <Icon :name="addingId === spell.id ? 'lucide:loader-circle' : 'lucide:plus'" :class="{ spin: addingId === spell.id }" />Adicionar
               </button>
               <div v-if="browse && openId === spell.id" :id="`catalog-detail-${spell.id}`" class="catalog-row-detail">
-                <p v-if="detailLoading" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
+                <p v-if="detailLoadingId === spell.id" class="catalog-state" role="status"><Icon name="lucide:loader-circle" class="spin" />Carregando…</p>
                 <p v-else-if="detailError" class="form-error" role="alert">{{ detailError }}</p>
                 <CatalogDetail v-else :spell="spellDetails.get(spell.id)" />
               </div>

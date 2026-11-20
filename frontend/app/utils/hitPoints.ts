@@ -18,7 +18,11 @@ export function applyDamage(state: HitPointState, amount: number): HitPointState
   return { temporary: state.temporary - fromTemporary, current: Math.max(0, state.current - (damage - fromTemporary)) }
 }
 
-/** Healing raises current hit points up to the maximum; temporary hit points are untouched. */
+/**
+ * Healing raises current hit points up to the maximum; temporary hit points are untouched. Hit points
+ * already above a lowered maximum stay where they are: healing never takes life away.
+ */
 export function applyHealing(state: HitPointState, amount: number, max: number): HitPointState {
-  return { temporary: state.temporary, current: Math.min(Math.max(0, max), state.current + hitPointAmount(amount)) }
+  const healed = Math.min(Math.max(0, max), state.current + hitPointAmount(amount))
+  return { temporary: state.temporary, current: Math.max(state.current, healed) }
 }
