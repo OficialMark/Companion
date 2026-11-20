@@ -31,7 +31,7 @@ public abstract class CharacterTestBase(CompanionApiFactory factory) : ApiTestBa
     protected async Task<CharacterDto> Ok(HttpMethod method, string path, SessionResponse session, object? body = null)
     {
         var response = await Send(method, path, session, body);
-        if (response.StatusCode != HttpStatusCode.OK)
+        if (!response.IsSuccessStatusCode)
             Assert.Fail($"{method} {path}: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
         return (await response.Content.ReadFromJsonAsync<CharacterDto>(JsonOptions))!;
     }

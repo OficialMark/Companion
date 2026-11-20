@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { radioGroupKeydown } from '~/utils/focus'
+import { radioGroupKeydown, trapTab } from '~/utils/focus'
 import type { SavedRoll } from '~/types/character'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import { MAX_ROLL_NAME, cloneConfig, configFromSavedRoll, emptyConfig, resolveRoll, savedRollFromConfig, type RollConfig } from '~/utils/playerRoll'
@@ -25,6 +25,8 @@ const config = ref<RollConfig>(props.roll ? configFromSavedRoll(props.roll.data)
 const busy = ref(false)
 const error = ref('')
 const nameInput = ref<HTMLInputElement | null>(null)
+const dialog = ref<HTMLElement | null>(null)
+const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
 
 const stats = computed(() => character.character?.stats ?? null)
 const resolved = computed(() => resolveRoll(config.value, stats.value, character.character))
@@ -43,13 +45,19 @@ async function save() {
   emit('saved')
 }
 
-function onKeydown(event: KeyboardEvent) { if (event.key === 'Escape' && !busy.value) emit('close') }
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && !busy.value) emit('close')
+  else if (dialog.value) trapTab(event, dialog.value)
+}
 onMounted(() => { window.addEventListener('keydown', onKeydown); nameInput.value?.focus() })
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (returnFocus?.isConnected) returnFocus.focus()
+})
 </script>
 
 <template>
-  <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="saved-roll-editor-title" @click.self="!busy && emit('close')">
+  <div ref="dialog" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="saved-roll-editor-title" @click.self="!busy && emit('close')">
     <form class="modal-panel saved-roll-editor" data-saved-roll-editor @submit.prevent="save">
       <div class="saved-roll-editor-head">
         <h2 id="saved-roll-editor-title"><Icon :name="icon" />{{ title }}</h2>

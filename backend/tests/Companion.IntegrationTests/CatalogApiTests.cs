@@ -38,6 +38,20 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
         return (sword.Id, generic.Id, tag);
     }
 
+    private async Task<(Guid Id, string Tag)> SeedSpell()
+    {
+        var tag = Suffix();
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
+        var spell = new CatalogSpell(Guid.NewGuid(), $"ritual-{tag}", new CatalogSpellFields(
+            new CharacterSpellData($"Ritual {tag}", 2, "Evocação", "1 ação", "18 m", "V, S", "Concentração, até 1 minuto",
+                true, true, "Uma magia de teste.", SpellAttackKind.Save, AbilityCode.Dex, "2d6", "fogo", false),
+            ["mago"], null));
+        db.CatalogSpells.Add(spell);
+        await db.SaveChangesAsync();
+        return (spell.Id, tag);
+    }
+
     [Fact]
     public async Task Spell_catalog_is_seeded_at_startup_and_searchable_without_accents()
     {
@@ -62,7 +76,9 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
         var (_, player) = await Table();
         var id = (await Page<CatalogSpellSummaryDto>(player, "spells?q=bola%20de%20fogo")).Items.Single(x => x.Name == "Bola de Fogo").Id;
 
-        var character = await Ok(HttpMethod.Post, $"{Base(player)}/spells/from-catalog", player, new AddSpellFromCatalogRequest(id));
+        var created = await Send(HttpMethod.Post, $"{Base(player)}/spells/from-catalog", player, new AddSpellFromCatalogRequest(id));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var character = (await created.Content.ReadFromJsonAsync<CharacterDto>(JsonOptions))!;
         var again = await Send(HttpMethod.Post, $"{Base(player)}/spells/from-catalog", player, new AddSpellFromCatalogRequest(id));
 
         var spell = character.Spells.Single();
@@ -85,7 +101,9 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
         {
             GeneralProficiencies = new GeneralProficiencies([], false, true, true, null)
         });
-        var character = await Ok(HttpMethod.Post, $"{Base(player)}/items/from-catalog", player, new AddFromCatalogRequest(swordId, 1));
+        var created = await Send(HttpMethod.Post, $"{Base(player)}/items/from-catalog", player, new AddFromCatalogRequest(swordId, 1));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var character = (await created.Content.ReadFromJsonAsync<CharacterDto>(JsonOptions))!;
         var copy = character.Items.Single();
         Assert.True(copy.Data.Proficient);
         Assert.Equal("1d8", copy.Data.Weapon!.DamageDice);
@@ -117,6 +135,46 @@ public sealed class CatalogApiTests(CompanionApiFactory factory) : CharacterTest
         Assert.Equal($"Arma Mágica {tag} (Espada Longa {tag})", item.Data.Name);
         Assert.Equal(1, item.Data.MagicBonus);
         Assert.Equal("1d8", item.Data.Weapon!.DamageDice);
+    }
+
+    [Fact]
+    public async Task Catalog_filters_and_pagination_follow_the_http_contract()
+    {
+        var (_, player) = await Table();
+        var (_, genericId, tag) = await SeedItems();
+        var (spellId, spellTag) = await SeedSpell();
+
+        var rare = await Page<CatalogItemSummaryDto>(player, $"items?q={tag}&rarity=Incomum&page=1&pageSize=1");
+        Assert.Equal(1, rare.Total);
+        Assert.Equal([genericId], rare.Items.Select(x => x.Id));
+        Assert.Equal(1, rare.Page);
+        Assert.Equal(1, rare.PageSize);
+
+        var spells = await Page<CatalogSpellSummaryDto>(player,
+            $"spells?q={spellTag}&school=Evoca%C3%A7%C3%A3o&class=mago&ritual=true&concentration=true&page=1&pageSize=1");
+        Assert.Equal(1, spells.Total);
+        Assert.Equal([spellId], spells.Items.Select(x => x.Id));
+        Assert.Null(spells.Attribution);
+    }
+
+    [Fact]
+    public async Task Custom_spell_create_update_and_delete_return_the_documented_statuses()
+    {
+        var (_, player) = await Table();
+        var input = new CharacterSpellData("Faísca", 0, "Evocação", null, null, null, null, false, false, null,
+            SpellAttackKind.Attack, null, "1d8", "fogo", false);
+
+        var created = await Send(HttpMethod.Post, $"{Base(player)}/spells", player, new SaveSpellRequest(input));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var character = (await created.Content.ReadFromJsonAsync<CharacterDto>(JsonOptions))!;
+        var spell = Assert.Single(character.Spells);
+
+        character = await Ok(HttpMethod.Put, $"{Base(player)}/spells/{spell.Id}", player,
+            new SaveSpellRequest(input with { Name = "Faísca Maior", DamageDice = "2d8" }));
+        Assert.Equal("Faísca Maior", Assert.Single(character.Spells).Data.Name);
+
+        character = await Ok(HttpMethod.Delete, $"{Base(player)}/spells/{spell.Id}", player);
+        Assert.Empty(character.Spells);
     }
 
     [Fact]

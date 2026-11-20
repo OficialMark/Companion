@@ -17,6 +17,7 @@ public static class CharacterRules
     {
         public string Label => RollLabel.Sanitize(Item.Data.Name);
         public StatPart Part(int value) => new(Label, value, Item.Data.Name, Item.Id);
+        public DecimalStatPart DecimalPart(decimal value) => new(Label, value, Item.Data.Name, Item.Id);
     }
 
     /// <summary>Proficiency bonus by level: +2 at 1-4, +3 at 5-8, +4 at 9-12, +5 at 13-16, +6 at 17-20.</summary>
@@ -148,33 +149,33 @@ public static class CharacterRules
         {
             var related = active.Where(x => x.Effect.Type == EffectType.Speed && x.Effect.Target == mode).ToArray();
             if (mode != "walk" && related.Length == 0) continue;
-            var parts = new List<StatPart>();
+            var parts = new List<DecimalStatPart>();
             decimal value = 0;
             if (mode == "walk")
             {
                 value = sheet.BaseSpeed;
-                parts.Add(new StatPart("base", (int)Math.Round(sheet.BaseSpeed), "Deslocamento base"));
+                parts.Add(new DecimalStatPart("base", sheet.BaseSpeed, "Deslocamento base"));
                 if (armor?.Data.Armor?.StrengthMin is { } strengthMin && abilities[Abilities.Key(AbilityCode.Str)].Final < strengthMin)
                 {
                     value -= 3;
-                    parts.Add(new StatPart("armadura", -3, $"{armor.Data.Name}: Força abaixo de {strengthMin}", armor.Id));
+                    parts.Add(new DecimalStatPart("armadura", -3, $"{armor.Data.Name}: Força abaixo de {strengthMin}", armor.Id));
                 }
             }
 
             foreach (var add in related.Where(x => x.Effect.Op == EffectOp.Add))
             {
                 value += add.Effect.Value!.Value;
-                parts.Add(add.Part(add.Effect.Value.Value));
+                parts.Add(add.DecimalPart(add.Effect.Value.Value));
             }
 
             var minimum = related.Where(x => x.Effect.Op == EffectOp.Min).OrderByDescending(x => x.Effect.Value).FirstOrDefault();
             if (minimum is not null && minimum.Effect.Value!.Value > value)
             {
-                parts.Add(minimum.Part((int)(minimum.Effect.Value.Value - value)));
+                parts.Add(minimum.DecimalPart(minimum.Effect.Value.Value - value));
                 value = minimum.Effect.Value.Value;
             }
 
-            if (value < 0) parts.Add(new StatPart(LimitLabel, (int)Math.Round(-value, MidpointRounding.AwayFromZero), LimitSource));
+            if (value < 0) parts.Add(new DecimalStatPart(LimitLabel, -value, LimitSource));
             speed[mode] = new DecimalStat(Math.Max(0, value), parts);
         }
 
@@ -185,19 +186,19 @@ public static class CharacterRules
             var related = active.Where(x => x.Effect.Type == EffectType.Vision && x.Effect.Target == sense).ToArray();
             var hasBase = sheet.BaseSenses.TryGetValue(sense, out var baseRange);
             if (!hasBase && related.Length == 0) continue;
-            var parts = new List<StatPart>();
+            var parts = new List<DecimalStatPart>();
             decimal value = hasBase ? baseRange : 0;
-            if (hasBase) parts.Add(new StatPart("base", (int)Math.Round(baseRange), "Sentido base"));
+            if (hasBase) parts.Add(new DecimalStatPart("base", baseRange, "Sentido base"));
             foreach (var add in related.Where(x => x.Effect.Op == EffectOp.Add))
             {
                 value += add.Effect.Value!.Value;
-                parts.Add(add.Part(add.Effect.Value.Value));
+                parts.Add(add.DecimalPart(add.Effect.Value.Value));
             }
 
             var minimum = related.Where(x => x.Effect.Op == EffectOp.Min).OrderByDescending(x => x.Effect.Value).FirstOrDefault();
             if (minimum is not null && minimum.Effect.Value!.Value > value)
             {
-                parts.Add(minimum.Part((int)(minimum.Effect.Value.Value - value)));
+                parts.Add(minimum.DecimalPart(minimum.Effect.Value.Value - value));
                 value = minimum.Effect.Value.Value;
             }
 

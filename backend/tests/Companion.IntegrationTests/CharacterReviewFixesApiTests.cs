@@ -40,8 +40,8 @@ public sealed class CharacterReviewFixesApiTests(CompanionApiFactory factory) : 
         var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(index =>
             Send(HttpMethod.Post, $"{Base(player)}/items", player, new SaveItemRequest(Gear($"Corrida {index}"), null))));
 
-        Assert.All(responses, x => Assert.Contains(x.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.Conflict, HttpStatusCode.BadRequest }));
-        Assert.Contains(responses, x => x.StatusCode == HttpStatusCode.OK);
+        Assert.All(responses, x => Assert.Contains(x.StatusCode, new[] { HttpStatusCode.Created, HttpStatusCode.Conflict, HttpStatusCode.BadRequest }));
+        Assert.Contains(responses, x => x.StatusCode == HttpStatusCode.Created);
         var character = await Get(player);
         Assert.True(character.Items.Count <= InventoryItem.MaxItemsPerCharacter, $"{character.Items.Count} itens na mochila");
         Assert.Equal(InventoryItem.MaxItemsPerCharacter, character.Items.Count);

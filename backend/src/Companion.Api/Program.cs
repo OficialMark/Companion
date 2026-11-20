@@ -132,6 +132,7 @@ app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();
 app.MapCreatureEndpoints();
 app.MapCharacterEndpoints();
+app.MapCatalogEndpoints();
 app.MapAdminEndpoints();
 app.MapHub<CampaignHub>("/hubs/campaign");
 

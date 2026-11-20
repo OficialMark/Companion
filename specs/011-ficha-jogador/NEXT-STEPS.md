@@ -1,6 +1,6 @@
 # Spec 011: estado em 2026-11-19 e como continuar
 
-Versão fechada por limite de uso. A feature está funcional e testada, mas faltam a revisão crítica e a implantação.
+Versão estável fechada em 2026-11-19. A feature está funcional, passou pela segunda revisão crítica e está pronta para implantação controlada.
 
 ## O que está pronto
 
@@ -26,17 +26,11 @@ As 11 specs e2e antigas que falham (`mvp`, `battlemap`, `health-attack`, `initia
 
 ## O que falta
 
-1. **T068, revisão crítica fria.** Agentes sem contexto, um por eixo: posse e segurança, regras (CA, duplicidade, proficiência, vantagem), UX em 1280 e 375 px, e migration com backfill. Cada achado vira uma tarefa nova em `tasks.md`.
-2. **T069:** corrigir os achados, com teste de regressão para cada um.
-3. **Specs e2e antigas quebradas** (já quebradas na `main`):
-   - `mvp.spec.ts` procura `getByRole('button', { name: 'Entrar com código' })`, mas o botão é `role="tab"`.
-   - `battlemap.spec.ts` não encontra `[data-board-surface]` depois de publicar o mapa.
-   - Investigar `health-attack`, `initiative` e `creature-catalog`.
-4. **Termos para o Marcos conferir** (sem fonte pública confiável):
+1. **Termos para o Marcos conferir** (sem fonte pública confiável):
    - Maestrias de arma em `scripts/import-catalogs/glossary.mjs` (Trespassar, Raspão, Talho, Empurrão, Enfraquecer, Lentidão, Derrubar, Afligir).
    - "Garrafa de Ferro" (Iron Flask).
    - Se algum termo mudar, corrija os lotes em `translations/batches/`, valide e rode `node scripts/import-catalogs/import-items.mjs`.
-5. **Implantação (é do Marcos).**
+2. **Implantação (é do Marcos).**
    - Antes, exporte a tabela `Participants` (o backfill mexe só nela).
    - Depois, rode `docker compose up -d --build api frontend` na raiz do repositório.
    - As migrations `AddPlayerCharacterSheet` e `AddCharacterSheetTables` e o seed dos catálogos rodam no startup da API. A `AddPlayerCharacterSheet` copia cada token atual para `ParticipantSessions`, então ninguém perde o acesso.

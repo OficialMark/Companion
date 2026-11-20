@@ -13,9 +13,12 @@ public sealed record SpellEntry(Guid Id, CharacterSpellData Data);
 /// </summary>
 public sealed record StatPart(string Label, int Value, string Source, Guid? ItemId = null);
 
+/// <summary>A decimal contribution used by movement and senses, whose values may use 1.5 m increments.</summary>
+public sealed record DecimalStatPart(string Label, decimal Value, string Source, Guid? ItemId = null);
+
 public sealed record ValueStat(int Value, IReadOnlyList<StatPart> Parts);
 
-public sealed record DecimalStat(decimal Value, IReadOnlyList<StatPart> Parts);
+public sealed record DecimalStat(decimal Value, IReadOnlyList<DecimalStatPart> Parts);
 
 public sealed record AbilityStat(AbilityCode Code, string Abbreviation, int Base, int Final, int Modifier, IReadOnlyList<StatPart> Parts);
 

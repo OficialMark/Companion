@@ -66,6 +66,24 @@ public sealed class CharacterRulesTests
         if (stats.SpellSaveDc is { } dc) Sums("CD", dc.Value, dc.Parts);
         if (stats.SpellAttackBonus is { } spellAttack) Sums("ataque de magia", spellAttack.Value, spellAttack.Parts);
         foreach (var weapon in stats.WeaponRolls) Sums($"ataque {weapon.Name}", weapon.AttackBonus, weapon.Attack);
+        foreach (var (mode, speed) in stats.Speed)
+            Assert.Equal(speed.Value, speed.Parts.Sum(x => x.Value));
+        foreach (var (sense, range) in stats.Senses)
+            Assert.Equal(range.Value, range.Parts.Sum(x => x.Value));
+    }
+
+    [Fact]
+    public void Decimal_movement_parts_preserve_one_and_a_half_meter_increments()
+    {
+        var sheet = CharacterSheetData.Default with { BaseSpeed = 1.5m, Strength = 8 };
+        var armor = new InventoryItemData("Armadura", ItemCategory.Armor, 1, null, null, null, true, true, 0, null,
+            new ArmorData(16, ArmorType.Heavy, 13, false), null, []).Validated();
+
+        var walk = CharacterRules.Compute(sheet, [new ItemEntry(Guid.NewGuid(), 0, armor)], []).Speed["walk"];
+
+        Assert.Equal(0, walk.Value);
+        Assert.Equal([1.5m, -3m, 1.5m], walk.Parts.Select(x => x.Value));
+        Assert.Equal(walk.Value, walk.Parts.Sum(x => x.Value));
     }
 
     [Fact]

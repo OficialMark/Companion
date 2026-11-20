@@ -114,6 +114,27 @@ describe('SavedRollEditor', () => {
     await editor.get('[data-source-select]').setValue('weapon:sword')
     expect(editor.get('[data-save-saved-roll]').attributes('disabled')).toBeUndefined()
   })
+
+  it('traps Tab inside the modal and restores focus to the opener when closed', async () => {
+    setup()
+    const opener = document.createElement('button')
+    opener.textContent = 'Abrir editor'
+    document.body.append(opener)
+    opener.focus()
+    const editor = mount(SavedRollEditor, { attachTo: document.body })
+    await flushPromises()
+
+    const close = editor.get('[aria-label="Fechar"]').element as HTMLButtonElement
+    const cancel = editor.get('[data-cancel-editor]').element as HTMLButtonElement
+    close.focus()
+    close.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }))
+    expect(document.activeElement).toBe(cancel)
+    cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+    expect(document.activeElement).toBe(close)
+
+    editor.unmount()
+    expect(document.activeElement).toBe(opener)
+  })
 })
 
 describe('SavedRollList (aba Rolagens)', () => {

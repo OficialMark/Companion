@@ -185,6 +185,30 @@ describe('store da ficha: escritas do mesmo aparelho em fila', () => {
     expect(store.saveState).toBe('conflict')
   })
 
+  it('recarrega uma alteração remota recebida enquanto o autosave local aguardava a resposta', async () => {
+    const store = useCharacterStore()
+    const initial = makeCharacter({ participantId: 'pA', version: 'v1' })
+    store.apply(initial, { resetDraft: true })
+    const save = deferred<ReturnType<typeof makeCharacter>>()
+    api.saveSheet.mockReturnValue(save.promise)
+    api.getCharacter.mockResolvedValue(makeCharacter({ participantId: 'pA', version: 'v3', sheet: { ...initial.sheet, notes: 'mudança remota' } }))
+
+    store.editSheet({ characterName: 'Ana' })
+    const flushing = store.flush()
+    await Promise.resolve()
+    await store.onRemoteChange('pA')
+    expect(store.remoteChangePending).toBe(true)
+
+    save.resolve(makeCharacter({ participantId: 'pA', version: 'v2', sheet: { ...initial.sheet, characterName: 'Ana' } }))
+    await flushing
+
+    expect(api.getCharacter).toHaveBeenCalledTimes(1)
+    expect(store.character!.version).toBe('v3')
+    expect(store.character!.sheet.notes).toBe('mudança remota')
+    expect(store.remoteChangePending).toBe(false)
+    expect(store.saveState, store.error).toBe('saved')
+  })
+
   it('uma escrita que falha não trava a fila', async () => {
     const store = useCharacterStore()
     store.apply(makeCharacter({ participantId: 'pA' }), { resetDraft: true })
