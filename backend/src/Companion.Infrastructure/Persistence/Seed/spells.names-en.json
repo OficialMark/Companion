@@ -1,0 +1,1468 @@
+{
+  "source": "Official English D&D 5e spell names (PHB 2014 naming; XGtE/TCoE where applicable). verified = nameEn or nameEnSrd appears in SRD 5.2.1 spell list (5e-bits/5e-database src/2024/en/5e-SRD-Spells.json @ a6212beb4b278917c2cff41c2b04c4ef4f3e0d6f).",
+  "names": {
+    "acalmar emoções": {
+      "nameEn": "Calm Emotions",
+      "verified": true
+    },
+    "adivinhação": {
+      "nameEn": "Divination",
+      "verified": true
+    },
+    "ajuda": {
+      "nameEn": "Aid",
+      "verified": true
+    },
+    "alarme": {
+      "nameEn": "Alarm",
+      "verified": true
+    },
+    "aliado planar": {
+      "nameEn": "Planar Ally",
+      "verified": true
+    },
+    "aljava veloz": {
+      "nameEn": "Swift Quiver",
+      "verified": false
+    },
+    "alterar forma": {
+      "nameEn": "Shapechange",
+      "verified": true
+    },
+    "alterar-se": {
+      "nameEn": "Alter Self",
+      "verified": true
+    },
+    "amizade": {
+      "nameEn": "Friends",
+      "verified": false
+    },
+    "amizade animal": {
+      "nameEn": "Animal Friendship",
+      "verified": true
+    },
+    "ampliar plantas": {
+      "nameEn": "Plant Growth",
+      "verified": true
+    },
+    "andar na água": {
+      "nameEn": "Water Walk",
+      "verified": true
+    },
+    "animar mortos": {
+      "nameEn": "Animate Dead",
+      "verified": true
+    },
+    "animar objetos": {
+      "nameEn": "Animate Objects",
+      "verified": true
+    },
+    "antipatia/simpatia": {
+      "nameEn": "Antipathy/Sympathy",
+      "verified": true
+    },
+    "aprimorar habilidade": {
+      "nameEn": "Enhance Ability",
+      "verified": true
+    },
+    "aprisionamento": {
+      "nameEn": "Imprisonment",
+      "verified": true
+    },
+    "arca secreta de leomund": {
+      "nameEn": "Leomund's Secret Chest",
+      "nameEnSrd": "Secret Chest",
+      "verified": true
+    },
+    "arma elemental": {
+      "nameEn": "Elemental Weapon",
+      "verified": false
+    },
+    "arma espiritual": {
+      "nameEn": "Spiritual Weapon",
+      "verified": true
+    },
+    "arma mágica": {
+      "nameEn": "Magic Weapon",
+      "verified": true
+    },
+    "armadura arcana": {
+      "nameEn": "Mage Armor",
+      "verified": true
+    },
+    "armadura de agathys": {
+      "nameEn": "Armor of Agathys",
+      "verified": false
+    },
+    "arrombar": {
+      "nameEn": "Knock",
+      "verified": true
+    },
+    "assassino fantasmagórico": {
+      "nameEn": "Phantasmal Killer",
+      "verified": true
+    },
+    "ataque certeiro": {
+      "nameEn": "True Strike",
+      "verified": true
+    },
+    "ataque visual": {
+      "nameEn": "Eyebite",
+      "verified": true
+    },
+    "augúrio": {
+      "nameEn": "Augury",
+      "verified": true
+    },
+    "aumentar/reduzir": {
+      "nameEn": "Enlarge/Reduce",
+      "verified": true
+    },
+    "aura de pureza": {
+      "nameEn": "Aura of Purity",
+      "verified": false
+    },
+    "aura de vida": {
+      "nameEn": "Aura of Life",
+      "verified": true
+    },
+    "aura de vitalidade": {
+      "nameEn": "Aura of Vitality",
+      "verified": false
+    },
+    "aura mágica de nystul": {
+      "nameEn": "Nystul's Magic Aura",
+      "nameEnSrd": "Arcanist's Magic Aura",
+      "verified": true
+    },
+    "aura sagrada": {
+      "nameEn": "Holy Aura",
+      "verified": true
+    },
+    "auxílio divino": {
+      "nameEn": "Divine Favor",
+      "verified": true
+    },
+    "banimento": {
+      "nameEn": "Banishment",
+      "verified": true
+    },
+    "banquete dos heróis": {
+      "nameEn": "Heroes' Feast",
+      "verified": true
+    },
+    "barreira de lâminas": {
+      "nameEn": "Blade Barrier",
+      "verified": true
+    },
+    "boca encantada": {
+      "nameEn": "Magic Mouth",
+      "verified": true
+    },
+    "bola de fogo": {
+      "nameEn": "Fireball",
+      "verified": true
+    },
+    "bola de fogo controlável": {
+      "nameEn": "Delayed Blast Fireball",
+      "verified": true
+    },
+    "bom fruto": {
+      "nameEn": "Goodberry",
+      "verified": true
+    },
+    "bordão místico": {
+      "nameEn": "Shillelagh",
+      "verified": true
+    },
+    "braços de hadar": {
+      "nameEn": "Arms of Hadar",
+      "verified": false
+    },
+    "bruxaria": {
+      "nameEn": "Hex",
+      "verified": true
+    },
+    "bênção": {
+      "nameEn": "Bless",
+      "verified": true
+    },
+    "caminhar em árvores": {
+      "nameEn": "Tree Stride",
+      "verified": true
+    },
+    "caminhar no vento": {
+      "nameEn": "Wind Walk",
+      "verified": true
+    },
+    "campo antimagia": {
+      "nameEn": "Antimagic Field",
+      "verified": true
+    },
+    "carne para pedra": {
+      "nameEn": "Flesh to Stone",
+      "verified": true
+    },
+    "cativar": {
+      "nameEn": "Enthrall",
+      "verified": true
+    },
+    "cegueira/surdez": {
+      "nameEn": "Blindness/Deafness",
+      "verified": true
+    },
+    "chama contínua": {
+      "nameEn": "Continual Flame",
+      "verified": true
+    },
+    "chama sagrada": {
+      "nameEn": "Sacred Flame",
+      "verified": true
+    },
+    "chicote de espinhos": {
+      "nameEn": "Thorn Whip",
+      "verified": false
+    },
+    "chuva de meteoros": {
+      "nameEn": "Meteor Swarm",
+      "verified": true
+    },
+    "clarividência": {
+      "nameEn": "Clairvoyance",
+      "verified": true
+    },
+    "clone": {
+      "nameEn": "Clone",
+      "verified": true
+    },
+    "coluna de chamas": {
+      "nameEn": "Flame Strike",
+      "verified": true
+    },
+    "comando": {
+      "nameEn": "Command",
+      "verified": true
+    },
+    "compreender idiomas": {
+      "nameEn": "Comprehend Languages",
+      "verified": true
+    },
+    "compulsão": {
+      "nameEn": "Compulsion",
+      "verified": true
+    },
+    "comunhão": {
+      "nameEn": "Commune",
+      "verified": true
+    },
+    "comunhão com a natureza": {
+      "nameEn": "Commune with Nature",
+      "verified": true
+    },
+    "cone de frio": {
+      "nameEn": "Cone of Cold",
+      "verified": true
+    },
+    "confusão": {
+      "nameEn": "Confusion",
+      "verified": true
+    },
+    "conhecimento lendário": {
+      "nameEn": "Legend Lore",
+      "verified": true
+    },
+    "conjurar animais": {
+      "nameEn": "Conjure Animals",
+      "verified": true
+    },
+    "conjurar celestial": {
+      "nameEn": "Conjure Celestial",
+      "verified": true
+    },
+    "conjurar elementais menores": {
+      "nameEn": "Conjure Minor Elementals",
+      "verified": true
+    },
+    "conjurar elemental": {
+      "nameEn": "Conjure Elemental",
+      "verified": true
+    },
+    "conjurar fada": {
+      "nameEn": "Conjure Fey",
+      "verified": true
+    },
+    "conjurar rajada": {
+      "nameEn": "Conjure Barrage",
+      "verified": false
+    },
+    "conjurar saraivada": {
+      "nameEn": "Conjure Volley",
+      "verified": false
+    },
+    "conjurar seres da floresta": {
+      "nameEn": "Conjure Woodland Beings",
+      "verified": true
+    },
+    "consagrar": {
+      "nameEn": "Hallow",
+      "verified": true
+    },
+    "consertar": {
+      "nameEn": "Mending",
+      "verified": true
+    },
+    "constrição": {
+      "nameEn": "Entangle",
+      "verified": true
+    },
+    "contato extraplanar": {
+      "nameEn": "Contact Other Plane",
+      "verified": true
+    },
+    "contingência": {
+      "nameEn": "Contingency",
+      "verified": true
+    },
+    "contramágica": {
+      "nameEn": "Counterspell",
+      "verified": true
+    },
+    "controlar a água": {
+      "nameEn": "Control Water",
+      "verified": true
+    },
+    "controlar o clima": {
+      "nameEn": "Control Weather",
+      "verified": true
+    },
+    "convocar familiar": {
+      "nameEn": "Find Familiar",
+      "verified": true
+    },
+    "convocar montaria": {
+      "nameEn": "Find Steed",
+      "verified": true
+    },
+    "convocar relâmpagos": {
+      "nameEn": "Call Lightning",
+      "verified": true
+    },
+    "cordão de flechas": {
+      "nameEn": "Cordon of Arrows",
+      "verified": false
+    },
+    "coroa da loucura": {
+      "nameEn": "Crown of Madness",
+      "verified": false
+    },
+    "corrente de relâmpagos": {
+      "nameEn": "Chain Lightning",
+      "verified": true
+    },
+    "crescer espinhos": {
+      "nameEn": "Spike Growth",
+      "verified": true
+    },
+    "criar alimentos": {
+      "nameEn": "Create Food and Water",
+      "verified": true
+    },
+    "criar chamas": {
+      "nameEn": "Produce Flame",
+      "verified": true
+    },
+    "criar mortos-vivos": {
+      "nameEn": "Create Undead",
+      "verified": true
+    },
+    "criar ou destruir água": {
+      "nameEn": "Create or Destroy Water",
+      "verified": true
+    },
+    "criar passagem": {
+      "nameEn": "Passwall",
+      "verified": true
+    },
+    "criação": {
+      "nameEn": "Creation",
+      "verified": true
+    },
+    "cura completa": {
+      "nameEn": "Heal",
+      "verified": true
+    },
+    "cura completa em massa": {
+      "nameEn": "Mass Heal",
+      "verified": true
+    },
+    "curar ferimentos": {
+      "nameEn": "Cure Wounds",
+      "verified": true
+    },
+    "curar ferimentos em massa": {
+      "nameEn": "Mass Cure Wounds",
+      "verified": true
+    },
+    "cão fiel de mordenkainen": {
+      "nameEn": "Mordenkainen's Faithful Hound",
+      "nameEnSrd": "Faithful Hound",
+      "verified": true
+    },
+    "círculo da morte": {
+      "nameEn": "Circle of Death",
+      "verified": true
+    },
+    "círculo de poder": {
+      "nameEn": "Circle of Power",
+      "verified": false
+    },
+    "círculo de teletransporte": {
+      "nameEn": "Teleportation Circle",
+      "verified": true
+    },
+    "círculo mágico": {
+      "nameEn": "Magic Circle",
+      "verified": true
+    },
+    "cúpula antivida": {
+      "nameEn": "Antilife Shell",
+      "verified": true
+    },
+    "dança irresistível de otto": {
+      "nameEn": "Otto's Irresistible Dance",
+      "nameEnSrd": "Irresistible Dance",
+      "verified": true
+    },
+    "dedo da morte": {
+      "nameEn": "Finger of Death",
+      "verified": true
+    },
+    "desejo": {
+      "nameEn": "Wish",
+      "verified": true
+    },
+    "desintegrar": {
+      "nameEn": "Disintegrate",
+      "verified": true
+    },
+    "despedaçar": {
+      "nameEn": "Shatter",
+      "verified": true
+    },
+    "despertar": {
+      "nameEn": "Awaken",
+      "verified": true
+    },
+    "despistar": {
+      "nameEn": "Mislead",
+      "verified": true
+    },
+    "destruição banidora": {
+      "nameEn": "Banishing Smite",
+      "verified": false
+    },
+    "destruição cegante": {
+      "nameEn": "Blinding Smite",
+      "verified": false
+    },
+    "destruição colérica": {
+      "nameEn": "Wrathful Smite",
+      "verified": false
+    },
+    "destruição estonteante": {
+      "nameEn": "Staggering Smite",
+      "verified": false
+    },
+    "destruição lancinante": {
+      "nameEn": "Searing Smite",
+      "verified": true
+    },
+    "destruição trovejante": {
+      "nameEn": "Thunderous Smite",
+      "verified": false
+    },
+    "detectar magia": {
+      "nameEn": "Detect Magic",
+      "verified": true
+    },
+    "detectar o bem e mal": {
+      "nameEn": "Detect Evil and Good",
+      "verified": true
+    },
+    "detectar pensamentos": {
+      "nameEn": "Detect Thoughts",
+      "verified": true
+    },
+    "detectar veneno e doença": {
+      "nameEn": "Detect Poison and Disease",
+      "verified": true
+    },
+    "dificultar detecção": {
+      "nameEn": "Nondetection",
+      "verified": true
+    },
+    "disco flutuante de tenser": {
+      "nameEn": "Tenser's Floating Disk",
+      "nameEnSrd": "Floating Disk",
+      "verified": true
+    },
+    "disfarçar-se": {
+      "nameEn": "Disguise Self",
+      "verified": true
+    },
+    "dissipar magia": {
+      "nameEn": "Dispel Magic",
+      "verified": true
+    },
+    "dissipar o bem e mal": {
+      "nameEn": "Dispel Evil and Good",
+      "verified": true
+    },
+    "doença plena": {
+      "nameEn": "Harm",
+      "verified": true
+    },
+    "dominar besta": {
+      "nameEn": "Dominate Beast",
+      "verified": true
+    },
+    "dominar monstro": {
+      "nameEn": "Dominate Monster",
+      "verified": true
+    },
+    "dominar pessoa": {
+      "nameEn": "Dominate Person",
+      "verified": true
+    },
+    "druidismo": {
+      "nameEn": "Druidcraft",
+      "verified": true
+    },
+    "duelo compelido": {
+      "nameEn": "Compelled Duel",
+      "verified": false
+    },
+    "encarnação fantasmagórica": {
+      "nameEn": "Weird",
+      "verified": true
+    },
+    "encontrar armadilhas": {
+      "nameEn": "Find Traps",
+      "verified": true
+    },
+    "encontrar o caminho": {
+      "nameEn": "Find the Path",
+      "verified": true
+    },
+    "enfeitiçar pessoa": {
+      "nameEn": "Charm Person",
+      "verified": true
+    },
+    "enfraquecer intelecto": {
+      "nameEn": "Feeblemind",
+      "nameEnSrd": "Befuddlement",
+      "verified": true
+    },
+    "enviar mensagem": {
+      "nameEn": "Sending",
+      "verified": true
+    },
+    "escrita ilusória": {
+      "nameEn": "Illusory Script",
+      "verified": true
+    },
+    "escudo arcano": {
+      "nameEn": "Shield",
+      "verified": true
+    },
+    "escudo da fé": {
+      "nameEn": "Shield of Faith",
+      "verified": true
+    },
+    "escudo de fogo": {
+      "nameEn": "Fire Shield",
+      "verified": true
+    },
+    "escuridão": {
+      "nameEn": "Darkness",
+      "verified": true
+    },
+    "esfera congelante de otiluke": {
+      "nameEn": "Otiluke's Freezing Sphere",
+      "nameEnSrd": "Freezing Sphere",
+      "verified": true
+    },
+    "esfera flamejante": {
+      "nameEn": "Flaming Sphere",
+      "verified": true
+    },
+    "esfera resiliente de otiluke": {
+      "nameEn": "Otiluke's Resilient Sphere",
+      "nameEnSrd": "Resilient Sphere",
+      "verified": true
+    },
+    "espada de mordenkainen": {
+      "nameEn": "Mordenkainen's Sword",
+      "nameEnSrd": "Arcane Sword",
+      "verified": true
+    },
+    "espirro ácido": {
+      "nameEn": "Acid Splash",
+      "verified": true
+    },
+    "espíritos guardiões": {
+      "nameEn": "Spirit Guardians",
+      "verified": true
+    },
+    "esquentar metal": {
+      "nameEn": "Heat Metal",
+      "verified": true
+    },
+    "estabilizar": {
+      "nameEn": "Spare the Dying",
+      "verified": true
+    },
+    "explosão solar": {
+      "nameEn": "Sunburst",
+      "verified": true
+    },
+    "fabricar": {
+      "nameEn": "Fabricate",
+      "verified": true
+    },
+    "falar com animais": {
+      "nameEn": "Speak with Animals",
+      "verified": true
+    },
+    "falar com os mortos": {
+      "nameEn": "Speak with Dead",
+      "verified": true
+    },
+    "falar com plantas": {
+      "nameEn": "Speak with Plants",
+      "verified": true
+    },
+    "flecha relampejante": {
+      "nameEn": "Lightning Arrow",
+      "verified": false
+    },
+    "flecha ácida de melf": {
+      "nameEn": "Melf's Acid Arrow",
+      "nameEnSrd": "Acid Arrow",
+      "verified": true
+    },
+    "fogo das fadas": {
+      "nameEn": "Faerie Fire",
+      "verified": true
+    },
+    "fome de hadar": {
+      "nameEn": "Hunger of Hadar",
+      "verified": false
+    },
+    "forjar morte": {
+      "nameEn": "Feign Death",
+      "verified": false
+    },
+    "forma etérea": {
+      "nameEn": "Etherealness",
+      "verified": true
+    },
+    "forma gasosa": {
+      "nameEn": "Gaseous Form",
+      "verified": true
+    },
+    "formas animais": {
+      "nameEn": "Animal Shapes",
+      "verified": true
+    },
+    "força fantasmagórica": {
+      "nameEn": "Phantasmal Force",
+      "verified": true
+    },
+    "glifo de vigilância": {
+      "nameEn": "Glyph of Warding",
+      "verified": true
+    },
+    "globo de invulnerabilidade": {
+      "nameEn": "Globe of Invulnerability",
+      "verified": true
+    },
+    "globos de luz": {
+      "nameEn": "Dancing Lights",
+      "verified": true
+    },
+    "golpe constritor": {
+      "nameEn": "Ensnaring Strike",
+      "verified": true
+    },
+    "guardião da fé": {
+      "nameEn": "Guardian of Faith",
+      "verified": true
+    },
+    "heroísmo": {
+      "nameEn": "Heroism",
+      "verified": true
+    },
+    "identificação": {
+      "nameEn": "Identify",
+      "verified": true
+    },
+    "idiomas": {
+      "nameEn": "Tongues",
+      "verified": true
+    },
+    "ilusão menor": {
+      "nameEn": "Minor Illusion",
+      "verified": true
+    },
+    "ilusão programada": {
+      "nameEn": "Programmed Illusion",
+      "verified": true
+    },
+    "imagem maior": {
+      "nameEn": "Major Image",
+      "verified": true
+    },
+    "imagem silenciosa": {
+      "nameEn": "Silent Image",
+      "verified": true
+    },
+    "imobilizar monstro": {
+      "nameEn": "Hold Monster",
+      "verified": true
+    },
+    "imobilizar pessoa": {
+      "nameEn": "Hold Person",
+      "verified": true
+    },
+    "infligir ferimentos": {
+      "nameEn": "Inflict Wounds",
+      "verified": true
+    },
+    "inseto gigante": {
+      "nameEn": "Giant Insect",
+      "verified": true
+    },
+    "inverter a gravidade": {
+      "nameEn": "Reverse Gravity",
+      "verified": true
+    },
+    "invisibilidade": {
+      "nameEn": "Invisibility",
+      "verified": true
+    },
+    "invisibilidade maior": {
+      "nameEn": "Greater Invisibility",
+      "verified": true
+    },
+    "invocação instantânea de drawmij": {
+      "nameEn": "Drawmij's Instant Summons",
+      "nameEnSrd": "Instant Summons",
+      "verified": true
+    },
+    "isolamento": {
+      "nameEn": "Sequester",
+      "verified": true
+    },
+    "labirinto": {
+      "nameEn": "Maze",
+      "verified": true
+    },
+    "lentidão": {
+      "nameEn": "Slow",
+      "verified": true
+    },
+    "leque cromático": {
+      "nameEn": "Color Spray",
+      "verified": true
+    },
+    "levitação": {
+      "nameEn": "Levitate",
+      "verified": true
+    },
+    "ligação telepática de rary": {
+      "nameEn": "Rary's Telepathic Bond",
+      "nameEnSrd": "Telepathic Bond",
+      "verified": true
+    },
+    "limpar a mente": {
+      "nameEn": "Mind Blank",
+      "verified": true
+    },
+    "localizar animais ou plantas": {
+      "nameEn": "Locate Animals or Plants",
+      "verified": true
+    },
+    "localizar criatura": {
+      "nameEn": "Locate Creature",
+      "verified": true
+    },
+    "localizar objeto": {
+      "nameEn": "Locate Object",
+      "verified": true
+    },
+    "loquacidade": {
+      "nameEn": "Glibness",
+      "verified": true
+    },
+    "lufada de vento": {
+      "nameEn": "Gust of Wind",
+      "verified": true
+    },
+    "luz": {
+      "nameEn": "Light",
+      "verified": true
+    },
+    "luz do dia": {
+      "nameEn": "Daylight",
+      "verified": true
+    },
+    "lâmina flamejante": {
+      "nameEn": "Flame Blade",
+      "verified": true
+    },
+    "malogro": {
+      "nameEn": "Blight",
+      "verified": true
+    },
+    "mansão magnífica de mordenkainen": {
+      "nameEn": "Mordenkainen's Magnificent Mansion",
+      "nameEnSrd": "Magnificent Mansion",
+      "verified": true
+    },
+    "manto do cruzado": {
+      "nameEn": "Crusader's Mantle",
+      "verified": false
+    },
+    "marca da punição": {
+      "nameEn": "Branding Smite",
+      "nameEnSrd": "Shining Smite",
+      "verified": true
+    },
+    "marca do caçador": {
+      "nameEn": "Hunter's Mark",
+      "verified": true
+    },
+    "medo": {
+      "nameEn": "Fear",
+      "verified": true
+    },
+    "mensageiro animal": {
+      "nameEn": "Animal Messenger",
+      "verified": true
+    },
+    "mensagem": {
+      "nameEn": "Message",
+      "verified": true
+    },
+    "mesclar-se às rochas": {
+      "nameEn": "Meld into Stone",
+      "verified": true
+    },
+    "metamorfose": {
+      "nameEn": "Polymorph",
+      "verified": true
+    },
+    "metamorfose verdadeira": {
+      "nameEn": "True Polymorph",
+      "verified": true
+    },
+    "miragem": {
+      "nameEn": "Mirage Arcane",
+      "verified": true
+    },
+    "missão": {
+      "nameEn": "Geas",
+      "verified": true
+    },
+    "modificar memória": {
+      "nameEn": "Modify Memory",
+      "verified": true
+    },
+    "moldar rochas": {
+      "nameEn": "Stone Shape",
+      "verified": true
+    },
+    "montaria fantasmagórica": {
+      "nameEn": "Phantom Steed",
+      "verified": true
+    },
+    "mover terra": {
+      "nameEn": "Move Earth",
+      "verified": true
+    },
+    "movimentação livre": {
+      "nameEn": "Freedom of Movement",
+      "verified": true
+    },
+    "muralha de energia": {
+      "nameEn": "Wall of Force",
+      "verified": true
+    },
+    "muralha de espinhos": {
+      "nameEn": "Wall of Thorns",
+      "verified": true
+    },
+    "muralha de fogo": {
+      "nameEn": "Wall of Fire",
+      "verified": true
+    },
+    "muralha de gelo": {
+      "nameEn": "Wall of Ice",
+      "verified": true
+    },
+    "muralha de pedra": {
+      "nameEn": "Wall of Stone",
+      "verified": true
+    },
+    "muralha de vento": {
+      "nameEn": "Wind Wall",
+      "verified": true
+    },
+    "muralha prismática": {
+      "nameEn": "Prismatic Wall",
+      "verified": true
+    },
+    "mão de bigby": {
+      "nameEn": "Bigby's Hand",
+      "nameEnSrd": "Arcane Hand",
+      "verified": true
+    },
+    "mãos flamejantes": {
+      "nameEn": "Burning Hands",
+      "verified": true
+    },
+    "mãos mágicas": {
+      "nameEn": "Mage Hand",
+      "verified": true
+    },
+    "mísseis mágicos": {
+      "nameEn": "Magic Missile",
+      "verified": true
+    },
+    "nevasca": {
+      "nameEn": "Sleet Storm",
+      "verified": true
+    },
+    "nublar": {
+      "nameEn": "Blur",
+      "verified": true
+    },
+    "nuvem de adagas": {
+      "nameEn": "Cloud of Daggers",
+      "verified": false
+    },
+    "nuvem incendiária": {
+      "nameEn": "Incendiary Cloud",
+      "verified": true
+    },
+    "névoa fétida": {
+      "nameEn": "Stinking Cloud",
+      "verified": true
+    },
+    "névoa mortal": {
+      "nameEn": "Cloudkill",
+      "verified": true
+    },
+    "névoa obscurecente": {
+      "nameEn": "Fog Cloud",
+      "verified": true
+    },
+    "olho arcano": {
+      "nameEn": "Arcane Eye",
+      "verified": true
+    },
+    "onda destrutiva": {
+      "nameEn": "Destructive Wave",
+      "verified": false
+    },
+    "onda trovejante": {
+      "nameEn": "Thunderwave",
+      "verified": true
+    },
+    "oração curativa": {
+      "nameEn": "Prayer of Healing",
+      "verified": true
+    },
+    "orbe cromática": {
+      "nameEn": "Chromatic Orb",
+      "verified": true
+    },
+    "orientação": {
+      "nameEn": "Guidance",
+      "verified": true
+    },
+    "padrão hipnótico": {
+      "nameEn": "Hypnotic Pattern",
+      "verified": true
+    },
+    "palavra curativa": {
+      "nameEn": "Healing Word",
+      "verified": true
+    },
+    "palavra curativa em massa": {
+      "nameEn": "Mass Healing Word",
+      "verified": true
+    },
+    "palavra de poder atordoar": {
+      "nameEn": "Power Word Stun",
+      "verified": true
+    },
+    "palavra de poder curar": {
+      "nameEn": "Power Word Heal",
+      "verified": true
+    },
+    "palavra de poder matar": {
+      "nameEn": "Power Word Kill",
+      "verified": true
+    },
+    "palavra de recordação": {
+      "nameEn": "Word of Recall",
+      "verified": true
+    },
+    "palavra divina": {
+      "nameEn": "Divine Word",
+      "verified": true
+    },
+    "parar o tempo": {
+      "nameEn": "Time Stop",
+      "verified": true
+    },
+    "passo nebuloso": {
+      "nameEn": "Misty Step",
+      "verified": true
+    },
+    "passos longos": {
+      "nameEn": "Longstrider",
+      "verified": true
+    },
+    "passos sem pegadas": {
+      "nameEn": "Pass without Trace",
+      "verified": true
+    },
+    "patas de aranha": {
+      "nameEn": "Spider Climb",
+      "verified": true
+    },
+    "pele de pedra": {
+      "nameEn": "Stoneskin",
+      "verified": true
+    },
+    "pele de árvore": {
+      "nameEn": "Barkskin",
+      "verified": true
+    },
+    "pequena cabana de leomund": {
+      "nameEn": "Leomund's Tiny Hut",
+      "nameEnSrd": "Tiny Hut",
+      "verified": true
+    },
+    "perdição": {
+      "nameEn": "Bane",
+      "verified": true
+    },
+    "piscar": {
+      "nameEn": "Blink",
+      "verified": true
+    },
+    "porta dimensional": {
+      "nameEn": "Dimension Door",
+      "verified": true
+    },
+    "portal": {
+      "nameEn": "Gate",
+      "verified": true
+    },
+    "portal arcano": {
+      "nameEn": "Arcane Gate",
+      "verified": false
+    },
+    "praga": {
+      "nameEn": "Contagion",
+      "verified": true
+    },
+    "praga de insetos": {
+      "nameEn": "Insect Plague",
+      "verified": true
+    },
+    "prestidigitação": {
+      "nameEn": "Prestidigitation",
+      "verified": true
+    },
+    "prisão de energia": {
+      "nameEn": "Forcecage",
+      "verified": true
+    },
+    "proibição": {
+      "nameEn": "Forbiddance",
+      "verified": true
+    },
+    "projetar imagem": {
+      "nameEn": "Project Image",
+      "verified": true
+    },
+    "projeção astral": {
+      "nameEn": "Astral Projection",
+      "verified": true
+    },
+    "proteger fortaleza": {
+      "nameEn": "Guards and Wards",
+      "verified": true
+    },
+    "proteção contra a morte": {
+      "nameEn": "Death Ward",
+      "verified": true
+    },
+    "proteção contra energia": {
+      "nameEn": "Protection from Energy",
+      "verified": true
+    },
+    "proteção contra lâminas": {
+      "nameEn": "Blade Ward",
+      "verified": false
+    },
+    "proteção contra o bem e mal": {
+      "nameEn": "Protection from Evil and Good",
+      "verified": true
+    },
+    "proteção contra veneno": {
+      "nameEn": "Protection from Poison",
+      "verified": true
+    },
+    "purificar alimentos": {
+      "nameEn": "Purify Food and Drink",
+      "verified": true
+    },
+    "queda suave": {
+      "nameEn": "Feather Fall",
+      "verified": true
+    },
+    "raio adoecente": {
+      "nameEn": "Ray of Sickness",
+      "verified": true
+    },
+    "raio ardente": {
+      "nameEn": "Scorching Ray",
+      "verified": true
+    },
+    "raio de bruxa": {
+      "nameEn": "Witch Bolt",
+      "verified": false
+    },
+    "raio de fogo": {
+      "nameEn": "Fire Bolt",
+      "verified": true
+    },
+    "raio de gelo": {
+      "nameEn": "Ray of Frost",
+      "verified": true
+    },
+    "raio do enfraquecimento": {
+      "nameEn": "Ray of Enfeeblement",
+      "verified": true
+    },
+    "raio guiador": {
+      "nameEn": "Guiding Bolt",
+      "verified": true
+    },
+    "raio lunar": {
+      "nameEn": "Moonbeam",
+      "verified": true
+    },
+    "raio solar": {
+      "nameEn": "Sunbeam",
+      "verified": true
+    },
+    "rajada de veneno": {
+      "nameEn": "Poison Spray",
+      "verified": true
+    },
+    "rajada mística": {
+      "nameEn": "Eldritch Blast",
+      "verified": true
+    },
+    "rajada prismática": {
+      "nameEn": "Prismatic Spray",
+      "verified": true
+    },
+    "recipiente arcano": {
+      "nameEn": "Magic Jar",
+      "verified": true
+    },
+    "recuo acelerado": {
+      "nameEn": "Expeditious Retreat",
+      "verified": true
+    },
+    "reencarnação": {
+      "nameEn": "Reincarnate",
+      "verified": true
+    },
+    "reflexos": {
+      "nameEn": "Mirror Image",
+      "verified": true
+    },
+    "regeneração": {
+      "nameEn": "Regenerate",
+      "verified": true
+    },
+    "relâmpago": {
+      "nameEn": "Lightning Bolt",
+      "verified": true
+    },
+    "remover maldição": {
+      "nameEn": "Remove Curse",
+      "verified": true
+    },
+    "repouso tranquilo": {
+      "nameEn": "Gentle Repose",
+      "verified": true
+    },
+    "repreensão infernal": {
+      "nameEn": "Hellish Rebuke",
+      "verified": true
+    },
+    "resistência": {
+      "nameEn": "Resistance",
+      "verified": true
+    },
+    "respirar na água": {
+      "nameEn": "Water Breathing",
+      "verified": true
+    },
+    "ressurreição": {
+      "nameEn": "Resurrection",
+      "verified": true
+    },
+    "ressurreição verdadeira": {
+      "nameEn": "True Resurrection",
+      "verified": true
+    },
+    "restauração maior": {
+      "nameEn": "Greater Restoration",
+      "verified": true
+    },
+    "restauração menor": {
+      "nameEn": "Lesser Restoration",
+      "verified": true
+    },
+    "reviver os mortos": {
+      "nameEn": "Raise Dead",
+      "verified": true
+    },
+    "revivificar": {
+      "nameEn": "Revivify",
+      "verified": true
+    },
+    "riso histérico de tasha": {
+      "nameEn": "Tasha's Hideous Laughter",
+      "nameEnSrd": "Hideous Laughter",
+      "verified": true
+    },
+    "rogar maldição": {
+      "nameEn": "Bestow Curse",
+      "verified": true
+    },
+    "salto": {
+      "nameEn": "Jump",
+      "verified": true
+    },
+    "santuário": {
+      "nameEn": "Sanctuary",
+      "verified": true
+    },
+    "santuário particular de mordenkainen": {
+      "nameEn": "Mordenkainen's Private Sanctum",
+      "nameEnSrd": "Private Sanctum",
+      "verified": true
+    },
+    "saraivada de espinhos": {
+      "nameEn": "Hail of Thorns",
+      "verified": false
+    },
+    "semiplano": {
+      "nameEn": "Demiplane",
+      "verified": true
+    },
+    "sentido bestial": {
+      "nameEn": "Beast Sense",
+      "verified": false
+    },
+    "servo invisível": {
+      "nameEn": "Unseen Servant",
+      "verified": true
+    },
+    "sexto sentido": {
+      "nameEn": "Foresight",
+      "verified": true
+    },
+    "silêncio": {
+      "nameEn": "Silence",
+      "verified": true
+    },
+    "similaridade": {
+      "nameEn": "Seeming",
+      "verified": true
+    },
+    "simulacro": {
+      "nameEn": "Simulacrum",
+      "verified": true
+    },
+    "sinal de esperança": {
+      "nameEn": "Beacon of Hope",
+      "verified": true
+    },
+    "sonho": {
+      "nameEn": "Dream",
+      "verified": true
+    },
+    "sono": {
+      "nameEn": "Sleep",
+      "verified": true
+    },
+    "sugestão": {
+      "nameEn": "Suggestion",
+      "verified": true
+    },
+    "sugestão em massa": {
+      "nameEn": "Mass Suggestion",
+      "verified": true
+    },
+    "sussurros dissonantes": {
+      "nameEn": "Dissonant Whispers",
+      "verified": true
+    },
+    "símbolo": {
+      "nameEn": "Symbol",
+      "verified": true
+    },
+    "taumaturgia": {
+      "nameEn": "Thaumaturgy",
+      "verified": true
+    },
+    "teia": {
+      "nameEn": "Web",
+      "verified": true
+    },
+    "telecinésia": {
+      "nameEn": "Telekinesis",
+      "verified": true
+    },
+    "telepatia": {
+      "nameEn": "Telepathy",
+      "verified": false
+    },
+    "teletransporte": {
+      "nameEn": "Teleport",
+      "verified": true
+    },
+    "teletransporte por árvores": {
+      "nameEn": "Transport via Plants",
+      "verified": true
+    },
+    "tempestade da vingança": {
+      "nameEn": "Storm of Vengeance",
+      "verified": true
+    },
+    "tempestade de fogo": {
+      "nameEn": "Fire Storm",
+      "verified": true
+    },
+    "tempestade de gelo": {
+      "nameEn": "Ice Storm",
+      "verified": true
+    },
+    "tentáculos negros de evard": {
+      "nameEn": "Evard's Black Tentacles",
+      "nameEnSrd": "Black Tentacles",
+      "verified": true
+    },
+    "terremoto": {
+      "nameEn": "Earthquake",
+      "verified": true
+    },
+    "terreno alucinógeno": {
+      "nameEn": "Hallucinatory Terrain",
+      "verified": true
+    },
+    "toque arrepiante": {
+      "nameEn": "Chill Touch",
+      "verified": true
+    },
+    "toque chocante": {
+      "nameEn": "Shocking Grasp",
+      "verified": true
+    },
+    "toque vampírico": {
+      "nameEn": "Vampiric Touch",
+      "verified": true
+    },
+    "tranca arcana": {
+      "nameEn": "Arcane Lock",
+      "verified": true
+    },
+    "truque de corda": {
+      "nameEn": "Rope Trick",
+      "verified": true
+    },
+    "tsunami": {
+      "nameEn": "Tsunami",
+      "verified": true
+    },
+    "velocidade": {
+      "nameEn": "Haste",
+      "verified": true
+    },
+    "ver o invisível": {
+      "nameEn": "See Invisibility",
+      "verified": true
+    },
+    "viagem planar": {
+      "nameEn": "Plane Shift",
+      "verified": true
+    },
+    "vidência": {
+      "nameEn": "Scrying",
+      "verified": true
+    },
+    "vinha esmagadora": {
+      "nameEn": "Grasping Vine",
+      "verified": false
+    },
+    "visão da verdade": {
+      "nameEn": "True Seeing",
+      "verified": true
+    },
+    "visão no escuro": {
+      "nameEn": "Darkvision",
+      "verified": true
+    },
+    "vitalidade falsa": {
+      "nameEn": "False Life",
+      "verified": true
+    },
+    "voo": {
+      "nameEn": "Fly",
+      "verified": true
+    },
+    "vínculo protetor": {
+      "nameEn": "Warding Bond",
+      "verified": true
+    },
+    "zombaria viciosa": {
+      "nameEn": "Vicious Mockery",
+      "verified": true
+    },
+    "zona da verdade": {
+      "nameEn": "Zone of Truth",
+      "verified": true
+    },
+    "área escorregadia": {
+      "nameEn": "Grease",
+      "verified": true
+    },
+    "âncora planar": {
+      "nameEn": "Planar Binding",
+      "verified": true
+    }
+  }
+}

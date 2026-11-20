@@ -29,6 +29,9 @@ public interface ICatalogSeedSource
 /// </summary>
 public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<ICatalogSeedSource> sources, TimeProvider timeProvider)
 {
+    /// <summary>Bump when <see cref="CatalogItem.Apply"/> or <see cref="CatalogSpell.Apply"/> derive new columns.</summary>
+    public const string FormatVersion = "012-search-text";
+
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
@@ -59,7 +62,9 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
                 continue;
             }
 
-            var hash = Convert.ToHexString(SHA256.HashData(bytes));
+            // The format version is part of the hash: a change in what Apply derives (spec 012 added the
+            // search text) reapplies an unchanged seed file once.
+            var hash = Convert.ToHexString(SHA256.HashData([.. bytes, .. System.Text.Encoding.UTF8.GetBytes(FormatVersion)]));
             var version = db.SeedVersions.SingleOrDefault(x => x.Key == source.Key);
             if (version?.Hash == hash)
             {
@@ -206,7 +211,7 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
             x.CastingTime, x.Range, x.Components, x.Duration, x.Ritual, x.Concentration,
             description.Length == 0 ? null : description, attackKind, save, damageDice,
             damageDice is null ? null : DamageType(x.SuggestedDamageType), false);
-        return new CatalogSpellFields(template, x.Classes ?? [], x.HigherLevels);
+        return new CatalogSpellFields(template, x.Classes ?? [], x.HigherLevels, x.NameEn);
     }
 
     private static string? DamageType(string? key) =>
@@ -247,5 +252,5 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
     public sealed record SeedSpell(string? Slug, string? Name, int Level, string? School, bool Ritual, string? CastingTime,
         string? Range, string? Components, string? Duration, bool Concentration, string? DescriptionHtml, string? HigherLevels,
         IReadOnlyList<string>? Classes, string? SuggestedDamageDice, string? SuggestedDamageType, string? AttackKind,
-        string? SaveAbility);
+        string? SaveAbility, string? NameEn = null);
 }

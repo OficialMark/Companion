@@ -106,6 +106,7 @@ public sealed class CatalogItemConfiguration : IEntityTypeConfiguration<CatalogI
         builder.Property(x => x.Rarity).HasMaxLength(30);
         builder.Property(x => x.Cost).HasMaxLength(40);
         builder.Property(x => x.SearchKey).HasMaxLength(260).IsRequired();
+        builder.Property(x => x.SearchText).HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(x => x.Template).AsJson();
         builder.HasIndex(x => new { x.IsRemovedFromCatalog, x.Category });
     }
@@ -120,8 +121,10 @@ public sealed class CatalogSpellConfiguration : IEntityTypeConfiguration<Catalog
         builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
         builder.HasIndex(x => x.Slug).IsUnique();
         builder.Property(x => x.Name).HasMaxLength(80).IsRequired();
+        builder.Property(x => x.NameEn).HasMaxLength(CatalogItem.MaxNameEnLength);
         builder.Property(x => x.School).HasMaxLength(80);
         builder.Property(x => x.SearchKey).HasMaxLength(260).IsRequired();
+        builder.Property(x => x.SearchText).HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(x => x.HigherLevels).HasMaxLength(4000);
         builder.Property(x => x.Template).AsJson();
         builder.Property(x => x.Classes).HasConversion(

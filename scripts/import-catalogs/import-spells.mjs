@@ -15,6 +15,7 @@ import { getCached, stats, DEFAULT_CACHE_DIR } from './fetch-cache.mjs';
 import { SPELLS_URL, SPELLS_BY_CLASS_URL } from './sources.mjs';
 import { parseSpells, summarize, checkExpected } from './parse-spells.mjs';
 import { updateReportSection } from './report.mjs';
+import { loadSpellNames, withEnglishNames } from './spell-names.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..', '..');
@@ -74,7 +75,8 @@ async function main() {
       source: 'magias5e',
       attribution: null,
       importedAt: new Date().toISOString(),
-      spells,
+      // English names from the fixed table (spec 012): the source has only the Portuguese name.
+      spells: withEnglishNames(spells, loadSpellNames()),
     };
     const json = JSON.stringify(seed, null, 2) + '\n';
     await mkdir(dirname(args.out), { recursive: true });

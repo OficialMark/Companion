@@ -25,7 +25,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Friends"
     },
     {
       "slug": "ataque certeiro",
@@ -49,7 +50,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "True Strike"
     },
     {
       "slug": "bordão místico",
@@ -70,7 +72,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Shillelagh"
     },
     {
       "slug": "chama sagrada",
@@ -91,7 +94,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Sacred Flame"
     },
     {
       "slug": "chicote de espinhos",
@@ -112,7 +116,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "piercing",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Thorn Whip"
     },
     {
       "slug": "consertar",
@@ -137,7 +142,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mending"
     },
     {
       "slug": "criar chamas",
@@ -158,7 +164,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "fire",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Produce Flame"
     },
     {
       "slug": "druidismo",
@@ -179,7 +186,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Druidcraft"
     },
     {
       "slug": "espirro ácido",
@@ -201,7 +209,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "acid",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Acid Splash"
     },
     {
       "slug": "estabilizar",
@@ -222,7 +231,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Spare the Dying"
     },
     {
       "slug": "globos de luz",
@@ -245,7 +255,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Dancing Lights"
     },
     {
       "slug": "ilusão menor",
@@ -269,7 +280,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Minor Illusion"
     },
     {
       "slug": "luz",
@@ -292,7 +304,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Light"
     },
     {
       "slug": "mãos mágicas",
@@ -316,7 +329,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mage Hand"
     },
     {
       "slug": "mensagem",
@@ -339,7 +353,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Message"
     },
     {
       "slug": "orientação",
@@ -361,7 +376,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Guidance"
     },
     {
       "slug": "prestidigitação",
@@ -385,7 +401,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Prestidigitation"
     },
     {
       "slug": "proteção contra lâminas",
@@ -409,7 +426,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Blade Ward"
     },
     {
       "slug": "raio de fogo",
@@ -431,7 +449,8 @@
       "suggestedDamageDice": "1d10",
       "suggestedDamageType": "fire",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Fire Bolt"
     },
     {
       "slug": "raio de gelo",
@@ -453,7 +472,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "cold",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Ray of Frost"
     },
     {
       "slug": "rajada de veneno",
@@ -477,7 +497,8 @@
       "suggestedDamageDice": "1d12",
       "suggestedDamageType": "poison",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Poison Spray"
     },
     {
       "slug": "rajada mística",
@@ -498,7 +519,8 @@
       "suggestedDamageDice": "1d10",
       "suggestedDamageType": "force",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Eldritch Blast"
     },
     {
       "slug": "resistência",
@@ -520,7 +542,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Resistance"
     },
     {
       "slug": "taumaturgia",
@@ -541,7 +564,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Thaumaturgy"
     },
     {
       "slug": "toque arrepiante",
@@ -564,7 +588,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "necrotic",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Chill Touch"
     },
     {
       "slug": "toque chocante",
@@ -586,7 +611,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "lightning",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Shocking Grasp"
     },
     {
       "slug": "zombaria viciosa",
@@ -607,7 +633,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Vicious Mockery"
     },
     {
       "slug": "alarme",
@@ -629,7 +656,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Alarm"
     },
     {
       "slug": "amizade animal",
@@ -652,7 +680,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Animal Friendship"
     },
     {
       "slug": "área escorregadia",
@@ -673,7 +702,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Grease"
     },
     {
       "slug": "armadura arcana",
@@ -695,7 +725,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mage Armor"
     },
     {
       "slug": "armadura de agathys",
@@ -716,7 +747,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Armor of Agathys"
     },
     {
       "slug": "auxílio divino",
@@ -737,7 +769,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": "radiant",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Divine Favor"
     },
     {
       "slug": "bênção",
@@ -759,7 +792,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Bless"
     },
     {
       "slug": "bom fruto",
@@ -781,7 +815,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Goodberry"
     },
     {
       "slug": "braços de hadar",
@@ -802,7 +837,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Arms of Hadar"
     },
     {
       "slug": "bruxaria",
@@ -823,7 +859,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "necrotic",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Hex"
     },
     {
       "slug": "comando",
@@ -845,7 +882,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Command"
     },
     {
       "slug": "compreender idiomas",
@@ -869,7 +907,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Comprehend Languages"
     },
     {
       "slug": "constrição",
@@ -890,7 +929,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Entangle"
     },
     {
       "slug": "convocar familiar",
@@ -911,7 +951,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Find Familiar"
     },
     {
       "slug": "criar ou destruir água",
@@ -933,7 +974,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Create or Destroy Water"
     },
     {
       "slug": "curar ferimentos",
@@ -958,7 +1000,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Cure Wounds"
     },
     {
       "slug": "destruição colérica",
@@ -979,7 +1022,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Wrathful Smite"
     },
     {
       "slug": "destruição lancinante",
@@ -1000,7 +1044,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Searing Smite"
     },
     {
       "slug": "destruição trovejante",
@@ -1021,7 +1066,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "thunder",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Thunderous Smite"
     },
     {
       "slug": "detectar magia",
@@ -1048,7 +1094,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Detect Magic"
     },
     {
       "slug": "detectar o bem e mal",
@@ -1070,7 +1117,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Detect Evil and Good"
     },
     {
       "slug": "detectar veneno e doença",
@@ -1094,7 +1142,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Detect Poison and Disease"
     },
     {
       "slug": "disco flutuante de tenser",
@@ -1115,7 +1164,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Tenser's Floating Disk"
     },
     {
       "slug": "disfarçar-se",
@@ -1138,7 +1188,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Disguise Self"
     },
     {
       "slug": "duelo compelido",
@@ -1159,7 +1210,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Compelled Duel"
     },
     {
       "slug": "enfeitiçar pessoa",
@@ -1183,7 +1235,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Charm Person"
     },
     {
       "slug": "escrita ilusória",
@@ -1206,7 +1259,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Illusory Script"
     },
     {
       "slug": "escudo arcano",
@@ -1228,7 +1282,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Shield"
     },
     {
       "slug": "escudo da fé",
@@ -1250,7 +1305,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Shield of Faith"
     },
     {
       "slug": "falar com animais",
@@ -1273,7 +1329,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Speak with Animals"
     },
     {
       "slug": "falar com plantas",
@@ -1295,7 +1352,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Speak with Plants"
     },
     {
       "slug": "fogo das fadas",
@@ -1317,7 +1375,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Faerie Fire"
     },
     {
       "slug": "golpe constritor",
@@ -1338,7 +1397,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "piercing",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Ensnaring Strike"
     },
     {
       "slug": "heroísmo",
@@ -1360,7 +1420,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Heroism"
     },
     {
       "slug": "identificação",
@@ -1382,7 +1443,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Identify"
     },
     {
       "slug": "imagem silenciosa",
@@ -1405,7 +1467,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Silent Image"
     },
     {
       "slug": "infligir ferimentos",
@@ -1426,7 +1489,8 @@
       "suggestedDamageDice": "3d10",
       "suggestedDamageType": "necrotic",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Inflict Wounds"
     },
     {
       "slug": "leque cromático",
@@ -1448,7 +1512,8 @@
       "suggestedDamageDice": "6d10",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Color Spray"
     },
     {
       "slug": "mãos flamejantes",
@@ -1470,7 +1535,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Burning Hands"
     },
     {
       "slug": "marca do caçador",
@@ -1491,7 +1557,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Hunter's Mark"
     },
     {
       "slug": "mísseis mágicos",
@@ -1513,7 +1580,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": "force",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Magic Missile"
     },
     {
       "slug": "névoa obscurecente",
@@ -1537,7 +1605,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Fog Cloud"
     },
     {
       "slug": "onda trovejante",
@@ -1561,7 +1630,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "thunder",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Thunderwave"
     },
     {
       "slug": "orbe cromática",
@@ -1583,7 +1653,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": null,
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Chromatic Orb"
     },
     {
       "slug": "palavra curativa",
@@ -1606,7 +1677,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Healing Word"
     },
     {
       "slug": "passos longos",
@@ -1630,7 +1702,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Longstrider"
     },
     {
       "slug": "perdição",
@@ -1652,7 +1725,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Bane"
     },
     {
       "slug": "proteção contra o bem e mal",
@@ -1676,7 +1750,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Protection from Evil and Good"
     },
     {
       "slug": "purificar alimentos",
@@ -1699,7 +1774,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Purify Food and Drink"
     },
     {
       "slug": "queda suave",
@@ -1722,7 +1798,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Feather Fall"
     },
     {
       "slug": "raio adoecente",
@@ -1744,7 +1821,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "poison",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Ray of Sickness"
     },
     {
       "slug": "raio de bruxa",
@@ -1767,7 +1845,8 @@
       "suggestedDamageDice": "1d12",
       "suggestedDamageType": "lightning",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Witch Bolt"
     },
     {
       "slug": "raio guiador",
@@ -1788,7 +1867,8 @@
       "suggestedDamageDice": "4d6",
       "suggestedDamageType": "radiant",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Guiding Bolt"
     },
     {
       "slug": "recuo acelerado",
@@ -1811,7 +1891,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Expeditious Retreat"
     },
     {
       "slug": "repreensão infernal",
@@ -1832,7 +1913,8 @@
       "suggestedDamageDice": "2d10",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Hellish Rebuke"
     },
     {
       "slug": "riso histérico de tasha",
@@ -1854,7 +1936,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Tasha's Hideous Laughter"
     },
     {
       "slug": "salto",
@@ -1878,7 +1961,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Jump"
     },
     {
       "slug": "santuário",
@@ -1899,7 +1983,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Sanctuary"
     },
     {
       "slug": "saraivada de espinhos",
@@ -1920,7 +2005,8 @@
       "suggestedDamageDice": "1d10",
       "suggestedDamageType": "piercing",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Hail of Thorns"
     },
     {
       "slug": "servo invisível",
@@ -1943,7 +2029,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Unseen Servant"
     },
     {
       "slug": "sono",
@@ -1966,7 +2053,8 @@
       "suggestedDamageDice": "5d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Sleep"
     },
     {
       "slug": "sussurros dissonantes",
@@ -1987,7 +2075,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Dissonant Whispers"
     },
     {
       "slug": "vitalidade falsa",
@@ -2009,7 +2098,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "False Life"
     },
     {
       "slug": "acalmar emoções",
@@ -2031,7 +2121,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Calm Emotions"
     },
     {
       "slug": "ajuda",
@@ -2053,7 +2144,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Aid"
     },
     {
       "slug": "alterar-se",
@@ -2075,7 +2167,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Alter Self"
     },
     {
       "slug": "aprimorar habilidade",
@@ -2099,7 +2192,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Enhance Ability"
     },
     {
       "slug": "arma espiritual",
@@ -2120,7 +2214,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "force",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Spiritual Weapon"
     },
     {
       "slug": "arma mágica",
@@ -2142,7 +2237,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Magic Weapon"
     },
     {
       "slug": "arrombar",
@@ -2165,7 +2261,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Knock"
     },
     {
       "slug": "augúrio",
@@ -2186,7 +2283,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Augury"
     },
     {
       "slug": "aumentar/reduzir",
@@ -2208,7 +2306,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Enlarge/Reduce"
     },
     {
       "slug": "aura mágica de nystul",
@@ -2229,7 +2328,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Nystul's Magic Aura"
     },
     {
       "slug": "boca encantada",
@@ -2251,7 +2351,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Magic Mouth"
     },
     {
       "slug": "cativar",
@@ -2273,7 +2374,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Enthrall"
     },
     {
       "slug": "cegueira/surdez",
@@ -2297,7 +2399,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Blindness/Deafness"
     },
     {
       "slug": "chama contínua",
@@ -2319,7 +2422,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Continual Flame"
     },
     {
       "slug": "convocar montaria",
@@ -2340,7 +2444,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Find Steed"
     },
     {
       "slug": "cordão de flechas",
@@ -2361,7 +2466,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "piercing",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Cordon of Arrows"
     },
     {
       "slug": "coroa da loucura",
@@ -2385,7 +2491,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Crown of Madness"
     },
     {
       "slug": "crescer espinhos",
@@ -2407,7 +2514,8 @@
       "suggestedDamageDice": "2d4",
       "suggestedDamageType": "piercing",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Spike Growth"
     },
     {
       "slug": "despedaçar",
@@ -2431,7 +2539,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": "thunder",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Shatter"
     },
     {
       "slug": "detectar pensamentos",
@@ -2454,7 +2563,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Detect Thoughts"
     },
     {
       "slug": "encontrar armadilhas",
@@ -2477,7 +2587,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Find Traps"
     },
     {
       "slug": "escuridão",
@@ -2500,7 +2611,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Darkness"
     },
     {
       "slug": "esfera flamejante",
@@ -2522,7 +2634,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Flaming Sphere"
     },
     {
       "slug": "esquentar metal",
@@ -2544,7 +2657,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Heat Metal"
     },
     {
       "slug": "flecha ácida de melf",
@@ -2565,7 +2679,8 @@
       "suggestedDamageDice": "4d4",
       "suggestedDamageType": "acid",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Melf's Acid Arrow"
     },
     {
       "slug": "força fantasmagórica",
@@ -2588,7 +2703,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "INT"
+      "saveAbility": "INT",
+      "nameEn": "Phantasmal Force"
     },
     {
       "slug": "imobilizar pessoa",
@@ -2614,7 +2730,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Hold Person"
     },
     {
       "slug": "invisibilidade",
@@ -2638,7 +2755,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Invisibility"
     },
     {
       "slug": "lâmina flamejante",
@@ -2659,7 +2777,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "fire",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Flame Blade"
     },
     {
       "slug": "levitação",
@@ -2681,7 +2800,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Levitate"
     },
     {
       "slug": "localizar animais ou plantas",
@@ -2704,7 +2824,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Locate Animals or Plants"
     },
     {
       "slug": "localizar objeto",
@@ -2730,7 +2851,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Locate Object"
     },
     {
       "slug": "lufada de vento",
@@ -2753,7 +2875,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Gust of Wind"
     },
     {
       "slug": "marca da punição",
@@ -2774,7 +2897,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "radiant",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Branding Smite"
     },
     {
       "slug": "mensageiro animal",
@@ -2797,7 +2921,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Animal Messenger"
     },
     {
       "slug": "nublar",
@@ -2819,7 +2944,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Blur"
     },
     {
       "slug": "nuvem de adagas",
@@ -2843,7 +2969,8 @@
       "suggestedDamageDice": "4d4",
       "suggestedDamageType": "slashing",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Cloud of Daggers"
     },
     {
       "slug": "oração curativa",
@@ -2864,7 +2991,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Prayer of Healing"
     },
     {
       "slug": "passo nebuloso",
@@ -2887,7 +3015,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Misty Step"
     },
     {
       "slug": "passos sem pegadas",
@@ -2909,7 +3038,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Pass without Trace"
     },
     {
       "slug": "patas de aranha",
@@ -2932,7 +3062,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Spider Climb"
     },
     {
       "slug": "pele de árvore",
@@ -2954,7 +3085,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Barkskin"
     },
     {
       "slug": "proteção contra veneno",
@@ -2978,7 +3110,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Protection from Poison"
     },
     {
       "slug": "raio ardente",
@@ -3000,7 +3133,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "fire",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Scorching Ray"
     },
     {
       "slug": "raio do enfraquecimento",
@@ -3022,7 +3156,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Ray of Enfeeblement"
     },
     {
       "slug": "raio lunar",
@@ -3043,7 +3178,8 @@
       "suggestedDamageDice": "2d10",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Moonbeam"
     },
     {
       "slug": "reflexos",
@@ -3066,7 +3202,8 @@
       "suggestedDamageDice": "1d20",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mirror Image"
     },
     {
       "slug": "repouso tranquilo",
@@ -3088,7 +3225,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Gentle Repose"
     },
     {
       "slug": "restauração menor",
@@ -3113,7 +3251,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Lesser Restoration"
     },
     {
       "slug": "sentido bestial",
@@ -3135,7 +3274,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Beast Sense"
     },
     {
       "slug": "silêncio",
@@ -3158,7 +3298,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Silence"
     },
     {
       "slug": "sugestão",
@@ -3182,7 +3323,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Suggestion"
     },
     {
       "slug": "teia",
@@ -3204,7 +3346,8 @@
       "suggestedDamageDice": "2d4",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Web"
     },
     {
       "slug": "tranca arcana",
@@ -3225,7 +3368,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Arcane Lock"
     },
     {
       "slug": "truque de corda",
@@ -3246,7 +3390,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Rope Trick"
     },
     {
       "slug": "ver o invisível",
@@ -3269,7 +3414,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "See Invisibility"
     },
     {
       "slug": "vínculo protetor",
@@ -3290,7 +3436,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Warding Bond"
     },
     {
       "slug": "visão no escuro",
@@ -3314,7 +3461,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Darkvision"
     },
     {
       "slug": "zona da verdade",
@@ -3337,7 +3485,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Zone of Truth"
     },
     {
       "slug": "ampliar plantas",
@@ -3360,7 +3509,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Plant Growth"
     },
     {
       "slug": "andar na água",
@@ -3384,7 +3534,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Water Walk"
     },
     {
       "slug": "animar mortos",
@@ -3406,7 +3557,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Animate Dead"
     },
     {
       "slug": "arma elemental",
@@ -3427,7 +3579,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Elemental Weapon"
     },
     {
       "slug": "aura de vitalidade",
@@ -3448,7 +3601,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Aura of Vitality"
     },
     {
       "slug": "bola de fogo",
@@ -3470,7 +3624,8 @@
       "suggestedDamageDice": "8d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Fireball"
     },
     {
       "slug": "círculo mágico",
@@ -3494,7 +3649,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Magic Circle"
     },
     {
       "slug": "clarividência",
@@ -3518,7 +3674,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Clairvoyance"
     },
     {
       "slug": "conjurar animais",
@@ -3540,7 +3697,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Animals"
     },
     {
       "slug": "conjurar rajada",
@@ -3561,7 +3719,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Conjure Barrage"
     },
     {
       "slug": "contramágica",
@@ -3584,7 +3743,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Counterspell"
     },
     {
       "slug": "convocar relâmpagos",
@@ -3605,7 +3765,8 @@
       "suggestedDamageDice": "3d10",
       "suggestedDamageType": "lightning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Call Lightning"
     },
     {
       "slug": "criar alimentos",
@@ -3627,7 +3788,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Create Food and Water"
     },
     {
       "slug": "destruição cegante",
@@ -3648,7 +3810,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Blinding Smite"
     },
     {
       "slug": "dificultar detecção",
@@ -3671,7 +3834,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Nondetection"
     },
     {
       "slug": "dissipar magia",
@@ -3698,7 +3862,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Dispel Magic"
     },
     {
       "slug": "enviar mensagem",
@@ -3721,7 +3886,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Sending"
     },
     {
       "slug": "espíritos guardiões",
@@ -3742,7 +3908,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Spirit Guardians"
     },
     {
       "slug": "falar com os mortos",
@@ -3764,7 +3931,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Speak with Dead"
     },
     {
       "slug": "flecha relampejante",
@@ -3785,7 +3953,8 @@
       "suggestedDamageDice": "4d8",
       "suggestedDamageType": "lightning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Lightning Arrow"
     },
     {
       "slug": "fome de hadar",
@@ -3806,7 +3975,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "cold",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Hunger of Hadar"
     },
     {
       "slug": "forjar morte",
@@ -3830,7 +4000,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Feign Death"
     },
     {
       "slug": "forma gasosa",
@@ -3853,7 +4024,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Gaseous Form"
     },
     {
       "slug": "glifo de vigilância",
@@ -3876,7 +4048,8 @@
       "suggestedDamageDice": "5d8",
       "suggestedDamageType": "acid",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Glyph of Warding"
     },
     {
       "slug": "idiomas",
@@ -3901,7 +4074,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Tongues"
     },
     {
       "slug": "imagem maior",
@@ -3925,7 +4099,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Major Image"
     },
     {
       "slug": "lentidão",
@@ -3947,7 +4122,8 @@
       "suggestedDamageDice": "1d20",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Slow"
     },
     {
       "slug": "luz do dia",
@@ -3972,7 +4148,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Daylight"
     },
     {
       "slug": "manto do cruzado",
@@ -3993,7 +4170,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": "radiant",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Crusader's Mantle"
     },
     {
       "slug": "medo",
@@ -4017,7 +4195,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Fear"
     },
     {
       "slug": "mesclar-se às rochas",
@@ -4039,7 +4218,8 @@
       "suggestedDamageDice": "6d6",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Meld into Stone"
     },
     {
       "slug": "montaria fantasmagórica",
@@ -4060,7 +4240,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Phantom Steed"
     },
     {
       "slug": "muralha de vento",
@@ -4082,7 +4263,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Wind Wall"
     },
     {
       "slug": "nevasca",
@@ -4105,7 +4287,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Sleet Storm"
     },
     {
       "slug": "névoa fétida",
@@ -4128,7 +4311,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Stinking Cloud"
     },
     {
       "slug": "padrão hipnótico",
@@ -4152,7 +4336,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Hypnotic Pattern"
     },
     {
       "slug": "palavra curativa em massa",
@@ -4174,7 +4359,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mass Healing Word"
     },
     {
       "slug": "pequena cabana de leomund",
@@ -4196,7 +4382,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Leomund's Tiny Hut"
     },
     {
       "slug": "piscar",
@@ -4218,7 +4405,8 @@
       "suggestedDamageDice": "1d20",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Blink"
     },
     {
       "slug": "proteção contra energia",
@@ -4243,7 +4431,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Protection from Energy"
     },
     {
       "slug": "relâmpago",
@@ -4265,7 +4454,8 @@
       "suggestedDamageDice": "8d6",
       "suggestedDamageType": "lightning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Lightning Bolt"
     },
     {
       "slug": "remover maldição",
@@ -4289,7 +4479,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Remove Curse"
     },
     {
       "slug": "respirar na água",
@@ -4313,7 +4504,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Water Breathing"
     },
     {
       "slug": "revivificar",
@@ -4335,7 +4527,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Revivify"
     },
     {
       "slug": "rogar maldição",
@@ -4358,7 +4551,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Bestow Curse"
     },
     {
       "slug": "sinal de esperança",
@@ -4379,7 +4573,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Beacon of Hope"
     },
     {
       "slug": "toque vampírico",
@@ -4401,7 +4596,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "necrotic",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Vampiric Touch"
     },
     {
       "slug": "velocidade",
@@ -4423,7 +4619,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Haste"
     },
     {
       "slug": "voo",
@@ -4446,7 +4643,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Fly"
     },
     {
       "slug": "adivinhação",
@@ -4467,7 +4665,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Divination"
     },
     {
       "slug": "arca secreta de leomund",
@@ -4488,7 +4687,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Leomund's Secret Chest"
     },
     {
       "slug": "assassino fantasmagórico",
@@ -4509,7 +4709,8 @@
       "suggestedDamageDice": "4d10",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Phantasmal Killer"
     },
     {
       "slug": "aura de pureza",
@@ -4530,7 +4731,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Aura of Purity"
     },
     {
       "slug": "aura de vida",
@@ -4551,7 +4753,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Aura of Life"
     },
     {
       "slug": "banimento",
@@ -4576,7 +4779,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Banishment"
     },
     {
       "slug": "cão fiel de mordenkainen",
@@ -4597,7 +4801,8 @@
       "suggestedDamageDice": "4d8",
       "suggestedDamageType": "piercing",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mordenkainen's Faithful Hound"
     },
     {
       "slug": "compulsão",
@@ -4618,7 +4823,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Compulsion"
     },
     {
       "slug": "confusão",
@@ -4642,7 +4848,8 @@
       "suggestedDamageDice": "1d10",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Confusion"
     },
     {
       "slug": "conjurar elementais menores",
@@ -4664,7 +4871,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Minor Elementals"
     },
     {
       "slug": "conjurar seres da floresta",
@@ -4686,7 +4894,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Woodland Beings"
     },
     {
       "slug": "controlar a água",
@@ -4709,7 +4918,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Control Water"
     },
     {
       "slug": "destruição estonteante",
@@ -4730,7 +4940,8 @@
       "suggestedDamageDice": "4d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Staggering Smite"
     },
     {
       "slug": "dominar besta",
@@ -4752,7 +4963,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Dominate Beast"
     },
     {
       "slug": "escudo de fogo",
@@ -4773,7 +4985,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "fire",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Fire Shield"
     },
     {
       "slug": "esfera resiliente de otiluke",
@@ -4794,7 +5007,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Otiluke's Resilient Sphere"
     },
     {
       "slug": "fabricar",
@@ -4815,7 +5029,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Fabricate"
     },
     {
       "slug": "guardião da fé",
@@ -4836,7 +5051,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Guardian of Faith"
     },
     {
       "slug": "inseto gigante",
@@ -4857,7 +5073,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Giant Insect"
     },
     {
       "slug": "invisibilidade maior",
@@ -4880,7 +5097,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Greater Invisibility"
     },
     {
       "slug": "localizar criatura",
@@ -4906,7 +5124,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Locate Creature"
     },
     {
       "slug": "malogro",
@@ -4930,7 +5149,8 @@
       "suggestedDamageDice": "8d8",
       "suggestedDamageType": "necrotic",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Blight"
     },
     {
       "slug": "metamorfose",
@@ -4954,7 +5174,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Polymorph"
     },
     {
       "slug": "moldar rochas",
@@ -4977,7 +5198,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Stone Shape"
     },
     {
       "slug": "movimentação livre",
@@ -5001,7 +5223,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Freedom of Movement"
     },
     {
       "slug": "muralha de fogo",
@@ -5024,7 +5247,8 @@
       "suggestedDamageDice": "5d8",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Wall of Fire"
     },
     {
       "slug": "olho arcano",
@@ -5045,7 +5269,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Arcane Eye"
     },
     {
       "slug": "pele de pedra",
@@ -5069,7 +5294,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Stoneskin"
     },
     {
       "slug": "porta dimensional",
@@ -5093,7 +5319,8 @@
       "suggestedDamageDice": "4d6",
       "suggestedDamageType": "force",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Dimension Door"
     },
     {
       "slug": "proteção contra a morte",
@@ -5115,7 +5342,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Death Ward"
     },
     {
       "slug": "santuário particular de mordenkainen",
@@ -5136,7 +5364,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mordenkainen's Private Sanctum"
     },
     {
       "slug": "tempestade de gelo",
@@ -5159,7 +5388,8 @@
       "suggestedDamageDice": "2d8",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Ice Storm"
     },
     {
       "slug": "tentáculos negros de evard",
@@ -5180,7 +5410,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Evard's Black Tentacles"
     },
     {
       "slug": "terreno alucinógeno",
@@ -5204,7 +5435,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Hallucinatory Terrain"
     },
     {
       "slug": "vinha esmagadora",
@@ -5226,7 +5458,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Grasping Vine"
     },
     {
       "slug": "aljava veloz",
@@ -5247,7 +5480,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Swift Quiver"
     },
     {
       "slug": "âncora planar",
@@ -5271,7 +5505,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Planar Binding"
     },
     {
       "slug": "animar objetos",
@@ -5294,7 +5529,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Animate Objects"
     },
     {
       "slug": "caminhar em árvores",
@@ -5316,7 +5552,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Tree Stride"
     },
     {
       "slug": "círculo de poder",
@@ -5337,7 +5574,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Circle of Power"
     },
     {
       "slug": "círculo de teletransporte",
@@ -5360,7 +5598,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Teleportation Circle"
     },
     {
       "slug": "coluna de chamas",
@@ -5381,7 +5620,8 @@
       "suggestedDamageDice": "4d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Flame Strike"
     },
     {
       "slug": "comunhão",
@@ -5402,7 +5642,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Commune"
     },
     {
       "slug": "comunhão com a natureza",
@@ -5424,7 +5665,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Commune with Nature"
     },
     {
       "slug": "cone de frio",
@@ -5446,7 +5688,8 @@
       "suggestedDamageDice": "8d8",
       "suggestedDamageType": "cold",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Cone of Cold"
     },
     {
       "slug": "conhecimento lendário",
@@ -5469,7 +5712,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Legend Lore"
     },
     {
       "slug": "conjurar elemental",
@@ -5491,7 +5735,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Elemental"
     },
     {
       "slug": "conjurar saraivada",
@@ -5512,7 +5757,8 @@
       "suggestedDamageDice": "8d8",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Conjure Volley"
     },
     {
       "slug": "consagrar",
@@ -5533,7 +5779,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Hallow"
     },
     {
       "slug": "contato extraplanar",
@@ -5555,7 +5802,8 @@
       "suggestedDamageDice": "6d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "INT"
+      "saveAbility": "INT",
+      "nameEn": "Contact Other Plane"
     },
     {
       "slug": "criação",
@@ -5577,7 +5825,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Creation"
     },
     {
       "slug": "criar passagem",
@@ -5598,7 +5847,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Passwall"
     },
     {
       "slug": "cúpula antivida",
@@ -5619,7 +5869,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Antilife Shell"
     },
     {
       "slug": "curar ferimentos em massa",
@@ -5641,7 +5892,8 @@
       "suggestedDamageDice": "3d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mass Cure Wounds"
     },
     {
       "slug": "despertar",
@@ -5663,7 +5915,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Awaken"
     },
     {
       "slug": "despistar",
@@ -5685,7 +5938,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mislead"
     },
     {
       "slug": "destruição banidora",
@@ -5706,7 +5960,8 @@
       "suggestedDamageDice": "5d6",
       "suggestedDamageType": "force",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Banishing Smite"
     },
     {
       "slug": "dissipar o bem e mal",
@@ -5728,7 +5983,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Dispel Evil and Good"
     },
     {
       "slug": "dominar pessoa",
@@ -5751,7 +6007,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Dominate Person"
     },
     {
       "slug": "imobilizar monstro",
@@ -5775,7 +6032,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Hold Monster"
     },
     {
       "slug": "ligação telepática de rary",
@@ -5796,7 +6054,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Rary's Telepathic Bond"
     },
     {
       "slug": "mão de bigby",
@@ -5817,7 +6076,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Bigby's Hand"
     },
     {
       "slug": "missão",
@@ -5842,7 +6102,8 @@
       "suggestedDamageDice": "5d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Geas"
     },
     {
       "slug": "modificar memória",
@@ -5864,7 +6125,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Modify Memory"
     },
     {
       "slug": "muralha de energia",
@@ -5885,7 +6147,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Wall of Force"
     },
     {
       "slug": "muralha de pedra",
@@ -5908,7 +6171,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Wall of Stone"
     },
     {
       "slug": "névoa mortal",
@@ -5930,7 +6194,8 @@
       "suggestedDamageDice": "5d8",
       "suggestedDamageType": "poison",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Cloudkill"
     },
     {
       "slug": "onda destrutiva",
@@ -5951,7 +6216,8 @@
       "suggestedDamageDice": "5d5",
       "suggestedDamageType": "thunder",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Destructive Wave"
     },
     {
       "slug": "praga",
@@ -5973,7 +6239,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Contagion"
     },
     {
       "slug": "praga de insetos",
@@ -5996,7 +6263,8 @@
       "suggestedDamageDice": "4d10",
       "suggestedDamageType": "piercing",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Insect Plague"
     },
     {
       "slug": "reencarnação",
@@ -6017,7 +6285,8 @@
       "suggestedDamageDice": "1d100",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Reincarnate"
     },
     {
       "slug": "restauração maior",
@@ -6040,7 +6309,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Greater Restoration"
     },
     {
       "slug": "reviver os mortos",
@@ -6063,7 +6333,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Raise Dead"
     },
     {
       "slug": "similaridade",
@@ -6086,7 +6357,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Seeming"
     },
     {
       "slug": "sonho",
@@ -6109,7 +6381,8 @@
       "suggestedDamageDice": "3d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Dream"
     },
     {
       "slug": "telecinésia",
@@ -6131,7 +6404,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Telekinesis"
     },
     {
       "slug": "vidência",
@@ -6156,7 +6430,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Scrying"
     },
     {
       "slug": "aliado planar",
@@ -6177,7 +6452,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Planar Ally"
     },
     {
       "slug": "ataque visual",
@@ -6201,7 +6477,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Eyebite"
     },
     {
       "slug": "banquete dos heróis",
@@ -6223,7 +6500,8 @@
       "suggestedDamageDice": "2d10",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Heroes' Feast"
     },
     {
       "slug": "barreira de lâminas",
@@ -6244,7 +6522,8 @@
       "suggestedDamageDice": "6d10",
       "suggestedDamageType": "slashing",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Blade Barrier"
     },
     {
       "slug": "caminhar no vento",
@@ -6265,7 +6544,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Wind Walk"
     },
     {
       "slug": "carne para pedra",
@@ -6287,7 +6567,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Flesh to Stone"
     },
     {
       "slug": "círculo da morte",
@@ -6310,7 +6591,8 @@
       "suggestedDamageDice": "8d6",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Circle of Death"
     },
     {
       "slug": "conjurar fada",
@@ -6332,7 +6614,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Fey"
     },
     {
       "slug": "contingência",
@@ -6353,7 +6636,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Contingency"
     },
     {
       "slug": "corrente de relâmpagos",
@@ -6375,7 +6659,8 @@
       "suggestedDamageDice": "10d8",
       "suggestedDamageType": "lightning",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Chain Lightning"
     },
     {
       "slug": "criar mortos-vivos",
@@ -6398,7 +6683,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Create Undead"
     },
     {
       "slug": "cura completa",
@@ -6420,7 +6706,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Heal"
     },
     {
       "slug": "dança irresistível de otto",
@@ -6442,7 +6729,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Otto's Irresistible Dance"
     },
     {
       "slug": "desintegrar",
@@ -6464,7 +6752,8 @@
       "suggestedDamageDice": "10d6",
       "suggestedDamageType": "force",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Disintegrate"
     },
     {
       "slug": "doença plena",
@@ -6485,7 +6774,8 @@
       "suggestedDamageDice": "14d6",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Harm"
     },
     {
       "slug": "encontrar o caminho",
@@ -6508,7 +6798,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Find the Path"
     },
     {
       "slug": "esfera congelante de otiluke",
@@ -6529,7 +6820,8 @@
       "suggestedDamageDice": "10d6",
       "suggestedDamageType": "cold",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Otiluke's Freezing Sphere"
     },
     {
       "slug": "globo de invulnerabilidade",
@@ -6551,7 +6843,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Globe of Invulnerability"
     },
     {
       "slug": "ilusão programada",
@@ -6573,7 +6866,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Programmed Illusion"
     },
     {
       "slug": "invocação instantânea de drawmij",
@@ -6594,7 +6888,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Drawmij's Instant Summons"
     },
     {
       "slug": "mover terra",
@@ -6617,7 +6912,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Move Earth"
     },
     {
       "slug": "muralha de espinhos",
@@ -6638,7 +6934,8 @@
       "suggestedDamageDice": "7d8",
       "suggestedDamageType": "piercing",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Wall of Thorns"
     },
     {
       "slug": "muralha de gelo",
@@ -6659,7 +6956,8 @@
       "suggestedDamageDice": "10d6",
       "suggestedDamageType": "cold",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Wall of Ice"
     },
     {
       "slug": "palavra de recordação",
@@ -6680,7 +6978,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Word of Recall"
     },
     {
       "slug": "portal arcano",
@@ -6703,7 +7002,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Arcane Gate"
     },
     {
       "slug": "proibição",
@@ -6724,7 +7024,8 @@
       "suggestedDamageDice": "5d6",
       "suggestedDamageType": "radiant",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Forbiddance"
     },
     {
       "slug": "proteger fortaleza",
@@ -6746,7 +7047,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Guards and Wards"
     },
     {
       "slug": "raio solar",
@@ -6769,7 +7071,8 @@
       "suggestedDamageDice": "6d8",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Sunbeam"
     },
     {
       "slug": "recipiente arcano",
@@ -6790,7 +7093,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Magic Jar"
     },
     {
       "slug": "sugestão em massa",
@@ -6814,7 +7118,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Mass Suggestion"
     },
     {
       "slug": "teletransporte por árvores",
@@ -6835,7 +7140,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Transport via Plants"
     },
     {
       "slug": "visão da verdade",
@@ -6860,7 +7166,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "True Seeing"
     },
     {
       "slug": "bola de fogo controlável",
@@ -6882,7 +7189,8 @@
       "suggestedDamageDice": "12d6",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Delayed Blast Fireball"
     },
     {
       "slug": "conjurar celestial",
@@ -6903,7 +7211,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Conjure Celestial"
     },
     {
       "slug": "dedo da morte",
@@ -6926,7 +7235,8 @@
       "suggestedDamageDice": "7d8",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Finger of Death"
     },
     {
       "slug": "espada de mordenkainen",
@@ -6948,7 +7258,8 @@
       "suggestedDamageDice": "3d10",
       "suggestedDamageType": "force",
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mordenkainen's Sword"
     },
     {
       "slug": "forma etérea",
@@ -6973,7 +7284,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Etherealness"
     },
     {
       "slug": "inverter a gravidade",
@@ -6996,7 +7308,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Reverse Gravity"
     },
     {
       "slug": "isolamento",
@@ -7017,7 +7330,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Sequester"
     },
     {
       "slug": "mansão magnífica de mordenkainen",
@@ -7039,7 +7353,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mordenkainen's Magnificent Mansion"
     },
     {
       "slug": "miragem",
@@ -7062,7 +7377,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mirage Arcane"
     },
     {
       "slug": "palavra divina",
@@ -7083,7 +7399,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Divine Word"
     },
     {
       "slug": "prisão de energia",
@@ -7106,7 +7423,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CAR"
+      "saveAbility": "CAR",
+      "nameEn": "Forcecage"
     },
     {
       "slug": "projetar imagem",
@@ -7128,7 +7446,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Project Image"
     },
     {
       "slug": "rajada prismática",
@@ -7150,7 +7469,8 @@
       "suggestedDamageDice": "1d8",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Prismatic Spray"
     },
     {
       "slug": "regeneração",
@@ -7173,7 +7493,8 @@
       "suggestedDamageDice": "4d8",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Regenerate"
     },
     {
       "slug": "ressurreição",
@@ -7195,7 +7516,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Resurrection"
     },
     {
       "slug": "símbolo",
@@ -7218,7 +7540,8 @@
       "suggestedDamageDice": "10d10",
       "suggestedDamageType": "necrotic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Symbol"
     },
     {
       "slug": "simulacro",
@@ -7239,7 +7562,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Simulacrum"
     },
     {
       "slug": "teletransporte",
@@ -7262,7 +7586,8 @@
       "suggestedDamageDice": "1d100",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Teleport"
     },
     {
       "slug": "tempestade de fogo",
@@ -7285,7 +7610,8 @@
       "suggestedDamageDice": "7d10",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Fire Storm"
     },
     {
       "slug": "viagem planar",
@@ -7310,7 +7636,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "attack",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Plane Shift"
     },
     {
       "slug": "antipatia/simpatia",
@@ -7332,7 +7659,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Antipathy/Sympathy"
     },
     {
       "slug": "aura sagrada",
@@ -7353,7 +7681,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Holy Aura"
     },
     {
       "slug": "campo antimagia",
@@ -7375,7 +7704,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Antimagic Field"
     },
     {
       "slug": "clone",
@@ -7396,7 +7726,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Clone"
     },
     {
       "slug": "controlar o clima",
@@ -7419,7 +7750,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Control Weather"
     },
     {
       "slug": "dominar monstro",
@@ -7443,7 +7775,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Dominate Monster"
     },
     {
       "slug": "enfraquecer intelecto",
@@ -7467,7 +7800,8 @@
       "suggestedDamageDice": "4d6",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "INT"
+      "saveAbility": "INT",
+      "nameEn": "Feeblemind"
     },
     {
       "slug": "explosão solar",
@@ -7490,7 +7824,8 @@
       "suggestedDamageDice": "12d6",
       "suggestedDamageType": "radiant",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Sunburst"
     },
     {
       "slug": "formas animais",
@@ -7511,7 +7846,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Animal Shapes"
     },
     {
       "slug": "labirinto",
@@ -7532,7 +7868,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Maze"
     },
     {
       "slug": "limpar a mente",
@@ -7554,7 +7891,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mind Blank"
     },
     {
       "slug": "loquacidade",
@@ -7576,7 +7914,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Glibness"
     },
     {
       "slug": "nuvem incendiária",
@@ -7598,7 +7937,8 @@
       "suggestedDamageDice": "10d8",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Incendiary Cloud"
     },
     {
       "slug": "palavra de poder atordoar",
@@ -7622,7 +7962,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Power Word Stun"
     },
     {
       "slug": "semiplano",
@@ -7644,7 +7985,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Demiplane"
     },
     {
       "slug": "telepatia",
@@ -7665,7 +8007,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Telepathy"
     },
     {
       "slug": "terremoto",
@@ -7688,7 +8031,8 @@
       "suggestedDamageDice": "1d6",
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Earthquake"
     },
     {
       "slug": "tsunami",
@@ -7709,7 +8053,8 @@
       "suggestedDamageDice": "6d10",
       "suggestedDamageType": "bludgeoning",
       "attackKind": "save",
-      "saveAbility": "FOR"
+      "saveAbility": "FOR",
+      "nameEn": "Tsunami"
     },
     {
       "slug": "alterar forma",
@@ -7731,7 +8076,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Shapechange"
     },
     {
       "slug": "aprisionamento",
@@ -7753,7 +8099,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Imprisonment"
     },
     {
       "slug": "chuva de meteoros",
@@ -7775,7 +8122,8 @@
       "suggestedDamageDice": "20d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "DES"
+      "saveAbility": "DES",
+      "nameEn": "Meteor Swarm"
     },
     {
       "slug": "cura completa em massa",
@@ -7796,7 +8144,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Mass Heal"
     },
     {
       "slug": "desejo",
@@ -7818,7 +8167,8 @@
       "suggestedDamageDice": "1d10",
       "suggestedDamageType": "necrotic",
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Wish"
     },
     {
       "slug": "encarnação fantasmagórica",
@@ -7839,7 +8189,8 @@
       "suggestedDamageDice": "4d10",
       "suggestedDamageType": "psychic",
       "attackKind": "save",
-      "saveAbility": "SAB"
+      "saveAbility": "SAB",
+      "nameEn": "Weird"
     },
     {
       "slug": "metamorfose verdadeira",
@@ -7862,7 +8213,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "True Polymorph"
     },
     {
       "slug": "muralha prismática",
@@ -7883,7 +8235,8 @@
       "suggestedDamageDice": "10d6",
       "suggestedDamageType": "fire",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Prismatic Wall"
     },
     {
       "slug": "palavra de poder curar",
@@ -7904,7 +8257,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Power Word Heal"
     },
     {
       "slug": "palavra de poder matar",
@@ -7928,7 +8282,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Power Word Kill"
     },
     {
       "slug": "parar o tempo",
@@ -7950,7 +8305,8 @@
       "suggestedDamageDice": "1d4",
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Time Stop"
     },
     {
       "slug": "portal",
@@ -7973,7 +8329,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Gate"
     },
     {
       "slug": "projeção astral",
@@ -7996,7 +8353,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Astral Projection"
     },
     {
       "slug": "ressurreição verdadeira",
@@ -8018,7 +8376,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "True Resurrection"
     },
     {
       "slug": "sexto sentido",
@@ -8042,7 +8401,8 @@
       "suggestedDamageDice": null,
       "suggestedDamageType": null,
       "attackKind": "none",
-      "saveAbility": null
+      "saveAbility": null,
+      "nameEn": "Foresight"
     },
     {
       "slug": "tempestade da vingança",
@@ -8063,7 +8423,8 @@
       "suggestedDamageDice": "2d6",
       "suggestedDamageType": "thunder",
       "attackKind": "save",
-      "saveAbility": "CON"
+      "saveAbility": "CON",
+      "nameEn": "Storm of Vengeance"
     }
   ]
 }

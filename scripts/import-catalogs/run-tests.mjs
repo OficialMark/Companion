@@ -7,3 +7,4 @@ import './units.test.mjs';
 import './map-items.test.mjs';
 import './validate-translation.test.mjs';
 import './report.test.mjs';
+import './spell-names.test.mjs';

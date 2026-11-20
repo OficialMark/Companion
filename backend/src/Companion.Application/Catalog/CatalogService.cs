@@ -13,10 +13,10 @@ public sealed record CatalogItemDto(Guid Id, string Name, string? NameEn, ItemCa
     string? Rarity, bool RequiresAttunement, string? Cost, bool RequiresBaseItem, InventoryItemData Template);
 
 public sealed record CatalogSpellSummaryDto(Guid Id, string Name, int Level, string? School, bool Ritual, bool Concentration,
-    IReadOnlyList<string> Classes);
+    IReadOnlyList<string> Classes, string? NameEn = null);
 
 public sealed record CatalogSpellDto(Guid Id, string Name, int Level, IReadOnlyList<string> Classes, string? HigherLevels,
-    CharacterSpellData Template);
+    CharacterSpellData Template, string? NameEn = null);
 
 public sealed record CatalogPageDto<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize, string? Attribution);
 
@@ -35,16 +35,25 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         "available at https://www.dndbeyond.com/srd. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 " +
         "International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
 
+    /// <summary>Below this length a term only matches names: one or two letters are in every description.</summary>
+    public const int MinDescriptionTermLength = 3;
+
+    /// <summary>Lowercase, accent-free, inner whitespace collapsed (like the stored search columns); null when blank.</summary>
+    private static string? SearchTerm(string? q)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return null;
+        return string.Join(' ', Creature.Normalize(q).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
     public CatalogPageDto<CatalogItemSummaryDto> ListItems(Guid campaignId, string token, CatalogItemQuery query)
     {
         authorization.Require(campaignId, token);
         var (page, size) = Paging(query.Page, query.PageSize);
         var items = db.CatalogItems.Where(x => !x.IsRemovedFromCatalog);
-        if (!string.IsNullOrWhiteSpace(query.Q))
-        {
-            var key = Creature.Normalize(query.Q.Trim());
-            items = items.Where(x => x.SearchKey.Contains(key));
-        }
+        var key = SearchTerm(query.Q);
+        var broad = key is { Length: >= MinDescriptionTermLength };
+        if (key is not null)
+            items = broad ? items.Where(x => x.SearchKey.Contains(key) || x.SearchText.Contains(key)) : items.Where(x => x.SearchKey.Contains(key));
 
         if (query.Category is { } category) items = items.Where(x => x.Category == category);
         if (!string.IsNullOrWhiteSpace(query.Rarity))
@@ -56,7 +65,9 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         if (query.Mundane) items = items.Where(x => x.Rarity == null && !x.RequiresBaseItem);
 
         var total = items.Count();
-        var rows = items.OrderBy(x => x.Name).ThenBy(x => x.Slug).Skip((page - 1) * size).Take(size).AsEnumerable()
+        // Name matches first, then the rows that matched only by description (spec 012, FR-003).
+        var ordered = key is null ? items.OrderBy(x => 0) : items.OrderBy(x => x.SearchKey.Contains(key) ? 0 : 1);
+        var rows = ordered.ThenBy(x => x.Name).ThenBy(x => x.Slug).Skip((page - 1) * size).Take(size).AsEnumerable()
             .Select(x => new CatalogItemSummaryDto(x.Id, x.Name, x.NameEn, x.Category, x.Subcategory, x.Rarity,
                 x.RequiresAttunement, x.Template.MagicBonus, x.RequiresBaseItem))
             .ToArray();
@@ -77,11 +88,10 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         authorization.Require(campaignId, token);
         var (page, size) = Paging(query.Page, query.PageSize);
         var spells = db.CatalogSpells.Where(x => !x.IsRemovedFromCatalog);
-        if (!string.IsNullOrWhiteSpace(query.Q))
-        {
-            var key = Creature.Normalize(query.Q.Trim());
-            spells = spells.Where(x => x.SearchKey.Contains(key));
-        }
+        var key = SearchTerm(query.Q);
+        var broad = key is { Length: >= MinDescriptionTermLength };
+        if (key is not null)
+            spells = broad ? spells.Where(x => x.SearchKey.Contains(key) || x.SearchText.Contains(key)) : spells.Where(x => x.SearchKey.Contains(key));
 
         if (query.Level is { } level) spells = spells.Where(x => x.Level == level);
         if (!string.IsNullOrWhiteSpace(query.School))
@@ -94,7 +104,8 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         if (query.Concentration is { } concentration) spells = spells.Where(x => x.Concentration == concentration);
 
         // The class list is a small JSON column: filter it in memory after the SQL filters.
-        var rows = spells.OrderBy(x => x.Level).ThenBy(x => x.Name).AsEnumerable();
+        var ordered = key is null ? spells.OrderBy(x => 0) : spells.OrderBy(x => x.SearchKey.Contains(key) ? 0 : 1);
+        var rows = ordered.ThenBy(x => x.Level).ThenBy(x => x.Name).AsEnumerable();
         if (!string.IsNullOrWhiteSpace(query.Class))
         {
             var spellClass = query.Class.Trim().ToLowerInvariant();
@@ -103,7 +114,7 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
 
         var list = rows.ToArray();
         var pageRows = list.Skip((page - 1) * size).Take(size)
-            .Select(x => new CatalogSpellSummaryDto(x.Id, x.Name, x.Level, x.School, x.Ritual, x.Concentration, x.Classes))
+            .Select(x => new CatalogSpellSummaryDto(x.Id, x.Name, x.Level, x.School, x.Ritual, x.Concentration, x.Classes, x.NameEn))
             .ToArray();
         return new CatalogPageDto<CatalogSpellSummaryDto>(pageRows, list.Length, page, size, null);
     }
@@ -113,7 +124,7 @@ public sealed class CatalogService(ICompanionDbContext db, ParticipantAuthorizat
         authorization.Require(campaignId, token);
         var spell = db.CatalogSpells.FirstOrDefault(x => x.Id == id && !x.IsRemovedFromCatalog)
             ?? throw new AppException(AppErrorKind.NotFound, "Magia não encontrada no catálogo.");
-        return new CatalogSpellDto(spell.Id, spell.Name, spell.Level, spell.Classes, spell.HigherLevels, spell.Template);
+        return new CatalogSpellDto(spell.Id, spell.Name, spell.Level, spell.Classes, spell.HigherLevels, spell.Template, spell.NameEn);
     }
 
     public const int MaxPage = 100_000;
