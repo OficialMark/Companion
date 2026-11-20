@@ -10,7 +10,7 @@ const masked = computed(() => '•'.repeat(Math.max(6, code.value?.length ?? 6))
 </script>
 
 <template>
-  <div v-if="code" class="master-code-toggle" data-master-code>
+  <div v-if="code" class="master-code-toggle" :class="{ 'is-visible': visible }" data-master-code>
     <Icon name="lucide:key-round" aria-hidden="true" />
     <span class="master-code-label">Código do mestre</span>
     <code class="master-code-value" :aria-label="visible ? `Código do mestre ${code}` : 'Código do mestre oculto'" data-master-code-value>{{ visible ? code : masked }}</code>

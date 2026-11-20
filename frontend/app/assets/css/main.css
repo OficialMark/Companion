@@ -435,11 +435,16 @@ select option { background: #241d23; color: #f8f0e5; }
 select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-weight: 700; }
 
 /* Master's code in the top bar (spec 012, FR-009): masked until the eye is pressed. */
-.master-code-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border: 1px solid rgba(215,174,93,.25); border-radius: 10px; padding: 0 4px 0 10px; color: var(--gold-soft); background: rgba(215,174,93,.06); }
+.master-code-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 1px solid rgba(215,174,93,.25); border-radius: 10px; padding: 0 4px 0 10px; color: var(--gold-soft); background: rgba(215,174,93,.06); }
 .master-code-label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
 .master-code-value { min-width: 6ch; font-family: ui-monospace, monospace; font-size: .95rem; letter-spacing: .08em; color: var(--ink); }
-.master-code-eye { width: 36px; height: 36px; }
-@media (max-width: 720px) { .master-code-label { display: none; } }
+.master-code-eye { width: 44px; height: 44px; }
+/* Below 1100 px: only the key and the eye while hidden, so the campaign name keeps its room in the top bar. */
+@media (max-width: 1100px) {
+  .master-code-label { display: none; }
+  .master-code-toggle { padding: 0 0 0 8px; gap: 2px; }
+  .master-code-toggle:not(.is-visible) .master-code-value { display: none; }
+}
 
 /* Player's sheet summary at the foot of the Mesa and its overview (spec 012, US3). */
 .sheet-summary { position: sticky; bottom: 12px; z-index: 5; margin-top: 18px; }

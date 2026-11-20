@@ -91,6 +91,7 @@ describe('SheetOverviewModal', () => {
     expect(characterApi.saveSheet.mock.calls[0]![1]).toMatchObject({ currentHitPoints: 17, temporaryHitPoints: 0 })
     expect(wrapper.text()).toContain('7 de dano. Vida 17 de 30.')
     expect((wrapper.get('[data-hp-amount]').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(wrapper.get('[data-hp-amount]').element) // focus stays in the dialog
     wrapper.unmount()
   })
 

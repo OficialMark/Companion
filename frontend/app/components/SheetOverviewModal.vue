@@ -48,6 +48,8 @@ function change(kind: 'damage' | 'heal', raw: number | null = amount.value) {
   void character.flush()
   announce.value = kind === 'damage' ? `${value} de dano. Vida ${next.current} de ${maxHp.value}.` : `${value} de cura. Vida ${next.current} de ${maxHp.value}.`
   amount.value = null
+  // Dano and Cura turn disabled with the field empty: keep the focus in the dialog (Esc, Tab trap).
+  void nextTick(() => amountInput.value?.focus())
 }
 
 const SAVE_LABEL: Record<string, string> = { saving: 'Salvando…', saved: 'Salvo', error: 'Não foi possível salvar', conflict: 'A ficha mudou em outro aparelho' }
