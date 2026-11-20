@@ -47,10 +47,11 @@ public abstract class CharacterTestBase(CompanionApiFactory factory) : ApiTestBa
     protected Task<CharacterDto> Equip(SessionResponse session, Guid itemId, bool equipped = true) =>
         Ok(HttpMethod.Post, $"{Base(session)}/items/{itemId}/equip", session, new EquipItemRequest(equipped));
 
-    protected async Task<(SessionResponse Master, SessionResponse Player)> Table(string playerName = "Loren")
+    protected async Task<(SessionResponse Master, SessionResponse Player)> Table(string? playerName = null)
     {
         var master = await CreateCampaign(Suffix());
-        var player = await Join(master.PlayerCode, playerName);
+        // Sheets are global per player name (2026-11-20): every test gets its own name, so its own sheet.
+        var player = await Join(master.PlayerCode, playerName ?? $"Loren {Suffix()}");
         return (master, player);
     }
 

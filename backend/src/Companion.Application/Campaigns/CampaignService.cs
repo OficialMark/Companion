@@ -154,7 +154,8 @@ public sealed class CampaignService(
             throw new AppException(AppErrorKind.Forbidden, "Somente jogadores possuem perfil de combate.");
         // FR-010: with a sheet, initiative and HP are calculated from it (CharacterService keeps the
         // participant in sync). Editing them here would make the table and the sheet disagree.
-        if (db.CharacterSheets.Any(x => x.ParticipantId == participant.Id))
+        var ownerKey = Companion.Domain.Characters.CharacterOwner.Key(participant);
+        if (db.CharacterSheets.Any(x => x.OwnerKey == ownerKey))
             throw new AppException(AppErrorKind.Conflict, CombatProfileFromSheet);
         try
         {

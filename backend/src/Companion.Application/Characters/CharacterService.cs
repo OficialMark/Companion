@@ -40,7 +40,19 @@ public sealed class CharacterService(
     public async Task<CharacterDto> GetAsync(Guid campaignId, string token, CancellationToken cancellationToken, bool ifExists = false)
     {
         var loaded = await LoadAsync(campaignId, token, cancellationToken, createIfMissing: !ifExists);
-        return ToDto(loaded, CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded)));
+        var stats = CharacterRules.Compute(loaded.Sheet.Data, Entries(loaded), SpellEntries(loaded));
+        // The same name in another campaign is another participant with the same sheet: bring this
+        // table's initiative and HP in line with the sheet the first time it is read there (FR-010).
+        var participant = loaded.Participant;
+        var expected = ((int?)Math.Clamp(stats.Initiative.Value, -100, 100), (int?)loaded.Sheet.Data.CurrentHitPoints, (int?)stats.MaxHitPoints.Value);
+        if ((participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints) != expected)
+        {
+            participant.UpdateCombatProfile(expected.Item1, expected.Item2, expected.Item3);
+            await db.SaveChangesAsync(cancellationToken);
+            await notifier.NotifyAsync(campaignId, "ParticipantUpdated", DtoMapper.ToDto(participant, presence.IsOnline(participant.Id)), cancellationToken);
+        }
+
+        return ToDto(loaded, stats);
     }
 
     public Task<CharacterDto> SaveSheetAsync(Guid campaignId, string token, SaveSheetRequest request, CancellationToken cancellationToken) =>
@@ -147,7 +159,7 @@ public sealed class CharacterService(
                 throw new AppException(AppErrorKind.Validation, $"Você pode salvar até {SavedRoll.MaxRollsPerCharacter} rolagens.");
             var data = CheckRollReferences(loaded, request.Data);
             SavedRoll roll = null!;
-            Validate(() => roll = new SavedRoll(Guid.NewGuid(), loaded.Participant.Id, NextOrder(loaded.Rolls.Select(x => x.SortOrder)), data, timeProvider.GetUtcNow()));
+            Validate(() => roll = new SavedRoll(Guid.NewGuid(), loaded.Sheet.ParticipantId, NextOrder(loaded.Rolls.Select(x => x.SortOrder)), data, timeProvider.GetUtcNow()));
             db.Add(roll);
             loaded.Rolls.Add(roll);
         });
@@ -168,7 +180,7 @@ public sealed class CharacterService(
                 throw new AppException(AppErrorKind.Validation, $"Você pode salvar até {SavedRoll.MaxRollsPerCharacter} rolagens.");
             var name = $"{source.Data.Name} (cópia)";
             if (name.Length > SavedRollData.MaxNameLength) name = name[..SavedRollData.MaxNameLength].TrimEnd();
-            var copy = new SavedRoll(Guid.NewGuid(), loaded.Participant.Id, NextOrder(loaded.Rolls.Select(x => x.SortOrder)),
+            var copy = new SavedRoll(Guid.NewGuid(), loaded.Sheet.ParticipantId, NextOrder(loaded.Rolls.Select(x => x.SortOrder)),
                 source.Data with { Name = name }, timeProvider.GetUtcNow());
             db.Add(copy);
             loaded.Rolls.Add(copy);
@@ -219,12 +231,14 @@ public sealed class CharacterService(
         if (participant.Role != ParticipantRole.Player)
             throw new AppException(AppErrorKind.Forbidden, "Somente jogadores possuem ficha pessoal.");
 
-        var sheet = db.CharacterSheets.FirstOrDefault(x => x.ParticipantId == participant.Id);
+        // One sheet per player name, in every campaign (2026-11-20): look it up by the account key.
+        var ownerKey = CharacterOwner.Key(participant);
+        var sheet = db.CharacterSheets.FirstOrDefault(x => x.OwnerKey == ownerKey);
         if (sheet is null && !createIfMissing) throw new AppException(AppErrorKind.NotFound, NoSheetYet);
         if (sheet is null)
         {
             var now = timeProvider.GetUtcNow();
-            sheet = new CharacterSheet(participant.Id, now);
+            sheet = new CharacterSheet(participant.Id, ownerKey, now);
             // A new sheet starts from the HP the player already gave the table, and from then on the sheet
             // is the only source of initiative and HP (FR-010): sync the participant in the same commit,
             // so the table never shows the old manual numbers next to a sheet that says otherwise.
@@ -250,7 +264,7 @@ public sealed class CharacterService(
             {
                 // Two first opens at the same time: the other request created it. Use that one.
                 db.Detach(sheet);
-                var existing = db.CharacterSheets.FirstOrDefault(x => x.ParticipantId == participant.Id);
+                var existing = db.CharacterSheets.FirstOrDefault(x => x.OwnerKey == ownerKey);
                 if (existing is null) throw;
                 sheet = existing;
             }
@@ -258,9 +272,9 @@ public sealed class CharacterService(
 
         return new Loaded(participant, sheet)
         {
-            Items = db.InventoryItems.Where(x => x.ParticipantId == participant.Id).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
-            Spells = db.CharacterSpells.Where(x => x.ParticipantId == participant.Id).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
-            Rolls = db.SavedRolls.Where(x => x.ParticipantId == participant.Id).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList()
+            Items = db.InventoryItems.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
+            Spells = db.CharacterSpells.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
+            Rolls = db.SavedRolls.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList()
         };
     }
 
@@ -269,7 +283,7 @@ public sealed class CharacterService(
         if (loaded.Items.Count >= InventoryItem.MaxItemsPerCharacter)
             throw new AppException(AppErrorKind.Validation, $"A mochila aceita até {InventoryItem.MaxItemsPerCharacter} itens.");
         InventoryItem item = null!;
-        Validate(() => item = new InventoryItem(Guid.NewGuid(), loaded.Participant.Id,
+        Validate(() => item = new InventoryItem(Guid.NewGuid(), loaded.Sheet.ParticipantId,
             NextOrder(loaded.Items.Select(x => x.SortOrder)), data, catalogItemId, timeProvider.GetUtcNow()));
         db.Add(item);
         loaded.Items.Add(item);
@@ -280,7 +294,7 @@ public sealed class CharacterService(
         if (loaded.Spells.Count >= CharacterSpell.MaxSpellsPerCharacter)
             throw new AppException(AppErrorKind.Validation, $"A ficha aceita até {CharacterSpell.MaxSpellsPerCharacter} magias.");
         CharacterSpell spell = null!;
-        Validate(() => spell = new CharacterSpell(Guid.NewGuid(), loaded.Participant.Id,
+        Validate(() => spell = new CharacterSpell(Guid.NewGuid(), loaded.Sheet.ParticipantId,
             NextOrder(loaded.Spells.Select(x => x.SortOrder)), data, catalogSpellId, timeProvider.GetUtcNow()));
         db.Add(spell);
         loaded.Spells.Add(spell);

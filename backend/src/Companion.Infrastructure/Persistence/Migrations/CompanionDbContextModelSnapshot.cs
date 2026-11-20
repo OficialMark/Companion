@@ -159,6 +159,12 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("OwnerKey")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -169,6 +175,9 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasColumnType("rowversion");
 
                     b.HasKey("ParticipantId");
+
+                    b.HasIndex("OwnerKey")
+                        .IsUnique();
 
                     b.ToTable("CharacterSheets", (string)null);
                 });
@@ -1173,15 +1182,6 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("SeedVersions", (string)null);
-                });
-
-            modelBuilder.Entity("Companion.Domain.Characters.CharacterSheet", b =>
-                {
-                    b.HasOne("Companion.Domain.Models.Participant", null)
-                        .WithOne()
-                        .HasForeignKey("Companion.Domain.Characters.CharacterSheet", "ParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Companion.Domain.Characters.CharacterSpell", b =>

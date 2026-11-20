@@ -27,6 +27,7 @@ Fatos do sistema atual que moldam esta feature:
 
 - Q: Fonte e idioma do catálogo de itens (a página da D&D Beyond está em inglês e os termos do site provavelmente proíbem extração)? → A: usar o mesmo conteúdo pelo SRD 5.2 (licença aberta CC-BY-4.0), em PT-BR.
 - Q: O que acontece quando o jogador perde a sessão e entra de novo? → A: cada nome de personagem vira uma conta na campanha. Ao entrar com o código e digitar o nome, a pessoa entra nessa conta, com a ficha dela. O nome é guardado e exibido com a primeira letra de cada palavra maiúscula e as demais minúsculas (ex.: "Loren B. Vonn Neuman").
+- Q (2026-11-20): A ficha é por campanha ou por nome? → A: por nome, geral: o mesmo nome digitado ao entrar em qualquer campanha carrega a mesma ficha (ao menos por enquanto). Na migração, se o mesmo nome já tinha fichas em mais de uma campanha, a mais recente vira a ficha da conta e as outras ficam guardadas sem uso.
 - Q: Licença e crédito do catálogo de magias? → A: o dono autorizou o uso e não quer crédito. A equipe do Pocket DM também não quer crédito no compêndio de criaturas.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -212,7 +213,7 @@ O jogador busca e filtra um catálogo de itens (armas, armaduras, equipamentos, 
 - **FR-001**: A barra superior MUST mostrar ao jogador a navegação "Mesa | Ficha" no mesmo lugar e com o mesmo visual da navegação "Mesa | Compêndio" do mestre. O mestre MUST continuar vendo só "Mesa | Compêndio".
 - **FR-002**: A tela escolhida MUST ficar no endereço da página, como já acontece com o Compêndio. O endereço da Ficha aberto pelo mestre, e o do Compêndio aberto pelo jogador, MUST abrir a Mesa.
 - **FR-003**: Toda leitura e escrita de ficha, inventário, magias do personagem e rolagens salvas MUST identificar o dono pela sessão de quem pede, nunca por um identificador enviado pelo cliente. Pedidos sem sessão válida MUST ser recusados como não autenticados; o mestre MUST receber recusa de permissão.
-- **FR-004**: Cada participante jogador MUST ter no máximo uma ficha por campanha, criada na primeira vez que ele a abre.
+- **FR-004**: Cada nome de jogador (normalizado) MUST ter uma única ficha, a mesma em todas as campanhas: digitar o mesmo nome para entrar em qualquer mesa abre essa ficha (decisão de 2026-11-20, "ao menos por hora"). A ficha é criada na primeira vez que o nome a abre e não é apagada quando uma campanha é excluída.
 
 **Ficha**
 

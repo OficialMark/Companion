@@ -133,11 +133,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
         // Campaign creatures (own + edited copies); their images cascade in the database.
         await Creatures.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         // Sessões antes dos participantes (a FK também cascateia, mas a limpeza fica explícita).
-        var participantIds = Participants.Where(x => x.CampaignId == campaignId).Select(x => x.Id);
-        await SavedRolls.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
-        await CharacterSpells.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
-        await InventoryItems.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
-        await CharacterSheets.Where(x => participantIds.Contains(x.ParticipantId)).ExecuteDeleteAsync(cancellationToken);
+        // Character sheets are NOT deleted: they belong to the player name, across campaigns (2026-11-20).
         await ParticipantSessions.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await Participants.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         await CampaignAccessCodes.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);

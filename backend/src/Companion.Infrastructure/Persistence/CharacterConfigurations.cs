@@ -46,7 +46,11 @@ public sealed class CharacterSheetConfiguration : IEntityTypeConfiguration<Chara
         builder.Property(x => x.ParticipantId).ValueGeneratedNever();
         builder.Property(x => x.Data).AsJson();
         builder.Property(x => x.Version).IsRowVersion();
-        builder.HasOne<Participant>().WithOne().HasForeignKey<CharacterSheet>(x => x.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+        // The sheet belongs to the player name (OwnerKey), not to one participant: no FK, so deleting a
+        // campaign or a participant never deletes the account's sheet (2026-11-20).
+        builder.Property(x => x.OwnerKey).HasMaxLength(CharacterOwner.MaxKeyLength).IsRequired()
+            .UseCollation("Latin1_General_100_BIN2");
+        builder.HasIndex(x => x.OwnerKey).IsUnique();
     }
 }
 
