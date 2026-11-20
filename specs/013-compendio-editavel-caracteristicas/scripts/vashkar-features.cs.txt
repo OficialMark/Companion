@@ -12,8 +12,8 @@ var features = new (CharacterFeatureData Data, int Current)[]
 {
     (new("Destruição Divina", "Paladino 2",
         "Quando você acerta uma criatura com um ataque corpo a corpo com arma, pode gastar um espaço de magia para causar dano radiante extra além do dano da arma: 2d8 com um espaço de 1º círculo, mais 1d8 para cada círculo acima do 1º (máximo 5d8). O dano aumenta em 1d8 se o alvo for um morto-vivo ou um corruptor.\n\n" +
-        "Contador: 1 uso por descanso longo sem gastar espaço de magia (regra de 2024). Os usos com espaço de magia não passam por este contador.",
-        1, 0, FeatureRecovery.LongRest), 1),
+        "Regra de 2014: não tem usos próprios. Cada uso gasta um espaço de magia de paladino (no 5º nível: 4 de 1º círculo e 2 de 2º, recuperados no descanso longo).",
+        null, 0, FeatureRecovery.None), 0),
     (new("Cura pelas Mãos", "Paladino 1",
         "Reserva de cura igual a 5 × seu nível de paladino (25 PV). Com uma ação, toque uma criatura e restaure qualquer quantidade de PV da reserva. Gastando 5 pontos da reserva, você cura uma doença ou neutraliza um veneno que afete o alvo (um efeito por uso de 5 pontos). Não funciona em mortos-vivos nem em constructos.",
         25, 0, FeatureRecovery.LongRest), 0),

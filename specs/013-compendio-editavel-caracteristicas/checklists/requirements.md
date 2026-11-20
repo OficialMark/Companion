@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Destruição Divina segue o PHB 2024 (1 uso grátis por descanso longo), registrado como suposição; Marcos pode trocar.
+- Destruição Divina segue o PHB 2014 (sem contador, gasta espaço de magia), por decisão do Marcos.
