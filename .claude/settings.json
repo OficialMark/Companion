@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.log('Skill permanente do Companion: antes de qualquer outra ação, invoque a skill how-to-work (.claude/skills/how-to-work/SKILL.md) e siga as regras dela: triagem, worktree, testes, crítico frio, self-rating e commit/PR.')\""
+          }
+        ]
+      }
+    ]
+  }
+}
