@@ -7,7 +7,8 @@ import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
 import type { DiceRoll, StatusCondition } from '~/types/campaign'
 import { useGameMode } from '~/composables/useGameMode'
-import CreatureLibrary from '~/components/creatures/CreatureLibrary.vue'
+import CompendiumTabs from '~/components/CompendiumTabs.vue'
+import SheetSummaryBar from '~/components/SheetSummaryBar.vue'
 import CreatureSheetModal from '~/components/creatures/CreatureSheetModal.vue'
 import { trapTab } from '~/utils/focus'
 const store = useCampaignStore()
@@ -228,7 +229,7 @@ onBeforeUnmount(() => {
         <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert" data-compendio-offline>
           <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
         </p>
-        <CreatureLibrary />
+        <CompendiumTabs />
       </template>
       <template v-else>
       <section v-if="!gameMode.active.value" class="welcome-row">
@@ -304,7 +305,7 @@ onBeforeUnmount(() => {
           <RollHistory :rolls="store.snapshot.diceRolls" />
         </div>
       </div>
-      <InitiativeModifier />
+      <SheetSummaryBar />
       </template>
     </div>
 
