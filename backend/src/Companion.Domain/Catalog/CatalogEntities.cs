@@ -5,8 +5,21 @@ using Companion.Domain.Models;
 namespace Companion.Domain.Catalog;
 
 /// <summary>
-/// An item of the global catalog (spec 011, FR-020), seeded from the SRD 5.2.1 import and never
-/// edited in place. <see cref="Template"/> is what a player gets as a copy when adding it.
+/// Where a catalog entry comes from (spec 013), as for creatures (spec 008): the global catalog
+/// (seeded, read-only), a campaign copy that replaces a global entry there, or a campaign's own entry.
+/// </summary>
+public enum CatalogOrigin { Compendium, Edited, Custom }
+
+/// <summary>Slug of a campaign entry: only the seeder reads slugs, and it never touches campaign rows.</summary>
+public static class CampaignSlug
+{
+    public static string For(Guid id) => $"campanha-{id:N}";
+}
+
+/// <summary>
+/// An item of the catalog (spec 011, FR-020). Global rows (<see cref="CampaignId"/> null) are seeded
+/// from the SRD 5.2.1 import and never edited by users; a master edits a campaign copy instead (spec 013).
+/// <see cref="Template"/> is what a player gets as a copy when adding it.
 /// </summary>
 public sealed class CatalogItem
 {
@@ -25,7 +38,19 @@ public sealed class CatalogItem
         Apply(fields);
     }
 
+    /// <summary>
+    /// A campaign's own entry (spec 013). <paramref name="baseId"/> is the global entry it replaces in that
+    /// campaign (an edit), or null for an entry the master created.
+    /// </summary>
+    public static CatalogItem ForCampaign(Guid id, Guid campaignId, Guid? baseId, CatalogItemFields fields) =>
+        new(id, CampaignSlug.For(id), fields) { CampaignId = campaignId, BaseId = baseId };
+
     public Guid Id { get; private set; }
+    /// <summary>Null for the global catalog; the owning campaign otherwise (spec 013).</summary>
+    public Guid? CampaignId { get; private set; }
+    /// <summary>The global entry this campaign entry replaces (an edited copy); null for global and custom entries.</summary>
+    public Guid? BaseId { get; private set; }
+    public CatalogOrigin Origin => CampaignId is null ? CatalogOrigin.Compendium : BaseId is null ? CatalogOrigin.Custom : CatalogOrigin.Edited;
     public string Slug { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public string? NameEn { get; private set; }
@@ -68,10 +93,10 @@ public sealed class CatalogItem
         };
         // Every value is checked against its column (CharacterConfigurations) before anything is
         // assigned, so a bad seed row throws here and is skipped, instead of failing the whole SaveChanges.
-        var nameEn = CatalogText.Optional(fields.NameEn, MaxNameEnLength, "nameEn");
-        var subcategory = CatalogText.Optional(fields.Subcategory, MaxSubcategoryLength, "subcategory");
-        var rarity = CatalogText.Optional(fields.Rarity, MaxRarityLength, "rarity");
-        var cost = CatalogText.Optional(fields.Cost, MaxCostLength, "cost");
+        var nameEn = CatalogText.Optional(fields.NameEn, MaxNameEnLength, "O nome em inglês");
+        var subcategory = CatalogText.Optional(fields.Subcategory, MaxSubcategoryLength, "A subcategoria");
+        var rarity = CatalogText.Optional(fields.Rarity, MaxRarityLength, "A raridade");
+        var cost = CatalogText.Optional(fields.Cost, MaxCostLength, "O custo");
         RequiresBaseItem = requiresBaseItem;
         Name = template.Name;
         NameEn = nameEn;
@@ -113,7 +138,16 @@ public sealed class CatalogSpell
         Apply(fields);
     }
 
+    /// <summary>A campaign's own spell (spec 013); see <see cref="CatalogItem.ForCampaign"/>.</summary>
+    public static CatalogSpell ForCampaign(Guid id, Guid campaignId, Guid? baseId, CatalogSpellFields fields) =>
+        new(id, CampaignSlug.For(id), fields) { CampaignId = campaignId, BaseId = baseId };
+
     public Guid Id { get; private set; }
+    /// <summary>Null for the global catalog; the owning campaign otherwise (spec 013).</summary>
+    public Guid? CampaignId { get; private set; }
+    /// <summary>The global spell this campaign spell replaces (an edited copy); null for global and custom spells.</summary>
+    public Guid? BaseId { get; private set; }
+    public CatalogOrigin Origin => CampaignId is null ? CatalogOrigin.Compendium : BaseId is null ? CatalogOrigin.Custom : CatalogOrigin.Edited;
     public string Slug { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     /// <summary>Official English name (spec 012), from the fixed PT→EN table of the importer.</summary>
@@ -137,9 +171,9 @@ public sealed class CatalogSpell
             .Where(x => x.Length > 0).Distinct().Order().ToArray();
         // Same serializer settings as the column (default encoder): the stored JSON has this length.
         if (JsonSerializer.Serialize(classes).Length > MaxClassesJsonLength)
-            throw new ArgumentException($"classes: a lista passa de {MaxClassesJsonLength} caracteres.");
-        var higherLevels = CatalogText.Optional(fields.HigherLevels, MaxHigherLevelsLength, "higherLevels");
-        var nameEn = CatalogText.Optional(fields.NameEn, CatalogItem.MaxNameEnLength, "nameEn");
+            throw new ArgumentException($"A lista de classes deve ter até {MaxClassesJsonLength} caracteres.");
+        var higherLevels = CatalogText.Optional(fields.HigherLevels, MaxHigherLevelsLength, "O texto de círculos superiores");
+        var nameEn = CatalogText.Optional(fields.NameEn, CatalogItem.MaxNameEnLength, "O nome em inglês");
         Name = template.Name;
         NameEn = nameEn;
         Level = template.Level;
@@ -194,7 +228,7 @@ public static partial class CatalogText
     {
         var trimmed = value?.Trim();
         if (string.IsNullOrEmpty(trimmed)) return null;
-        if (trimmed.Length > max) throw new ArgumentException($"{field}: passa de {max} caracteres.");
+        if (trimmed.Length > max) throw new ArgumentException($"{field} deve ter até {max} caracteres.");
         return trimmed;
     }
 }

@@ -141,3 +141,17 @@
 .catalog-detail-facts dd { margin: 0; }
 .catalog-detail-text { margin: 0 0 8px; white-space: pre-line; line-height: 1.5; }
 @media (max-width: 720px) { .compendium-tabs { width: 100%; } .compendium-tab { flex: 1; justify-content: center; padding: 0 8px; } }
+
+/* Spec 013, US2: features with a use counter. */
+.feature-rests { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.feature-counter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.feature-uses { min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.feature-uses strong { font-size: 1.35rem; color: var(--gold); }
+.feature-uses.empty strong { color: var(--muted); }
+.feature-recovery { margin: 0; }
+
+/* Spec 013, US1: origin badge and the master's actions in the compendium. */
+.origin-badge[data-origin="Edited"] { border-color: var(--gold); color: var(--gold); }
+.origin-badge[data-origin="Custom"] { border-color: var(--line-strong); color: var(--gold-soft); }
+.catalog-master-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.catalog-extra { display: grid; gap: 10px; }

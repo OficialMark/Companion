@@ -1,7 +1,8 @@
 import type { Session } from '~/types/campaign'
 import type {
   CatalogItem, CatalogItemQuery, CatalogItemSummary, CatalogPage, CatalogSpell, CatalogSpellQuery, CatalogSpellSummary,
-  Character, CharacterSheetData, CharacterSpellData, InventoryItemData, SavedRollData
+  Character, CharacterFeatureData, CharacterSheetData, CharacterSpellData, InventoryItemData, RestKind, SavedRollData,
+  SaveCatalogItem, SaveCatalogSpell
 } from '~/types/character'
 
 /**
@@ -56,11 +57,40 @@ export function useCharacterApi() {
     duplicateRoll: (session: Session, rollId: string) => send<Character>(session, `${base(session)}/rolls/${rollId}/duplicate`, json('POST')),
     removeRoll: (session: Session, rollId: string) => send<Character>(session, `${base(session)}/rolls/${rollId}`, json('DELETE')),
 
+    // Spec 013, US2: features with a use counter. The server owns the counter (deltas, not values).
+    addFeature: (session: Session, feature: CharacterFeatureData) =>
+      send<Character>(session, `${base(session)}/features`, json('POST', { data: feature })),
+    saveFeature: (session: Session, featureId: string, feature: CharacterFeatureData) =>
+      send<Character>(session, `${base(session)}/features/${featureId}`, json('PUT', { data: feature })),
+    removeFeature: (session: Session, featureId: string) => send<Character>(session, `${base(session)}/features/${featureId}`, json('DELETE')),
+    spendFeature: (session: Session, featureId: string, delta: number) =>
+      send<Character>(session, `${base(session)}/features/${featureId}/uses`, json('POST', { delta })),
+    restoreFeature: (session: Session, featureId: string) =>
+      send<Character>(session, `${base(session)}/features/${featureId}/restore`, json('POST')),
+    moveFeature: (session: Session, featureId: string, direction: -1 | 1) =>
+      send<Character>(session, `${base(session)}/features/${featureId}/move`, json('POST', { direction })),
+    rest: (session: Session, kind: RestKind) => send<Character>(session, `${base(session)}/rest`, json('POST', { kind })),
+
     listCatalogItems: (session: Session, params: CatalogItemQuery) =>
       send<CatalogPage<CatalogItemSummary>>(session, `/campaigns/${session.campaignId}/catalog/items${query({ ...params })}`),
     getCatalogItem: (session: Session, id: string) => send<CatalogItem>(session, `/campaigns/${session.campaignId}/catalog/items/${id}`),
     listCatalogSpells: (session: Session, params: CatalogSpellQuery) =>
       send<CatalogPage<CatalogSpellSummary>>(session, `/campaigns/${session.campaignId}/catalog/spells${query({ ...params })}`),
-    getCatalogSpell: (session: Session, id: string) => send<CatalogSpell>(session, `/campaigns/${session.campaignId}/catalog/spells/${id}`)
+    getCatalogSpell: (session: Session, id: string) => send<CatalogSpell>(session, `/campaigns/${session.campaignId}/catalog/spells/${id}`),
+
+    // Spec 013, US1: the master's campaign entries. Saving a global id creates (or updates) the table's copy;
+    // deleting answers the restored original for an edited entry, nothing (204) for a custom one.
+    createCatalogItem: (session: Session, item: SaveCatalogItem) =>
+      send<CatalogItem>(session, `/campaigns/${session.campaignId}/catalog/items`, json('POST', item)),
+    saveCatalogItem: (session: Session, id: string, item: SaveCatalogItem) =>
+      send<CatalogItem>(session, `/campaigns/${session.campaignId}/catalog/items/${id}`, json('PUT', item)),
+    deleteCatalogItem: (session: Session, id: string) =>
+      send<CatalogItem | undefined>(session, `/campaigns/${session.campaignId}/catalog/items/${id}`, json('DELETE')),
+    createCatalogSpell: (session: Session, spell: SaveCatalogSpell) =>
+      send<CatalogSpell>(session, `/campaigns/${session.campaignId}/catalog/spells`, json('POST', spell)),
+    saveCatalogSpell: (session: Session, id: string, spell: SaveCatalogSpell) =>
+      send<CatalogSpell>(session, `/campaigns/${session.campaignId}/catalog/spells/${id}`, json('PUT', spell)),
+    deleteCatalogSpell: (session: Session, id: string) =>
+      send<CatalogSpell | undefined>(session, `/campaigns/${session.campaignId}/catalog/spells/${id}`, json('DELETE'))
   }
 }

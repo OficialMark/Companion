@@ -1,4 +1,5 @@
 using Companion.Application.Campaigns;
+using Companion.Application.Catalog;
 using Companion.Application.Contracts;
 using Companion.Domain.Characters;
 using Companion.Domain.Models;
@@ -28,6 +29,7 @@ public sealed class CharacterService(
         public List<InventoryItem> Items { get; init; } = [];
         public List<CharacterSpell> Spells { get; init; } = [];
         public List<SavedRoll> Rolls { get; init; } = [];
+        public List<CharacterFeature> Features { get; init; } = [];
         public List<string> Notices { get; } = [];
     }
 
@@ -74,11 +76,11 @@ public sealed class CharacterService(
     public Task<CharacterDto> AddItemFromCatalogAsync(Guid campaignId, string token, AddFromCatalogRequest request, CancellationToken cancellationToken) =>
         WriteAsync(campaignId, token, cancellationToken, loaded =>
         {
-            var catalog = db.CatalogItems.FirstOrDefault(x => x.Id == request.CatalogItemId && !x.IsRemovedFromCatalog)
-                ?? throw new AppException(AppErrorKind.NotFound, "Item não encontrado no catálogo.");
+            // What this campaign sees (spec 013): the master's version replaces the global entry here.
+            var catalog = CatalogScope.ResolveItem(db, campaignId, request.CatalogItemId);
             var quantity = request.Quantity ?? 1;
             if (quantity is < 1 or > 9_999) throw new AppException(AppErrorKind.Validation, "A quantidade deve ficar entre 1 e 9999.");
-            var template = WithBaseItem(catalog, request.BaseCatalogItemId);
+            var template = WithBaseItem(campaignId, catalog, request.BaseCatalogItemId);
             template = template with
             {
                 Quantity = quantity,
@@ -127,11 +129,18 @@ public sealed class CharacterService(
     public Task<CharacterDto> AddSpellFromCatalogAsync(Guid campaignId, string token, AddSpellFromCatalogRequest request, CancellationToken cancellationToken) =>
         WriteAsync(campaignId, token, cancellationToken, loaded =>
         {
-            var catalog = db.CatalogSpells.FirstOrDefault(x => x.Id == request.CatalogSpellId && !x.IsRemovedFromCatalog)
-                ?? throw new AppException(AppErrorKind.NotFound, "Magia não encontrada no catálogo.");
-            if (loaded.Spells.Any(x => x.CatalogSpellId == catalog.Id))
-                throw new AppException(AppErrorKind.Conflict, $"{catalog.Name} já está na sua ficha.");
-            AddSpell(loaded, catalog.Template, catalog.Id);
+            var catalog = CatalogScope.ResolveSpell(db, campaignId, request.CatalogSpellId);
+            // A global spell and every table's version of it are the same spell (spec 013): the sheet is global
+            // per name, so a copy taken in another campaign, or before the master's edit, still counts. The sheet
+            // stores the root (the global spell an edit replaces), which outlives the table's copy: deleting the
+            // copy or the whole campaign never makes the same spell addable twice.
+            var root = catalog.BaseId ?? catalog.Id;
+            // Rows that stored a copy's id (none expected, but cheap to honour) are matched through the live copies.
+            var lineage = db.CatalogSpells.Where(x => x.Id == root || x.BaseId == root).Select(x => x.Id).ToHashSet();
+            lineage.Add(root);
+            if (loaded.Spells.Any(x => x.CatalogSpellId is { } id && lineage.Contains(id)))
+                throw new AppException(AppErrorKind.Conflict, $"{catalog.Name} já está na sua ficha (talvez em outra versão). Remova a antiga para adicionar esta.");
+            AddSpell(loaded, catalog.Template, root);
         });
 
     public Task<CharacterDto> SaveSpellAsync(Guid campaignId, string token, Guid spellId, SaveSpellRequest request, CancellationToken cancellationToken) =>
@@ -193,6 +202,89 @@ public sealed class CharacterService(
             db.Remove(roll);
             loaded.Rolls.Remove(roll);
         });
+
+    // ---- Features with a use counter (spec 013, US2). The server owns the counter: deltas and rests are
+    // applied to the stored value, so two quick taps are two spends, never one overwritten by the other.
+
+    public const string FeatureNotFound = "Característica não encontrada na sua ficha.";
+
+    public Task<CharacterDto> AddFeatureAsync(Guid campaignId, string token, SaveFeatureRequest request, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            if (loaded.Features.Count >= CharacterFeature.MaxFeaturesPerCharacter)
+                throw new AppException(AppErrorKind.Validation, $"A ficha aceita até {CharacterFeature.MaxFeaturesPerCharacter} características.");
+            var data = request.Data ?? throw new AppException(AppErrorKind.Validation, "Envie os dados da característica.");
+            CharacterFeature feature = null!;
+            Validate(() => feature = new CharacterFeature(Guid.NewGuid(), loaded.Sheet.ParticipantId,
+                NextOrder(loaded.Features.Select(x => x.SortOrder)), data, timeProvider.GetUtcNow()));
+            db.Add(feature);
+            loaded.Features.Add(feature);
+        });
+
+    public Task<CharacterDto> SaveFeatureAsync(Guid campaignId, string token, Guid featureId, SaveFeatureRequest request, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            var feature = FindFeature(loaded, featureId);
+            var data = request.Data ?? throw new AppException(AppErrorKind.Validation, "Envie os dados da característica.");
+            Validate(() => feature.Update(data));
+        });
+
+    public Task<CharacterDto> RemoveFeatureAsync(Guid campaignId, string token, Guid featureId, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            var feature = FindFeature(loaded, featureId);
+            db.Remove(feature);
+            loaded.Features.Remove(feature);
+        });
+
+    public Task<CharacterDto> SpendFeatureAsync(Guid campaignId, string token, Guid featureId, FeatureUsesRequest request, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            var feature = FindFeature(loaded, featureId);
+            if (feature.Data.MaxUses is null) throw new AppException(AppErrorKind.Validation, $"{feature.Data.Name} não tem contador de usos.");
+            if (request.Delta is < -CharacterFeatureData.MaxUsesLimit or > CharacterFeatureData.MaxUsesLimit or 0)
+                throw new AppException(AppErrorKind.Validation, $"Use um valor entre -{CharacterFeatureData.MaxUsesLimit} e {CharacterFeatureData.MaxUsesLimit}, diferente de zero.");
+            feature.Spend(request.Delta);
+        });
+
+    public Task<CharacterDto> RestoreFeatureAsync(Guid campaignId, string token, Guid featureId, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded => FindFeature(loaded, featureId).Restore());
+
+    /// <summary>Swaps the feature with its neighbour above (-1) or below (+1); at an end it stays put.</summary>
+    public Task<CharacterDto> MoveFeatureAsync(Guid campaignId, string token, Guid featureId, MoveFeatureRequest request, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            if (request.Direction is not (-1 or 1)) throw new AppException(AppErrorKind.Validation, "Mova para cima (-1) ou para baixo (1).");
+            var feature = FindFeature(loaded, featureId);
+            var ordered = loaded.Features.OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList();
+            var index = ordered.IndexOf(feature);
+            var target = index + request.Direction;
+            if (target < 0 || target >= ordered.Count) return;
+            (ordered[index], ordered[target]) = (ordered[target], ordered[index]);
+            // Renumber densely: legacy or concurrent rows with the same order still end in a stable sequence.
+            for (var i = 0; i < ordered.Count; i++) ordered[i].MoveTo(i);
+            loaded.Features.Clear();
+            loaded.Features.AddRange(ordered);
+        });
+
+    /// <summary>A short rest restores short-rest features; a long rest restores those and the long-rest ones (FR-014).</summary>
+    public Task<CharacterDto> RestAsync(Guid campaignId, string token, RestRequest request, CancellationToken cancellationToken) =>
+        WriteAsync(campaignId, token, cancellationToken, loaded =>
+        {
+            if (request.Kind is not { } kind || !Enum.IsDefined(kind))
+                throw new AppException(AppErrorKind.Validation, "Escolha descanso curto ou longo.");
+            var restored = loaded.Features.Count(feature => feature.Rest(kind));
+            var label = kind == RestKind.Long ? "Descanso longo" : "Descanso curto";
+            loaded.Notices.Add(restored switch
+            {
+                0 => $"{label}: nada para recuperar.",
+                1 => $"{label}: 1 característica recuperada.",
+                _ => $"{label}: {restored} características recuperadas."
+            });
+        });
+
+    private static CharacterFeature FindFeature(Loaded loaded, Guid featureId) =>
+        loaded.Features.FirstOrDefault(x => x.Id == featureId) ?? throw new AppException(AppErrorKind.NotFound, FeatureNotFound);
 
     private async Task<CharacterDto> WriteAsync(Guid campaignId, string token, CancellationToken cancellationToken, Action<Loaded> change)
     {
@@ -303,7 +395,8 @@ public sealed class CharacterService(
         {
             Items = db.InventoryItems.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
             Spells = db.CharacterSpells.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
-            Rolls = db.SavedRolls.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList()
+            Rolls = db.SavedRolls.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList(),
+            Features = db.CharacterFeatures.Where(x => x.ParticipantId == sheet.ParticipantId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToList()
         };
     }
 
@@ -344,12 +437,14 @@ public sealed class CharacterService(
     /// A generic magic item ("Arma +1") gets its weapon or armor block from a mundane catalog item of
     /// the same category; the name says both ("Arma +1 (Espada Longa)").
     /// </summary>
-    private InventoryItemData WithBaseItem(Domain.Catalog.CatalogItem catalog, Guid? baseId)
+    private InventoryItemData WithBaseItem(Guid campaignId, Domain.Catalog.CatalogItem catalog, Guid? baseId)
     {
         if (!catalog.RequiresBaseItem) return catalog.Template;
         var kind = catalog.Category == ItemCategory.Weapon ? "a arma" : "a armadura";
         if (baseId is null) throw new AppException(AppErrorKind.Validation, $"Escolha {kind} base de {catalog.Name}.");
-        var baseItem = db.CatalogItems.FirstOrDefault(x => x.Id == baseId && !x.IsRemovedFromCatalog);
+        Domain.Catalog.CatalogItem? baseItem;
+        try { baseItem = CatalogScope.ResolveItem(db, campaignId, baseId.Value); }
+        catch (AppException) { baseItem = null; }
         if (baseItem is null || baseItem.RequiresBaseItem || baseItem.Category != catalog.Category ||
             baseItem.Rarity is not null || baseItem.Template.MagicBonus != 0)
             throw new AppException(AppErrorKind.Validation, $"Escolha {kind} comum que servirá de base.");
@@ -418,6 +513,7 @@ public sealed class CharacterService(
                 (x.Data.InventoryItemId is { } item && !weaponIds.Contains(item)) ||
                 (x.Data.CharacterSpellId is { } spell && !spellIds.Contains(spell)), x.Data)).ToArray(),
             stats,
-            loaded.Notices.ToArray());
+            loaded.Notices.ToArray(),
+            loaded.Features.Select(x => new CharacterFeatureDto(x.Id, x.SortOrder, x.Data)).ToArray());
     }
 }

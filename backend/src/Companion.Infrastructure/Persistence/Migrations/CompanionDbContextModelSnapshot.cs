@@ -28,6 +28,12 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -83,8 +89,17 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BaseId");
+
+                    b.HasIndex("CampaignId");
+
                     b.HasIndex("Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NULL");
+
+                    b.HasIndex("CampaignId", "BaseId")
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NOT NULL AND [BaseId] IS NOT NULL");
 
                     b.HasIndex("IsRemovedFromCatalog", "Category");
 
@@ -95,6 +110,12 @@ namespace Companion.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CampaignId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Classes")
@@ -151,12 +172,47 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BaseId");
+
+                    b.HasIndex("CampaignId");
+
                     b.HasIndex("Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NULL");
+
+                    b.HasIndex("CampaignId", "BaseId")
+                        .IsUnique()
+                        .HasFilter("[CampaignId] IS NOT NULL AND [BaseId] IS NOT NULL");
 
                     b.HasIndex("IsRemovedFromCatalog", "Level");
 
                     b.ToTable("CatalogSpells", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Characters.CharacterFeature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParticipantId", "SortOrder");
+
+                    b.ToTable("CharacterFeatures", (string)null);
                 });
 
             modelBuilder.Entity("Companion.Domain.Characters.CharacterSheet", b =>
@@ -1194,6 +1250,41 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("SeedVersions", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Catalog.CatalogItem", b =>
+                {
+                    b.HasOne("Companion.Domain.Catalog.CatalogItem", null)
+                        .WithMany()
+                        .HasForeignKey("BaseId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Catalog.CatalogSpell", b =>
+                {
+                    b.HasOne("Companion.Domain.Catalog.CatalogSpell", null)
+                        .WithMany()
+                        .HasForeignKey("BaseId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Companion.Domain.Models.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Characters.CharacterFeature", b =>
+                {
+                    b.HasOne("Companion.Domain.Characters.CharacterSheet", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Companion.Domain.Characters.CharacterSpell", b =>

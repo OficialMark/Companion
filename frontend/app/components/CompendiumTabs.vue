@@ -13,6 +13,8 @@ const TABS: Array<{ key: Tab; label: string; icon: string }> = [
   { key: 'itens', label: 'Itens', icon: 'lucide:backpack' }
 ]
 
+/** Spec 013: the master edits magias and itens of this table here. */
+const campaign = useCampaignStore()
 const route = useRoute()
 const router = useRouter()
 const active = computed<Tab>(() => {
@@ -77,8 +79,8 @@ function onKeydown(event: KeyboardEvent) {
     >
       <template v-if="shown === tab.key">
         <CreatureLibrary v-if="tab.key === 'criaturas'" embedded />
-        <CatalogPicker v-else-if="tab.key === 'magias'" mode="spells" browse />
-        <CatalogPicker v-else mode="items" browse />
+        <CatalogPicker v-else-if="tab.key === 'magias'" mode="spells" browse :editable="campaign.isMaster" />
+        <CatalogPicker v-else mode="items" browse :editable="campaign.isMaster" />
       </template>
     </div>
   </div>

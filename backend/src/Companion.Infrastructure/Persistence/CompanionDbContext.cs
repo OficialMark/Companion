@@ -33,6 +33,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<SavedRoll> SavedRolls => Set<SavedRoll>();
     public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();
     public DbSet<CatalogSpell> CatalogSpells => Set<CatalogSpell>();
+    public DbSet<CharacterFeature> CharacterFeatures => Set<CharacterFeature>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -58,6 +59,7 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<SavedRoll> ICompanionDbContext.SavedRolls => SavedRolls;
     IQueryable<CatalogItem> ICompanionDbContext.CatalogItems => CatalogItems;
     IQueryable<CatalogSpell> ICompanionDbContext.CatalogSpells => CatalogSpells;
+    IQueryable<CharacterFeature> ICompanionDbContext.CharacterFeatures => CharacterFeatures;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -105,6 +107,10 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(SavedRoll roll) => SavedRolls.Remove(roll);
     void ICompanionDbContext.Add(CatalogItem item) => CatalogItems.Add(item);
     void ICompanionDbContext.Add(CatalogSpell spell) => CatalogSpells.Add(spell);
+    void ICompanionDbContext.Remove(CatalogItem item) => CatalogItems.Remove(item);
+    void ICompanionDbContext.Remove(CatalogSpell spell) => CatalogSpells.Remove(spell);
+    void ICompanionDbContext.Add(CharacterFeature feature) => CharacterFeatures.Add(feature);
+    void ICompanionDbContext.Remove(CharacterFeature feature) => CharacterFeatures.Remove(feature);
     void ICompanionDbContext.Detach(CharacterSheet sheet) => Entry(sheet).State = EntityState.Detached;
     void ICompanionDbContext.ExpectVersion(CharacterSheet sheet, byte[] version) => Entry(sheet).Property(x => x.Version).OriginalValue = version;
     void ICompanionDbContext.ExpectVersion(InventoryItem item, byte[] version) => Entry(item).Property(x => x.Version).OriginalValue = version;
@@ -132,6 +138,9 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
         await Encounters.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         // Campaign creatures (own + edited copies); their images cascade in the database.
         await Creatures.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        // Campaign catalog entries (spec 013). Sheets keep their copies: they never point back here.
+        await CatalogItems.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        await CatalogSpells.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
         // Sessões antes dos participantes (a FK também cascateia, mas a limpeza fica explícita).
         // Character sheets are NOT deleted: they belong to the player name, across campaigns (2026-11-20).
         await ParticipantSessions.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);

@@ -96,20 +96,40 @@ export type AbilityOverride = AbilityCode | ''
 
 <script setup lang="ts">
 import { toRaw } from 'vue'
-import type { InventoryItem, WeaponClass } from '~/types/character'
+import type { CatalogItem, InventoryItem, WeaponClass } from '~/types/character'
 import { CATEGORY_LABEL } from '~/types/character'
 
 /**
  * Create or edit an inventory item (spec 011, US3). Category blocks appear on demand; effects are
  * edited as rows type -> target -> operation -> value. The server validates and recalculates.
+ *
+ * With `catalog` (spec 013) the same form edits the master's compendium: it adds the catalog fields
+ * (English name, subcategory, rarity, attunement, cost, "asks for a base item") and saves through the
+ * catalog API instead of the sheet. Saving a compendium entry creates the table's version of it.
  */
-const props = defineProps<{ item?: InventoryItem | null }>()
-const emit = defineEmits<{ close: [] }>()
+const props = defineProps<{ item?: InventoryItem | null; catalog?: { entry: CatalogItem | null } | null }>()
+const emit = defineEmits<{ close: []; saved: [entry: CatalogItem] }>()
+
+const RARITY_OPTIONS = ['Comum', 'Incomum', 'Raro', 'Muito Raro', 'Lendário', 'Artefato', 'Varia']
 
 const character = useCharacterStore()
-const isNew = !props.item
-const form = reactive<InventoryItemData>(props.item ? structuredClone(toRaw(props.item.data)) : emptyItem())
+const catalogMode = computed(() => Boolean(props.catalog))
+const entry = props.catalog?.entry ?? null
+const isNew = catalogMode.value ? !entry : !props.item
+const initial = entry ? entry.template : props.item?.data
+const form = reactive<InventoryItemData>(initial ? structuredClone(toRaw(initial)) : emptyItem())
 if (!Array.isArray(form.effects)) form.effects = []
+const extra = reactive({
+  nameEn: entry?.nameEn ?? '',
+  subcategory: entry?.subcategory ?? '',
+  rarity: entry?.rarity ?? '',
+  requiresAttunement: entry?.requiresAttunement ?? false,
+  cost: entry?.cost ?? '',
+  /** Generic magic weapon or armor ("Arma +1"): no stat block, the player picks the base item. */
+  generic: entry?.requiresBaseItem ?? false
+})
+const canBeGeneric = computed(() => catalogMode.value && (form.category === 'Weapon' || form.category === 'Armor'))
+const isGeneric = computed(() => canBeGeneric.value && extra.generic)
 const localError = ref('')
 const saving = ref(false)
 const proficientTouched = ref(!isNew)
@@ -169,7 +189,7 @@ const num = (value: unknown) => value === '' || value === null || value === unde
 /** Client-side checks for what the user can fix right here; everything else is the server's call. */
 function validate(): string {
   if (!form.name.trim()) return 'Dê um nome ao item.'
-  if (form.category === 'Weapon') {
+  if (form.category === 'Weapon' && !isGeneric.value) {
     if (!SINGLE_DICE.test(compactDice(form.weapon?.damageDice))) return 'Informe o dano da arma como 1d8 (um tipo de dado: d4, d6, d8, d10, d12, d20 ou d100).'
     const versatile = compactDice(form.weapon?.versatileDice)
     if (versatile && !SINGLE_DICE.test(versatile)) return 'O dano versátil deve ser escrito como 1d10.'
@@ -217,7 +237,39 @@ function payload(): InventoryItemData {
       value: spec.textual ? null : num(effect.value)
     }
   })
+  if (isGeneric.value) {
+    data.weapon = null
+    data.armor = null
+  }
+  if (catalogMode.value) {
+    // A catalog template never starts equipped nor with a proficiency: the sheet decides when it is added.
+    data.equipped = false
+    data.proficient = false
+  }
   return data
+}
+
+const text = (value: string) => value.trim() || null
+
+async function saveCatalog(data: InventoryItemData) {
+  const body = {
+    template: data,
+    nameEn: text(extra.nameEn),
+    subcategory: text(extra.subcategory),
+    rarity: text(extra.rarity),
+    requiresAttunement: extra.requiresAttunement,
+    cost: text(extra.cost)
+  }
+  try {
+    const api = useCharacterApi()
+    const session = character.session()
+    const saved = entry ? await api.saveCatalogItem(session, entry.id, body) : await api.createCatalogItem(session, body)
+    emit('saved', saved)
+    return true
+  } catch (error) {
+    localError.value = (error as Error).message || 'Não foi possível salvar no compêndio.'
+    return false
+  }
 }
 
 async function save() {
@@ -226,12 +278,18 @@ async function save() {
   const data = payload()
   saving.value = true
   const item = props.item
-  const ok = await character.run((api, session) => item ? api.saveItem(session, item.id, data, item.version) : api.addItem(session, data))
+  const ok = catalogMode.value
+    ? await saveCatalog(data)
+    : await character.run((api, session) => item ? api.saveItem(session, item.id, data, item.version) : api.addItem(session, data))
   saving.value = false
   if (ok) emit('close')
 }
 
-const shownError = computed(() => localError.value || (saving.value ? '' : character.error))
+const title = computed(() => catalogMode.value
+  ? (isNew ? 'Novo item do compêndio' : 'Editar item do compêndio')
+  : (isNew ? 'Novo item' : 'Editar item'))
+
+const shownError = computed(() => localError.value || (saving.value || catalogMode.value ? '' : character.error))
 
 onMounted(async () => {
   opener = document.activeElement
@@ -254,9 +312,12 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
       @submit.prevent="save"
     >
       <header class="sheet-modal-header">
-        <h2 id="item-editor-title">{{ isNew ? 'Novo item' : 'Editar item' }}</h2>
+        <h2 id="item-editor-title">{{ title }}</h2>
         <button type="button" class="icon-button" aria-label="Fechar" @click="emit('close')"><Icon name="lucide:x" /></button>
       </header>
+      <p v-if="entry?.origin === 'Compendium'" class="sheet-hint" data-catalog-copy-hint>
+        <Icon name="lucide:info" /> Salvar cria a versão da mesa deste item. O original do compêndio não muda e volta se você excluir a versão da mesa.
+      </p>
 
       <div class="sheet-grid">
         <label class="sheet-field wide">
@@ -285,7 +346,39 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
         </label>
       </div>
 
-      <fieldset v-if="form.category === 'Weapon' && form.weapon" class="item-block" data-block="weapon">
+      <fieldset v-if="catalogMode" class="item-block catalog-extra" data-block="catalog">
+        <legend>Compêndio</legend>
+        <div class="sheet-grid">
+          <label class="sheet-field">
+            <span>Nome em inglês</span>
+            <input v-model="extra.nameEn" type="text" maxlength="120" data-item-field="nameEn">
+          </label>
+          <label class="sheet-field">
+            <span>Subcategoria</span>
+            <input v-model="extra.subcategory" type="text" maxlength="80" placeholder="ex.: Arma marcial corpo a corpo" data-item-field="subcategory">
+          </label>
+          <label class="sheet-field">
+            <span>Raridade</span>
+            <input v-model="extra.rarity" type="text" list="catalog-rarities" maxlength="30" placeholder="vazio: item não mágico" aria-describedby="catalog-rarity-hint" data-item-field="rarity">
+            <small id="catalog-rarity-hint" class="field-hint">Deixe vazio para itens comuns, não mágicos: só eles servem de base para "Arma +1". "Comum" é a raridade de itens mágicos comuns.</small>
+            <datalist id="catalog-rarities"><option v-for="value in RARITY_OPTIONS" :key="value" :value="value" /></datalist>
+          </label>
+          <label class="sheet-field">
+            <span>Custo</span>
+            <input v-model="extra.cost" type="text" maxlength="40" placeholder="ex.: 15 PO" data-item-field="cost">
+          </label>
+        </div>
+        <label class="item-check">
+          <input v-model="extra.requiresAttunement" type="checkbox" data-item-field="requiresAttunement">
+          <span>Requer sintonia</span>
+        </label>
+        <label v-if="canBeGeneric" class="item-check">
+          <input v-model="extra.generic" type="checkbox" data-item-field="generic">
+          <span>{{ form.category === 'Armor' ? 'Pede a armadura base ao adicionar à ficha (ex.: Armadura +1)' : 'Pede a arma base ao adicionar à ficha (ex.: Arma +1)' }}</span>
+        </label>
+      </fieldset>
+
+      <fieldset v-if="form.category === 'Weapon' && form.weapon && !isGeneric" class="item-block" data-block="weapon">
         <legend>Arma</legend>
         <div class="sheet-grid">
           <label class="sheet-field">
@@ -357,7 +450,7 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
         </div>
       </fieldset>
 
-      <fieldset v-if="form.category === 'Armor' && form.armor" class="item-block" data-block="armor">
+      <fieldset v-if="form.category === 'Armor' && form.armor && !isGeneric" class="item-block" data-block="armor">
         <legend>Armadura</legend>
         <div class="sheet-grid">
           <label class="sheet-field">
@@ -391,7 +484,7 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
         </label>
       </fieldset>
 
-      <label v-if="takesProficiency" class="item-check">
+      <label v-if="takesProficiency && !catalogMode" class="item-check">
         <input v-model="form.proficient" type="checkbox" data-item-field="proficient" @change="proficientTouched = true">
         <span>Tenho proficiência com este item</span>
       </label>
