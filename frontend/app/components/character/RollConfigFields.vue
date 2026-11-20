@@ -18,7 +18,12 @@ const props = withDefaults(defineProps<{
   stats: CharacterStats | null
   character: Character | null
   disabled?: boolean
-}>(), { disabled: false })
+  /**
+   * Roll panel only (SC-006): with exactly one equipped weapon and an untouched configuration, start
+   * on its attack, so "attack with advantage" is Vantagem + Rolar. Happens once per mount.
+   */
+  preselectSingleWeapon?: boolean
+}>(), { disabled: false, preselectSingleWeapon: false })
 const emit = defineEmits<{ 'update:modelValue': [value: RollConfig] }>()
 
 const NO_DICE = 'Escolha pelo menos um dado.'
@@ -78,6 +83,19 @@ function selectSource(key: string) {
   const kind = defaultKindFor(source, props.modelValue.kind, props.stats)
   emit('update:modelValue', applyRollDefaults({ ...props.modelValue, source, kind }))
 }
+let preselectDone = false
+function untouched(config: RollConfig) {
+  return !config.source && config.kind === 'Free' && !Object.values(config.dice).some(Boolean)
+    && !config.extraModifiers.length && config.advantage === 'None' && config.repetitions === 1
+}
+watch(() => [props.stats, weapons.value.map(weapon => weapon.itemId).join('|')] as const, () => {
+  if (!props.preselectSingleWeapon || preselectDone || !props.stats) return
+  preselectDone = true
+  const only = weapons.value.length === 1 ? weapons.value[0]! : null
+  // Through selectSource, so the armor rule (automatic disadvantage) applies as on a manual pick.
+  if (only && untouched(props.modelValue)) selectSource(`weapon:${only.itemId}`)
+}, { immediate: true })
+
 function selectKind(kind: RollKind) {
   if (!allowedKinds.value.includes(kind)) return
   emit('update:modelValue', applyRollDefaults({ ...props.modelValue, kind }))

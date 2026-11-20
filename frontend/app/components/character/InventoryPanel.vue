@@ -4,6 +4,7 @@ import type { InventoryItem, InventoryItemData, SuppressedEffect } from '~/types
 import { CATEGORY_LABEL } from '~/types/character'
 import ItemEditorModal, { ARMOR_TYPE_LABEL, CATEGORY_ORDER } from './ItemEditorModal.vue'
 import CatalogPicker from './CatalogPicker.vue'
+import { focusAfterRender, rowOf } from '~/utils/focus'
 
 /**
  * The player's bag (spec 011, US3). Same component in the "Ficha" screen and in a game-mode modal,
@@ -18,7 +19,9 @@ const props = withDefaults(defineProps<{
    * unless it sits inside the "Ficha" screen, which already lists them above the tabs.
    */
   showFeedback?: boolean
-}>(), { compact: false, showFeedback: undefined })
+  /** Hide the "Mochila" heading when the container already shows it (the game-mode modal). */
+  hideTitle?: boolean
+}>(), { compact: false, showFeedback: undefined, hideTitle: false })
 
 const character = useCharacterStore()
 const root = ref<HTMLElement | null>(null)
@@ -85,15 +88,27 @@ async function toggleProficient(item: InventoryItem) {
   busyId.value = null
 }
 
+// Keyboard focus follows the inline confirmation (FR-039): onto "Confirmar", back to the trash can on
+// cancel, and onto the list after the item is gone.
+const inRow = (id: string, selector: string) => () => rowOf(root.value, 'data-item-id', id)?.querySelector<HTMLElement>(selector)
+
 async function remove(item: InventoryItem) {
   if (confirmingId.value !== item.id) {
     confirmingId.value = item.id
+    await focusAfterRender(inRow(item.id, '[data-confirm-remove]'))
     return
   }
   busyId.value = item.id
   const ok = await character.run((api, session) => api.removeItem(session, item.id))
   busyId.value = null
-  if (ok) confirmingId.value = null
+  if (!ok) return
+  confirmingId.value = null
+  await focusAfterRender(() => root.value)
+}
+
+async function cancelRemove(item: InventoryItem) {
+  confirmingId.value = null
+  await focusAfterRender(inRow(item.id, '[data-remove-item]'))
 }
 
 function openEditor(item: InventoryItem | null) {
@@ -105,10 +120,18 @@ onMounted(() => { insideSheet.value = Boolean(root.value?.closest('[data-charact
 </script>
 
 <template>
-  <section ref="root" class="inventory" :class="{ 'inventory--compact': compact }" aria-labelledby="inventory-title" data-inventory>
+  <section
+    ref="root"
+    class="inventory"
+    :class="{ 'inventory--compact': compact }"
+    :aria-labelledby="hideTitle ? undefined : 'inventory-title'"
+    :aria-label="hideTitle ? 'Itens da mochila' : undefined"
+    tabindex="-1"
+    data-inventory
+  >
     <header class="inventory-header">
       <div class="inventory-heading">
-        <h2 id="inventory-title" class="sheet-section-title">Mochila</h2>
+        <h2 v-if="!hideTitle" id="inventory-title" class="sheet-section-title">Mochila</h2>
         <p v-if="items.length" class="inventory-meta">
           {{ items.length === 1 ? '1 item' : `${items.length} itens` }}<template v-if="totalWeight">, {{ formatNumber(totalWeight) }} kg</template>
         </p>
@@ -180,7 +203,7 @@ onMounted(() => { insideSheet.value = Boolean(root.value?.closest('[data-charact
               @click="toggleProficient(item)"
             >
               <Icon :name="item.data.proficient ? 'lucide:graduation-cap' : 'lucide:circle-dashed'" />
-              <span>{{ item.data.proficient ? 'Proficiente' : 'Sem prof.' }}</span>
+              <span>{{ compact ? 'Prof.' : item.data.proficient ? 'Proficiente' : 'Sem prof.' }}</span>
             </button>
             <button
               v-if="EQUIPPABLE.has(item.data.category)"
@@ -200,7 +223,7 @@ onMounted(() => { insideSheet.value = Boolean(root.value?.closest('[data-charact
             <template v-if="confirmingId === item.id">
               <span class="inventory-confirm-label">Remover?</span>
               <button type="button" class="button ghost danger small" :disabled="busyId === item.id" data-confirm-remove @click="remove(item)">Confirmar</button>
-              <button type="button" class="icon-button" aria-label="Cancelar remoção" data-cancel-remove @click="confirmingId = null"><Icon name="lucide:x" /></button>
+              <button type="button" class="icon-button" aria-label="Cancelar remoção" data-cancel-remove @click="cancelRemove(item)"><Icon name="lucide:x" /></button>
             </template>
             <button v-else type="button" class="icon-button danger" :aria-label="`Remover ${item.data.name}`" data-remove-item @click="remove(item)">
               <Icon name="lucide:trash-2" />

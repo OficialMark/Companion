@@ -22,6 +22,11 @@ const ARMOR_TYPES: { value: ArmorType; label: string }[] = [
 ]
 
 function edit(patch: Partial<CharacterSheetData>) { character.editSheet(patch) }
+/** Leaving a field (or committing a select) saves right away instead of waiting for the pause (T077). */
+function leaveField(event: Event) {
+  const target = event.target
+  if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) void character.flush()
+}
 function text(field: keyof CharacterSheetData, event: Event) {
   edit({ [field]: (event.target as HTMLInputElement).value || null } as Partial<CharacterSheetData>)
 }
@@ -62,7 +67,6 @@ function setDarkvision(event: Event) {
   else senses.darkvision = Math.min(300, raw)
   edit({ baseSenses: senses })
 }
-function signed(value: number) { return value >= 0 ? `+${value}` : String(value) }
 
 const speedText = computed(() => {
   const walk = stats.value.speed.walk?.value ?? 0
@@ -74,7 +78,7 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
 </script>
 
 <template>
-  <div v-if="character.draft && character.stats" class="sheet-core">
+  <div v-if="character.draft && character.stats" class="sheet-core" @focusout="leaveField" @change="leaveField">
     <section class="sheet-section sheet-identity" aria-labelledby="sheet-identity-title">
       <h2 id="sheet-identity-title" class="sheet-section-title">Personagem</h2>
       <div class="sheet-grid identity-grid">
@@ -140,6 +144,7 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
           <DerivedStat
             :name="`ability-${abilityKey(code)}`"
             label="Modificador"
+            :accessible-label="`Modificador de ${ABILITY_NAME[code]}`"
             :value="stats.abilities[abilityKey(code)].modifier"
             :parts="stats.abilities[abilityKey(code)].parts"
             :stale="stale"
@@ -151,17 +156,29 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
           <p class="ability-final" :data-derived="`final-${abilityKey(code)}`">
             Final <strong>{{ stats.abilities[abilityKey(code)].final }}</strong>
           </p>
-          <button
-            type="button"
-            class="save-toggle"
-            :aria-pressed="draft.savingThrowProficiencies.includes(code)"
-            :data-save="abilityKey(code)"
-            @click="toggleSave(code)"
-          >
-            <Icon :name="draft.savingThrowProficiencies.includes(code) ? 'lucide:circle-check' : 'lucide:circle'" />
-            <span>Salvaguarda</span>
-            <strong :data-derived="`save-${abilityKey(code)}`">{{ signed(stats.savingThrows[abilityKey(code)].bonus) }}</strong>
-          </button>
+          <div class="save-row">
+            <button
+              type="button"
+              class="save-toggle"
+              :aria-pressed="draft.savingThrowProficiencies.includes(code)"
+              :aria-label="`Proficiência em salvaguarda de ${ABILITY_NAME[code]}`"
+              :data-save="abilityKey(code)"
+              @click="toggleSave(code)"
+            >
+              <Icon :name="draft.savingThrowProficiencies.includes(code) ? 'lucide:circle-check' : 'lucide:circle'" />
+              <span>Salvaguarda</span>
+            </button>
+            <DerivedStat
+              compact
+              :name="`save-${abilityKey(code)}`"
+              label="Salvaguarda"
+              :accessible-label="`Salvaguarda de ${ABILITY_NAME[code]}`"
+              :value="stats.savingThrows[abilityKey(code)].bonus"
+              :parts="stats.savingThrows[abilityKey(code)].parts"
+              :stale="stale"
+              signed
+            />
+          </div>
         </article>
       </div>
     </section>
@@ -180,9 +197,17 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
             <Icon :name="(draft.skills[skill.key] ?? 'None') === 'Expertise' ? 'lucide:star' : (draft.skills[skill.key] ?? 'None') === 'Proficient' ? 'lucide:circle-check' : 'lucide:circle'" />
           </button>
           <span class="skill-name">{{ skill.name }} <small>({{ ABILITY_LABEL[skill.ability] }})</small></span>
-          <strong class="skill-bonus" :data-derived="`skill-${skill.key}`" :title="(stats.skills[skill.key]?.parts ?? []).map(p => `${p.source} ${signed(p.value)}`).join(' · ')">
-            {{ signed(stats.skills[skill.key]?.bonus ?? 0) }}
-          </strong>
+          <DerivedStat
+            compact
+            class="skill-bonus"
+            :name="`skill-${skill.key}`"
+            label="Bônus"
+            :accessible-label="`Bônus de ${skill.name}`"
+            :value="stats.skills[skill.key]?.bonus ?? 0"
+            :parts="stats.skills[skill.key]?.parts ?? []"
+            :stale="stale"
+            signed
+          />
         </li>
       </ul>
     </section>

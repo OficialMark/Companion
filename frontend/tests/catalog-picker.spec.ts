@@ -196,6 +196,43 @@ describe('Catálogo de itens', () => {
     await wrapper.get('.sheet-modal-overlay').trigger('keydown', { key: 'Escape' })
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
+
+  it('T078: o passo da base recebe o foco, Voltar e Esc devolvem ao passo 1 com o foco na busca', async () => {
+    api.listCatalogItems.mockImplementation((_session, params) => Promise.resolve(params.mundane
+      ? itemPage([summary('Espada Curta')])
+      : itemPage([summary('Arma +1', { id: 'magic', name: 'Arma +1', requiresBaseItem: true })])))
+    const wrapper = mount(CatalogPicker, { props: { mode: 'items' }, attachTo: document.body })
+    await flushPromises()
+
+    await wrapper.get('[data-add-catalog]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-base-search]').element)
+
+    await wrapper.get('[data-base-back]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[data-catalog-search]').element)
+
+    await wrapper.get('[data-add-catalog]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-base-search]').trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+    expect(wrapper.emitted('close')).toBeUndefined()
+    expect(wrapper.find('[data-base-step]').exists()).toBe(false)
+    expect(document.activeElement).toBe(wrapper.get('[data-catalog-search]').element)
+    wrapper.unmount()
+  })
+
+  it('T078: "Adicionar" e "Escolher" dizem o nome do item ao leitor de tela', async () => {
+    api.listCatalogItems.mockImplementation((_session, params) => Promise.resolve(params.mundane
+      ? itemPage([summary('Espada Curta')])
+      : itemPage([summary('Espada Longa'), summary('Arma +1', { id: 'magic', name: 'Arma +1', requiresBaseItem: true })])))
+    const wrapper = mount(CatalogPicker, { props: { mode: 'items' } })
+    await flushPromises()
+    expect(wrapper.findAll('[data-add-catalog]').map(button => button.attributes('aria-label'))).toEqual(['Adicionar Espada Longa', 'Adicionar Arma +1'])
+    await wrapper.get('[data-catalog-id="magic"] [data-add-catalog]').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[data-choose-base]').attributes('aria-label')).toBe('Escolher Espada Curta')
+  })
 })
 
 describe('Catálogo de magias', () => {

@@ -54,7 +54,7 @@ export function makeFighter(overrides: Partial<Character> = {}): Character {
 export function savedRollData(overrides: Partial<SavedRollData> = {}): SavedRollData {
   return {
     name: 'Ataque com espada', icon: 'lucide:sword', kind: 'Attack', dice: {}, ability: null, skill: null, savingThrow: null,
-    inventoryItemId: 'sword', characterSpellId: null, extraModifiers: [], advantage: 'None', repetitions: 1, ...overrides
+    inventoryItemId: 'sword', characterSpellId: null, versatile: false, extraModifiers: [], advantage: 'None', repetitions: 1, ...overrides
   }
 }
 

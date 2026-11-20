@@ -3,6 +3,7 @@ import type { CharacterSpell } from '~/types/character'
 import { ABILITY_LABEL } from '~/types/character'
 import SpellEditorModal from './SpellEditorModal.vue'
 import CatalogPicker from './CatalogPicker.vue'
+import { focusAfterRender, rowOf } from '~/utils/focus'
 
 /**
  * "Magias" tab (spec 011, US7). Spell save DC and spell attack come from the server's stats.
@@ -47,15 +48,27 @@ function rollLine(spell: CharacterSpell) {
   return parts.join(', ')
 }
 
+// Keyboard focus follows the inline confirmation (FR-039), as in the bag.
+const root = ref<HTMLElement | null>(null)
+const inRow = (id: string, selector: string) => () => rowOf(root.value, 'data-spell-id', id)?.querySelector<HTMLElement>(selector)
+
 async function remove(spell: CharacterSpell) {
   if (confirmingId.value !== spell.id) {
     confirmingId.value = spell.id
+    await focusAfterRender(inRow(spell.id, '[data-confirm-remove]'))
     return
   }
   busyId.value = spell.id
   const ok = await character.run((api, session) => api.removeSpell(session, spell.id))
   busyId.value = null
-  if (ok) confirmingId.value = null
+  if (!ok) return
+  confirmingId.value = null
+  await focusAfterRender(() => root.value)
+}
+
+async function cancelRemove(spell: CharacterSpell) {
+  confirmingId.value = null
+  await focusAfterRender(inRow(spell.id, '[data-remove-spell]'))
 }
 
 function openEditor(spell: CharacterSpell | null) {
@@ -65,7 +78,7 @@ function openEditor(spell: CharacterSpell | null) {
 </script>
 
 <template>
-  <section class="spell-list" aria-labelledby="spell-list-title" data-spell-list>
+  <section ref="root" class="spell-list" aria-labelledby="spell-list-title" tabindex="-1" data-spell-list>
     <header class="inventory-header">
       <div class="inventory-heading">
         <h2 id="spell-list-title" class="sheet-section-title">Magias</h2>
@@ -139,7 +152,7 @@ function openEditor(spell: CharacterSpell | null) {
             <template v-if="confirmingId === spell.id">
               <span class="inventory-confirm-label">Remover?</span>
               <button type="button" class="button ghost danger small" :disabled="busyId === spell.id" data-confirm-remove @click="remove(spell)">Confirmar</button>
-              <button type="button" class="icon-button" aria-label="Cancelar remoção" data-cancel-remove @click="confirmingId = null"><Icon name="lucide:x" /></button>
+              <button type="button" class="icon-button" aria-label="Cancelar remoção" data-cancel-remove @click="cancelRemove(spell)"><Icon name="lucide:x" /></button>
             </template>
             <button v-else type="button" class="icon-button danger" :aria-label="`Remover ${spell.data.name}`" data-remove-spell @click="remove(spell)">
               <Icon name="lucide:trash-2" />
