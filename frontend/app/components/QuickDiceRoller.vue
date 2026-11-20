@@ -2,6 +2,7 @@
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
+import { scrollToResult } from '~/utils/scrollToResult'
 import { useQuickRollModifier, type QuickDieFaces } from '~/composables/useQuickRollModifier'
 
 const emit = defineEmits<{ rolled: [roll: DiceRoll]; 'rolled-d20': [roll: DiceRoll] }>()
@@ -10,6 +11,9 @@ const modifier = useQuickRollModifier()
 const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
 const dice: QuickDieFaces[] = [20, 8, 6]
 const rollingDuration = 750; const settlingDuration = 250; const resultHoldDuration = 1000
+/** Spec 012, FR-007: the dice (and their result) are brought into view as the roll starts. */
+const stage = ref<HTMLElement | null>(null)
+function revealStage() { void nextTick(() => scrollToResult(stage.value)) }
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 
 async function roll(faces: QuickDieFaces) {
@@ -17,7 +21,7 @@ async function roll(faces: QuickDieFaces) {
   const expression = modifier.expressionFor(faces)
   busy.value = true; error.value = ''
   try {
-    rollingDice.value = diceForAnimation(expression); settled.value = false; rollingTotals.value = []
+    rollingDice.value = diceForAnimation(expression); settled.value = false; rollingTotals.value = []; revealStage()
     const startedAt = performance.now(); const result = await api.rollDice(store.session, expression, false)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
     await wait(Math.max(0, rollingDuration - (performance.now() - startedAt))); settled.value = true; await wait(settlingDuration)
@@ -42,7 +46,7 @@ async function roll(faces: QuickDieFaces) {
       <span class="quick-dice-modifier-value" aria-live="polite"><small>Mod.</small>{{ modifier.value.value > 0 ? `+${modifier.value.value}` : modifier.value.value }}</span>
       <button class="icon-button" type="button" :disabled="busy" aria-label="Aumentar modificador" title="Aumentar modificador" @click="modifier.increment()"><Icon name="lucide:plus" /></button>
     </div>
-    <DiceRollAnimation v-if="rollingDice.length" :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage><DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" /></div>
     <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
   </section>
 </template>

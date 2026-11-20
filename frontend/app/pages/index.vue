@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InventoryPanel from '~/components/character/InventoryPanel.vue'
 import PlayerRollPanel from '~/components/character/PlayerRollPanel.vue'
+import MasterRollPanel from '~/components/MasterRollPanel.vue'
 import CharacterSheetView from '~/components/character/CharacterSheetView.vue'
 import BattlemapBoard from '~/components/battlemap/BattlemapBoard.vue'
 import BattlemapSetup from '~/components/battlemap/BattlemapSetup.vue'
@@ -93,9 +94,10 @@ watch(() => store.session?.participantToken, () => character.reset())
 // Modo Jogo of a player with a character: the roll panel replaces the quick roller (US4). The character
 // is loaded on entering the Modo Jogo; without one (or while it fails to load) the quick roller stays.
 const isPlayer = computed(() => store.session?.role === 'Player')
-const showPlayerPanel = computed(() => gameMode.active.value && isPlayer.value && Boolean(character.character))
+// Spec 012: the player rolls from the sheet in the full view too, not only in the Modo Jogo.
+const showPlayerPanel = computed(() => isPlayer.value && Boolean(character.character))
 // The token is part of the source: a new session resets the store above and loads its own character.
-watch(() => [gameMode.active.value && isPlayer.value, store.session?.participantToken] as const, ([wanted, token]) => {
+watch(() => [isPlayer.value, store.session?.participantToken] as const, ([wanted, token]) => {
   if (wanted && token && !character.character && !character.loading) void character.load()
 }, { immediate: true })
 /** "Acertou?" only for a combatant of the active encounter (same rule as the attack resolution). */
@@ -127,7 +129,6 @@ watch(inventoryOpen, async (open) => {
   if (open) inventoryHeading.value?.focus()
   else document.querySelector<HTMLElement>('[data-open-inventory]')?.focus()
 })
-watch(() => gameMode.active.value, active => { if (!active) inventoryOpen.value = false })
 // Board photos: participants' avatars plus library images of creature tokens.
 watch(() => store.battlemap?.tokens.map(token => token.imageUrl).filter(Boolean).join('|'), () => {
   for (const token of store.battlemap?.tokens ?? []) void images.ensure(token.imageUrl)
@@ -199,6 +200,7 @@ onBeforeUnmount(() => {
       </div>
       </div>
       <div class="top-actions">
+        <MasterCodeToggle />
         <GameModeToggle />
         <ConnectionStatus :status="store.connection" />
         <UserMenu @leave="leave" />
@@ -236,18 +238,11 @@ onBeforeUnmount(() => {
         </p>
       </section>
 
-      <section v-if="!gameMode.active.value && store.isMaster && store.session.masterCode" class="master-code-panel">
-        <span class="master-code-icon" aria-hidden="true"><Icon name="lucide:key-round" /></span>
-        <p><strong>Código reservado do mestre</strong> — guarde e não compartilhe com jogadores.</p>
-        <details>
-          <summary><Icon name="lucide:eye" />Mostrar código</summary>
-          <span class="code-badge">{{ store.session.masterCode }}</span>
-        </details>
-      </section>
 
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div class="main-column">
-          <PlayerRollPanel v-if="showPlayerPanel" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
+          <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+          <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
           <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
           <DiceRoller v-else />
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">

@@ -125,3 +125,12 @@
   .saved-roll-item { grid-template-columns: 44px minmax(0, 1fr) auto; }
   .saved-roll-item-actions { grid-column: auto; }
 }
+
+/* Master's roll panel (spec 012, US1): sheet picker, action shortcuts, nested free roller. */
+.master-roll-source { display: grid; gap: 6px; margin-bottom: 12px; }
+.master-roll-actions { display: grid; gap: 8px; margin-bottom: 12px; }
+.master-roll-action { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.master-roll-action-name { font-weight: 700; color: var(--ink-soft); margin-right: 4px; }
+.master-roll-panel .nested-roller { border: 0; padding: 0; margin: 0; background: transparent; box-shadow: none; }
+.master-roll-panel .nested-roller .panel-heading { display: none; }
+.master-roll-panel .creature-roll { margin-top: 4px; }

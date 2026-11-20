@@ -3,6 +3,7 @@ import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import type { Creature, RollPreset } from '~/types/creatures'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
+import { scrollToResult } from '~/utils/scrollToResult'
 import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, RESULT_HOLD_MS, ROLL_DICE, buildCreatureExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
 
 /**
@@ -56,7 +57,7 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer) })
 /** The panel sits mid-sheet: bring the dice and the result into view instead of below the fold. */
 function revealStage() {
   if (disposed) return
-  void nextTick(() => stage.value?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }))
+  void nextTick(() => scrollToResult(stage.value))
 }
 
 async function roll() {

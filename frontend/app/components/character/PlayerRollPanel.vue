@@ -6,6 +6,7 @@ import DiceRollAnimation from '~/components/DiceRollAnimation.vue'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
+import { scrollToResult } from '~/utils/scrollToResult'
 import {
   cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, type RollConfig
 } from '~/utils/playerRoll'
@@ -16,6 +17,7 @@ import {
  * through the existing dice route with a descriptive label. Rolls are revealed after the animation,
  * like the creature roll panel.
  */
+const props = withDefaults(defineProps<{ gameMode?: boolean }>(), { gameMode: true })
 const emit = defineEmits<{
   'open-inventory': []
   /** An attack with a weapon was rolled: the page decides whether to ask "Acertou?". */
@@ -43,6 +45,9 @@ const rollingTotals = ref<number[]>([])
 const editorOpen = ref(false)
 const editorInitial = ref<RollConfig | null>(null)
 
+/** Spec 012, FR-007: the dice, then the result, are brought into view. */
+const stage = ref<HTMLElement | null>(null)
+function revealStage() { if (!disposed) void nextTick(() => scrollToResult(stage.value)) }
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 
 let holdTimer: ReturnType<typeof setTimeout> | undefined
@@ -69,7 +74,7 @@ async function roll(source: RollConfig = config.value, label?: string) {
   clearAnimation()
   let revealedOk = false
   try {
-    rollingDice.value = plannedDice(built.dice, built.selection, snapshot.repetitions); settled.value = false
+    rollingDice.value = plannedDice(built.dice, built.selection, snapshot.repetitions); settled.value = false; revealStage()
     const startedAt = performance.now()
     const result = await api.rollDice(store.session, built.expression, false, label ?? built.label)
     rollingDice.value = withValues(rollingDice.value, result); rollingTotals.value = result.results.map(item => item.total)
@@ -109,7 +114,7 @@ function openEditor() {
 <template>
   <section class="panel player-roll-panel" aria-labelledby="player-roll-title" data-player-roll-panel :data-roll-showing="rollingDice.length ? (settled ? 'result' : 'rolling') : undefined">
     <div class="panel-heading">
-      <div><p class="eyebrow"><Icon name="lucide:swords" />Modo Jogo</p><h2 id="player-roll-title">Rolagem</h2></div>
+      <div><p class="eyebrow"><Icon :name="props.gameMode ? 'lucide:swords' : 'lucide:scroll-text'" />{{ props.gameMode ? 'Modo Jogo' : 'Sua ficha' }}</p><h2 id="player-roll-title">Rolagem</h2></div>
       <button class="button secondary small" type="button" data-open-inventory @click="emit('open-inventory')">
         <Icon name="lucide:backpack" />Mochila
       </button>
@@ -144,7 +149,7 @@ function openEditor() {
       </button>
     </div>
 
-    <div v-if="rollingDice.length" class="roll-stage" data-roll-stage>
+    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
       <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
     </div>
     <p v-else-if="last" class="roll-last" aria-live="polite" data-roll-last>
