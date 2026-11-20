@@ -10,6 +10,8 @@ public static class CharacterRules
 {
     public const string ProficiencyLabel = "prof";
     public const string WeaponBonusLabel = "arma";
+    public const string LimitLabel = "limite";
+    public const string LimitSource = "Limite da regra";
 
     private sealed record ActiveEffect(ItemEntry Item, ItemEffect Effect)
     {
@@ -44,9 +46,10 @@ public static class CharacterRules
             var key = Abilities.Key(code);
             var baseScore = sheet.Score(code);
             var related = active.Where(x => x.Effect.Type == EffectType.Ability && x.Effect.Target == key).ToArray();
-            var (final, parts) = Combine(new StatPart(Abilities.Abbreviation(code), baseScore, "Valor-base"), related);
-            final = Math.Clamp(final, 1, 30);
-            abilities[key] = new AbilityStat(code, Abilities.Abbreviation(code), baseScore, final, Abilities.Modifier(final), parts);
+            var (sum, parts) = Combine(new StatPart(Abilities.Abbreviation(code), baseScore, "Valor-base"), related);
+            var final = Math.Clamp(sum, 1, 30);
+            abilities[key] = new AbilityStat(code, Abilities.Abbreviation(code), baseScore, final, Abilities.Modifier(final),
+                WithLimit(parts, sum, final));
         }
 
         int Mod(AbilityCode code) => abilities[Abilities.Key(code)].Modifier;
@@ -130,10 +133,14 @@ public static class CharacterRules
 
         var armorClass = Finish(acParts, active.Where(x => x.Effect.Type == EffectType.ArmorClass), floor: 0);
 
-        // Hit points
-        var maxHitPoints = Finish(
-            [new StatPart("base", sheet.BaseMaxHitPoints, "PV máximos base")],
-            active.Where(x => x.Effect.Type == EffectType.MaxHp), floor: 1);
+        // Hit points. 5e: the CON modifier counts once per level, so an item that changes CON (Amuleto
+        // da Saúde) changes the maximum by the modifier difference times the level. The base maximum
+        // the player typed already includes the base CON modifier.
+        var hitPointParts = new List<StatPart> { new("base", sheet.BaseMaxHitPoints, "PV máximos base") };
+        var conDifference = Mod(AbilityCode.Con) - Abilities.Modifier(sheet.Constitution);
+        if (conDifference != 0)
+            hitPointParts.Add(new StatPart("CON", conDifference * sheet.Level, "Constituição alterada por item"));
+        var maxHitPoints = Finish(hitPointParts, active.Where(x => x.Effect.Type == EffectType.MaxHp), floor: 1);
 
         // Speed
         var speed = new Dictionary<string, DecimalStat>(StringComparer.Ordinal);
@@ -167,6 +174,7 @@ public static class CharacterRules
                 value = minimum.Effect.Value.Value;
             }
 
+            if (value < 0) parts.Add(new StatPart(LimitLabel, (int)Math.Round(-value, MidpointRounding.AwayFromZero), LimitSource));
             speed[mode] = new DecimalStat(Math.Max(0, value), parts);
         }
 
@@ -224,9 +232,10 @@ public static class CharacterRules
                      .OrderBy(x => x.SortOrder).ThenBy(x => x.Id))
         {
             var weapon = item.Data.Weapon!;
-            var ability = weapon.AbilityOverride ?? (weapon.Kind == WeaponKind.Ranged
-                ? AbilityCode.Dex
-                : weapon.Has(WeaponData.Finesse) && Mod(AbilityCode.Dex) > Mod(AbilityCode.Str) ? AbilityCode.Dex : AbilityCode.Str);
+            // Finesse first: a ranged finesse weapon (Dardo) uses the higher of FOR and DES, like any finesse weapon.
+            var ability = weapon.AbilityOverride ?? (weapon.Has(WeaponData.Finesse)
+                ? Mod(AbilityCode.Dex) > Mod(AbilityCode.Str) ? AbilityCode.Dex : AbilityCode.Str
+                : weapon.Kind == WeaponKind.Ranged ? AbilityCode.Dex : AbilityCode.Str);
             var range = weapon.Kind == WeaponKind.Ranged ? "ranged" : "melee";
             var attack = new List<StatPart> { ModPart(ability) };
             if (item.Data.Proficient) attack.Add(ProficiencyPart(proficiency));
@@ -297,7 +306,8 @@ public static class CharacterRules
                 var key = DuplicateKey(item.Data, effect);
                 if (owners.TryGetValue(key, out var kept))
                 {
-                    if (kept.Id != item.Id) suppressed.Add(new SuppressedEffect(item.Id, item.Data.Name, key, kept.Id, kept.Data.Name));
+                    // Also when the repeat is inside the same item: it is reported, never silently dropped.
+                    suppressed.Add(new SuppressedEffect(item.Id, item.Data.Name, key, kept.Id, kept.Data.Name));
                     continue;
                 }
 
@@ -365,6 +375,11 @@ public static class CharacterRules
             value = minimum.Effect.Value.Value;
         }
 
-        return new ValueStat(Math.Max(floor, value), parts);
+        var final = Math.Max(floor, value);
+        return new ValueStat(final, WithLimit(parts, value, final));
     }
+
+    /// <summary>When a rule limit moved the value (atributo até 30, PV mínimo 1, CA mínima 0), a "limite" part makes the parts add up to it (FR-007).</summary>
+    private static IReadOnlyList<StatPart> WithLimit(IReadOnlyList<StatPart> parts, int sum, int final) =>
+        sum == final ? parts : [.. parts, new StatPart(LimitLabel, final - sum, LimitSource)];
 }

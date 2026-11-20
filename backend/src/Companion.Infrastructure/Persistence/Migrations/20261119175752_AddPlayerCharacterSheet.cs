@@ -94,15 +94,10 @@ namespace Companion.Infrastructure.Persistence.Migrations
                 name: "NameKey",
                 table: "Participants");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Expression",
-                table: "DiceRolls",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(256)",
-                oldMaxLength: 256);
+            // DiceRolls.Expression fica em nvarchar(256) de propósito (T076): encolher para 128 falha
+            // com "String or binary data would be truncated" assim que existe uma rolagem com mais de
+            // 128 caracteres, que o domínio aceita (DiceExpression.MaxLength = 256). A versão anterior
+            // da API grava no máximo 128, então a coluna mais larga não a atrapalha.
         }
     }
 }

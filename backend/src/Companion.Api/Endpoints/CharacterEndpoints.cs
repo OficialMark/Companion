@@ -14,8 +14,8 @@ public static class CharacterEndpoints
     {
         var me = endpoints.MapGroup("/api/campaigns/{campaignId:guid}/participants/me/character").WithTags("Character");
 
-        me.MapGet("/", async (Guid campaignId, HttpRequest request, CharacterService service, CancellationToken ct) =>
-            Results.Ok(await service.GetAsync(campaignId, Token(request), ct)));
+        me.MapGet("/", async (Guid campaignId, bool? ifExists, HttpRequest request, CharacterService service, CancellationToken ct) =>
+            Results.Ok(await service.GetAsync(campaignId, Token(request), ct, ifExists ?? false)));
         me.MapPut("/", async (Guid campaignId, SaveSheetRequest body, HttpRequest request, CharacterService service, CancellationToken ct) =>
             Results.Ok(await service.SaveSheetAsync(campaignId, Token(request), body, ct)));
 

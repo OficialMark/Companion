@@ -35,7 +35,8 @@ public sealed record SavedRollData(
     Guid? CharacterSpellId,
     IReadOnlyList<RollModifier> ExtraModifiers,
     AdvantageMode Advantage,
-    int Repetitions)
+    int Repetitions,
+    bool Versatile = false)
 {
     public const int MaxNameLength = 40;
     public const int MaxExtraModifiers = 5;
@@ -48,6 +49,10 @@ public sealed record SavedRollData(
             throw new ArgumentException($"O nome da rolagem deve ter entre 1 e {MaxNameLength} caracteres.");
         if (!SavedRollIcons.All.Contains(Icon)) throw new ArgumentException("Escolha um ícone da lista.");
         if (!Enum.IsDefined(Kind) || !Enum.IsDefined(Advantage)) throw new ArgumentException("Configuração de rolagem inválida.");
+        if ((Ability is { } ability && !Enum.IsDefined(ability)) || (SavingThrow is { } save && !Enum.IsDefined(save)))
+            throw new ArgumentException("Atributo da rolagem inválido.");
+        if (Versatile && (Kind != RollKind.Damage || InventoryItemId is null))
+            throw new ArgumentException("Duas mãos (versátil) só vale para dano de uma arma.");
         if (Repetitions is < 1 or > 20) throw new ArgumentException("As repetições devem ficar entre 1 e 20.");
 
         var dice = new Dictionary<string, int>(StringComparer.Ordinal);
