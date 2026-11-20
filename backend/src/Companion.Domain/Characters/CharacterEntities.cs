@@ -35,6 +35,17 @@ public sealed class CharacterSheet
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Moves the sheet to <paramref name="ownerKey"/>. Used when the migration's SQL key and
+    /// <see cref="CharacterOwner.Key"/> disagree for the participant that created this row, so the
+    /// player keeps their sheet instead of hitting the row's primary key on every open.
+    /// </summary>
+    public void AssignOwner(string ownerKey, DateTimeOffset now)
+    {
+        OwnerKey = ownerKey;
+        UpdatedAt = now;
+    }
+
     public void Update(CharacterSheetData data, DateTimeOffset now)
     {
         Data = data.Validated();

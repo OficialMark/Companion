@@ -217,11 +217,28 @@ public sealed class CharacterService(
         if (profileChanged)
             participant.UpdateCombatProfile(Math.Clamp(after.Item1, -100, 100), after.Item2, after.Item3);
 
+        // The same name in other campaigns is the same sheet: their tables get the new numbers too, so a
+        // master there never sees stale HP nor gets blocked editing a profile the sheet now owns.
+        var expected = ((int?)Math.Clamp(after.Item1, -100, 100), (int?)after.Item2, (int?)after.Item3);
+        var ownerKey = loaded.Sheet.OwnerKey;
+        var others = db.Participants
+            .Where(x => x.Role == ParticipantRole.Player && x.NameKey == ownerKey && x.Id != participant.Id)
+            .ToList();
+        var othersChanged = others
+            .Where(x => (x.InitiativeModifier, x.CurrentHitPoints, x.MaxHitPoints) != expected)
+            .ToList();
+        foreach (var other in othersChanged)
+            other.UpdateCombatProfile(expected.Item1, expected.Item2, expected.Item3);
+
         await db.SaveChangesAsync(cancellationToken);
 
         if (profileChanged)
             await notifier.NotifyAsync(campaignId, "ParticipantUpdated", DtoMapper.ToDto(participant, presence.IsOnline(participant.Id)), cancellationToken);
         await notifier.NotifyAsync(campaignId, ChangedEvent, new { participantId = participant.Id }, cancellationToken);
+        foreach (var other in othersChanged)
+            await notifier.NotifyAsync(other.CampaignId, "ParticipantUpdated", DtoMapper.ToDto(other, presence.IsOnline(other.Id)), cancellationToken);
+        foreach (var other in others)
+            await notifier.NotifyAsync(other.CampaignId, ChangedEvent, new { participantId = other.Id }, cancellationToken);
         return ToDto(loaded, stats);
     }
 
@@ -234,6 +251,18 @@ public sealed class CharacterService(
         // One sheet per player name, in every campaign (2026-11-20): look it up by the account key.
         var ownerKey = CharacterOwner.Key(participant);
         var sheet = db.CharacterSheets.FirstOrDefault(x => x.OwnerKey == ownerKey);
+        if (sheet is null && db.CharacterSheets.FirstOrDefault(x => x.ParticipantId == participant.Id) is { } own)
+        {
+            // This participant created a sheet whose key no longer matches its name key (the migration's
+            // SQL UPPER/TRIM differs from PersonName.Key for exotic names, or a legacy duplicate lost the
+            // backfill). No sheet holds the current key, so adopting the row is safe; creating a new one
+            // would collide with its primary key forever.
+            own.AssignOwner(ownerKey, timeProvider.GetUtcNow());
+            db.MarkModified(own);
+            await db.SaveChangesAsync(cancellationToken);
+            sheet = own;
+        }
+
         if (sheet is null && !createIfMissing) throw new AppException(AppErrorKind.NotFound, NoSheetYet);
         if (sheet is null)
         {
