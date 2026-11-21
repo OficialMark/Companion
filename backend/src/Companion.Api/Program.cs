@@ -15,6 +15,8 @@ using Companion.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,12 @@ builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 21 * 1024 * 1024);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+    options.KnownProxies.Add(IPAddress.Parse("172.29.255.2"));
+});
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("sqlserver");
 builder.Services.AddRateLimiter(options =>
 {
@@ -82,6 +90,7 @@ builder.Services.AddHttpClient<ICreatureImageSource, HttpCreatureImageSource>()
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
 var app = builder.Build();
+app.UseForwardedHeaders();
 if (!app.Environment.IsEnvironment("Testing")) app.UseRateLimiter();
 
 app.Use(async (context, next) =>
