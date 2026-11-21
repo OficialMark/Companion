@@ -67,6 +67,7 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     emits: ['attack-rolled', 'open-inventory'],
     template: `<div data-stub="player-roll-panel">
       <button data-fake-attack @click="$emit('attack-rolled', { id: 'r9', total: 18 }, 'd8 + (FOR) 3 + (arma) 1')" />
+      <button data-fake-typed-attack @click="$emit('attack-rolled', { id: 'r9', total: 18 }, '2d6 + 2d8 + (FOR) 3', 'contundente + radiante', { baseType: 'contundente', baseTermCount: 1, components: [{ label: 'Smite', damageType: 'radiante', termCount: 1 }] })" />
       <button data-fake-inventory data-open-inventory @click="$emit('open-inventory')" />
     </div>`
   })
@@ -240,6 +241,15 @@ describe('Modo Jogo: painel de rolagem do jogador (index.vue)', () => {
     const wrapper = await mountPage()
     await wrapper.get('[data-fake-attack]').trigger('click')
     expect(wrapper.find('[data-stub="attack-confirm"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('offers configured damage after a hit even when the player is outside combat', async () => {
+    setup({ combatant: false })
+    const wrapper = await mountPage()
+    await wrapper.get('[data-fake-typed-attack]').trigger('click')
+    await wrapper.get('[data-fake-hit]').trigger('click')
+    expect(wrapper.get('[data-stub="damage-modal"]').attributes('data-expression')).toBe('2d6 + 2d8 + (FOR) 3')
     wrapper.unmount()
   })
 

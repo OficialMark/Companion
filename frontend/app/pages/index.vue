@@ -110,13 +110,13 @@ const showPlayerPanel = computed(() => isPlayer.value && Boolean(character.chara
 watch(() => [isPlayer.value, store.session?.participantToken] as const, ([wanted, token]) => {
   if (wanted && token && !character.character && !character.loading) void character.load()
 }, { immediate: true })
-/** "Acertou?" only for a combatant of the active encounter (same rule as the attack resolution). */
+/** Applying damage requires an active combatant. Configured extra damage can also be rolled outside combat. */
 const playerInActiveEncounter = computed(() => {
   const encounter = store.snapshot?.activeEncounter
   return encounter?.status === 'Active' && encounter.combatants.some(combatant => combatant.participantId === store.session?.participantId)
 })
 function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null, damageSummary: string | null, damagePlan: DamageBreakdownPlan | null) {
-  if (!playerInActiveEncounter.value) return
+  if (!playerInActiveEncounter.value && !(damageExpression && damagePlan?.components.length)) return
   pendingDamageExpression.value = damageExpression
   pendingDamageSummary.value = damageSummary
   pendingDamagePlan.value = damagePlan
@@ -327,6 +327,7 @@ onBeforeUnmount(() => {
     <AttackConfirmModal
       v-if="pendingAttackRoll"
       :roll="pendingAttackRoll"
+      :auto-dismiss="!pendingDamagePlan?.components.length"
       @hit="onAttackHit"
       @dismissed="onAttackDismissed"
     />

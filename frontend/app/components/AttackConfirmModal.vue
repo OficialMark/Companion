@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DiceRoll } from '~/types/campaign'
 
-const props = defineProps<{ roll: DiceRoll }>()
+const props = withDefaults(defineProps<{ roll: DiceRoll; autoDismiss?: boolean }>(), { autoDismiss: true })
 const emit = defineEmits<{ hit: [roll: DiceRoll]; dismissed: [] }>()
 const confirmButton = ref<HTMLButtonElement | null>(null)
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -15,7 +15,7 @@ function respond(hit: boolean) {
 function handleKeydown(event: KeyboardEvent) { if (event.key === 'Escape') respond(false) }
 
 onMounted(() => {
-  timer = setTimeout(() => respond(false), 10000)
+  if (props.autoDismiss) timer = setTimeout(() => respond(false), 10000)
   window.addEventListener('keydown', handleKeydown)
   confirmButton.value?.focus()
 })
@@ -35,7 +35,7 @@ onBeforeUnmount(() => {
         <button ref="confirmButton" class="button primary attack-hit-confirm" type="button" @click="respond(true)"><Icon name="lucide:check" />Sim</button>
         <button class="button ghost attack-hit-deny" type="button" @click="respond(false)"><Icon name="lucide:x" />Não</button>
       </div>
-      <span class="modal-timer" aria-hidden="true" />
+      <span v-if="props.autoDismiss" class="modal-timer" aria-hidden="true" />
     </div>
   </div>
 </template>

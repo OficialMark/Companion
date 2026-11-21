@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useId } from 'vue'
+import RollResultDetails from './RollResultDetails.vue'
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceDamageBreakdownRequest, DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
@@ -9,6 +10,7 @@ const emit = defineEmits<{ rolled: [roll: DiceRoll] }>()
 const componentId = useId() ?? 'dice'; const titleId = `dice-title-${componentId}`; const expressionId = `dice-expression-${componentId}`
 const store = useCampaignStore(); const api = useCompanionApi(); const expression = ref(props.initialExpression || 'd20'); const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
 const presets = ['d20', '2d20', 'd12', 'd10', 'd8', 'd6', 'd4']; const rollingDuration = 750; const settlingDuration = 250; const resultHoldDuration = 1000
+const rollingResult = ref<DiceRoll | null>(null)
 /** Spec 012, FR-007: the dice (and their result) are brought into view as the roll starts. */
 const stage = ref<HTMLElement | null>(null)
 function revealStage() { void nextTick(() => scrollToResult(stage.value)) }
@@ -27,6 +29,7 @@ async function roll(value = expression.value) {
       ? await api.rollDice(store.session, value, false, null, props.damageBreakdown)
       : await api.rollDice(store.session, value, false)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
+    rollingResult.value = result
     await wait(Math.max(0, rollingDuration - (performance.now() - startedAt))); settled.value = true; await wait(settlingDuration)
     const revealed = await api.revealDiceRoll(store.session, result.id); await wait(resultHoldDuration)
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) { store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50) }
@@ -44,7 +47,10 @@ async function roll(value = expression.value) {
       </div>
     </div>
     <div v-if="!props.locked" class="dice-presets" role="group" aria-label="Dados rápidos"><button v-for="preset in presets" :key="preset" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" :title="`Rolar ${preset}`" @click="roll(preset)">{{ preset.toUpperCase() }}</button></div>
-    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage><DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" /></div>
+    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
+      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+      <RollResultDetails v-if="settled && rollingResult" :roll="rollingResult" />
+    </div>
     <form class="roll-form" @submit.prevent="roll()">
       <label class="sr-only" :for="expressionId">Expressão de dados</label>
       <div class="input-with-icon">

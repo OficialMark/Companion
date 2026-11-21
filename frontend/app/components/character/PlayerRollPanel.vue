@@ -3,6 +3,7 @@ import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import type { SavedRoll, SavedRollData } from '~/types/character'
 import DiceRollAnimation from '~/components/DiceRollAnimation.vue'
+import RollResultDetails from '~/components/RollResultDetails.vue'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
@@ -41,6 +42,7 @@ const error = ref('')
 const last = ref<DiceRoll | null>(null)
 const rollingDice = ref<AnimatedDie[]>([])
 const settled = ref(false)
+const rollingResult = ref<DiceRoll | null>(null)
 const rollingTotals = ref<number[]>([])
 const editorOpen = ref(false)
 const editorInitial = ref<RollConfig | null>(null)
@@ -81,6 +83,7 @@ async function roll(source: RollConfig = config.value, label?: string) {
       ? await api.rollDice(store.session, built.expression, false, label ?? built.label, damagePlan)
       : await api.rollDice(store.session, built.expression, false, label ?? built.label)
     rollingDice.value = withValues(rollingDice.value, result); rollingTotals.value = result.results.map(item => item.total)
+    rollingResult.value = result
     await wait(Math.max(0, 600 - (performance.now() - startedAt))); settled.value = true; await wait(200)
     const revealed = await api.revealDiceRoll(store.session, result.id)
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) {
@@ -159,10 +162,12 @@ function applySavedRoll(data: SavedRollData) {
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
       <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+      <RollResultDetails v-if="settled && rollingResult" :roll="rollingResult" />
     </div>
-    <p v-else-if="last" class="roll-last" aria-live="polite" data-roll-last>
-      <Icon name="lucide:sparkles" />{{ last.label || 'Último resultado' }}: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small>
-    </p>
+    <div v-else-if="last" aria-live="polite" data-roll-last>
+      <p class="roll-last"><Icon name="lucide:sparkles" />{{ last.label || 'Último resultado' }}: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small></p>
+      <RollResultDetails :roll="last" />
+    </div>
     <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para rolar.</p>
     <p v-if="error" class="form-error" role="alert" data-roll-send-error><Icon name="lucide:circle-alert" />{{ error }}</p>
 

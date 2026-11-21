@@ -1,3 +1,4 @@
+import { defineComponent } from 'vue'
 import { mount } from '@vue/test-utils'
 import CombatAttack from '~/components/CombatAttack.vue'
 import AttackConfirmModal from '~/components/AttackConfirmModal.vue'
@@ -80,5 +81,34 @@ describe('DamageRollModal', () => {
     expect(resolveAttack).not.toHaveBeenCalled()
     expect(wrapper.emitted('cancelled')).toHaveLength(1)
     wrapper.unmount()
+  })
+
+  it('shows the actual base and Smite dice and offers only finishing outside combat', async () => {
+    const activeEncounter = store.snapshot.activeEncounter
+    store.snapshot.activeEncounter = { ...activeEncounter, combatants: [] }
+    const result = {
+      id: 'r3', total: 24, results: [{
+        sequence: 1, total: 24, modifier: 3, modifiers: [{ value: 3, label: 'FOR' }],
+        terms: [{ expression: '2d6', values: [4, 5], subtotal: 9 }, { expression: '2d8', values: [5, 7], subtotal: 12 }],
+        damageBreakdown: { baseType: 'contundente', baseSubtotal: 12, components: [{ label: 'Smite', damageType: 'radiante', subtotal: 12 }] }
+      }]
+    }
+    const DiceRollerStub = defineComponent({
+      emits: ['rolled'],
+      setup(_, { emit }) { return { finish: () => emit('rolled', result) } },
+      template: '<button data-testid="finish-roll" @click="finish">Finalizar rolagem</button>'
+    })
+    const wrapper = mount(DamageRollModal, { global: { stubs: { DiceRoller: DiceRollerStub } } })
+    try {
+      await wrapper.get('[data-testid="finish-roll"]').trigger('click')
+      expect(wrapper.get('.roll-result-sum').text()).toMatch(/2d6 \[4, 5\].*2d8 \[5, 7\].*3 \(FOR\).*24/)
+      expect(wrapper.get('.damage-breakdown').text()).toContain('Smite · radiante')
+      expect(wrapper.find('button.attack-confirm').exists()).toBe(false)
+      await wrapper.get('button.primary').trigger('click')
+      expect(resolveAttack).not.toHaveBeenCalled()
+    } finally {
+      wrapper.unmount()
+      store.snapshot.activeEncounter = activeEncounter
+    }
   })
 })
