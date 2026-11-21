@@ -175,7 +175,8 @@ public sealed partial class CatalogSeeder(ICompanionDbContext db, IEnumerable<IC
             x.Weapon.RangeNormal,
             x.Weapon.RangeLong,
             null,
-            x.Weapon.Mastery);
+            x.Weapon.Mastery,
+            x.Weapon.DamageType is null ? [] : [DamageType(x.Weapon.DamageType)!]);
         ArmorData? armor = x.Armor is null ? null : new ArmorData(x.Armor.BaseAc,
             Enum.Parse<ArmorType>(x.Armor.Type ?? "light", ignoreCase: true), x.Armor.StrengthMin, x.Armor.StealthDisadvantage);
         ShieldData? shield = category == ItemCategory.Shield ? new ShieldData(x.Shield?.AcBonus ?? 2) : null;

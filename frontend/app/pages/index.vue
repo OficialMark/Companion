@@ -10,7 +10,9 @@ import { useGameMode } from '~/composables/useGameMode'
 import CompendiumTabs from '~/components/CompendiumTabs.vue'
 import SheetSummaryBar from '~/components/SheetSummaryBar.vue'
 import CreatureSheetModal from '~/components/creatures/CreatureSheetModal.vue'
+import CampaignNotebook from '~/components/campaign/CampaignNotebook.vue'
 import { trapTab } from '~/utils/focus'
+import type { DamageBreakdownPlan } from '~/utils/playerRoll'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const gameMode = useGameMode()
@@ -20,11 +22,13 @@ const damageModalOpen = ref(false)
 
 /** Damage expression to prefill after "acertou" (the player's weapon attack, spec 011); null for the quick roller. */
 const pendingDamageExpression = ref<string | null>(null)
+const pendingDamageSummary = ref<string | null>(null)
+const pendingDamagePlan = ref<DamageBreakdownPlan | null>(null)
 
-function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingAttackRoll.value = roll }
+function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingAttackRoll.value = roll }
 function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
-function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null }
-function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null }
+function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }
+function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }
 
 async function activate() {
   if (!store.session) { loading.value = false; return }
@@ -106,9 +110,11 @@ const playerInActiveEncounter = computed(() => {
   const encounter = store.snapshot?.activeEncounter
   return encounter?.status === 'Active' && encounter.combatants.some(combatant => combatant.participantId === store.session?.participantId)
 })
-function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null) {
+function onPlayerAttackRolled(roll: DiceRoll, damageExpression: string | null, damageSummary: string | null, damagePlan: DamageBreakdownPlan | null) {
   if (!playerInActiveEncounter.value) return
   pendingDamageExpression.value = damageExpression
+  pendingDamageSummary.value = damageSummary
+  pendingDamagePlan.value = damagePlan
   pendingAttackRoll.value = roll
 }
 // Game-mode bag (FR-031, FR-039): a real modal. Focus enters on open, Tab stays inside, focus returns
@@ -218,7 +224,10 @@ onBeforeUnmount(() => {
       <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
     <div v-else-if="store.snapshot" class="dashboard">
-      <template v-if="view === 'ficha'">
+      <template v-if="view === 'campanha'">
+        <CampaignNotebook />
+      </template>
+      <template v-else-if="view === 'ficha'">
         <p v-if="store.connection === 'offline'" class="offline-warning compendio-offline" role="alert">
           <Icon name="lucide:wifi-off" />Comandos pausados até a conexão voltar.
         </p>
@@ -319,6 +328,8 @@ onBeforeUnmount(() => {
     <DamageRollModal
       v-if="damageModalOpen"
       :expression="pendingDamageExpression ?? undefined"
+      :damage-summary="pendingDamageSummary"
+      :damage-plan="pendingDamagePlan"
       @resolved="onDamageSettled"
       @cancelled="onDamageSettled"
     />

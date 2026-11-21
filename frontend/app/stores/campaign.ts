@@ -20,6 +20,7 @@ export const useCampaignStore = defineStore('campaign', {
     connection: 'offline' as 'offline' | 'connecting' | 'online',
     error: '' as string,
     seenEvents: [] as string[],
+    campaignKnowledgeRevision: 0,
     damageEffects: {} as Record<string, { amount: number; nonce: string }>,
     /** Loaded profile photos, keyed by participant id (object URLs of the fetched blobs). */
     avatars: {} as Record<string, { revision: string; url: string }>
@@ -320,6 +321,10 @@ export const useCampaignStore = defineStore('campaign', {
       if (event.type === 'BattlemapInvalidated') {
         const payload = event.payload as BattlemapInvalidationEvent
         if (payload.encounterId === this.snapshot.activeEncounter?.id) await this.refreshBattlemap()
+        return
+      }
+      if (event.type === 'CampaignNotebookInvalidated') {
+        this.campaignKnowledgeRevision++
         return
       }
       if (event.type === 'CharacterChanged') {

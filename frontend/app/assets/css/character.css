@@ -112,3 +112,10 @@
   .skill-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .casting-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+.weapon-damage-types { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; margin: 0; border: 0; padding: 0; }
+.weapon-damage-types legend { margin-bottom: 5px; color: var(--muted); font-size: .76rem; font-weight: 700; }
+.weapon-damage-types > .field-hint { flex-basis: 100%; margin: -3px 0 2px; }
+.weapon-damage-type { min-height: 38px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--ink-soft); cursor: pointer; }
+.weapon-damage-type:has(input:checked) { border-color: var(--line-strong); color: var(--gold-soft); background: rgba(215,174,93,.1); }
+.weapon-damage-type input { width: 16px; height: 16px; accent-color: var(--gold); }

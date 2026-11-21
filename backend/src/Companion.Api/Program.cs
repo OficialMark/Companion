@@ -65,6 +65,7 @@ builder.Services.AddScoped<AdminCampaignService>();
 builder.Services.AddScoped<DiceRollService>();
 builder.Services.AddScoped<EncounterService>();
 builder.Services.AddScoped<BattlemapService>();
+builder.Services.AddScoped<CampaignKnowledgeService>();
 builder.Services.AddScoped<AttackService>();
 builder.Services.AddScoped<CreatureService>();
 builder.Services.AddScoped<CompendiumSeeder>();
@@ -127,6 +128,7 @@ app.Use(async (context, next) =>
 
 app.MapHealthChecks("/health");
 app.MapCampaignEndpoints();
+app.MapCampaignKnowledgeEndpoints();
 app.MapDiceRollEndpoints();
 app.MapEncounterEndpoints();
 app.MapBattlemapEndpoints();

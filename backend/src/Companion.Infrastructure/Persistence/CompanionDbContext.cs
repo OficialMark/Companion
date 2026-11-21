@@ -1,5 +1,6 @@
 using Companion.Application.Contracts;
 using Companion.Domain.Catalog;
+using Companion.Domain.Campaigns;
 using Companion.Domain.Characters;
 using Companion.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,10 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();
     public DbSet<CatalogSpell> CatalogSpells => Set<CatalogSpell>();
     public DbSet<CharacterFeature> CharacterFeatures => Set<CharacterFeature>();
+    public DbSet<CampaignKnowledgeEntry> CampaignKnowledgeEntries => Set<CampaignKnowledgeEntry>();
+    public DbSet<CampaignKnowledgeContribution> CampaignKnowledgeContributions => Set<CampaignKnowledgeContribution>();
+    public DbSet<CampaignKnowledgeMasterNote> CampaignKnowledgeMasterNotes => Set<CampaignKnowledgeMasterNote>();
+    public DbSet<CampaignMapPoint> CampaignMapPoints => Set<CampaignMapPoint>();
 
     IQueryable<Campaign> ICompanionDbContext.Campaigns => Campaigns;
     IQueryable<CampaignAccessCode> ICompanionDbContext.CampaignAccessCodes => CampaignAccessCodes;
@@ -60,6 +65,10 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     IQueryable<CatalogItem> ICompanionDbContext.CatalogItems => CatalogItems;
     IQueryable<CatalogSpell> ICompanionDbContext.CatalogSpells => CatalogSpells;
     IQueryable<CharacterFeature> ICompanionDbContext.CharacterFeatures => CharacterFeatures;
+    IQueryable<CampaignKnowledgeEntry> ICompanionDbContext.CampaignKnowledgeEntries => CampaignKnowledgeEntries;
+    IQueryable<CampaignKnowledgeContribution> ICompanionDbContext.CampaignKnowledgeContributions => CampaignKnowledgeContributions;
+    IQueryable<CampaignKnowledgeMasterNote> ICompanionDbContext.CampaignKnowledgeMasterNotes => CampaignKnowledgeMasterNotes;
+    IQueryable<CampaignMapPoint> ICompanionDbContext.CampaignMapPoints => CampaignMapPoints;
 
     void ICompanionDbContext.Add(Campaign campaign) => Campaigns.Add(campaign);
     void ICompanionDbContext.Add(CampaignAccessCode accessCode) => CampaignAccessCodes.Add(accessCode);
@@ -111,6 +120,15 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
     void ICompanionDbContext.Remove(CatalogSpell spell) => CatalogSpells.Remove(spell);
     void ICompanionDbContext.Add(CharacterFeature feature) => CharacterFeatures.Add(feature);
     void ICompanionDbContext.Remove(CharacterFeature feature) => CharacterFeatures.Remove(feature);
+    void ICompanionDbContext.Add(CampaignKnowledgeEntry entry) => CampaignKnowledgeEntries.Add(entry);
+    void ICompanionDbContext.Remove(CampaignKnowledgeEntry entry) => CampaignKnowledgeEntries.Remove(entry);
+    void ICompanionDbContext.Add(CampaignKnowledgeContribution contribution) => CampaignKnowledgeContributions.Add(contribution);
+    void ICompanionDbContext.Remove(CampaignKnowledgeContribution contribution) => CampaignKnowledgeContributions.Remove(contribution);
+    void ICompanionDbContext.Add(CampaignKnowledgeMasterNote note) => CampaignKnowledgeMasterNotes.Add(note);
+    void ICompanionDbContext.Remove(CampaignKnowledgeMasterNote note) => CampaignKnowledgeMasterNotes.Remove(note);
+    void ICompanionDbContext.Add(CampaignMapPoint point) => CampaignMapPoints.Add(point);
+    void ICompanionDbContext.Remove(CampaignMapPoint point) => CampaignMapPoints.Remove(point);
+    void ICompanionDbContext.ExpectVersion(CampaignKnowledgeEntry entry, byte[] version) => Entry(entry).Property(x => x.Version).OriginalValue = version;
     void ICompanionDbContext.Detach(CharacterSheet sheet) => Entry(sheet).State = EntityState.Detached;
     void ICompanionDbContext.ExpectVersion(CharacterSheet sheet, byte[] version) => Entry(sheet).Property(x => x.Version).OriginalValue = version;
     void ICompanionDbContext.ExpectVersion(InventoryItem item, byte[] version) => Entry(item).Property(x => x.Version).OriginalValue = version;

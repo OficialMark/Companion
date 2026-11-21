@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useId } from 'vue'
 import type { AnimatedDie } from '~/utils/diceAnimation'
-import type { DiceRoll } from '~/types/campaign'
+import type { DiceDamageBreakdownRequest, DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
 import { scrollToResult } from '~/utils/scrollToResult'
-const props = withDefaults(defineProps<{ mode?: 'public' | 'attack'; initialExpression?: string }>(), { mode: 'public', initialExpression: undefined })
+const props = withDefaults(defineProps<{ mode?: 'public' | 'attack'; initialExpression?: string; locked?: boolean; damageBreakdown?: DiceDamageBreakdownRequest | null }>(), { mode: 'public', initialExpression: undefined, locked: false, damageBreakdown: null })
 const emit = defineEmits<{ rolled: [roll: DiceRoll] }>()
 const componentId = useId() ?? 'dice'; const titleId = `dice-title-${componentId}`; const expressionId = `dice-expression-${componentId}`
 const store = useCampaignStore(); const api = useCompanionApi(); const expression = ref(props.initialExpression || 'd20'); const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
@@ -23,7 +23,9 @@ async function roll(value = expression.value) {
       if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === result.id)) { store.snapshot.diceRolls.unshift(result); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50) }
       emit('rolled', result); return
     }
-    const startedAt = performance.now(); const result = await api.rollDice(store.session, value, false)
+    const startedAt = performance.now(); const result = props.damageBreakdown
+      ? await api.rollDice(store.session, value, false, null, props.damageBreakdown)
+      : await api.rollDice(store.session, value, false)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
     await wait(Math.max(0, rollingDuration - (performance.now() - startedAt))); settled.value = true; await wait(settlingDuration)
     const revealed = await api.revealDiceRoll(store.session, result.id); await wait(resultHoldDuration)
@@ -41,13 +43,13 @@ async function roll(value = expression.value) {
         <h2 :id="titleId">{{ props.mode === 'attack' ? 'Rolar ataque' : 'Rolar dados' }}</h2>
       </div>
     </div>
-    <div class="dice-presets" role="group" aria-label="Dados rápidos"><button v-for="preset in presets" :key="preset" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" :title="`Rolar ${preset}`" @click="roll(preset)">{{ preset.toUpperCase() }}</button></div>
+    <div v-if="!props.locked" class="dice-presets" role="group" aria-label="Dados rápidos"><button v-for="preset in presets" :key="preset" class="die-button" type="button" :disabled="busy || store.connection === 'offline'" :title="`Rolar ${preset}`" @click="roll(preset)">{{ preset.toUpperCase() }}</button></div>
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage><DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" /></div>
     <form class="roll-form" @submit.prevent="roll()">
       <label class="sr-only" :for="expressionId">Expressão de dados</label>
       <div class="input-with-icon">
         <Icon name="lucide:square-function" />
-        <input :id="expressionId" v-model="expression" maxlength="128" spellcheck="false" autocomplete="off" placeholder="2d6+3">
+        <input :id="expressionId" v-model="expression" maxlength="128" spellcheck="false" autocomplete="off" placeholder="2d6+3" :readonly="props.locked">
       </div>
       <button class="button primary" type="submit" :disabled="busy || store.connection === 'offline'"><Icon :name="busy ? 'lucide:loader-circle' : 'lucide:dices'" :class="{ spin: busy }" />{{ busy ? 'Rolando…' : 'Rolar' }}</button>
     </form>

@@ -45,7 +45,9 @@ public sealed class DiceRollService(
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
 
-        var results = DiceRoller.Roll(expression, randomizer);
+        IReadOnlyList<DiceRollResultDto> results;
+        try { results = DamageBreakdownBuilder.Attach(expression, DiceRoller.Roll(expression, randomizer), request.DamageBreakdown); }
+        catch (ArgumentException exception) { throw new AppException(AppErrorKind.Validation, exception.Message); }
         var first = results[0];
         DiceRoll roll;
         try

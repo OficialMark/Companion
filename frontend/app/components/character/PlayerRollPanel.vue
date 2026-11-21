@@ -8,7 +8,7 @@ import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
 import { scrollToResult } from '~/utils/scrollToResult'
 import {
-  cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, type RollConfig
+  cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, weaponDamageSummary, weaponDamageBreakdownPlan, type DamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
 
 /**
@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<{ gameMode?: boolean }>(), { gameMode: tr
 const emit = defineEmits<{
   'open-inventory': []
   /** An attack with a weapon was rolled: the page decides whether to ask "Acertou?". */
-  'attack-rolled': [roll: DiceRoll, damageExpression: string | null]
+  'attack-rolled': [roll: DiceRoll, damageExpression: string | null, damageSummary: string | null, damagePlan: DamageBreakdownPlan | null]
   rolled: [roll: DiceRoll]
 }>()
 
@@ -87,7 +87,7 @@ async function roll(source: RollConfig = config.value, label?: string) {
     revealedOk = true
     emit('rolled', revealed)
     if (snapshot.kind === 'Attack' && snapshot.source?.type === 'weapon') {
-      emit('attack-rolled', revealed, weaponDamageExpression(snapshot, stats.value))
+      emit('attack-rolled', revealed, weaponDamageExpression(snapshot, stats.value), weaponDamageSummary(snapshot, stats.value), weaponDamageBreakdownPlan(snapshot, stats.value))
     }
     if (!disposed) holdTimer = setTimeout(clearAnimation, RESULT_HOLD_MS)
   } catch (exception) {

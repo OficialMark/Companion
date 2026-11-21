@@ -1,5 +1,5 @@
 import type {
-  AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceRoll, Encounter,
+  AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceDamageBreakdownRequest, DiceRoll, Encounter,
   CreateMarkerRequest, MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session, SetAttackAreaRequest, SetTokenAppearanceRequest
 } from '~/types/campaign'
 import type { Creature, CreaturePage, CreatureQuery, RollPreset, SaveCreatureRequest } from '~/types/creatures'
@@ -62,7 +62,7 @@ export function useCompanionApi() {
     /** "Sair da campanha" (spec 011, FR-043): apaga só a sessão deste aparelho. Desiste em 5 s para não prender a saída local. */
     leaveSession: (session: Session) => request<void>(`/campaigns/${session.campaignId}/participants/me/session`, { method: 'DELETE', signal: AbortSignal.timeout(5000) }, session.participantToken),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
-    rollDice: (session: Session, expression: string, publish = true, label: string | null = null) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, { method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish, label }) }, session.participantToken),
+    rollDice: (session: Session, expression: string, publish = true, label: string | null = null, damageBreakdown?: DiceDamageBreakdownRequest | null) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, { method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish, label, damageBreakdown }) }, session.participantToken),
     revealDiceRoll: (session: Session, rollId: string) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls/${rollId}/reveal`, { method: 'POST' }, session.participantToken),
     createEncounter: (session: Session) => request<Encounter>(`/campaigns/${session.campaignId}/encounters`, { method: 'POST' }, session.participantToken),
     addCombatant: (session: Session, encounterId: string, name: string, initiativeModifier: number, currentHitPoints: number | null, maxHitPoints: number | null = null) => request<Encounter>(`/campaigns/${session.campaignId}/encounters/${encounterId}/combatants`, { method: 'POST', body: JSON.stringify({ name, initiativeModifier, currentHitPoints, maxHitPoints }) }, session.participantToken),

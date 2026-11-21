@@ -59,6 +59,7 @@ export interface ItemEffect { type: EffectType; target: string | null; op: Effec
 export interface WeaponData {
   damageDice: string
   damageType: string | null
+  damageTypes?: string[]
   versatileDice: string | null
   kind: WeaponKind
   class: WeaponClass
@@ -130,10 +131,13 @@ export interface SavedRollData {
   characterSpellId: string | null
   /** Two-handed damage of a versatile weapon. Only true with kind Damage and a weapon (SavedRollData.cs). */
   versatile?: boolean
+  damageComponents?: DamageComponent[]
+  baseDamageType?: string | null
   extraModifiers: RollModifier[]
   advantage: AdvantageMode
   repetitions: number
 }
+export interface DamageComponent { label: string | null; dice: Partial<Record<DieKey, number>>; damageType: string }
 
 export interface SavedRoll { id: string; sortOrder: number; incomplete: boolean; data: SavedRollData }
 
@@ -141,7 +145,7 @@ export interface StatPart { label: string; value: number; source: string; itemId
 export interface ValueStat { value: number; parts: StatPart[] }
 export interface AbilityStat { code: AbilityCode; abbreviation: string; base: number; final: number; modifier: number; parts: StatPart[] }
 export interface CheckStat { key: string; name: string; ability: AbilityCode; training: SkillTraining; bonus: number; parts: StatPart[] }
-export interface DamageRoll { dice: string; damageType: string | null; parts: StatPart[] }
+export interface DamageRoll { dice: string; damageType: string | null; damageTypes?: string[]; parts: StatPart[] }
 export interface WeaponRoll { itemId: string; name: string; equipped: boolean; ability: AbilityCode; attackBonus: number; attack: StatPart[]; damage: DamageRoll; versatile: DamageRoll | null }
 export interface SpellRoll { spellId: string; name: string; attackBonus: number | null; attack: StatPart[] | null; saveDc: number | null; saveAbility: AbilityCode | null; damage: DamageRoll | null }
 export interface SuppressedEffect { itemId: string; itemName: string; effectKey: string; keptItemId: string; keptItemName: string }

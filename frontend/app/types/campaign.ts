@@ -28,6 +28,9 @@ export interface DiceTermResult { expression: string; values: number[]; subtotal
 export interface DiceModifier { label: string | null; value: number }
 /** Uma das duas execuções de `2#(…) maior|menor`. */
 export interface DiceExecution { terms: DiceTermResult[]; modifier: number; total: number }
+export interface DiceDamageComponentRequest { label: string; damageType: string; termCount: number }
+export interface DiceDamageBreakdownRequest { baseType: string | null; baseTermCount: number; components: DiceDamageComponentRequest[] }
+export interface DiceDamageBreakdown { baseType: string | null; baseSubtotal: number | null; components: Array<{ label: string; damageType: string; subtotal: number }> }
 export interface DiceRollResult {
   sequence: number
   /** Termos, modificador e total da execução escolhida (o que clientes antigos leem). */
@@ -40,6 +43,7 @@ export interface DiceRollResult {
   /** Só com seleção: as duas execuções, na ordem em que rodaram. */
   executions?: DiceExecution[]
   selectedExecution?: number | null
+  damageBreakdown?: DiceDamageBreakdown | null
 }
 export interface DiceRoll {
   id: string

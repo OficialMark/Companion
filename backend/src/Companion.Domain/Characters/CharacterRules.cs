@@ -247,8 +247,8 @@ public static class CharacterRules
             damageParts.AddRange(AttackEffects(active, EffectType.DamageBonus, range));
 
             weaponRolls.Add(new WeaponRoll(item.Id, item.Data.Name, item.Data.Equipped, ability, attack.Sum(x => x.Value), attack,
-                new DamageRoll(weapon.DamageDice, weapon.DamageType, damageParts),
-                weapon.VersatileDice is null ? null : new DamageRoll(weapon.VersatileDice, weapon.DamageType, damageParts)));
+                new DamageRoll(weapon.DamageDice, weapon.DamageType, damageParts, weapon.DamageTypes),
+                weapon.VersatileDice is null ? null : new DamageRoll(weapon.VersatileDice, weapon.DamageType, damageParts, weapon.DamageTypes)));
         }
 
         // Spell rolls

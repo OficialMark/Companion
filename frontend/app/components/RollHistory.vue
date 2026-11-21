@@ -67,6 +67,10 @@ function time(value: string) {
               <span v-else-if="result.modifier" class="modifier-result">{{ result.modifier > 0 ? '+' : '' }}{{ result.modifier }}</span>
             </span>
             <strong class="total">{{ result.total }}</strong>
+            <ul v-if="result.damageBreakdown" class="history-damage-breakdown" aria-label="Dano por tipo">
+              <li v-if="result.damageBreakdown.baseType"><span>Dano-base · {{ result.damageBreakdown.baseType }}</span><strong>{{ result.damageBreakdown.baseSubtotal }}</strong></li>
+              <li v-for="component in result.damageBreakdown.components" :key="`${component.label}-${component.damageType}`"><span>{{ component.label }} · {{ component.damageType }}</span><strong>{{ component.subtotal }}</strong></li>
+            </ul>
           </div>
         </div>
       </li>
@@ -79,4 +83,7 @@ function time(value: string) {
 .execution-result { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; border-radius: 7px; padding: 1px 6px; opacity: .55; }
 .execution-result.selected { opacity: 1; outline: 1px solid var(--ink-soft); }
 .execution-total { font-weight: 700; }
+.history-damage-breakdown { grid-column: 1 / -1; display: grid; gap: 4px; margin: 4px 0 0; padding: 0; list-style: none; }
+.history-damage-breakdown li { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .75rem; }
+.history-damage-breakdown strong { color: var(--gold-soft); font-variant-numeric: tabular-nums; }
 </style>

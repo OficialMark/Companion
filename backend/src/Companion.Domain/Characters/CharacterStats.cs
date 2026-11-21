@@ -22,7 +22,7 @@ public sealed record AbilityStat(AbilityCode Code, string Abbreviation, int Base
 public sealed record CheckStat(string Key, string Name, AbilityCode Ability, SkillTraining Training, int Bonus, IReadOnlyList<StatPart> Parts);
 
 /// <summary>Damage of a weapon or spell: dice plus labeled constants.</summary>
-public sealed record DamageRoll(string Dice, string? DamageType, IReadOnlyList<StatPart> Parts);
+public sealed record DamageRoll(string Dice, string? DamageType, IReadOnlyList<StatPart> Parts, IReadOnlyList<string>? DamageTypes = null);
 
 public sealed record WeaponRoll(
     Guid ItemId,

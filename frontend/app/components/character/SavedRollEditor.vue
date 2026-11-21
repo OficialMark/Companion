@@ -28,9 +28,32 @@ const nameInput = ref<HTMLInputElement | null>(null)
 
 const stats = computed(() => character.character?.stats ?? null)
 const resolved = computed(() => resolveRoll(config.value, stats.value, character.character))
+const selectedWeapon = computed(() => {
+  const source = config.value.source
+  return source?.type === 'weapon' ? stats.value?.weaponRolls.find(item => item.itemId === source.itemId) ?? null : null
+})
+const weaponDamageTypes = computed(() => {
+  const types = selectedWeapon.value?.damage.damageTypes
+  if (types?.length) return types
+  const legacy = selectedWeapon.value?.damage.damageType
+  return legacy ? [legacy] : []
+})
+const DAMAGE_TYPES = ['ácido', 'contundente', 'cortante', 'elétrico', 'força', 'gélido', 'fogo', 'necrótico', 'perfurante', 'psíquico', 'radiante', 'trovejante', 'veneno']
+const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'] as const
 const nameError = computed(() => (name.value.trim().length === 0 ? 'Dê um nome à rolagem.' : null))
 const canSave = computed(() => !busy.value && !nameError.value && !resolved.value.error && Boolean(resolved.value.expression))
 const title = computed(() => (props.roll ? 'Editar rolagem' : 'Nova rolagem'))
+
+function addDamageComponent() {
+  if (config.value.damageComponents.length >= 8) return
+  config.value = { ...config.value, damageComponents: [...config.value.damageComponents, { label: '', dice: { d4: 1 }, damageType: 'gélido' }] }
+}
+function updateDamageComponent(index: number, patch: Partial<(typeof config.value.damageComponents)[number]>) {
+  config.value = { ...config.value, damageComponents: config.value.damageComponents.map((item, i) => i === index ? { ...item, ...patch } : item) }
+}
+function removeDamageComponent(index: number) {
+  config.value = { ...config.value, damageComponents: config.value.damageComponents.filter((_, i) => i !== index) }
+}
 
 async function save() {
   if (!canSave.value) return
@@ -82,6 +105,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </fieldset>
 
       <RollConfigFields v-model="config" :stats="stats" :character="character.character" :disabled="busy" />
+
+      <section v-if="selectedWeapon && ['Attack', 'Damage'].includes(config.kind)" class="saved-damage-components" aria-labelledby="saved-damage-heading">
+        <h3 id="saved-damage-heading">Tipos de dano</h3>
+        <label class="sheet-field">
+          <span>Dano-base da arma</span>
+          <select v-model="config.baseDamageType" :disabled="busy">
+            <option :value="null">{{ selectedWeapon.damage.damageType || 'Tipo padrão da arma' }}</option>
+            <option v-for="type in weaponDamageTypes" :key="type" :value="type">{{ type }}</option>
+          </select>
+        </label>
+        <div v-for="(component, index) in config.damageComponents" :key="index" class="saved-damage-component">
+          <input :value="component.label || ''" maxlength="40" placeholder="Ex.: encantamento" :aria-label="`Nome do dano adicional ${index + 1}`" :disabled="busy" @input="updateDamageComponent(index, { label: ($event.target as HTMLInputElement).value })">
+          <select :value="Object.keys(component.dice)[0] || 'd4'" :aria-label="`Dado do dano adicional ${index + 1}`" :disabled="busy" @change="updateDamageComponent(index, { dice: { [($event.target as HTMLSelectElement).value]: component.dice[Object.keys(component.dice)[0] as keyof typeof component.dice] || 1 } })">
+            <option v-for="die in DAMAGE_DICE" :key="die" :value="die">{{ die }}</option>
+          </select>
+          <input type="number" min="1" max="20" :value="component.dice[Object.keys(component.dice)[0] as keyof typeof component.dice] || 1" :aria-label="`Quantidade de dados adicionais ${index + 1}`" :disabled="busy" @input="updateDamageComponent(index, { dice: { [Object.keys(component.dice)[0] || 'd4']: Math.max(1, Math.min(20, Number(($event.target as HTMLInputElement).value) || 1)) } })">
+          <select :value="component.damageType" :aria-label="`Tipo do dano adicional ${index + 1}`" :disabled="busy" @change="updateDamageComponent(index, { damageType: ($event.target as HTMLSelectElement).value })">
+            <option v-for="type in DAMAGE_TYPES" :key="type" :value="type">{{ type }}</option>
+          </select>
+          <button class="icon-button" type="button" :aria-label="`Remover dano adicional ${index + 1}`" :disabled="busy" @click="removeDamageComponent(index)"><Icon name="lucide:x" /></button>
+        </div>
+        <button v-if="config.damageComponents.length < 8" class="button ghost small" type="button" :disabled="busy" @click="addDamageComponent"><Icon name="lucide:plus" />Dano adicional</button>
+      </section>
 
       <p v-if="error" class="form-error" role="alert" data-editor-error><Icon name="lucide:circle-alert" />{{ error }}</p>
       <div class="button-row">
