@@ -89,7 +89,12 @@ async function copyCode() {
 
 // Tokens whose combatant dropped to 0 HP get a "defeated" marker on the battlemap.
 // Master's screen (spec 009): the table, or the full-width creature compendium. Kept in the URL.
-const { view } = useAppView()
+const { view, go } = useAppView()
+function onGameModeToggled() {
+  // Game/full mode applies to the table. If toggled while viewing the sheet or campaign notes,
+  // return to the table after applying the requested mode.
+  if (view.value !== 'mesa') go('mesa')
+}
 const creatures = useCreatureStore()
 const images = useImageCacheStore()
 watch(() => store.isMaster, master => { if (!master) creatures.close() })
@@ -208,7 +213,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="top-actions">
         <MasterCodeToggle />
-        <GameModeToggle />
+        <GameModeToggle @toggled="onGameModeToggled" />
         <ConnectionStatus :status="store.connection" />
         <UserMenu @leave="leave" />
       </div>

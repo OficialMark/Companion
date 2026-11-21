@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useGameMode } from '~/composables/useGameMode'
 const gameMode = useGameMode()
+const emit = defineEmits<{ toggled: [] }>()
+
+function toggleMode() {
+  gameMode.toggle()
+  emit('toggled')
+}
 </script>
 <template>
   <button
@@ -9,7 +15,7 @@ const gameMode = useGameMode()
     type="button"
     :aria-pressed="gameMode.active.value"
     :title="gameMode.active.value ? 'Voltar à visão completa' : 'Ativar Modo Jogo (interface enxuta para o combate)'"
-    @click="gameMode.toggle()"
+    @click="toggleMode"
   >
     <Icon :name="gameMode.active.value ? 'lucide:layout-dashboard' : 'lucide:swords'" />
     <span class="toggle-label">{{ gameMode.active.value ? 'Voltar à visão completa' : 'Modo Jogo' }}</span>
