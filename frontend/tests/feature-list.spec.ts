@@ -17,7 +17,7 @@ vi.stubGlobal('useCampaignStore', () => useCampaignStore())
 vi.stubGlobal('useCharacterStore', () => useCharacterStore())
 
 function feature(id: string, sortOrder: number, data: Partial<CharacterFeatureData> = {}): CharacterFeature {
-  return { id, sortOrder, data: { name: id, source: 'Paladino 5', description: null, maxUses: null, currentUses: 0, recovery: 'None', ...data } }
+  return { id, sortOrder, data: { name: id, source: 'Paladino 5', description: null, maxUses: null, currentUses: 0, recovery: 'None', effects: [], ...data } }
 }
 const withFeatures = (features: CharacterFeature[]) => makeCharacter({ features })
 
@@ -144,9 +144,30 @@ describe('Características', () => {
     await editor.trigger('submit')
     await flushPromises()
     expect(api.addFeature).toHaveBeenCalledWith(expect.anything(), {
-      name: 'Sentido Divino', source: 'Paladino 5', description: null, maxUses: 5, currentUses: 5, recovery: 'LongRest'
+      name: 'Sentido Divino', source: 'Paladino 5', description: null, maxUses: 5, currentUses: 5, recovery: 'LongRest', effects: []
     })
     expect(wrapper.find('[data-feature-editor]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('configura Dueling como +2 no dano corpo a corpo', async () => {
+    useCharacterStore().apply(withFeatures([]), { resetDraft: true })
+    api.addFeature.mockResolvedValue(withFeatures([feature('dueling', 0, {
+      name: 'Dueling', effects: [{ type: 'DamageBonus', target: 'melee', op: 'Add', value: 2 }]
+    })]))
+    const wrapper = mount(FeatureList, { attachTo: document.body })
+    await wrapper.get('[data-new-feature]').trigger('click')
+    const editor = wrapper.get('[data-feature-editor]')
+    await editor.get('[data-feature-field="name"]').setValue('Dueling')
+    await editor.get('[data-feature-add-effect]').trigger('click')
+    await editor.get('[data-feature-effect-target]').setValue('melee')
+    await editor.get('[data-feature-effect-value]').setValue('2')
+    await editor.trigger('submit')
+    await flushPromises()
+
+    expect(api.addFeature).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      name: 'Dueling', effects: [{ type: 'DamageBonus', target: 'melee', op: 'Add', value: 2 }]
+    }))
     wrapper.unmount()
   })
 

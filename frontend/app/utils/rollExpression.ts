@@ -24,6 +24,7 @@ export interface RollPart {
 
 export interface RollExpressionInput {
   dice: Partial<Record<DieType, number>>
+  additionalDice?: Array<Partial<Record<DieType, number>>>
   parts: RollPart[]
   selection: RollSelection
   repetitions: number
@@ -53,9 +54,9 @@ interface PreparedInput {
 }
 
 function prepare(input: RollExpressionInput): PreparedInput {
-  const dice = DIE_ORDER
-    .map(type => ({ faces: Number(type.slice(1)), count: input.dice[type] ?? 0 }))
-    .filter(die => die.count !== 0)
+  const dice = [input.dice, ...(input.additionalDice ?? [])].flatMap(group =>
+    DIE_ORDER.map(type => ({ faces: Number(type.slice(1)), count: group[type] ?? 0 }))
+      .filter(die => die.count !== 0))
   const parts = input.parts
     .filter(part => part.value !== 0)
     .map(part => ({ label: normalizeLabel(part.label), value: part.value }))
@@ -102,11 +103,10 @@ export function expressionLimits(input: RollExpressionInput): string | null {
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > MAX_REPETITIONS) {
     return `Use de 1 a ${MAX_REPETITIONS} repetições.`
   }
-  const counts = DIE_ORDER.map(type => input.dice[type] ?? 0)
-  if (counts.some(count => !Number.isInteger(count) || count < 0)) {
+  const { dice, parts } = prepare(input)
+  if (dice.some(({ count }) => !Number.isInteger(count) || count < 0)) {
     return 'A quantidade de cada dado deve ser um número inteiro, zero ou mais.'
   }
-  const { dice, parts } = prepare(input)
   if (dice.length === 0) return 'Escolha pelo menos um dado.'
   const executions = input.selection === 'none' ? 1 : 2
   const total = dice.reduce((sum, item) => sum + item.count, 0) * executions * repetitions

@@ -2,7 +2,7 @@ import type { DiceRollResult } from '~/types/campaign'
 import {
   MISSING_SPELL, MISSING_WEAPON, NO_SPELLCASTING, SPELL_WITHOUT_ATTACK, cloneConfig, configFromSavedRoll, defaultKindFor, diceFromNotation,
   emptyConfig, kindsFor, plannedDice, plannedValues, resolveRoll, savedRollFromConfig, sourceFromKey, sourceKey, usesStrDex,
-  weaponDamageExpression, type RollConfig
+  weaponDamageExpression, weaponDamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
 import { buildExpression } from '~/utils/rollExpression'
 import { makeFighter, savedRollData } from './player-roll-fixture'
@@ -207,14 +207,34 @@ describe('sources, kinds and the armor rule', () => {
     expect(weaponDamageExpression(config({ kind: 'Attack', source: { type: 'weapon', itemId: 'gone' } }), stats)).toBeNull()
     expect(weaponDamageExpression(config({ kind: 'Check' }), stats)).toBeNull()
   })
+  it('saved attack damage appends independent dice and retains a typed breakdown plan', () => {
+    const attack = config({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword' }, baseDamageType: 'cortante', damageComponents: [
+      { label: 'Encantamento', dice: { d8: 2 }, damageType: 'gélido' }
+    ] })
+    expect(weaponDamageExpression(attack, stats)).toBe('d8 + 2d8 + (FOR) 3 + (arma) 1')
+    expect(weaponDamageBreakdownPlan(attack, stats)).toEqual({ baseType: 'cortante', baseTermCount: 1, components: [
+      { label: 'Encantamento', damageType: 'gélido', termCount: 1 }
+    ] })
+    const damage = resolveRoll({ ...attack, kind: 'Damage', repetitions: 2, advantage: 'Advantage' }, stats)
+    expect(damage.expression).toBe('2#[2#(d8 + 2d8 + (FOR) 3 + (arma) 1) maior]')
+    expect(damage.error).toBeNull()
+    expect(resolveRoll({ ...attack, kind: 'Damage', repetitions: 20, advantage: 'Advantage' }, stats).error).toContain('100 dados')
+  })
 })
 
 describe('saved rolls keep references (FR-034)', () => {
   it('maps SavedRollData to the panel and back with the same fields', () => {
     const data = savedRollData({ dice: { d4: 1 }, extraModifiers: [{ label: 'Guia', value: 1 }], advantage: 'Advantage', repetitions: 2 })
     const panel = configFromSavedRoll(data)
-    expect(panel).toEqual({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword' }, dice: { d4: 1 }, extraModifiers: [{ label: 'Guia', value: 1 }], advantage: 'Advantage', repetitions: 2 })
+    expect(panel).toEqual({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword' }, dice: { d4: 1 }, extraModifiers: [{ label: 'Guia', value: 1 }], advantage: 'Advantage', repetitions: 2, baseDamageType: null, damageComponents: [] })
     expect(savedRollFromConfig(panel, '  Ataque com espada ', 'lucide:sword')).toEqual(data)
+  })
+  it('persists additional damage components and the selected base type', () => {
+    const data = savedRollData({ baseDamageType: 'cortante', damageComponents: [
+      { label: 'Encantamento', dice: { d4: 1 }, damageType: 'gélido' }
+    ] })
+    const panel = configFromSavedRoll(data)
+    expect(savedRollFromConfig(panel, data.name, data.icon)).toEqual(data)
   })
   it('T074: a two-handed damage roll survives the trip through the saved roll (d10, not d8)', () => {
     const panel = config({ kind: 'Damage', source: { type: 'weapon', itemId: 'sword', versatile: true } })

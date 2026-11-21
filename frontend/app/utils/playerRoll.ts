@@ -8,7 +8,7 @@
  * `buildExpression` only, so the screen shows exactly what the server will execute (FR-027, FR-036).
  */
 import type {
-  AbilityCode, AdvantageMode, Character, CharacterStats, DieKey, RollKind, RollModifier, SavedRollData, StatPart
+  AbilityCode, AdvantageMode, Character, CharacterStats, DamageComponent, DieKey, RollKind, RollModifier, SavedRollData, StatPart
 } from '~/types/character'
 import { ABILITY_LABEL, ABILITY_NAME, abilityKey } from '~/types/character'
 import type { DiceRollResult } from '~/types/campaign'
@@ -32,6 +32,8 @@ export interface RollConfig {
   extraModifiers: RollModifier[]
   advantage: AdvantageMode
   repetitions: number
+  baseDamageType: string | null
+  damageComponents: DamageComponent[]
 }
 
 export interface ResolvedRoll {
@@ -45,6 +47,7 @@ export interface ResolvedRoll {
   /** PT-BR reason the roll cannot be sent, or null. */
   error: string | null
 }
+export type DamageBreakdownPlan = import('~/types/campaign').DiceDamageBreakdownRequest
 
 /** Same limits as SavedRollData.cs. */
 export const MAX_DICE_PER_TYPE = 20
@@ -64,18 +67,21 @@ export const NO_SPELLCASTING = 'Escolha o atributo de conjuração na ficha para
 export const SPELL_WITHOUT_ATTACK = 'Esta magia não faz jogada de ataque.'
 
 export function emptyConfig(): RollConfig {
-  return { kind: 'Free', source: null, dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1 }
+  return { kind: 'Free', source: null, dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1, baseDamageType: null, damageComponents: [] }
 }
 
 /** Plain deep copy (safe on Vue proxies, unlike structuredClone). */
 export function cloneConfig(config: RollConfig): RollConfig {
+  const damageComponents = config.damageComponents ?? []
   return {
     kind: config.kind,
     source: config.source ? { ...config.source } : null,
     dice: { ...config.dice },
     extraModifiers: config.extraModifiers.map(extra => ({ label: extra.label, value: extra.value })),
     advantage: config.advantage,
-    repetitions: config.repetitions
+    repetitions: config.repetitions,
+    baseDamageType: config.baseDamageType ?? null,
+    damageComponents: damageComponents.map(component => ({ ...component, dice: { ...component.dice } }))
   }
 }
 
@@ -255,12 +261,15 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   }
 
   const dice = addDice(sourceDice, config.dice)
-  if (!error && flatTotal !== null && Object.values(dice).every(count => !count)) {
+  const configuredComponents = config.damageComponents ?? []
+  const additionalDice = kind === 'Damage' ? configuredComponents.map(component => component.dice) : []
+  const animatedDice = addDice(dice, ...additionalDice)
+  if (!error && flatTotal !== null && diceCount(animatedDice) === 0) {
     error = `Dano fixo de ${flatTotal}: não precisa rolar.`
   }
   parts = [...parts, ...config.extraModifiers.map(extra => ({ label: extra.label?.trim() ? extra.label : null, value: extra.value }))]
   const selection = selectionOf(config.advantage)
-  const input: RollExpressionInput = { dice, parts, selection, repetitions: config.repetitions }
+  const input: RollExpressionInput = { dice, additionalDice, parts, selection, repetitions: config.repetitions }
   const expression = buildExpression(input)
   if (!error) error = expressionLimits(input)
   if (!error) {
@@ -271,14 +280,53 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   if (!error && config.extraModifiers.some(extra => extra.value < MIN_EXTRA || extra.value > MAX_EXTRA)) {
     error = `Cada adicional deve ficar entre ${MIN_EXTRA} e +${MAX_EXTRA}.`
   }
-  return { expression, parts, dice, label: truncateLabel(label), selection, error }
+  if (!error && configuredComponents.some(component => !component.damageType || diceCount(component.dice) < 1)) error = 'Revise os componentes de dano adicionais.'
+  if (!error && configuredComponents.length > 8) error = 'Use até 8 componentes de dano.'
+  if (!error && kind === 'Attack' && source?.type === 'weapon' && configuredComponents.length) {
+    const damage = resolveRoll(damageAfterHit(config), stats, character)
+    if (damage.error) error = `Dano do ataque: ${damage.error}`
+  }
+  return { expression, parts, dice: animatedDice, label: truncateLabel(label), selection, error }
 }
 
 /** The weapon damage that follows a hit (US4: "acertou" opens the damage roll of the same weapon). */
+function damageAfterHit(config: RollConfig): RollConfig {
+  return { ...config, kind: 'Damage', dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1 }
+}
+
 export function weaponDamageExpression(config: RollConfig, stats: CharacterStats | null | undefined): string | null {
   if (config.source?.type !== 'weapon') return null
-  const resolved = resolveRoll({ kind: 'Damage', source: config.source, dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1 }, stats)
+  const resolved = resolveRoll(damageAfterHit(config), stats)
   return resolved.error ? null : resolved.expression || null
+}
+
+export function weaponDamageSummary(config: RollConfig, stats: CharacterStats | null | undefined): string | null {
+  const plan = weaponDamageBreakdownPlan(config, stats)
+  if (!plan) return null
+  const labels = [plan.baseType, ...plan.components.map(component => component.damageType)].filter((value): value is string => Boolean(value))
+  return labels.length ? `Tipos: ${labels.join(' + ')}` : null
+}
+
+export function weaponDamageBreakdownPlan(config: RollConfig, stats: CharacterStats | null | undefined): DamageBreakdownPlan | null {
+  const source = config.source
+  if (source?.type !== 'weapon') return null
+  const weapon = stats?.weaponRolls.find(item => item.itemId === source.itemId)
+  if (!weapon) return null
+  const damage = source.versatile && weapon.versatile ? weapon.versatile : weapon.damage
+  const weaponDice = diceFromNotation(damage.dice)
+  const baseDice = config.kind === 'Damage' ? addDice(weaponDice, config.dice) : weaponDice
+  const baseType = config.baseDamageType ?? damage.damageType ?? damage.damageTypes?.[0] ?? null
+  const components = (config.damageComponents ?? []).map((component, index) => ({
+    label: component.label?.trim() || `Adicional ${index + 1}`,
+    damageType: component.damageType,
+    termCount: DIE_ORDER.filter(key => (component.dice[key] ?? 0) > 0).length
+  }))
+  if (!baseType && components.length === 0) return null
+  return {
+    baseType,
+    baseTermCount: DIE_ORDER.filter(key => (baseDice[key] ?? 0) > 0).length,
+    components
+  }
 }
 
 /** Saved roll (references only, FR-034) to panel configuration. */
@@ -301,7 +349,9 @@ export function configFromSavedRoll(data: SavedRollData): RollConfig {
     dice,
     extraModifiers: data.extraModifiers.map(extra => ({ label: extra.label, value: extra.value })),
     advantage: data.advantage,
-    repetitions: data.repetitions
+    repetitions: data.repetitions,
+    baseDamageType: data.baseDamageType ?? null,
+    damageComponents: (data.damageComponents ?? []).map(component => ({ ...component, dice: { ...component.dice } }))
   }
 }
 
@@ -324,7 +374,9 @@ export function savedRollFromConfig(config: RollConfig, name: string, icon: stri
     versatile: config.kind === 'Damage' && source?.type === 'weapon' && source.versatile === true,
     extraModifiers: config.extraModifiers.map(extra => ({ label: extra.label?.trim() ? extra.label.trim() : null, value: extra.value })),
     advantage: config.advantage,
-    repetitions: config.repetitions
+    repetitions: config.repetitions,
+    ...(config.baseDamageType ? { baseDamageType: config.baseDamageType } : {}),
+    ...(config.damageComponents?.length ? { damageComponents: config.damageComponents.map(component => ({ ...component, dice: { ...component.dice } })) } : {})
   }
 }
 

@@ -2,6 +2,11 @@
 import type { DiceModifier, DiceRoll, DiceRollResult } from '~/types/campaign'
 defineProps<{ rolls: DiceRoll[] }>()
 
+function plainExpression(expression: string) {
+  // Modifier labels precede a number. Keep the parentheses used by advantage/disadvantage.
+  return expression.replace(/\([^()]*\)(?=\s*\d)/g, '').replace(/\s+/g, '').replace(/\)(maior|menor)/g, ') $1')
+}
+
 /** "(FOR) 3", "- (FOR) 1", "+2" (spec 011). */
 function modifierText(modifier: DiceModifier) {
   const sign = modifier.value < 0 ? '-' : '+'
@@ -36,11 +41,11 @@ function time(value: string) {
           <strong>{{ roll.displayName }}<span v-if="roll.label" class="roll-label" :title="`Rolagem para ${roll.label}`"><Icon name="lucide:skull" />{{ roll.label }}</span></strong>
           <span><Icon name="lucide:clock" />{{ time(roll.createdAt) }}</span>
         </div>
-        <div class="roll-command">{{ roll.expression }}</div>
+        <div class="roll-command">{{ plainExpression(roll.expression) }}</div>
         <div class="roll-attempts">
           <div v-for="result in roll.results" :key="result.sequence" class="roll-attempt">
             <span class="attempt-label">{{ roll.results.length > 1 ? `#${result.sequence}` : 'Resultado' }}</span>
-            <span class="values">
+            <div class="values">
               <template v-if="result.executions?.length">
                 <span class="selection-label" :title="selectionTitle(result)">{{ result.selection }}</span>
                 <span
@@ -65,7 +70,11 @@ function time(value: string) {
                 <span v-for="(modifier, modifierIndex) in result.modifiers" :key="`${result.sequence}-modifier-${modifierIndex}`" class="modifier-result">{{ modifierText(modifier) }}</span>
               </template>
               <span v-else-if="result.modifier" class="modifier-result">{{ result.modifier > 0 ? '+' : '' }}{{ result.modifier }}</span>
-            </span>
+              <ul v-if="result.damageBreakdown" class="history-damage-breakdown" aria-label="Dano por tipo">
+                <li v-if="result.damageBreakdown.baseType"><strong>{{ result.damageBreakdown.baseSubtotal }}</strong> (Dano-base · {{ result.damageBreakdown.baseType }})</li>
+                <li v-for="(component, index) in result.damageBreakdown.components" :key="index"><strong>{{ component.subtotal }}</strong> ({{ component.label }} · {{ component.damageType }})</li>
+              </ul>
+            </div>
             <strong class="total">{{ result.total }}</strong>
           </div>
         </div>
@@ -79,4 +88,7 @@ function time(value: string) {
 .execution-result { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; border-radius: 7px; padding: 1px 6px; opacity: .55; }
 .execution-result.selected { opacity: 1; outline: 1px solid var(--ink-soft); }
 .execution-total { font-weight: 700; }
+.history-damage-breakdown { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
+.history-damage-breakdown li { color: var(--muted); font-size: .75rem; }
+.history-damage-breakdown strong { color: var(--gold-soft); font-variant-numeric: tabular-nums; }
 </style>

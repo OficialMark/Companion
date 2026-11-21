@@ -1,4 +1,5 @@
 using Companion.Domain.Models;
+using Companion.Domain.Campaigns;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -341,5 +342,63 @@ public sealed class SeedVersionConfiguration : IEntityTypeConfiguration<SeedVers
         builder.HasKey(x => x.Key);
         builder.Property(x => x.Key).HasMaxLength(80);
         builder.Property(x => x.Hash).HasMaxLength(64).IsRequired();
+    }
+}
+
+public sealed class CampaignKnowledgeEntryConfiguration : IEntityTypeConfiguration<CampaignKnowledgeEntry>
+{
+    public void Configure(EntityTypeBuilder<CampaignKnowledgeEntry> builder)
+    {
+        builder.ToTable("CampaignKnowledgeEntries");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16).IsRequired();
+        builder.Property(x => x.Title).HasMaxLength(CampaignKnowledgeEntry.MaxTitleLength).IsRequired();
+        builder.Property(x => x.Summary).HasMaxLength(CampaignKnowledgeEntry.MaxSummaryLength);
+        builder.Property(x => x.SharedDescription).HasMaxLength(CampaignKnowledgeEntry.MaxDescriptionLength);
+        builder.Property(x => x.ImageContent).HasColumnType("varbinary(max)");
+        builder.Property(x => x.ImageMediaType).HasMaxLength(32);
+        builder.Property(x => x.ImageFileName).HasMaxLength(255);
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.HasIndex(x => new { x.CampaignId, x.Kind, x.IsPlayerVisible, x.Title });
+        builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class CampaignKnowledgeContributionConfiguration : IEntityTypeConfiguration<CampaignKnowledgeContribution>
+{
+    public void Configure(EntityTypeBuilder<CampaignKnowledgeContribution> builder)
+    {
+        builder.ToTable("CampaignKnowledgeContributions");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Body).HasMaxLength(8_000).IsRequired();
+        builder.HasIndex(x => new { x.EntryId, x.CreatedAt });
+        builder.HasOne<CampaignKnowledgeEntry>().WithMany().HasForeignKey(x => x.EntryId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class CampaignKnowledgeMasterNoteConfiguration : IEntityTypeConfiguration<CampaignKnowledgeMasterNote>
+{
+    public void Configure(EntityTypeBuilder<CampaignKnowledgeMasterNote> builder)
+    {
+        builder.ToTable("CampaignKnowledgeMasterNotes");
+        builder.HasKey(x => x.EntryId);
+        builder.Property(x => x.Body).HasMaxLength(12_000).IsRequired();
+        builder.Property(x => x.Version).IsRowVersion();
+        builder.HasOne<CampaignKnowledgeEntry>().WithOne().HasForeignKey<CampaignKnowledgeMasterNote>(x => x.EntryId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class CampaignMapPointConfiguration : IEntityTypeConfiguration<CampaignMapPoint>
+{
+    public void Configure(EntityTypeBuilder<CampaignMapPoint> builder)
+    {
+        builder.ToTable("CampaignMapPoints");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Title).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.Description).HasMaxLength(2_000);
+        builder.Property(x => x.X).HasPrecision(8, 7);
+        builder.Property(x => x.Y).HasPrecision(8, 7);
+        builder.HasIndex(x => new { x.MapEntryId, x.CreatedAt });
+        builder.HasOne<CampaignKnowledgeEntry>().WithMany().HasForeignKey(x => x.MapEntryId).OnDelete(DeleteBehavior.Cascade);
     }
 }

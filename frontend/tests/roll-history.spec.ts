@@ -33,6 +33,7 @@ describe('RollHistory (spec 011)', () => {
     expect(selected).toHaveLength(1)
     expect(selected[0]!.text()).toContain('1d20 [17]')
     expect(wrapper.get('.selection-label').text()).toBe('maior')
+    expect(wrapper.get('.roll-command').text()).toBe('2#(d20+3) maior')
     expect(wrapper.text()).toContain('(FOR) 3')
     expect(wrapper.get('.total').text()).toBe('20')
   })
@@ -65,6 +66,7 @@ describe('RollHistory (spec 011)', () => {
       }]
     })] } })
 
+    expect(wrapper.get('.roll-command').text()).toBe('d20+2-1+3')
     expect(wrapper.findAll('.modifier-result').map(item => item.text())).toEqual(['+ (prof) 2', '- (FOR) 1', '+3'])
     expect(wrapper.find('.execution-result').exists()).toBe(false)
     expect(wrapper.find('[data-selected-execution]').exists()).toBe(false)

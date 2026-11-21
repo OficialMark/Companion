@@ -22,6 +22,168 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntryId", "CreatedAt");
+
+                    b.ToTable("CampaignKnowledgeContributions", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("ImageContent")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ImageFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ImageMediaType")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("IsPlayerVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("SharedDescription")
+                        .HasMaxLength(12000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "Kind", "IsPlayerVisible", "Title");
+
+                    b.ToTable("CampaignKnowledgeEntries", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeMasterNote", b =>
+                {
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(12000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UpdatedByParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("EntryId");
+
+                    b.ToTable("CampaignKnowledgeMasterNotes", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignMapPoint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByParticipantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("MapEntryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("X")
+                        .HasPrecision(8, 7)
+                        .HasColumnType("decimal(8,7)");
+
+                    b.Property<decimal>("Y")
+                        .HasPrecision(8, 7)
+                        .HasColumnType("decimal(8,7)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MapEntryId", "CreatedAt");
+
+                    b.ToTable("CampaignMapPoints", (string)null);
+                });
+
             modelBuilder.Entity("Companion.Domain.Catalog.CatalogItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1250,6 +1412,42 @@ namespace Companion.Infrastructure.Persistence.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("SeedVersions", (string)null);
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeContribution", b =>
+                {
+                    b.HasOne("Companion.Domain.Campaigns.CampaignKnowledgeEntry", null)
+                        .WithMany()
+                        .HasForeignKey("EntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeEntry", b =>
+                {
+                    b.HasOne("Companion.Domain.Models.Campaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignKnowledgeMasterNote", b =>
+                {
+                    b.HasOne("Companion.Domain.Campaigns.CampaignKnowledgeEntry", null)
+                        .WithOne()
+                        .HasForeignKey("Companion.Domain.Campaigns.CampaignKnowledgeMasterNote", "EntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Companion.Domain.Campaigns.CampaignMapPoint", b =>
+                {
+                    b.HasOne("Companion.Domain.Campaigns.CampaignKnowledgeEntry", null)
+                        .WithMany()
+                        .HasForeignKey("MapEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Companion.Domain.Catalog.CatalogItem", b =>

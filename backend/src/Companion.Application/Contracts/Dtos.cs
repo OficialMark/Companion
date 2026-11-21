@@ -5,7 +5,9 @@ namespace Companion.Application.Contracts;
 
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
-public sealed record RollDiceRequest(string Expression, bool Publish = true, string? Label = null);
+public sealed record RollDiceRequest(string Expression, bool Publish = true, string? Label = null, DiceDamageBreakdownRequest? DamageBreakdown = null);
+public sealed record DiceDamageComponentRequest(string Label, string DamageType, int TermCount);
+public sealed record DiceDamageBreakdownRequest(string? BaseType, int BaseTermCount, IReadOnlyList<DiceDamageComponentRequest> Components);
 public sealed record AddCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
 public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier, int? CurrentHitPoints = null, int? MaxHitPoints = null);
 public sealed record RollInitiativeRequest(Guid? CombatantId);
@@ -78,7 +80,10 @@ public sealed record DiceRollResultDto(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DiceModifierDto>? Modifiers = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Selection = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DiceExecutionDto>? Executions = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SelectedExecution = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SelectedExecution = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DiceDamageBreakdownDto? DamageBreakdown = null);
+public sealed record DiceDamageBreakdownDto(string? BaseType, int? BaseSubtotal, IReadOnlyList<DiceDamageComponentDto> Components);
+public sealed record DiceDamageComponentDto(string Label, string DamageType, int Subtotal);
 /// <summary>Constante da expressão, com rótulo quando houver: <c>(FOR) 3</c> vira <c>{ Label: "FOR", Value: 3 }</c>.</summary>
 public sealed record DiceModifierDto(string? Label, int Value);
 /// <summary>Uma das duas execuções de <c>2#(…) maior|menor</c>.</summary>

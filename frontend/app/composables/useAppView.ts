@@ -1,4 +1,4 @@
-export type AppView = 'mesa' | 'compendio' | 'ficha'
+export type AppView = 'mesa' | 'compendio' | 'ficha' | 'campanha'
 
 /**
  * The current screen of the top-bar navigation (spec 009 FR-009, spec 011 FR-001/FR-002). It lives
@@ -11,6 +11,7 @@ export function useAppView() {
   const store = useCampaignStore()
   const view = computed<AppView>(() => {
     const asked = route.query.tela
+    if (asked === 'campanha' && store.session) return 'campanha'
     if (asked === 'compendio' && store.isMaster) return 'compendio'
     if (asked === 'ficha' && store.session?.role === 'Player') return 'ficha'
     return 'mesa'

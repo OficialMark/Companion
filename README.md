@@ -2,6 +2,8 @@
 
 Mesa web responsiva para campanhas de D&D, com campanhas por código, rolagem pública de dados, histórico, iniciativa e turnos sincronizados em tempo real.
 
+Na campanha, a área **Campanha** reúne NPCs, mapas com pontos de interesse, pistas e diário colaborativo, com anotações privadas e conteúdo reservado ao mestre. Ataques salvos também podem combinar dano-base e componentes adicionais de tipos diferentes.
+
 ## Executar com Docker Compose
 
 Pré-requisitos:

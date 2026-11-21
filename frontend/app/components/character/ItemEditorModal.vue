@@ -119,6 +119,7 @@ const isNew = catalogMode.value ? !entry : !props.item
 const initial = entry ? entry.template : props.item?.data
 const form = reactive<InventoryItemData>(initial ? structuredClone(toRaw(initial)) : emptyItem())
 if (!Array.isArray(form.effects)) form.effects = []
+if (form.weapon && !Array.isArray(form.weapon.damageTypes)) form.weapon.damageTypes = form.weapon.damageType ? [form.weapon.damageType] : []
 const extra = reactive({
   nameEn: entry?.nameEn ?? '',
   subcategory: entry?.subcategory ?? '',
@@ -166,6 +167,18 @@ function toggleProperty(key: string) {
   if (!form.weapon) return
   const list = form.weapon.properties
   form.weapon.properties = list.includes(key) ? list.filter(x => x !== key) : [...list, key]
+}
+
+function toggleDamageType(type: string) {
+  if (!form.weapon) return
+  const list = form.weapon.damageTypes ?? []
+  if (list.includes(type)) {
+    form.weapon.damageTypes = list.filter(value => value !== type)
+    if (form.weapon.damageType === type) form.weapon.damageType = form.weapon.damageTypes[0] ?? null
+  } else {
+    form.weapon.damageTypes = [...list, type]
+    if (!form.weapon.damageType) form.weapon.damageType = type
+  }
 }
 
 function addEffect() {
@@ -219,6 +232,7 @@ function payload(): InventoryItemData {
         damageDice: compactDice(data.weapon.damageDice),
         versatileDice: compactDice(data.weapon.versatileDice) || null,
         damageType: data.weapon.damageType || null,
+        damageTypes: [...new Set([...(data.weapon.damageTypes ?? []), ...(data.weapon.damageType ? [data.weapon.damageType] : [])])],
         rangeNormal: num(data.weapon.rangeNormal),
         rangeLong: num(data.weapon.rangeLong),
         abilityOverride: data.weapon.abilityOverride || null
@@ -395,12 +409,20 @@ onBeforeUnmount(() => { if (opener instanceof HTMLElement) opener.focus() })
             <small id="weapon-dice-hint" class="field-hint">Um tipo de dado, como 1d8 ou 2d6.</small>
           </label>
           <label class="sheet-field">
-            <span>Tipo de dano</span>
+            <span>Tipo principal de dano</span>
             <select v-model="form.weapon.damageType" data-item-field="damageType">
               <option :value="null">sem tipo</option>
               <option v-for="type in DAMAGE_TYPES" :key="type" :value="type">{{ type }}</option>
             </select>
           </label>
+          <fieldset class="sheet-field weapon-damage-types">
+            <legend>Tipos disponíveis para esta arma</legend>
+            <p class="field-hint">Selecione um ou mais tipos; cada ataque escolhe qual deles causou o dano.</p>
+            <label v-for="type in DAMAGE_TYPES" :key="type" class="weapon-damage-type">
+              <input type="checkbox" :checked="form.weapon.damageTypes?.includes(type) || form.weapon.damageType === type" :aria-label="`Dano ${type}`" :data-damage-type="type" @change="toggleDamageType(type)">
+              <span>{{ type }}</span>
+            </label>
+          </fieldset>
           <label class="sheet-field">
             <span>Dano versátil (opcional)</span>
             <input v-model="form.weapon.versatileDice" type="text" placeholder="1d10" autocomplete="off" data-item-field="versatileDice">

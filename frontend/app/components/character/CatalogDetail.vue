@@ -18,7 +18,8 @@ const facts = computed<Array<[string, string]>>(() => {
     if (item.requiresAttunement) rows.push(['Sintonia', 'Requer sintonia'])
     if (t.magicBonus > 0) rows.push(['Bônus mágico', `+${t.magicBonus}`])
     if (t.weapon) {
-      rows.push(['Dano', [t.weapon.damageDice, t.weapon.damageType].filter(Boolean).join(' ')])
+      const types = t.weapon.damageTypes?.length ? t.weapon.damageTypes : [t.weapon.damageType].filter((type): type is string => Boolean(type))
+      rows.push(['Dano', [t.weapon.damageDice, types.length ? types.join(' / ') : null].filter(Boolean).join(' ')])
       if (t.weapon.versatileDice) rows.push(['Versátil', t.weapon.versatileDice])
       if (t.weapon.rangeNormal) rows.push(['Alcance', [meters(t.weapon.rangeNormal), meters(t.weapon.rangeLong)].filter(Boolean).join(' / ')])
       if (t.weapon.properties.length) rows.push(['Propriedades', t.weapon.properties.join(', ')])

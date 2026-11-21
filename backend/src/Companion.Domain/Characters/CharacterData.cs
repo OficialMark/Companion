@@ -157,7 +157,8 @@ public sealed record WeaponData(
     decimal? RangeNormal,
     decimal? RangeLong,
     AbilityCode? AbilityOverride,
-    string? Mastery)
+    string? Mastery,
+    IReadOnlyList<string>? DamageTypes = null)
 {
     public const string Finesse = "finesse";
     public const int MaxProperties = 10;
@@ -240,13 +241,20 @@ public sealed record InventoryItemData(
                 var damageType = string.IsNullOrWhiteSpace(weapon.DamageType) ? null : weapon.DamageType.Trim();
                 if (damageType is { Length: > WeaponData.MaxTagLength })
                     throw new ArgumentException($"O tipo de dano deve ter até {WeaponData.MaxTagLength} caracteres.");
+                var damageTypes = (weapon.DamageTypes ?? (damageType is null ? [] : [damageType]))
+                    .Select(DamageTypeCatalog.Normalize)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                if (damageTypes.Length > DamageTypeCatalog.MaxWeaponTypes)
+                    throw new ArgumentException($"Uma arma pode ter até {DamageTypeCatalog.MaxWeaponTypes} tipos de dano.");
                 weapon = weapon with
                 {
                     DamageDice = DiceNotation.Single(weapon.DamageDice, "O dano da arma"),
                     VersatileDice = string.IsNullOrWhiteSpace(weapon.VersatileDice)
                         ? null
                         : DiceNotation.Single(weapon.VersatileDice, "O dano versátil"),
-                    DamageType = damageType,
+                    DamageType = damageTypes.FirstOrDefault() ?? damageType,
+                    DamageTypes = damageTypes,
                     Properties = properties,
                     Mastery = mastery
                 };

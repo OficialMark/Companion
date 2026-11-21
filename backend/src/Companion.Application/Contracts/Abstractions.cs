@@ -1,4 +1,5 @@
 using Companion.Domain.Catalog;
+using Companion.Domain.Campaigns;
 using Companion.Domain.Characters;
 using Companion.Domain.Models;
 
@@ -31,6 +32,10 @@ public interface ICompanionDbContext
     IQueryable<CatalogItem> CatalogItems { get; }
     IQueryable<CatalogSpell> CatalogSpells { get; }
     IQueryable<CharacterFeature> CharacterFeatures { get; }
+    IQueryable<CampaignKnowledgeEntry> CampaignKnowledgeEntries { get; }
+    IQueryable<CampaignKnowledgeContribution> CampaignKnowledgeContributions { get; }
+    IQueryable<CampaignKnowledgeMasterNote> CampaignKnowledgeMasterNotes { get; }
+    IQueryable<CampaignMapPoint> CampaignMapPoints { get; }
 
     void Add(Campaign campaign);
     void Add(CampaignAccessCode accessCode);
@@ -79,6 +84,15 @@ public interface ICompanionDbContext
     void Remove(CatalogSpell spell);
     void Add(CharacterFeature feature);
     void Remove(CharacterFeature feature);
+    void Add(CampaignKnowledgeEntry entry);
+    void Remove(CampaignKnowledgeEntry entry);
+    void Add(CampaignKnowledgeContribution contribution);
+    void Remove(CampaignKnowledgeContribution contribution);
+    void Add(CampaignKnowledgeMasterNote note);
+    void Remove(CampaignKnowledgeMasterNote note);
+    void Add(CampaignMapPoint point);
+    void Remove(CampaignMapPoint point);
+    void ExpectVersion(CampaignKnowledgeEntry entry, byte[] version);
     /// <summary>Descarta uma ficha nova cuja inserção perdeu a corrida para outra requisição do mesmo dono.</summary>
     void Detach(CharacterSheet sheet);
     /// <summary>Usa a versão que o cliente leu na checagem de concorrência otimista (409 se outra gravação veio antes).</summary>

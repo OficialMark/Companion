@@ -13,10 +13,10 @@ public static class CharacterRules
     public const string LimitLabel = "limite";
     public const string LimitSource = "Limite da regra";
 
-    private sealed record ActiveEffect(ItemEntry Item, ItemEffect Effect)
+    private sealed record ActiveEffect(Guid SourceId, string SourceName, ItemEffect Effect)
     {
-        public string Label => RollLabel.Sanitize(Item.Data.Name);
-        public StatPart Part(int value) => new(Label, value, Item.Data.Name, Item.Id);
+        public string Label => RollLabel.Sanitize(SourceName);
+        public StatPart Part(int value) => new(Label, value, SourceName, SourceId);
     }
 
     /// <summary>Proficiency bonus by level: +2 at 1-4, +3 at 5-8, +4 at 9-12, +5 at 13-16, +6 at 17-20.</summary>
@@ -25,17 +25,19 @@ public static class CharacterRules
     public static CharacterStats Compute(
         CharacterSheetData sheet,
         IReadOnlyList<ItemEntry> items,
-        IReadOnlyList<SpellEntry> spells)
+        IReadOnlyList<SpellEntry> spells,
+        IReadOnlyList<FeatureEntry>? features = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         items ??= [];
         spells ??= [];
+        features ??= [];
 
         var equipped = items
             .Where(x => x.Data.Equipped && InventoryItemData.IsEquippable(x.Data.Category))
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToArray();
-        var (active, suppressed) = ActiveEffects(equipped);
+        var (active, suppressed) = ActiveEffects(equipped, features);
         var warnings = new List<string>();
         var proficiency = ProficiencyBonus(sheet.Level);
 
@@ -247,8 +249,8 @@ public static class CharacterRules
             damageParts.AddRange(AttackEffects(active, EffectType.DamageBonus, range));
 
             weaponRolls.Add(new WeaponRoll(item.Id, item.Data.Name, item.Data.Equipped, ability, attack.Sum(x => x.Value), attack,
-                new DamageRoll(weapon.DamageDice, weapon.DamageType, damageParts),
-                weapon.VersatileDice is null ? null : new DamageRoll(weapon.VersatileDice, weapon.DamageType, damageParts)));
+                new DamageRoll(weapon.DamageDice, weapon.DamageType, damageParts, weapon.DamageTypes),
+                weapon.VersatileDice is null ? null : new DamageRoll(weapon.VersatileDice, weapon.DamageType, damageParts, weapon.DamageTypes)));
         }
 
         // Spell rolls
@@ -294,11 +296,13 @@ public static class CharacterRules
     /// (same <see cref="ItemEffect.DuplicateKey"/>) from another item is reported, not applied.
     /// The list is rebuilt on every call, so unequipping the kept item lets the other one count.
     /// </summary>
-    private static (List<ActiveEffect> Active, List<SuppressedEffect> Suppressed) ActiveEffects(IEnumerable<ItemEntry> equipped)
+    private static (List<ActiveEffect> Active, List<SuppressedEffect> Suppressed) ActiveEffects(
+        IEnumerable<ItemEntry> equipped,
+        IEnumerable<FeatureEntry> features)
     {
         var active = new List<ActiveEffect>();
         var suppressed = new List<SuppressedEffect>();
-        var owners = new Dictionary<string, ItemEntry>(StringComparer.Ordinal);
+        var owners = new Dictionary<string, ActiveEffect>(StringComparer.Ordinal);
         foreach (var item in equipped)
         {
             foreach (var effect in item.Data.Effects)
@@ -307,14 +311,21 @@ public static class CharacterRules
                 if (owners.TryGetValue(key, out var kept))
                 {
                     // Also when the repeat is inside the same item: it is reported, never silently dropped.
-                    suppressed.Add(new SuppressedEffect(item.Id, item.Data.Name, key, kept.Id, kept.Data.Name));
+                    suppressed.Add(new SuppressedEffect(item.Id, item.Data.Name, key, kept.SourceId, kept.SourceName));
                     continue;
                 }
 
-                owners[key] = item;
-                active.Add(new ActiveEffect(item, effect));
+                var candidate = new ActiveEffect(item.Id, item.Data.Name, effect);
+                owners[key] = candidate;
+                active.Add(candidate);
             }
         }
+
+        // Features are always-on rules. They deliberately do not participate in the item-name
+        // duplicate suppression rule: a class feature and a magic item are different sources.
+        foreach (var feature in features.OrderBy(x => x.SortOrder).ThenBy(x => x.Id))
+            foreach (var effect in feature.Data.Effects ?? [])
+                active.Add(new ActiveEffect(feature.Id, feature.Data.Name, effect));
 
         return (active, suppressed);
     }
