@@ -72,10 +72,10 @@ export const useCharacterStore = defineStore('character', {
       const token = useCampaignStore().session?.participantToken
       return () => started === generation && useCampaignStore().session?.participantToken === token
     },
-    apply(character: Character, { resetDraft = false } = {}) {
+    apply(character: Character, { resetDraft = false, preserveDraft = false } = {}) {
       this.character = character
       this.notices = character.notices ?? []
-      if (resetDraft || !this.draft || !this.stale) this.draft = sheetData(character)
+      if (!preserveDraft && (resetDraft || !this.draft || !this.stale)) this.draft = sheetData(character)
     },
     async load() {
       const current = this.ticket()
@@ -128,7 +128,9 @@ export const useCharacterStore = defineStore('character', {
             const character = await useCharacterApi().saveSheet(this.session(), this.draft, this.character.version)
             if (!current()) return false
             this.savedSequence = sequence
-            this.apply(character)
+            // Keep the exact local text (including a trailing space and caret position) after the
+            // server confirms its normalized snapshot. An explicit reload still uses server text.
+            this.apply(character, { preserveDraft: true })
             this.error = ''
             this.saveState = this.stale ? 'saving' : 'saved'
             return true

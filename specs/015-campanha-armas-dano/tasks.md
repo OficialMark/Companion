@@ -1,6 +1,6 @@
 # Tasks: Ataques Tipados e Caderno da Campanha
 
-**Input**: Design documents in `/specs/014-campanha-armas-dano/`\
+**Input**: Design documents in `/specs/015-campanha-armas-dano/`\
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`
 
 ## Phase 1: Setup
@@ -92,8 +92,8 @@
 
 - [X] T038 [P] Atualizar documentação do produto com navegação Campanha e ataques tipados em `README.md`
 - [X] T039 [P] Rever espaçamento, contraste, foco, alvos de toque e breakpoints da nova área em `frontend/app/assets/css/campaign-knowledge.css` e folhas de estilo da ficha
-- [X] T040 Revisar endpoints, projeções por papel e erros de concorrência contra os contratos em `specs/014-campanha-armas-dano/contracts/`
-- [X] T041 Registrar a validação automatizada pendente e passos manuais no relatório e `specs/014-campanha-armas-dano/quickstart.md`
+- [X] T040 Revisar endpoints, projeções por papel e erros de concorrência contra os contratos em `specs/015-campanha-armas-dano/contracts/`
+- [X] T041 Registrar a validação automatizada executada e passos manuais no relatório e `specs/015-campanha-armas-dano/quickstart.md`
 
 ## Dependencies & Execution Order
 

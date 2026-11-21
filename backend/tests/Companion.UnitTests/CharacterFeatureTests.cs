@@ -38,6 +38,25 @@ public sealed class CharacterFeatureTests
     }
 
     [Fact]
+    public void Effects_are_validated_and_legacy_null_becomes_empty()
+    {
+        Assert.Empty(Data(null).Validated().Effects!);
+        var dueling = Data(null) with
+        {
+            Name = "Dueling",
+            Effects = [new ItemEffect(EffectType.DamageBonus, " MELEE ", EffectOp.Add, 2)]
+        };
+        var effect = Assert.Single(dueling.Validated().Effects!);
+        Assert.Equal("melee", effect.Target);
+        Assert.Equal(2, effect.Value);
+
+        Assert.Throws<ArgumentException>(() => (dueling with
+        {
+            Effects = Enumerable.Repeat(effect, ItemEffect.MaxEffectsPerItem + 1).ToArray()
+        }).Validated());
+    }
+
+    [Fact]
     public void New_feature_starts_full_and_spending_is_clamped()
     {
         var feature = New(5);

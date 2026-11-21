@@ -1,8 +1,8 @@
 # Implementation Plan: Ataques Tipados e Caderno da Campanha
 
-**Branch**: `014-campanha-armas-dano` | **Date**: 2026-11-21 | **Spec**: [spec.md](spec.md)
+**Branch**: `015-campanha-armas-dano` | **Date**: 2026-11-21 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/014-campanha-armas-dano/spec.md`
+**Input**: Feature specification from `/specs/015-campanha-armas-dano/spec.md`
 
 ## Summary
 
@@ -37,7 +37,7 @@ Evoluir os ataques salvos para identificar componentes e tipos de dano, ampliand
 ### Documentation
 
 ```text
-specs/014-campanha-armas-dano/
+specs/015-campanha-armas-dano/
 ├── plan.md
 ├── research.md
 ├── data-model.md

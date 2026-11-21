@@ -6,8 +6,7 @@ public enum FeatureRecovery { None, ShortRest, LongRest }
 public enum RestKind { Short, Long }
 
 /// <summary>
-/// A class, species or feat feature on a player's sheet (spec 013, US2): text plus an optional use counter.
-/// No mechanics are computed from it; effects that change numbers stay on items.
+/// A class, species or feat feature on a player's sheet: text, an optional use counter and declarative effects.
 /// </summary>
 public sealed record CharacterFeatureData(
     string Name,
@@ -15,7 +14,8 @@ public sealed record CharacterFeatureData(
     string? Description,
     int? MaxUses,
     int CurrentUses,
-    FeatureRecovery Recovery)
+    FeatureRecovery Recovery,
+    IReadOnlyList<ItemEffect>? Effects = null)
 {
     public const int MaxNameLength = 80;
     public const int MaxSourceLength = 60;
@@ -39,6 +39,9 @@ public sealed record CharacterFeatureData(
         if (!Enum.IsDefined(Recovery)) throw new ArgumentException("Recuperação inválida.");
         if (MaxUses is < 1 or > MaxUsesLimit)
             throw new ArgumentException($"Os usos máximos devem ficar entre 1 e {MaxUsesLimit}.");
+        var effects = Effects ?? [];
+        if (effects.Count > ItemEffect.MaxEffectsPerItem)
+            throw new ArgumentException($"Uma característica pode ter até {ItemEffect.MaxEffectsPerItem} efeitos.");
 
         return this with
         {
@@ -47,7 +50,8 @@ public sealed record CharacterFeatureData(
             Description = description,
             // Without a counter there is nothing to spend nor to recover.
             CurrentUses = MaxUses is { } max ? Math.Clamp(CurrentUses, 0, max) : 0,
-            Recovery = MaxUses is null ? FeatureRecovery.None : Recovery
+            Recovery = MaxUses is null ? FeatureRecovery.None : Recovery,
+            Effects = effects.Select(effect => effect.Validated()).ToArray()
         };
     }
 
@@ -114,4 +118,9 @@ public sealed class CharacterFeature
     }
 
     public void MoveTo(int sortOrder) => SortOrder = sortOrder;
+
+    public FeatureEntry ToEntry() => new(Id, SortOrder, Data);
 }
+
+/// <summary>Immutable feature projection consumed by the pure character rules.</summary>
+public sealed record FeatureEntry(Guid Id, int SortOrder, CharacterFeatureData Data);

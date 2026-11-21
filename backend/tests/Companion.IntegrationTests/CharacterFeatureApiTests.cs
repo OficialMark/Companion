@@ -17,6 +17,30 @@ public sealed class CharacterFeatureApiTests(CompanionApiFactory factory) : Char
     private static CharacterFeatureDto Named(CharacterDto character, string name) => character.Features.Single(x => x.Data.Name == name);
 
     [Fact]
+    public async Task Dueling_effect_persists_and_recalculates_melee_damage_in_the_same_response()
+    {
+        var (_, player) = await Table();
+        var withWeapon = await AddItem(player, Weapon("Espada longa"));
+        var weapon = Assert.Single(withWeapon.Items);
+        await Equip(player, weapon.Id);
+
+        var dueling = Feature("Dueling") with
+        {
+            Effects = [new ItemEffect(EffectType.DamageBonus, "melee", EffectOp.Add, 2)]
+        };
+        var sheet = await Add(player, dueling);
+        var savedEffect = Assert.Single(Named(sheet, "Dueling").Data.Effects!);
+        Assert.Equal("melee", savedEffect.Target);
+        var roll = Assert.Single(sheet.Stats.WeaponRolls);
+        Assert.Contains(roll.Damage.Parts, part => part.Source == "Dueling" && part.Value == 2);
+
+        var reloaded = await Get(player);
+        Assert.Single(Named(reloaded, "Dueling").Data.Effects!);
+        Assert.Contains(Assert.Single(reloaded.Stats.WeaponRolls).Damage.Parts,
+            part => part.Source == "Dueling" && part.Value == 2);
+    }
+
+    [Fact]
     public async Task New_feature_starts_full_and_spending_stays_between_zero_and_max()
     {
         var (_, player) = await Table();

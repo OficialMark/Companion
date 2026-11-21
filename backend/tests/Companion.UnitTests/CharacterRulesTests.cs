@@ -91,6 +91,31 @@ public sealed class CharacterRulesTests
         Assert.Equal("item", RollLabel.Sanitize("()#"));
     }
 
+    [Fact]
+    public void Dueling_feature_adds_two_damage_only_to_melee_weapons()
+    {
+        static InventoryItemData Weapon(string name, WeaponKind kind) =>
+            new InventoryItemData(name, ItemCategory.Weapon, 1, null, null, null, true, true, 0,
+                new WeaponData("1d8", "cortante", null, kind, WeaponClass.Martial, [], null, null, null, null),
+                null, null, []).Validated();
+
+        var meleeId = Guid.NewGuid();
+        var rangedId = Guid.NewGuid();
+        var featureId = Guid.NewGuid();
+        var dueling = new CharacterFeatureData("Dueling", "Paladino 2", null, null, 0, FeatureRecovery.None,
+            [new ItemEffect(EffectType.DamageBonus, "melee", EffectOp.Add, 2)]).Validated();
+        var stats = CharacterRules.Compute(CharacterSheetData.Default,
+            [new ItemEntry(meleeId, 0, Weapon("Espada", WeaponKind.Melee)), new ItemEntry(rangedId, 1, Weapon("Arco", WeaponKind.Ranged))],
+            [], [new FeatureEntry(featureId, 0, dueling)]);
+
+        var melee = stats.WeaponRolls.Single(x => x.ItemId == meleeId);
+        var ranged = stats.WeaponRolls.Single(x => x.ItemId == rangedId);
+        var part = Assert.Single(melee.Damage.Parts, x => x.Source == "Dueling");
+        Assert.Equal(2, part.Value);
+        Assert.Equal(featureId, part.ItemId);
+        Assert.DoesNotContain(ranged.Damage.Parts, x => x.Source == "Dueling");
+    }
+
     private static CharacterStats Run(JsonNode testCase)
     {
         var sheetNode = JsonSerializer.SerializeToNode(CharacterSheetData.Default, Json)!.AsObject();

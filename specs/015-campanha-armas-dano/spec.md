@@ -1,6 +1,6 @@
 # Feature Specification: Ataques Tipados e Caderno da Campanha
 
-**Feature Branch**: `014-campanha-armas-dano`\
+**Feature Branch**: `015-campanha-armas-dano`\
 **Created**: 2026-11-21\
 **Status**: Draft\
 **Input**: User description: "Catalogar tipos de dano das armas, permitir dano adicional de outro tipo em ataques salvos e criar uma área Campanha colaborativa para NPCs, mapas, pistas e diário, com notas privadas do mestre, visibilidade configurável e pontos marcados nos mapas."

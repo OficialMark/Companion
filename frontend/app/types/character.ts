@@ -198,6 +198,8 @@ export interface CharacterFeatureData {
   maxUses: number | null
   currentUses: number
   recovery: FeatureRecovery
+  /** Always-on mechanical effects calculated by the server. */
+  effects: ItemEffect[]
 }
 
 export interface CharacterFeature { id: string; sortOrder: number; data: CharacterFeatureData }
