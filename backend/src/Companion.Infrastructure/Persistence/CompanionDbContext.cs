@@ -149,6 +149,20 @@ public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> opti
         await CombatAttacks.Where(attack => Encounters.Where(encounter => encounter.CampaignId == campaignId)
             .Select(encounter => encounter.Id).Contains(attack.EncounterId)).ExecuteDeleteAsync(cancellationToken);
         await DiceRolls.Where(x => x.CampaignId == campaignId).ExecuteDeleteAsync(cancellationToken);
+        var campaignBattlemapIds = Battlemaps.Where(map => Encounters
+            .Where(encounter => encounter.CampaignId == campaignId)
+            .Select(encounter => encounter.Id).Contains(map.EncounterId))
+            .Select(map => map.Id);
+        // Map children have NO ACTION references to participants, combatants and markers.
+        // Remove them before those referenced rows, or SQL Server rejects the aggregate delete.
+        await AttackAreas.Where(area => campaignBattlemapIds.Contains(area.BattlemapId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await TokenAppearances.Where(appearance => campaignBattlemapIds.Contains(appearance.BattlemapId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await BattlemapTokenPositions.Where(position => campaignBattlemapIds.Contains(position.BattlemapId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await BattlemapMarkers.Where(marker => campaignBattlemapIds.Contains(marker.BattlemapId))
+            .ExecuteDeleteAsync(cancellationToken);
         await Combatants.Where(combatant => Encounters
             .Where(encounter => encounter.CampaignId == campaignId)
             .Select(encounter => encounter.Id)
