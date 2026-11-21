@@ -4,6 +4,12 @@
 .dice-animation::after { content: ''; position: absolute; inset: auto 12% 48px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(12px); }
 .dice-animation > p { z-index: 2; margin: 0; color: #f4d894; font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .dice-result-details { z-index: 2; min-width: 0; max-width: 100%; padding: 0 12px 8px; }
+.dice-result-details:has(.damage-subtotals > li:nth-child(2)) { padding: 2px 14px 12px; }
+:is(.dice-result-details, .damage-roll-modal .roll-result-details) .roll-result-sum + .damage-subtotals:has(> li:nth-child(2)) {
+  margin-top: 8px;
+  gap: 6px 18px;
+  line-height: 1.55;
+}
 .dice-total { z-index: 3; min-height: 46px; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 5px 12px; border: 1px solid rgba(215,174,93,.3); border-radius: 999px; padding: 5px 18px; color: var(--muted); background: rgba(23,18,22,.9); box-shadow: 0 8px 26px rgba(0,0,0,.25); animation: total-reveal .22s ease-out both; }
 .dice-total span { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .dice-total strong { color: #fff8e9; font-family: 'Libre Caslon Display', Georgia, serif; font-size: 1.65rem; font-weight: 400; }
