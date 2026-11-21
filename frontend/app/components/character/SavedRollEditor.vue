@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { radioGroupKeydown } from '~/utils/focus'
-import type { SavedRoll } from '~/types/character'
+import type { SavedRoll, SavedRollData } from '~/types/character'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
-import { MAX_ROLL_NAME, cloneConfig, configFromSavedRoll, emptyConfig, resolveRoll, savedRollFromConfig, type RollConfig } from '~/utils/playerRoll'
+import { MAX_ROLL_NAME, cloneConfig, configFromSavedRoll, emptyConfig, resolveRoll, savedRollFromConfig, weaponDamageExpression, type RollConfig } from '~/utils/playerRoll'
 import { DEFAULT_SAVED_ROLL_ICON, SAVED_ROLL_ICONS, SAVED_ROLL_ICON_LABEL, isSavedRollIcon, type SavedRollIcon } from '~/utils/savedRollIcons'
 
 /**
@@ -16,7 +16,7 @@ const props = defineProps<{
   /** Starting configuration of a new roll (the panel's current one, for "Salvar como rolagem"). */
   initial?: RollConfig | null
 }>()
-const emit = defineEmits<{ close: []; saved: [] }>()
+const emit = defineEmits<{ close: []; saved: [data: SavedRollData] }>()
 
 const character = useCharacterStore()
 const name = ref(props.roll?.data.name ?? '')
@@ -43,6 +43,7 @@ const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'] as const
 const nameError = computed(() => (name.value.trim().length === 0 ? 'Dê um nome à rolagem.' : null))
 const canSave = computed(() => !busy.value && !nameError.value && !resolved.value.error && Boolean(resolved.value.expression))
 const title = computed(() => (props.roll ? 'Editar rolagem' : 'Nova rolagem'))
+const damageOnHit = computed(() => config.value.kind === 'Attack' ? weaponDamageExpression(config.value, stats.value) : null)
 
 function addDamageComponent() {
   if (config.value.damageComponents.length >= 8) return
@@ -63,7 +64,7 @@ async function save() {
   const ok = await character.run((api, session) => (existing ? api.saveRoll(session, existing.id, data) : api.addRoll(session, data)))
   busy.value = false
   if (!ok) { error.value = character.error || 'Não foi possível salvar a rolagem.'; return }
-  emit('saved')
+  emit('saved', data)
 }
 
 function onKeydown(event: KeyboardEvent) { if (event.key === 'Escape' && !busy.value) emit('close') }
@@ -127,6 +128,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <button class="icon-button" type="button" :aria-label="`Remover dano adicional ${index + 1}`" :disabled="busy" @click="removeDamageComponent(index)"><Icon name="lucide:x" /></button>
         </div>
         <button v-if="config.damageComponents.length < 8" class="button ghost small" type="button" :disabled="busy" @click="addDamageComponent"><Icon name="lucide:plus" />Dano adicional</button>
+        <p v-if="damageOnHit" class="field-hint">Dano ao acertar <code>{{ damageOnHit }}</code></p>
       </section>
 
       <p v-if="error" class="form-error" role="alert" data-editor-error><Icon name="lucide:circle-alert" />{{ error }}</p>

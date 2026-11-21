@@ -25,7 +25,7 @@ const pendingDamageExpression = ref<string | null>(null)
 const pendingDamageSummary = ref<string | null>(null)
 const pendingDamagePlan = ref<DamageBreakdownPlan | null>(null)
 
-function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingAttackRoll.value = roll }
+function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null; pendingAttackRoll.value = roll }
 function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
 function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }
 function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }

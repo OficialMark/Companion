@@ -209,12 +209,16 @@ describe('sources, kinds and the armor rule', () => {
   })
   it('saved attack damage appends independent dice and retains a typed breakdown plan', () => {
     const attack = config({ kind: 'Attack', source: { type: 'weapon', itemId: 'sword' }, baseDamageType: 'cortante', damageComponents: [
-      { label: 'Encantamento', dice: { d4: 1 }, damageType: 'gélido' }
+      { label: 'Encantamento', dice: { d8: 2 }, damageType: 'gélido' }
     ] })
-    expect(weaponDamageExpression(attack, stats)).toBe('d8 + (FOR) 3 + (arma) 1+1d4')
+    expect(weaponDamageExpression(attack, stats)).toBe('d8 + 2d8 + (FOR) 3 + (arma) 1')
     expect(weaponDamageBreakdownPlan(attack, stats)).toEqual({ baseType: 'cortante', baseTermCount: 1, components: [
       { label: 'Encantamento', damageType: 'gélido', termCount: 1 }
     ] })
+    const damage = resolveRoll({ ...attack, kind: 'Damage', repetitions: 2, advantage: 'Advantage' }, stats)
+    expect(damage.expression).toBe('2#[2#(d8 + 2d8 + (FOR) 3 + (arma) 1) maior]')
+    expect(damage.error).toBeNull()
+    expect(resolveRoll({ ...attack, kind: 'Damage', repetitions: 20, advantage: 'Advantage' }, stats).error).toContain('100 dados')
   })
 })
 

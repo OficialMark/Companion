@@ -13,8 +13,8 @@ public static class DamageBreakdownBuilder
         DiceDamageBreakdownRequest? request)
     {
         if (request is null) return results;
-        if (expression.Selection != DiceSelection.None || request.BaseTermCount < 0 || request.Components is null || request.Components.Count > 8)
-            throw new ArgumentException("O detalhamento de dano não corresponde a uma rolagem simples.");
+        if (request.BaseTermCount < 0 || request.Components is null || request.Components.Count > 8)
+            throw new ArgumentException("Revise os componentes do detalhamento de dano.");
 
         var components = request.Components.Select(component =>
         {

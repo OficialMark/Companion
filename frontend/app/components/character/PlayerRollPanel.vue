@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
-import type { SavedRoll } from '~/types/character'
+import type { SavedRoll, SavedRollData } from '~/types/character'
 import DiceRollAnimation from '~/components/DiceRollAnimation.vue'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
@@ -76,7 +76,10 @@ async function roll(source: RollConfig = config.value, label?: string) {
   try {
     rollingDice.value = plannedDice(built.dice, built.selection, snapshot.repetitions); settled.value = false; revealStage()
     const startedAt = performance.now()
-    const result = await api.rollDice(store.session, built.expression, false, label ?? built.label)
+    const damagePlan = snapshot.kind === 'Damage' ? weaponDamageBreakdownPlan(snapshot, stats.value) : null
+    const result = damagePlan
+      ? await api.rollDice(store.session, built.expression, false, label ?? built.label, damagePlan)
+      : await api.rollDice(store.session, built.expression, false, label ?? built.label)
     rollingDice.value = withValues(rollingDice.value, result); rollingTotals.value = result.results.map(item => item.total)
     await wait(Math.max(0, 600 - (performance.now() - startedAt))); settled.value = true; await wait(200)
     const revealed = await api.revealDiceRoll(store.session, result.id)
@@ -108,6 +111,11 @@ async function useSavedRoll(saved: SavedRoll) {
 function openEditor() {
   editorInitial.value = cloneConfig(config.value)
   editorOpen.value = true
+}
+
+function applySavedRoll(data: SavedRollData) {
+  config.value = configFromSavedRoll(data)
+  editorOpen.value = false
 }
 </script>
 
@@ -158,6 +166,6 @@ function openEditor() {
     <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para rolar.</p>
     <p v-if="error" class="form-error" role="alert" data-roll-send-error><Icon name="lucide:circle-alert" />{{ error }}</p>
 
-    <SavedRollEditor v-if="editorOpen" :initial="editorInitial" @close="editorOpen = false" @saved="editorOpen = false" />
+    <SavedRollEditor v-if="editorOpen" :initial="editorInitial" @close="editorOpen = false" @saved="applySavedRoll" />
   </section>
 </template>

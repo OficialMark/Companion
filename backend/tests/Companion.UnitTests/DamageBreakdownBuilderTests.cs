@@ -26,6 +26,21 @@ public sealed class DamageBreakdownBuilderTests
     }
 
     [Fact]
+    public void Additional_dice_are_rolled_in_both_executions_and_the_breakdown_uses_the_selected_result()
+    {
+        var expression = DiceExpression.Parse("2#(d8 + 2d8 + (FOR) 3) maior");
+        var results = DiceRoller.Roll(expression, new ScriptedRandomizer(1, 2, 3, 4, 5, 6));
+        var request = new DiceDamageBreakdownRequest("cortante", 1,
+            [new DiceDamageComponentRequest("Encantamento", "gélido", 1)]);
+
+        var detailed = Assert.Single(DamageBreakdownBuilder.Attach(expression, results, request));
+
+        Assert.Equal(18, detailed.Total);
+        Assert.Equal(7, detailed.DamageBreakdown!.BaseSubtotal);
+        Assert.Equal(11, Assert.Single(detailed.DamageBreakdown.Components).Subtotal);
+    }
+
+    [Fact]
     public void Rejects_a_breakdown_that_does_not_match_the_rolled_terms()
     {
         var expression = DiceExpression.Parse("d8+d4");

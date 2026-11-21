@@ -80,7 +80,6 @@ export function cloneConfig(config: RollConfig): RollConfig {
     extraModifiers: config.extraModifiers.map(extra => ({ label: extra.label, value: extra.value })),
     advantage: config.advantage,
     repetitions: config.repetitions,
-    ...(config.baseDamageType ? { baseDamageType: config.baseDamageType } : {}),
     baseDamageType: config.baseDamageType ?? null,
     damageComponents: damageComponents.map(component => ({ ...component, dice: { ...component.dice } }))
   }
@@ -262,26 +261,16 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   }
 
   const dice = addDice(sourceDice, config.dice)
-  if (!error && flatTotal !== null && Object.values(dice).every(count => !count)) {
+  const configuredComponents = config.damageComponents ?? []
+  const additionalDice = kind === 'Damage' ? configuredComponents.map(component => component.dice) : []
+  const animatedDice = addDice(dice, ...additionalDice)
+  if (!error && flatTotal !== null && diceCount(animatedDice) === 0) {
     error = `Dano fixo de ${flatTotal}: não precisa rolar.`
   }
   parts = [...parts, ...config.extraModifiers.map(extra => ({ label: extra.label?.trim() ? extra.label : null, value: extra.value }))]
   const selection = selectionOf(config.advantage)
-  const input: RollExpressionInput = { dice, parts, selection, repetitions: config.repetitions }
-  let expression = buildExpression(input)
-  if (kind === 'Damage') {
-    const configuredComponents = config.damageComponents ?? []
-    const components = configuredComponents.map(component => {
-      const terms = DIE_ORDER.flatMap(key => {
-        const count = component.dice[key] ?? 0
-        return count > 0 ? [`${count}${key}`] : []
-      })
-      return terms.join('+')
-    }).filter(Boolean)
-    if (components.length) expression = [expression, ...components].filter(Boolean).join('+')
-  }
-  const configuredComponents = config.damageComponents ?? []
-  const animatedDice = kind === 'Damage' ? addDice(dice, ...configuredComponents.map(component => component.dice)) : dice
+  const input: RollExpressionInput = { dice, additionalDice, parts, selection, repetitions: config.repetitions }
+  const expression = buildExpression(input)
   if (!error) error = expressionLimits(input)
   if (!error) {
     const big = (Object.keys(config.dice) as DieKey[]).find(key => (config.dice[key] ?? 0) > MAX_DICE_PER_TYPE)
@@ -293,14 +282,21 @@ export function resolveRoll(config: RollConfig, stats: CharacterStats | null | u
   }
   if (!error && configuredComponents.some(component => !component.damageType || diceCount(component.dice) < 1)) error = 'Revise os componentes de dano adicionais.'
   if (!error && configuredComponents.length > 8) error = 'Use até 8 componentes de dano.'
-  if (!error && diceCount(animatedDice) > 100) error = 'A rolagem pode ter até 100 dados.'
+  if (!error && kind === 'Attack' && source?.type === 'weapon' && configuredComponents.length) {
+    const damage = resolveRoll(damageAfterHit(config), stats, character)
+    if (damage.error) error = `Dano do ataque: ${damage.error}`
+  }
   return { expression, parts, dice: animatedDice, label: truncateLabel(label), selection, error }
 }
 
 /** The weapon damage that follows a hit (US4: "acertou" opens the damage roll of the same weapon). */
+function damageAfterHit(config: RollConfig): RollConfig {
+  return { ...config, kind: 'Damage', dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1 }
+}
+
 export function weaponDamageExpression(config: RollConfig, stats: CharacterStats | null | undefined): string | null {
   if (config.source?.type !== 'weapon') return null
-  const resolved = resolveRoll({ ...config, kind: 'Damage', dice: {}, extraModifiers: [], advantage: 'None', repetitions: 1 }, stats)
+  const resolved = resolveRoll(damageAfterHit(config), stats)
   return resolved.error ? null : resolved.expression || null
 }
 
@@ -317,7 +313,8 @@ export function weaponDamageBreakdownPlan(config: RollConfig, stats: CharacterSt
   const weapon = stats?.weaponRolls.find(item => item.itemId === source.itemId)
   if (!weapon) return null
   const damage = source.versatile && weapon.versatile ? weapon.versatile : weapon.damage
-  const baseDice = diceFromNotation(damage.dice)
+  const weaponDice = diceFromNotation(damage.dice)
+  const baseDice = config.kind === 'Damage' ? addDice(weaponDice, config.dice) : weaponDice
   const baseType = config.baseDamageType ?? damage.damageType ?? damage.damageTypes?.[0] ?? null
   const components = (config.damageComponents ?? []).map((component, index) => ({
     label: component.label?.trim() || `Adicional ${index + 1}`,

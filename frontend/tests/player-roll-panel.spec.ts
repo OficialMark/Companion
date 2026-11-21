@@ -245,6 +245,26 @@ describe('PlayerRollPanel', () => {
     expect(wrapper.emitted('attack-rolled')).toBeUndefined()
   })
 
+  it('uses the newly saved extra damage when rolling again from the panel', async () => {
+    const wrapper = setup()
+    characterApi.addRoll.mockResolvedValue(makeFighter())
+    await wrapper.get('[data-save-roll]').trigger('click')
+    await wrapper.get('[data-roll-name]').setValue('Espada gélida')
+    await wrapper.get('.saved-damage-components .button').trigger('click')
+    await wrapper.get('[aria-label="Dado do dano adicional 1"]').setValue('d8')
+    await wrapper.get('[aria-label="Quantidade de dados adicionais 1"]').setValue('2')
+    await wrapper.get('[data-saved-roll-editor]').trigger('submit')
+    await flushPromises()
+    expect(characterApi.addRoll).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      damageComponents: [{ label: '', dice: { d8: 2 }, damageType: 'gélido' }]
+    }))
+
+    await rollAndSettle(wrapper)
+    const attack = wrapper.emitted('attack-rolled')![0]!
+    expect(attack[1]).toBe('d8 + 2d8 + (FOR) 3 + (arma) 1')
+    expect(attack[3]).toMatchObject({ baseTermCount: 1, components: [{ damageType: 'gélido', termCount: 1 }] })
+  })
+
   it('a saved roll loads its configuration into the panel and rolls with its name', async () => {
     const character = makeFighter({ savedRolls: [savedRoll('s2', { name: 'Furtivo', icon: 'lucide:footprints', kind: 'Check', inventoryItemId: null, skill: 'furtividade' }, false, 1), savedRoll('s1', { advantage: 'Advantage' }, false, 0)] })
     const wrapper = setup(character)
