@@ -101,8 +101,10 @@ describe('DamageRollModal', () => {
     const wrapper = mount(DamageRollModal, { global: { stubs: { DiceRoller: DiceRollerStub } } })
     try {
       await wrapper.get('[data-testid="finish-roll"]').trigger('click')
-      expect(wrapper.get('.roll-result-sum').text()).toMatch(/2d6 \[4, 5\].*2d8 \[5, 7\].*3 \(FOR\).*24/)
-      expect(wrapper.get('.damage-breakdown').text()).toContain('Smite · radiante')
+      expect(wrapper.get('.roll-result-sum').text()).toMatch(/2d6 \[4, 5\].*2d8 \[5, 7\].*3 \(FOR\)/)
+      expect(wrapper.get('.damage-heading').text()).toContain('24')
+      expect(wrapper.get('.roll-result-sum').text()).not.toContain('= 24')
+      expect(wrapper.get('.damage-subtotals').text()).toContain('Smite · radiante')
       expect(wrapper.find('button.attack-confirm').exists()).toBe(false)
       await wrapper.get('button.primary').trigger('click')
       expect(resolveAttack).not.toHaveBeenCalled()

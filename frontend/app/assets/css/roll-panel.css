@@ -63,7 +63,7 @@
 .player-roll-panel .roll-stage { min-width: 0; overflow: hidden; }
 .player-roll-panel .roll-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--ink-soft); overflow-wrap: anywhere; }
 .player-roll-panel .roll-last strong { color: var(--gold); font-size: 1.3rem; }
-.player-roll-panel .roll-last small { color: var(--muted); }
+.player-roll-result { display: grid; gap: 4px; }
 
 /* Saved rolls bar (panel) */
 .saved-roll-bar { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }

@@ -82,4 +82,22 @@ describe('RollHistory (spec 011)', () => {
     expect(wrapper.text()).toContain('1d20 [7]')
     expect(wrapper.find('.selection-label').exists()).toBe(false)
   })
+
+  it('keeps the total and typed subtotals in a single result card', () => {
+    const wrapper = mount(RollHistory, { props: { rolls: [roll({
+      expression: '2d6 + 2d8 + (FOR) 3', total: 24,
+      results: [{
+        sequence: 1, total: 24, modifier: 3, modifiers: [{ value: 3, label: 'FOR' }],
+        terms: [{ expression: '2d6', values: [4, 5], subtotal: 9 }, { expression: '2d8', values: [5, 7], subtotal: 12 }],
+        damageBreakdown: { baseType: 'contundente', baseSubtotal: 12, components: [{ label: 'Smite', damageType: 'radiante', subtotal: 12 }] }
+      }]
+    })] } })
+
+    expect(wrapper.get('.roll-command').text()).toBe('2d6+2d8+3')
+    expect(wrapper.get('.roll-attempt .total').text()).toBe('24')
+    expect(wrapper.find('.attempt-label').exists()).toBe(false)
+    expect(wrapper.findAll('.attempt-damage li').map(item => item.text())).toEqual([
+      '12 (contundente)', '12 (Smite · radiante)'
+    ])
+  })
 })

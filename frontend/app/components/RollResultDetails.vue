@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { DiceRoll } from '~/types/campaign'
+import DamageSubtotals from './DamageSubtotals.vue'
 
-defineProps<{ roll: DiceRoll }>()
+defineProps<{ roll: DiceRoll; totalInHeading?: boolean }>()
 </script>
 
 <template>
@@ -18,22 +19,16 @@ defineProps<{ roll: DiceRoll }>()
           </span>
         </template>
         <span v-else-if="result.modifier">{{ result.modifier < 0 ? '−' : '+' }} {{ Math.abs(result.modifier) }}</span>
-        <strong>= {{ result.total }}</strong>
+        <strong v-if="!totalInHeading || roll.results.length > 1">= {{ result.total }}</strong>
       </p>
-      <ul v-if="result.damageBreakdown" class="damage-breakdown" aria-label="Detalhamento do dano por tipo">
-        <li v-if="result.damageBreakdown.baseType">
-          <span>Dano-base · {{ result.damageBreakdown.baseType }}</span><strong>{{ result.damageBreakdown.baseSubtotal }}</strong>
-        </li>
-        <li v-for="(part, index) in result.damageBreakdown.components" :key="index">
-          <span>{{ part.label }} · {{ part.damageType }}</span><strong>{{ part.subtotal }}</strong>
-        </li>
-      </ul>
+      <DamageSubtotals v-if="result.damageBreakdown" :damage="result.damageBreakdown" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.roll-result-details { display: grid; gap: 6px; color: var(--ink-soft); font-size: .84rem; }
-.roll-result-sum { display: flex; flex-wrap: wrap; gap: 3px 8px; margin: 0 0 6px; overflow-wrap: anywhere; }
+.roll-result-details { display: grid; gap: 6px; color: var(--ink-soft); font-size: .8rem; line-height: 1.4; }
+.roll-result-sum { display: flex; flex-wrap: wrap; gap: 2px 7px; margin: 0; overflow-wrap: anywhere; }
+.roll-result-sum + .damage-subtotals { margin-top: 3px; }
 .roll-result-sum strong { color: var(--gold); }
 </style>

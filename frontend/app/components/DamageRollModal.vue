@@ -20,7 +20,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', handleKeydown) })
       <DiceRoller v-if="!roll" mode="attack" :initial-expression="props.expression" :locked="Boolean(props.expression)" :damage-breakdown="props.damagePlan" @rolled="rolled" />
       <div v-else class="attack-targets">
         <h2 class="damage-heading"><Icon name="lucide:flame" />Dano: {{ roll.total }}</h2>
-        <RollResultDetails :roll="roll" />
+        <RollResultDetails :roll="roll" total-in-heading />
         <template v-if="canAttack">
           <p>Selecione quem recebe o dano:</p>
           <AttackTargetList v-model="selected" :combatants="encounter?.combatants ?? []" />

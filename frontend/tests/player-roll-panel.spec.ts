@@ -245,9 +245,9 @@ describe('PlayerRollPanel', () => {
     expect(wrapper.emitted('attack-rolled')).toBeUndefined()
   })
 
-  it('uses the newly saved extra damage when rolling again from the panel', async () => {
+  it('rolls the extra damage from the newly saved shortcut and keeps the same weapon clean in the manual roll', async () => {
     const wrapper = setup()
-    characterApi.addRoll.mockResolvedValue(makeFighter())
+    characterApi.addRoll.mockImplementation(async (_, data) => makeFighter({ savedRolls: [savedRoll('ice', data)] }))
     await wrapper.get('[data-save-roll]').trigger('click')
     await wrapper.get('[data-roll-name]').setValue('Espada gélida')
     await wrapper.get('.saved-damage-components .button').trigger('click')
@@ -259,13 +259,18 @@ describe('PlayerRollPanel', () => {
       damageComponents: [{ label: '', dice: { d8: 2 }, damageType: 'gélido' }]
     }))
 
-    await rollAndSettle(wrapper)
+    await rollAndSettle(wrapper, '[data-saved-roll="ice"]')
     const attack = wrapper.emitted('attack-rolled')![0]!
     expect(attack[1]).toBe('d8 + 2d8 + (FOR) 3 + (arma) 1')
     expect(attack[3]).toMatchObject({ baseTermCount: 1, components: [{ damageType: 'gélido', termCount: 1 }] })
+
+    await rollAndSettle(wrapper)
+    const manualAttack = wrapper.emitted('attack-rolled')![1]!
+    expect(manualAttack[1]).toBe('d8 + (FOR) 3 + (arma) 1')
+    expect(manualAttack[3]).toMatchObject({ baseTermCount: 1, components: [] })
   })
 
-  it('a saved roll loads its configuration into the panel and rolls with its name', async () => {
+  it('rolls a shortcut with its name and advantage while keeping the manual configuration', async () => {
     const character = makeFighter({ savedRolls: [savedRoll('s2', { name: 'Furtivo', icon: 'lucide:footprints', kind: 'Check', inventoryItemId: null, skill: 'furtividade' }, false, 1), savedRoll('s1', { advantage: 'Advantage' }, false, 0)] })
     const wrapper = setup(character)
     const chips = wrapper.findAll('[data-saved-roll]')
@@ -275,8 +280,8 @@ describe('PlayerRollPanel', () => {
 
     await rollAndSettle(wrapper, '[data-saved-roll="s1"]')
     expect(api.rollDice).toHaveBeenCalledWith(expect.anything(), '2#(d20 + (FOR) 3 + (prof) 3 + (arma) 1) maior', false, 'Ataque com espada')
-    expect(expression(wrapper)).toBe('2#(d20 + (FOR) 3 + (prof) 3 + (arma) 1) maior')
-    expect(wrapper.get('[data-advantage="advantage"]').attributes('aria-checked')).toBe('true')
+    expect(expression(wrapper)).toBe('d20 + (FOR) 3 + (prof) 3 + (arma) 1')
+    expect(wrapper.get('[data-advantage="none"]').attributes('aria-checked')).toBe('true')
   })
 
   it('an incomplete saved roll is disabled with the reason and never rolls', async () => {

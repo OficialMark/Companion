@@ -209,8 +209,8 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .roll-list::-webkit-scrollbar-track { border-radius: 999px; background: rgba(255,246,232,.045); }
 .roll-list::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: linear-gradient(var(--wine-light), var(--wine)) padding-box; }
 .roll-list::-webkit-scrollbar-thumb:hover { background: linear-gradient(#cf6688, var(--wine-light)) padding-box; }
-.roll-list li { padding: 14px 0; border-top: 1px solid var(--line); }
-.roll-list li:first-child { padding-top: 0; border-top: 0; }
+.roll-list > li { padding: 14px 0; border-top: 1px solid var(--line); }
+.roll-list > li:first-child { padding-top: 0; border-top: 0; }
 .roll-meta { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; font-size: .78rem; }
 .roll-meta strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .roll-meta span { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }

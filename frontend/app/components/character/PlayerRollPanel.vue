@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
-import type { SavedRoll, SavedRollData } from '~/types/character'
+import type { SavedRoll } from '~/types/character'
 import DiceRollAnimation from '~/components/DiceRollAnimation.vue'
 import RollResultDetails from '~/components/RollResultDetails.vue'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
@@ -109,21 +109,15 @@ async function roll(source: RollConfig = config.value, label?: string) {
   }
 }
 
-/** A saved roll is rebuilt from the current sheet (FR-034), loaded into the panel and rolled with its name. */
+/** A shortcut rolls from the current sheet without replacing the manual draft. */
 async function useSavedRoll(saved: SavedRoll) {
   if (saved.incomplete) return
-  config.value = configFromSavedRoll(saved.data)
-  await roll(config.value, saved.data.name)
+  await roll(configFromSavedRoll(saved.data), saved.data.name)
 }
 
 function openEditor() {
   editorInitial.value = cloneConfig(config.value)
   editorOpen.value = true
-}
-
-function applySavedRoll(data: SavedRollData) {
-  config.value = configFromSavedRoll(data)
-  editorOpen.value = false
 }
 </script>
 
@@ -168,13 +162,13 @@ function applySavedRoll(data: SavedRollData) {
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
       <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" :roll="rollingResult" />
     </div>
-    <div v-else-if="last" aria-live="polite" data-roll-last>
-      <p class="roll-last"><Icon name="lucide:sparkles" />{{ last.label || 'Último resultado' }}: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small></p>
-      <RollResultDetails :roll="last" />
+    <div v-else-if="last" class="player-roll-result" aria-live="polite" data-roll-last>
+      <p class="roll-last"><Icon name="lucide:sparkles" />{{ last.label || 'Último resultado' }} <strong>{{ last.total }}</strong></p>
+      <RollResultDetails :roll="last" total-in-heading />
     </div>
     <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para rolar.</p>
     <p v-if="error" class="form-error" role="alert" data-roll-send-error><Icon name="lucide:circle-alert" />{{ error }}</p>
 
-    <SavedRollEditor v-if="editorOpen" :initial="editorInitial" @close="editorOpen = false" @saved="applySavedRoll" />
+    <SavedRollEditor v-if="editorOpen" :initial="editorInitial" @close="editorOpen = false" @saved="editorOpen = false" />
   </section>
 </template>

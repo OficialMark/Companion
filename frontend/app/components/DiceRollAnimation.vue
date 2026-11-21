@@ -47,7 +47,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
         </div>
       </div>
     </div>
-    <div v-if="settled && totals.length" class="dice-total" aria-live="polite">
+    <div v-if="settled && !roll?.results.length && totals.length" class="dice-total" aria-live="polite">
       <template v-if="totals.length === 1">
         <span>Total</span><strong>{{ totals[0] }}</strong>
       </template>
@@ -56,7 +56,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
         <strong v-for="(total, index) in totals" :key="index">#{{ index + 1 }} {{ total }}</strong>
       </template>
     </div>
-    <RollResultDetails v-if="settled && roll" class="dice-result-details" :roll="roll" />
+    <RollResultDetails v-if="settled && roll?.results.length" class="dice-result-details" :roll="roll" />
     <p v-else>{{ settled ? 'Resultado definido' : `Rolando ${dice.length} ${dice.length === 1 ? 'dado' : 'dados'}…` }}</p>
   </div>
 </template>

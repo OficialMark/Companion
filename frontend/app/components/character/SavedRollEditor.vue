@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { radioGroupKeydown } from '~/utils/focus'
-import type { SavedRoll, SavedRollData } from '~/types/character'
+import type { SavedRoll } from '~/types/character'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import { MAX_ROLL_NAME, cloneConfig, configFromSavedRoll, emptyConfig, resolveRoll, savedRollFromConfig, weaponDamageExpression, type RollConfig } from '~/utils/playerRoll'
 import { DEFAULT_SAVED_ROLL_ICON, SAVED_ROLL_ICONS, SAVED_ROLL_ICON_LABEL, isSavedRollIcon, type SavedRollIcon } from '~/utils/savedRollIcons'
@@ -16,7 +16,7 @@ const props = defineProps<{
   /** Starting configuration of a new roll (the panel's current one, for "Salvar como rolagem"). */
   initial?: RollConfig | null
 }>()
-const emit = defineEmits<{ close: []; saved: [data: SavedRollData] }>()
+const emit = defineEmits<{ close: []; saved: [] }>()
 
 const character = useCharacterStore()
 const name = ref(props.roll?.data.name ?? '')
@@ -64,7 +64,7 @@ async function save() {
   const ok = await character.run((api, session) => (existing ? api.saveRoll(session, existing.id, data) : api.addRoll(session, data)))
   busy.value = false
   if (!ok) { error.value = character.error || 'Não foi possível salvar a rolagem.'; return }
-  emit('saved', data)
+  emit('saved')
 }
 
 function onKeydown(event: KeyboardEvent) { if (event.key === 'Escape' && !busy.value) emit('close') }
