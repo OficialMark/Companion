@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { AnimatedDie } from '~/utils/diceAnimation'
+import type { DiceRoll } from '~/types/campaign'
 import { hasStandardShape } from '~/utils/diceAnimation'
+import RollResultDetails from './RollResultDetails.vue'
 
-const props = defineProps<{ dice: AnimatedDie[]; settled: boolean; totals: number[] }>()
+const props = defineProps<{ dice: AnimatedDie[]; settled: boolean; totals: number[]; roll?: DiceRoll | null }>()
 // Purely cosmetic spin shown before the server-authoritative result settles
 // (`die.value`) — randomized per tick so the animation doesn't cycle through
 // a fixed, predictable sequence of faces.
@@ -54,6 +56,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
         <strong v-for="(total, index) in totals" :key="index">#{{ index + 1 }} {{ total }}</strong>
       </template>
     </div>
-    <p>{{ settled ? 'Resultado definido' : `Rolando ${dice.length} ${dice.length === 1 ? 'dado' : 'dados'}…` }}</p>
+    <RollResultDetails v-if="settled && roll" class="dice-result-details" :roll="roll" />
+    <p v-else>{{ settled ? 'Resultado definido' : `Rolando ${dice.length} ${dice.length === 1 ? 'dado' : 'dados'}…` }}</p>
   </div>
 </template>

@@ -3,7 +3,7 @@ import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import type { Creature, RollPreset } from '~/types/creatures'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
-import { scrollToResult } from '~/utils/scrollToResult'
+import { createResultScrollSession } from '~/utils/scrollToResult'
 import { ABILITIES, MAX_BONUS, MAX_COUNT, MIN_BONUS, RESULT_HOLD_MS, ROLL_DICE, buildCreatureExpression, clampPreset, describeRoll, formatModifier, modifierFor } from '~/utils/creatureRoll'
 
 /**
@@ -33,6 +33,7 @@ const last = ref<DiceRoll | null>(null)
 const rollingDice = ref<AnimatedDie[]>([])
 const settled = ref(false)
 const rollingTotals = ref<number[]>([])
+const rollingResult = ref<DiceRoll | null>(null)
 const offline = computed(() => store.connection === 'offline')
 
 function step(field: 'count' | 'bonus', delta: number) {
@@ -46,18 +47,20 @@ function wait(duration: number) { return new Promise<void>(resolve => window.set
 // free again as soon as the result is revealed: a new roll interrupts the hold.
 let holdTimer: ReturnType<typeof setTimeout> | undefined
 const stage = ref<HTMLElement | null>(null)
+const resultScroll = createResultScrollSession()
 function clearAnimation() {
   clearTimeout(holdTimer); holdTimer = undefined
   rollingDice.value = []; settled.value = false; rollingTotals.value = []
+  resultScroll.restore()
 }
 // The sheet can close mid-roll: the roll is still revealed (it already happened on the server and
 // belongs in the history), but nothing may scroll or start a timer on a panel that is gone.
 let disposed = false
-onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer); resultScroll.restore() })
 /** The panel sits mid-sheet: bring the dice and the result into view instead of below the fold. */
 function revealStage() {
   if (disposed) return
-  void nextTick(() => scrollToResult(stage.value))
+  void nextTick(() => resultScroll.show(stage.value))
 }
 
 async function roll() {
@@ -72,14 +75,17 @@ async function roll() {
     const startedAt = performance.now()
     const result = await api.rollDice(store.session, expression.value, false, props.label)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
-    await wait(Math.max(0, 600 - (performance.now() - startedAt))); settled.value = true; await wait(200)
+    rollingResult.value = result
+    await wait(Math.max(0, 600 - (performance.now() - startedAt)))
+    settled.value = true
+    revealStage()
+    await wait(200)
     const revealed = await api.revealDiceRoll(store.session, result.id)
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) {
       store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50)
     }
     last.value = revealed
     revealedOk = true
-    revealStage()
     emit('rolled', revealed, preset)
     if (!disposed) holdTimer = setTimeout(clearAnimation, RESULT_HOLD_MS)
   } catch (exception) {
@@ -147,7 +153,7 @@ async function roll() {
     </div>
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
-      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
+      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" :roll="rollingResult" />
     </div>
     <p v-else-if="last" class="roll-last" aria-live="polite">
       <Icon name="lucide:sparkles" />Último resultado: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small>

@@ -2,7 +2,8 @@
 .dice-animation { position: relative; min-height: 224px; display: grid; place-items: center; align-content: center; gap: 8px; margin: 0 0 16px; overflow: hidden; border: 1px solid rgba(215,174,93,.2); border-radius: 14px; background: radial-gradient(ellipse at 50% 76%, rgba(142,52,81,.22), transparent 48%), linear-gradient(rgba(10,8,10,.15), rgba(10,8,10,.34)); }
 .dice-animation::before { content: ''; position: absolute; inset: auto 7% 48px; height: 2px; background: linear-gradient(90deg, transparent, rgba(215,174,93,.22), transparent); }
 .dice-animation::after { content: ''; position: absolute; inset: auto 12% 48px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(12px); }
-.dice-animation p { z-index: 2; margin: 0; color: #f4d894; font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.dice-animation > p { z-index: 2; margin: 0; color: #f4d894; font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.dice-result-details { z-index: 2; width: min(100%, 36rem); padding: 0 12px 8px; }
 .dice-total { z-index: 3; min-height: 46px; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 5px 12px; border: 1px solid rgba(215,174,93,.3); border-radius: 999px; padding: 5px 18px; color: var(--muted); background: rgba(23,18,22,.9); box-shadow: 0 8px 26px rgba(0,0,0,.25); animation: total-reveal .22s ease-out both; }
 .dice-total span { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .dice-total strong { color: #fff8e9; font-family: 'Libre Caslon Display', Georgia, serif; font-size: 1.65rem; font-weight: 400; }

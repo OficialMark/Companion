@@ -2,7 +2,7 @@
 import type { AnimatedDie } from '~/utils/diceAnimation'
 import type { DiceRoll } from '~/types/campaign'
 import { diceForAnimation, diceWithResults } from '~/utils/diceAnimation'
-import { scrollToResult } from '~/utils/scrollToResult'
+import { createResultScrollSession } from '~/utils/scrollToResult'
 import { useQuickRollModifier, type QuickDieFaces } from '~/composables/useQuickRollModifier'
 
 const emit = defineEmits<{ rolled: [roll: DiceRoll]; 'rolled-d20': [roll: DiceRoll] }>()
@@ -10,10 +10,12 @@ const store = useCampaignStore(); const api = useCompanionApi()
 const modifier = useQuickRollModifier()
 const busy = ref(false); const error = ref(''); const rollingDice = ref<AnimatedDie[]>([]); const settled = ref(false); const rollingTotals = ref<number[]>([])
 const dice: QuickDieFaces[] = [20, 8, 6]
+const rollingResult = ref<DiceRoll | null>(null)
 const rollingDuration = 750; const settlingDuration = 250; const resultHoldDuration = 1000
 /** Spec 012, FR-007: the dice (and their result) are brought into view as the roll starts. */
 const stage = ref<HTMLElement | null>(null)
-function revealStage() { void nextTick(() => scrollToResult(stage.value)) }
+const resultScroll = createResultScrollSession()
+function revealStage() { void nextTick(() => resultScroll.show(stage.value)) }
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 
 async function roll(faces: QuickDieFaces) {
@@ -24,14 +26,19 @@ async function roll(faces: QuickDieFaces) {
     rollingDice.value = diceForAnimation(expression); settled.value = false; rollingTotals.value = []; revealStage()
     const startedAt = performance.now(); const result = await api.rollDice(store.session, expression, false)
     rollingDice.value = diceWithResults(rollingDice.value, result.results); rollingTotals.value = result.results.map(item => item.total)
-    await wait(Math.max(0, rollingDuration - (performance.now() - startedAt))); settled.value = true; await wait(settlingDuration)
+    rollingResult.value = result
+    await wait(Math.max(0, rollingDuration - (performance.now() - startedAt)))
+    settled.value = true
+    revealStage()
+    await wait(settlingDuration)
     const revealed = await api.revealDiceRoll(store.session, result.id); await wait(resultHoldDuration)
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) { store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50) }
     emit('rolled', revealed)
     if (faces === 20) emit('rolled-d20', revealed)
   } catch (exception) { error.value = (exception as Error).message }
-  finally { rollingDice.value = []; settled.value = false; rollingTotals.value = []; busy.value = false }
+  finally { rollingDice.value = []; settled.value = false; rollingTotals.value = []; busy.value = false; resultScroll.restore() }
 }
+onBeforeUnmount(resultScroll.restore)
 </script>
 <template>
   <section class="panel dice-panel" aria-labelledby="quick-dice-title">
@@ -46,7 +53,7 @@ async function roll(faces: QuickDieFaces) {
       <span class="quick-dice-modifier-value" aria-live="polite"><small>Mod.</small>{{ modifier.value.value > 0 ? `+${modifier.value.value}` : modifier.value.value }}</span>
       <button class="icon-button" type="button" :disabled="busy" aria-label="Aumentar modificador" title="Aumentar modificador" @click="modifier.increment()"><Icon name="lucide:plus" /></button>
     </div>
-    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage><DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" /></div>
+    <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage><DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" :roll="rollingResult" /></div>
     <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
   </section>
 </template>

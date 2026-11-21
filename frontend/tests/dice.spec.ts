@@ -77,6 +77,22 @@ describe('DiceRoller', () => {
     wrapper.unmount()
   })
 
+  it('shows dice values and named additions inside the animation when they settle', async () => {
+    const roll = {
+      id: 'r1', participantId: 'p1', displayName: 'Lia', expression: '2d8 + (FOR) 3', values: [4, 6],
+      modifier: 3, total: 13, createdAt: '2026-11-21T00:00:00Z',
+      results: [{
+        sequence: 1, terms: [{ expression: '2d8', values: [4, 6], subtotal: 10 }],
+        modifiers: [{ value: 3, label: 'FOR' }], modifier: 3, total: 13
+      }]
+    }
+    const wrapper = mount(DiceRollAnimation, { props: { dice: diceForAnimation(roll.expression), settled: false, totals: [13], roll } })
+    expect(wrapper.find('.roll-result-sum').exists()).toBe(false)
+    await wrapper.setProps({ settled: true })
+    expect(wrapper.get('.dice-animation .roll-result-sum').text()).toMatch(/2d8 \[4, 6\].*3 \(FOR\).*= 13/)
+    wrapper.unmount()
+  })
+
   it('reveals the prepared roll only after falling and settling', async () => {
     vi.useFakeTimers()
     campaignStore.session = { campaignId: 'campaign-1' }

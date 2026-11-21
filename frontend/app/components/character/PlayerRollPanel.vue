@@ -7,7 +7,7 @@ import RollResultDetails from '~/components/RollResultDetails.vue'
 import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
-import { scrollToResult } from '~/utils/scrollToResult'
+import { createResultScrollSession } from '~/utils/scrollToResult'
 import {
   cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, weaponDamageSummary, weaponDamageBreakdownPlan, type DamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
@@ -49,15 +49,17 @@ const editorInitial = ref<RollConfig | null>(null)
 
 /** Spec 012, FR-007: the dice, then the result, are brought into view. */
 const stage = ref<HTMLElement | null>(null)
-function revealStage() { if (!disposed) void nextTick(() => scrollToResult(stage.value)) }
+const resultScroll = createResultScrollSession()
+function revealStage() { if (!disposed) void nextTick(() => resultScroll.show(stage.value)) }
 function wait(duration: number) { return new Promise<void>(resolve => window.setTimeout(resolve, duration)) }
 
 let holdTimer: ReturnType<typeof setTimeout> | undefined
 let disposed = false
-onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(holdTimer); resultScroll.restore() })
 function clearAnimation() {
   clearTimeout(holdTimer); holdTimer = undefined
   rollingDice.value = []; settled.value = false; rollingTotals.value = []
+  resultScroll.restore()
 }
 
 /** Server values go to the animated dice in expression order, both executions of maior/menor included. */
@@ -84,7 +86,10 @@ async function roll(source: RollConfig = config.value, label?: string) {
       : await api.rollDice(store.session, built.expression, false, label ?? built.label)
     rollingDice.value = withValues(rollingDice.value, result); rollingTotals.value = result.results.map(item => item.total)
     rollingResult.value = result
-    await wait(Math.max(0, 600 - (performance.now() - startedAt))); settled.value = true; await wait(200)
+    await wait(Math.max(0, 600 - (performance.now() - startedAt)))
+    settled.value = true
+    revealStage()
+    await wait(200)
     const revealed = await api.revealDiceRoll(store.session, result.id)
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) {
       store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50)
@@ -161,8 +166,7 @@ function applySavedRoll(data: SavedRollData) {
     </div>
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>
-      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" />
-      <RollResultDetails v-if="settled && rollingResult" :roll="rollingResult" />
+      <DiceRollAnimation :dice="rollingDice" :settled="settled" :totals="rollingTotals" :roll="rollingResult" />
     </div>
     <div v-else-if="last" aria-live="polite" data-roll-last>
       <p class="roll-last"><Icon name="lucide:sparkles" />{{ last.label || 'Último resultado' }}: <strong>{{ last.total }}</strong> <small>({{ last.expression }})</small></p>

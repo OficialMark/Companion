@@ -132,7 +132,7 @@ body.modal-open { overflow: hidden; }
 .roll-last { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-soft); font-size: .86rem; }
 .roll-last strong { color: var(--gold); font-size: 1.1rem; }
 /* Spec 010: the dice and total, scrolled into view during the 2 s hold. */
-.roll-stage { scroll-margin: 16px; }
+.roll-stage { scroll-margin: 16px; scroll-margin-bottom: calc(16px + var(--roll-footer-inset, 0px)); }
 
 /* Editor (spec 009: 6-column grid, every row filled; label above the field) */
 /* While editing, only the fields scroll; the action bar is its own row and never covers a field. */
