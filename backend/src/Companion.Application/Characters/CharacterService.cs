@@ -345,13 +345,14 @@ public sealed class CharacterService(
         var sheet = db.CharacterSheets.FirstOrDefault(x => x.OwnerKey == ownerKey);
         if (sheet is null && db.CharacterSheets.FirstOrDefault(x => x.ParticipantId == participant.Id) is { } own)
         {
-            // This participant created a sheet whose key no longer matches its name key (the migration's
-            // SQL UPPER/TRIM differs from PersonName.Key for exotic names, or a legacy duplicate lost the
-            // backfill). No sheet holds the current key, so adopting the row is safe; creating a new one
-            // would collide with its primary key forever.
-            own.AssignOwner(ownerKey, timeProvider.GetUtcNow());
-            db.MarkModified(own);
-            await db.SaveChangesAsync(cancellationToken);
+            // A parallel request can create the sheet between the two lookups.
+            // Only adopt the row when its stored owner key actually needs repair.
+            if (own.OwnerKey != ownerKey)
+            {
+                own.AssignOwner(ownerKey, timeProvider.GetUtcNow());
+                db.MarkModified(own);
+                await db.SaveChangesAsync(cancellationToken);
+            }
             sheet = own;
         }
 

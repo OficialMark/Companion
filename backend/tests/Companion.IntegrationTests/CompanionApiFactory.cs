@@ -14,7 +14,11 @@ namespace Companion.IntegrationTests;
 public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+    private readonly PostgreSqlContainer? _postgres =
+        Environment.GetEnvironmentVariable("COMPANION_TEST_PROVIDER") == "PostgreSql"
+            ? new PostgreSqlBuilder("postgres:17-alpine").Build()
+            : null;
+    private readonly string _sqlitePath = Path.Combine(Path.GetTempPath(), $"companion-integration-{Guid.NewGuid():N}.db");
 
     /// <summary>Stands in for pocketdm.com.br so tests never touch the network.</summary>
     public FakeCreatureImageSource ImageSource { get; } = new();
@@ -28,19 +32,27 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
     /// <summary>Dados roteirizados para testes de rolagem (spec 011); sem roteiro, rola aleatório como antes.</summary>
     public ScriptedDiceRandomizer Dice { get; } = new();
 
-    public Task InitializeAsync() => Task.WhenAll(_sqlServer.StartAsync(), _postgres.StartAsync());
-    public new Task DisposeAsync() => Task.WhenAll(_sqlServer.DisposeAsync().AsTask(), _postgres.DisposeAsync().AsTask());
+    public Task InitializeAsync() => Task.WhenAll(_sqlServer.StartAsync(), _postgres?.StartAsync() ?? Task.CompletedTask);
+
+    public new async Task DisposeAsync()
+    {
+        await base.DisposeAsync();
+        await Task.WhenAll(_sqlServer.DisposeAsync().AsTask(), _postgres?.DisposeAsync().AsTask() ?? Task.CompletedTask);
+        File.Delete(_sqlitePath);
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var provider = _postgres is null ? "Sqlite" : "PostgreSql";
+        var connection = _postgres?.GetConnectionString() ?? $"Data Source={_sqlitePath};Foreign Keys=True;Pooling=False";
         builder.UseEnvironment("Testing");
-        builder.UseSetting("Database:Provider", "PostgreSql");
-        builder.UseSetting("ConnectionStrings:Companion", _postgres.GetConnectionString());
+        builder.UseSetting("Database:Provider", provider);
+        builder.UseSetting("ConnectionStrings:Companion", connection);
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["Database:Provider"] = "PostgreSql",
-                ["ConnectionStrings:Companion"] = _postgres.GetConnectionString(),
+                ["Database:Provider"] = provider,
+                ["ConnectionStrings:Companion"] = connection,
                 ["Admin:AccessKey"] = "integration-admin-secret"
             }));
         builder.ConfigureTestServices(services =>

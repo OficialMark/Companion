@@ -2,6 +2,8 @@
 
 Este roteiro usa uma VM Ubuntu AMD64 sem IPv4 público, o PostgreSQL Flexible Server e um domínio gerenciado pela Cloudflare. Você administra a VM pelo Bastion, compila o Companion nela e usa o Cloudflare Tunnel para entregar HTTPS e SignalR no mesmo endereço público.
 
+Se já tem a aplicação rodando e quer tirar a latência entre a VM e o PostgreSQL, veja a [migração para SQLite](deploy-azure-sqlite.md).
+
 Se ainda estiver criando os recursos pela oferta gratuita, confira a elegibilidade da VM Linux `Standard_B2ats_v2` e do disco Premium SSD P6 de 64 GiB. Para o banco, use PostgreSQL 17 na mesma região da VM, com **Burstable B1MS**, **32 GiB**, backup de **7 dias**, sem alta disponibilidade, redundância geográfica ou aumento automático do disco. [Criar recursos gratuitos na Azure](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/create-free-services)
 
 ## 1. Abra a VM pelo Bastion e confira a saída para a internet

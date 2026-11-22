@@ -6,9 +6,11 @@ services:
       context: ../../backend
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      Database__Provider: PostgreSql
-      ConnectionStrings__Companion: ${COMPANION_POSTGRES_TARGET:?Configure a conexão PostgreSQL}
+      Database__Provider: ${COMPANION_DATABASE_PROVIDER:-PostgreSql}
+      ConnectionStrings__Companion: ${COMPANION_DATABASE_CONNECTION:-${COMPANION_POSTGRES_TARGET:-}}
       Admin__AccessKey: ${ADMIN_ACCESS_KEY:?Configure a chave administrativa}
+    volumes:
+      - ./data:/data
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
       interval: 15s
@@ -47,6 +49,18 @@ services:
     networks:
       app:
         ipv4_address: 172.29.255.6
+
+  sqlite-import:
+    profiles: [migration]
+    build:
+      context: ../../backend
+      target: sqlite-import
+    environment:
+      COMPANION_POSTGRES_SOURCE: ${COMPANION_POSTGRES_TARGET:-}
+    command: ["/data/companion.db"]
+    volumes:
+      - ./data:/data
+    networks: [app]
 
 networks:
   app:

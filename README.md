@@ -35,6 +35,7 @@ docker compose logs -f api frontend postgres
 ## Deploy na Azure
 
 Veja o [tutorial de deploy na Azure](docs/deploy-azure-free.md) para publicar a aplicação e transferir os dados locais.
+Para rodar o banco junto da API em uma única VM, siga a [migração para SQLite na Azure](docs/deploy-azure-sqlite.md).
 
 ## Acesso por outros dispositivos da LAN
 
@@ -92,7 +93,7 @@ dotnet restore .\backend\Companion.slnx
 dotnet test .\backend\Companion.slnx
 ```
 
-Os testes de integração executam a API com PostgreSQL em um contêiner próprio. Os testes do histórico de migrações legado continuam usando um contêiner SQL Server.
+Os testes de integração executam a API com um arquivo SQLite descartável por padrão. Defina `COMPANION_TEST_PROVIDER=PostgreSql` para rodar a mesma suíte com PostgreSQL. Os testes do histórico de migrações legado continuam usando um contêiner SQL Server.
 
 Frontend, usando Node.js 22 ou superior:
 

@@ -19,6 +19,11 @@ test-results/
 .env
 .env.*
 !.env.example
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+/deploy/azure/data/
 
 # IDE / OS
 .vs/

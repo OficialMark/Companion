@@ -9,6 +9,16 @@ RUN dotnet restore src/Companion.Api/Companion.Api.csproj
 COPY src/ src/
 RUN dotnet publish src/Companion.Api/Companion.Api.csproj -c Release --no-restore -o /app/publish
 
+FROM build AS sqlite-import-build
+COPY tools/Companion.PostgreSqlToSqlite/ tools/Companion.PostgreSqlToSqlite/
+RUN dotnet publish tools/Companion.PostgreSqlToSqlite/Companion.PostgreSqlToSqlite.csproj -c Release -o /app/sqlite-import
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS sqlite-import
+WORKDIR /app
+COPY --from=sqlite-import-build /app/sqlite-import .
+USER app
+ENTRYPOINT ["dotnet", "Companion.PostgreSqlToSqlite.dll"]
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*

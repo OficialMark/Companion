@@ -237,13 +237,16 @@ public sealed class AccountJoinTests(CompanionApiFactory factory) : ApiTestBase(
     }
 
     private static Task InsertLegacyParticipant(
-        CompanionDbContext db, Guid id, Guid campaignId, string name, byte[] tokenHash, DateTimeOffset createdAt) =>
-        db.Database.ExecuteSqlInterpolatedAsync($"""
+        CompanionDbContext db, Guid id, Guid campaignId, string name, byte[] tokenHash, DateTimeOffset createdAt)
+    {
+        object timestamp = db.Database.IsSqlite() ? createdAt.UtcTicks : createdAt;
+        return db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "Participants" ("Id", "CampaignId", "DisplayName", "Role", "TokenHash", "CreatedAt")
-            VALUES ({id}, {campaignId}, {name}, 'Player', {tokenHash}, {createdAt});
+            VALUES ({id}, {campaignId}, {name}, 'Player', {tokenHash}, {timestamp});
             INSERT INTO "ParticipantSessions" ("Id", "ParticipantId", "CampaignId", "TokenHash", "CreatedAt", "LastSeenAt")
-            VALUES ({Guid.NewGuid()}, {id}, {campaignId}, {tokenHash}, {createdAt}, {createdAt});
+            VALUES ({Guid.NewGuid()}, {id}, {campaignId}, {tokenHash}, {timestamp}, {timestamp});
             """);
+    }
 
     private async Task SetLastSeen(Guid participantId, DateTimeOffset value)
     {

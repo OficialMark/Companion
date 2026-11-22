@@ -13,6 +13,7 @@ using Companion.Infrastructure.Persistence;
 using Companion.Infrastructure.Randomness;
 using Companion.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -68,8 +69,12 @@ switch (builder.Configuration["Database:Provider"] ?? "SqlServer")
         builder.Services.AddDbContext<PostgreSqlCompanionDbContext>(options => options.UseNpgsql(connectionString));
         builder.Services.AddScoped<CompanionDbContext>(provider => provider.GetRequiredService<PostgreSqlCompanionDbContext>());
         break;
+    case "Sqlite":
+        builder.Services.AddDbContext<SqliteCompanionDbContext>(options => options.UseSqlite(connectionString));
+        builder.Services.AddScoped<CompanionDbContext>(provider => provider.GetRequiredService<SqliteCompanionDbContext>());
+        break;
     default:
-        throw new InvalidOperationException("Database:Provider deve ser SqlServer ou PostgreSql.");
+        throw new InvalidOperationException("Database:Provider deve ser SqlServer, PostgreSql ou Sqlite.");
 }
 builder.Services.AddScoped<ICompanionDbContext>(provider => provider.GetRequiredService<CompanionDbContext>());
 builder.Services.AddSingleton(TimeProvider.System);
@@ -160,6 +165,13 @@ app.MapHub<CampaignHub>("/hubs/campaign");
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
+    if (db is SqliteCompanionDbContext &&
+        new SqliteConnectionStringBuilder(connectionString).Mode == SqliteOpenMode.ReadWrite)
+    {
+        // Fail before EF can create a fresh database when the deployment expects
+        // an existing file to be mounted.
+        await db.Database.OpenConnectionAsync();
+    }
     await db.Database.MigrateAsync();
     // Contas por nome (spec 011, FR-044): normaliza nomes antigos e escolhe a dona de cada nome repetido.
     // Idempotente (só pega quem tem NameKey nula). Nunca fatal: sem ele, os tokens antigos seguem
