@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Companion.Infrastructure.Persistence;
 
-public sealed class CompanionDbContext(DbContextOptions<CompanionDbContext> options)
+public class CompanionDbContext(DbContextOptions options)
     : DbContext(options), ICompanionDbContext
 {
     public DbSet<Campaign> Campaigns => Set<Campaign>();

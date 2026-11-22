@@ -17,6 +17,10 @@ const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const gameMode = useGameMode()
 const loading = ref(true)
+const editingCampaignName = ref(false)
+const campaignNameDraft = ref('')
+const campaignNameInput = ref<HTMLInputElement | null>(null)
+const campaignNameError = ref('')
 const pendingAttackRoll = ref<DiceRoll | null>(null)
 const damageModalOpen = ref(false)
 
@@ -29,6 +33,37 @@ function onQuickRolledD20(roll: DiceRoll) { pendingDamageExpression.value = null
 function onAttackHit() { pendingAttackRoll.value = null; damageModalOpen.value = true }
 function onAttackDismissed() { pendingAttackRoll.value = null; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }
 function onDamageSettled() { damageModalOpen.value = false; pendingDamageExpression.value = null; pendingDamageSummary.value = null; pendingDamagePlan.value = null }
+
+async function beginCampaignNameEdit() {
+  if (!store.isMaster || !store.snapshot) return
+  campaignNameDraft.value = store.snapshot.campaign.name
+  campaignNameError.value = ''
+  editingCampaignName.value = true
+  await nextTick()
+  campaignNameInput.value?.focus()
+  campaignNameInput.value?.select()
+}
+
+async function saveCampaignName() {
+  if (!editingCampaignName.value) return
+  const name = campaignNameDraft.value.trim()
+  if (!name || name.length > 80) {
+    campaignNameError.value = 'O título deve ter entre 1 e 80 caracteres.'
+    return
+  }
+  editingCampaignName.value = false
+  if (name !== store.snapshot?.campaign.name && !await store.renameCampaign(name)) {
+    campaignNameError.value = store.error
+    editingCampaignName.value = true
+    await nextTick()
+    campaignNameInput.value?.focus()
+  }
+}
+
+function cancelCampaignNameEdit() {
+  editingCampaignName.value = false
+  campaignNameError.value = ''
+}
 
 async function activate() {
   if (!store.session) { loading.value = false; return }
@@ -197,7 +232,24 @@ onBeforeUnmount(() => {
       <div class="topbar-center">
       <ViewNav />
       <div v-if="store.snapshot" class="campaign-heading">
-        <span class="campaign-name" :title="store.snapshot.campaign.name">{{ store.snapshot.campaign.name }}</span>
+        <input
+          v-if="editingCampaignName"
+          ref="campaignNameInput"
+          v-model="campaignNameDraft"
+          class="campaign-name campaign-name-input"
+          aria-label="Título da mesa"
+          maxlength="80"
+          @keydown.enter.prevent="saveCampaignName"
+          @keydown.esc.prevent="cancelCampaignNameEdit"
+          @blur="saveCampaignName"
+        >
+        <span
+          v-else
+          class="campaign-name"
+          :class="{ 'campaign-name-editable': store.isMaster }"
+          :title="store.isMaster ? 'Dê um duplo clique para alterar o título' : store.snapshot.campaign.name"
+          @dblclick.stop="beginCampaignNameEdit"
+        >{{ store.snapshot.campaign.name }}</span>
         <button
           class="code-badge"
           :class="{ copied: codeCopied }"
@@ -209,6 +261,7 @@ onBeforeUnmount(() => {
           <Icon :name="codeCopied ? 'lucide:check' : 'lucide:copy'" />
           {{ store.snapshot.campaign.playerCode }}
         </button>
+        <span v-if="campaignNameError" class="campaign-name-error" role="alert">{{ campaignNameError }}</span>
       </div>
       </div>
       <div class="top-actions">

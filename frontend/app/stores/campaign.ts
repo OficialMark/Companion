@@ -135,6 +135,30 @@ export const useCampaignStore = defineStore('campaign', {
         throw error
       }
     },
+    async renameCampaign(name: string) {
+      if (!this.session || !this.isMaster || !this.snapshot) return false
+      try {
+        this.snapshot.campaign = await useCompanionApi().renameCampaign(this.session, name)
+        this.error = ''
+        return true
+      } catch (error) {
+        this.error = (error as Error).message
+        return false
+      }
+    },
+    async setParticipantPanelVisibility(participantId: string, isHiddenFromPanel: boolean) {
+      if (!this.session || !this.isMaster || !this.snapshot) return false
+      try {
+        const updated = await useCompanionApi().setParticipantPanelVisibility(this.session, participantId, isHiddenFromPanel)
+        const index = this.snapshot.participants.findIndex(item => item.id === participantId)
+        if (index >= 0) this.snapshot.participants[index] = updated
+        this.error = ''
+        return true
+      } catch (error) {
+        this.error = (error as Error).message
+        return false
+      }
+    },
     updateActiveEncounter(next: Encounter | null) {
       if (!this.snapshot || !next || this.snapshot.activeEncounter?.id !== next.id) {
         if (this.snapshot) this.snapshot.activeEncounter = next
@@ -325,6 +349,10 @@ export const useCampaignStore = defineStore('campaign', {
       }
       if (event.type === 'CampaignNotebookInvalidated') {
         this.campaignKnowledgeRevision++
+        return
+      }
+      if (event.type === 'CampaignRenamed') {
+        this.snapshot.campaign = event.payload as CampaignSnapshot['campaign']
         return
       }
       if (event.type === 'CharacterChanged') {

@@ -1,6 +1,6 @@
 namespace Companion.Domain.Campaigns;
 
-public enum CampaignKnowledgeKind { Npc, Map, Clue, Journal }
+public enum CampaignKnowledgeKind { Npc, Map, Clue, Journal, MasterRecord }
 
 public sealed class CampaignKnowledgeEntry
 {
@@ -25,10 +25,32 @@ public sealed class CampaignKnowledgeEntry
     public byte[]? ImageContent { get; private set; }
     public string? ImageMediaType { get; private set; }
     public string? ImageFileName { get; private set; }
+    public byte[]? PdfContent { get; private set; }
+    public string? PdfFileName { get; private set; }
     public const int MaxTitleLength = 120;
     public const int MaxSummaryLength = 500;
     public const int MaxDescriptionLength = 12_000;
     public const int MaxImageBytes = 20 * 1024 * 1024;
+    public const int MaxPdfBytes = 20 * 1024 * 1024;
+
+    public void SetPdf(byte[]? content, string? fileName, DateTimeOffset now)
+    {
+        if (Kind is not (CampaignKnowledgeKind.Clue or CampaignKnowledgeKind.Journal or CampaignKnowledgeKind.MasterRecord))
+            throw new ArgumentException("Somente pistas, diário e registros do mestre aceitam PDF.");
+        if (content is not null && (content.Length > MaxPdfBytes || !content.AsSpan().StartsWith("%PDF-"u8)))
+            throw new ArgumentException("Selecione um PDF válido de até 20 MB.");
+
+        if (content is null)
+            PdfFileName = null;
+        else
+        {
+            var name = Path.GetFileNameWithoutExtension((fileName ?? "").Replace('\\', '/'));
+            name = string.Concat(name.Where(c => !char.IsControl(c))).Trim();
+            PdfFileName = (name.Length == 0 ? "anexo" : name[..Math.Min(name.Length, 251)]) + ".pdf";
+        }
+        PdfContent = content;
+        UpdatedAt = now;
+    }
 
     public void Apply(string? title, string? summary, string? description, bool isPlayerVisible, DateTimeOffset now)
     {
@@ -36,12 +58,16 @@ public sealed class CampaignKnowledgeEntry
         Summary = Optional(summary, MaxSummaryLength, "O resumo");
         SharedDescription = Optional(description, MaxDescriptionLength, "A descrição");
         if (Kind == CampaignKnowledgeKind.Journal && !isPlayerVisible) throw new ArgumentException("Entradas do diário são compartilhadas com a campanha.");
-        IsPlayerVisible = Kind == CampaignKnowledgeKind.Journal || isPlayerVisible;
+        IsPlayerVisible = Kind switch
+        {
+            CampaignKnowledgeKind.Journal => true,
+            CampaignKnowledgeKind.MasterRecord => false,
+            _ => isPlayerVisible
+        };
         UpdatedAt = now;
     }
     public void SetImage(byte[] content, string mediaType, string fileName)
     {
-        if (Kind != CampaignKnowledgeKind.Map) throw new ArgumentException("Somente mapas aceitam imagem.");
         if (content.Length is < 1 or > MaxImageBytes) throw new ArgumentOutOfRangeException(nameof(content), "A imagem deve ter até 20 MB.");
         var normalizedType = mediaType.ToLowerInvariant() switch { "image/png" => "image/png", "image/jpeg" => "image/jpeg", "image/webp" => "image/webp", _ => throw new ArgumentException("Use uma imagem PNG, JPEG ou WebP.") };
         var signatureValid = normalizedType switch
@@ -54,7 +80,7 @@ public sealed class CampaignKnowledgeEntry
         if (!signatureValid) throw new ArgumentException("O conteúdo não corresponde a uma imagem PNG, JPEG ou WebP válida.");
         ImageMediaType = normalizedType;
         ImageContent = content.ToArray();
-        var safeName = fileName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim() ?? "mapa";
+        var safeName = fileName.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim() ?? "imagem";
         ImageFileName = safeName.Length > 255 ? safeName[..255] : safeName;
     }
     public void RemoveImage() { ImageContent = null; ImageMediaType = null; ImageFileName = null; }

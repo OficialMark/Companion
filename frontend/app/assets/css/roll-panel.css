@@ -55,6 +55,7 @@
 .roll-expression-label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .roll-expression code { color: var(--gold-soft); font-size: .98rem; font-weight: 700; overflow-wrap: anywhere; }
 .roll-expression code:empty { display: none; }
+.roll-expression-input { min-width: 0; min-height: 40px; padding: 0 8px; color: var(--gold-soft); font: 700 .98rem ui-monospace, monospace; }
 .roll-expression-empty { color: var(--muted); font-size: .86rem; }
 
 /* Panel actions, animation and result */

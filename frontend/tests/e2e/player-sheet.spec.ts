@@ -138,7 +138,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 
     await panel.locator('[data-kind="attack"]').click()
     await panel.locator('[data-advantage="advantage"]').click()
     await panel.locator('[data-repetitions]').fill('2')
-    await expect(panel.locator('[data-expression]')).toHaveText('2#[2#(d20 + (FOR) 3 + (prof) 3) maior]')
+    await expect(panel.locator('[data-expression]')).toHaveValue('2#[2#(d20 + (FOR) 3 + (prof) 3) maior]')
     await panel.locator('[data-roll-go]').click()
     const history = player.locator('[data-selected-execution]').first()
     await expect(history).toBeVisible({ timeout: 15_000 })

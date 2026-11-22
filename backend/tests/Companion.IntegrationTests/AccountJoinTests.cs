@@ -239,10 +239,10 @@ public sealed class AccountJoinTests(CompanionApiFactory factory) : ApiTestBase(
     private static Task InsertLegacyParticipant(
         CompanionDbContext db, Guid id, Guid campaignId, string name, byte[] tokenHash, DateTimeOffset createdAt) =>
         db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO [Participants] ([Id], [CampaignId], [DisplayName], [Role], [TokenHash], [CreatedAt])
+            INSERT INTO "Participants" ("Id", "CampaignId", "DisplayName", "Role", "TokenHash", "CreatedAt")
             VALUES ({id}, {campaignId}, {name}, 'Player', {tokenHash}, {createdAt});
-            INSERT INTO [ParticipantSessions] ([Id], [ParticipantId], [CampaignId], [TokenHash], [CreatedAt], [LastSeenAt])
-            VALUES (NEWID(), {id}, {campaignId}, {tokenHash}, {createdAt}, {createdAt});
+            INSERT INTO "ParticipantSessions" ("Id", "ParticipantId", "CampaignId", "TokenHash", "CreatedAt", "LastSeenAt")
+            VALUES ({Guid.NewGuid()}, {id}, {campaignId}, {tokenHash}, {createdAt}, {createdAt});
             """);
 
     private async Task SetLastSeen(Guid participantId, DateTimeOffset value)

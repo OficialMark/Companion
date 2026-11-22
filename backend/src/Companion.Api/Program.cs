@@ -35,7 +35,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardLimit = 1;
     options.KnownProxies.Add(IPAddress.Parse("172.29.255.2"));
 });
-builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("sqlserver");
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -59,7 +59,18 @@ builder.Services.AddRateLimiter(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("Companion")
     ?? throw new InvalidOperationException("ConnectionStrings:Companion não foi configurada.");
-builder.Services.AddDbContext<CompanionDbContext>(options => options.UseSqlServer(connectionString));
+switch (builder.Configuration["Database:Provider"] ?? "SqlServer")
+{
+    case "SqlServer":
+        builder.Services.AddDbContext<CompanionDbContext>(options => options.UseSqlServer(connectionString));
+        break;
+    case "PostgreSql":
+        builder.Services.AddDbContext<PostgreSqlCompanionDbContext>(options => options.UseNpgsql(connectionString));
+        builder.Services.AddScoped<CompanionDbContext>(provider => provider.GetRequiredService<PostgreSqlCompanionDbContext>());
+        break;
+    default:
+        throw new InvalidOperationException("Database:Provider deve ser SqlServer ou PostgreSql.");
+}
 builder.Services.AddScoped<ICompanionDbContext>(provider => provider.GetRequiredService<CompanionDbContext>());
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IParticipantTokenService, ParticipantTokenService>();

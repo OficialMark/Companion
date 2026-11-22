@@ -9,8 +9,7 @@ Na campanha, a área **Campanha** reúne NPCs, mapas com pontos de interesse, pi
 Pré-requisitos:
 
 - Docker Desktop no Windows ou Docker Engine com Compose
-- Portas TCP 3636 (frontend) e 8080 (backend) livres
-- Pelo menos 2 GB de memória disponíveis para o SQL Server
+- Portas TCP 3636 (frontend) e 5252 (API) livres
 
 No PowerShell, a partir da raiz do projeto:
 
@@ -18,20 +17,24 @@ No PowerShell, a partir da raiz do projeto:
 Copy-Item .env.example .env
 ```
 
-Edite `.env` e substitua `MSSQL_SA_PASSWORD` por uma senha forte. Depois execute:
+Edite `.env` e configure `POSTGRES_PASSWORD` e `ADMIN_ACCESS_KEY`. Depois execute:
 
 ```powershell
 docker compose up --build -d
 docker compose ps
 ```
 
-Quando os três serviços estiverem saudáveis, abra [http://localhost:3636](http://localhost:3636). A API também fica disponível diretamente em `http://localhost:8080`; o banco permanece isolado na rede Docker.
+Quando os três serviços estiverem saudáveis, abra [http://localhost:3636](http://localhost:3636). A API também fica disponível diretamente em `http://localhost:5252`. O PostgreSQL permanece na rede Docker, sem porta publicada.
 
 Para acompanhar a inicialização:
 
 ```powershell
-docker compose logs -f api frontend sqlserver
+docker compose logs -f api frontend postgres
 ```
+
+## Deploy na Azure
+
+Veja o [tutorial de deploy na Azure](docs/deploy-azure-free.md) para publicar a aplicação e transferir os dados locais.
 
 ## Acesso por outros dispositivos da LAN
 
@@ -49,7 +52,7 @@ http://192.168.1.50:3636
 
 O frontend utiliza caminhos relativos para API e SignalR. Portanto, não é necessário recompilar ao trocar `localhost` pelo IP LAN.
 
-Se a página não abrir, permita uma regra de entrada TCP para a porta 3636 no Firewall do Windows, limitada ao perfil de rede Privada. Libere também a porta 8080 somente se precisar acessar a API diretamente de outro dispositivo. Não exponha essas portas diretamente à internet; o MVP usa HTTP por ter como alvo redes privadas.
+Se a página não abrir, permita uma regra de entrada TCP para a porta 3636 no Firewall do Windows, limitada ao perfil de rede Privada. Libere também a porta 5252 somente se precisar acessar a API diretamente de outro dispositivo. O acesso local usa HTTP. Para acesso público, siga a configuração HTTPS do tutorial da Azure.
 
 ## Hamachi ou Radmin VPN
 
@@ -78,7 +81,7 @@ docker compose down
 docker compose down -v
 ```
 
-Os dados persistem no volume nomeado `companion-sql-data` durante `restart` e `down` normal.
+O PostgreSQL guarda os dados no volume nomeado `companion-pg-data`, que persiste durante `restart` e `down` normal.
 
 ## Desenvolvimento
 
@@ -88,6 +91,8 @@ Backend:
 dotnet restore .\backend\Companion.slnx
 dotnet test .\backend\Companion.slnx
 ```
+
+Os testes de integração executam a API com PostgreSQL em um contêiner próprio. Os testes do histórico de migrações legado continuam usando um contêiner SQL Server.
 
 Frontend, usando Node.js 22 ou superior:
 
@@ -119,7 +124,7 @@ Para evoluir uma funcionalidade com Codex, use as skills `$speckit-specify`, `$s
 
 Durante um encontro, o mestre pode publicar uma imagem PNG, JPEG ou WebP de até 20 MB e definir um grid de 1×1 a 100×100. Cada jogador recebe um pino próprio; jogadores movem somente seu pino e o mestre pode arbitrar qualquer posição.
 
-O visualizador mantém uma área estável em desktop e Android, usa células com escala inicial próxima de 40 px e oferece pan, zoom, ajuste total, arraste, seleção por toque e navegação por teclado. O estado confirmado é persistido no SQL Server e ressincronizado por snapshot após eventos SignalR ou reconexão.
+O visualizador mantém uma área estável em desktop e Android, usa células com escala inicial próxima de 40 px e oferece pan, zoom, ajuste total, arraste, seleção por toque e navegação por teclado. O estado confirmado é persistido no banco e ressincronizado por snapshot após eventos SignalR ou reconexão.
 
 Ao publicar ou substituir a imagem, a prévia já traz o editor de névoa: um mapa novo começa todo coberto, e a névoa desenhada vai junto com a imagem, então os jogadores nunca recebem o mapa descoberto. No mapa publicado, o botão **Névoa** permite cobrir e revelar com pincel ou retângulo; criaturas totalmente cobertas não são enviadas aos jogadores.
 

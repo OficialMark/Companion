@@ -29,7 +29,7 @@ describe('repetições ao vivo', () => {
     const input = wrapper.get('[data-repetitions]')
     ;(input.element as HTMLInputElement).value = '4'
     await input.trigger('input')
-    expect(wrapper.get('[data-expression]').text()).toBe('4#[d20]')
+    expect(wrapper.get<HTMLInputElement>('input[data-expression]').element.value).toBe('4#[d20]')
   })
 
   it('valor incompleto ou fora do limite espera a saída do campo', async () => {
@@ -38,8 +38,8 @@ describe('repetições ao vivo', () => {
     const input = wrapper.get('[data-repetitions]')
     ;(input.element as HTMLInputElement).value = '25'
     await input.trigger('input')
-    expect(wrapper.get('[data-expression]').text()).toBe('1d20')
+    expect(wrapper.get<HTMLInputElement>('input[data-expression]').element.value).toBe('1d20')
     await input.trigger('change')
-    expect(wrapper.get('[data-expression]').text()).toBe('20#[d20]')
+    expect(wrapper.get<HTMLInputElement>('input[data-expression]').element.value).toBe('20#[d20]')
   })
 })

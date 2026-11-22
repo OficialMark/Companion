@@ -19,4 +19,12 @@ public sealed class Campaign
     public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
+
+    public void Rename(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 80)
+            throw new ArgumentException("O nome da campanha deve ter entre 1 e 80 caracteres.", nameof(name));
+
+        Name = name.Trim();
+    }
 }

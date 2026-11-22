@@ -1,7 +1,7 @@
-export type CampaignKnowledgeKind = 'Npc' | 'Map' | 'Clue' | 'Journal'
+export type CampaignKnowledgeKind = 'Npc' | 'Map' | 'Clue' | 'Journal' | 'MasterRecord'
 export interface CampaignKnowledgeSummary {
   id: string; kind: CampaignKnowledgeKind; title: string; summary: string | null; isPlayerVisible: boolean
-  author: string; createdAt: string; updatedAt: string; hasImage: boolean; pointCount: number
+  author: string; authorId: string; createdAt: string; updatedAt: string; hasImage: boolean; pointCount: number
 }
 export interface CampaignKnowledgeContribution {
   id: string; body: string; author: string; authorId: string; createdAt: string; updatedAt: string
@@ -11,6 +11,7 @@ export interface CampaignMapPoint {
 }
 export interface CampaignKnowledgeDetail extends CampaignKnowledgeSummary {
   sharedDescription: string | null; version: string; masterNote: string | null
+  pdfFileName: string | null
   contributions: CampaignKnowledgeContribution[]; points: CampaignMapPoint[]
 }
 export interface CampaignKnowledgePage { items: CampaignKnowledgeSummary[]; total: number; page: number; pageSize: number }
@@ -22,5 +23,6 @@ export const CAMPAIGN_KNOWLEDGE_KINDS: Array<{ key: CampaignKnowledgeKind; label
   { key: 'Npc', label: 'NPCs', icon: 'lucide:users-round' },
   { key: 'Map', label: 'Mapas', icon: 'lucide:map' },
   { key: 'Clue', label: 'Pistas', icon: 'lucide:search' },
-  { key: 'Journal', label: 'Diário', icon: 'lucide:notebook-pen' }
+  { key: 'Journal', label: 'Diário', icon: 'lucide:notebook-pen' },
+  { key: 'MasterRecord', label: 'Registros do mestre', icon: 'lucide:lock-keyhole' }
 ]

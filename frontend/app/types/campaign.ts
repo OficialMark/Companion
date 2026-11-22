@@ -22,6 +22,7 @@ export interface Participant {
   maxHitPoints: number | null
   /** Revision of the profile photo; null/undefined when the participant has none. */
   avatarRevision?: string | null
+  isHiddenFromPanel?: boolean
 }
 export interface DiceTermResult { expression: string; values: number[]; subtotal: number }
 /** Constante da expressão (spec 011): `(FOR) 3` vira `{ label: 'FOR', value: 3 }`. */

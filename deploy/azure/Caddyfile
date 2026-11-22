@@ -1,0 +1,5 @@
+{$COMPANION_DOMAIN} {
+    @backend path /api/* /hubs/* /health
+    reverse_proxy @backend api:8080
+    reverse_proxy frontend:80
+}

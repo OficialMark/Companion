@@ -10,5 +10,5 @@ public sealed class DatabaseHealthCheck(CompanionDbContext db) : IHealthCheck
         CancellationToken cancellationToken = default) =>
         await db.Database.CanConnectAsync(cancellationToken)
             ? HealthCheckResult.Healthy()
-            : HealthCheckResult.Unhealthy("SQL Server indisponível.");
+            : HealthCheckResult.Unhealthy("Banco de dados indisponível.");
 }

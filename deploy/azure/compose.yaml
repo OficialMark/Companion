@@ -1,0 +1,51 @@
+name: companion-azure
+
+services:
+  api:
+    image: companion-api:${COMPANION_IMAGE_TAG:-latest}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: PostgreSql
+      ConnectionStrings__Companion: ${COMPANION_POSTGRES_TARGET:?Configure a conexão PostgreSQL}
+      Admin__AccessKey: ${ADMIN_ACCESS_KEY:?Configure a chave administrativa}
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks: [app]
+
+  frontend:
+    image: companion-frontend:${COMPANION_IMAGE_TAG:-latest}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [app]
+
+  proxy:
+    image: caddy:2-alpine
+    environment:
+      COMPANION_DOMAIN: ${COMPANION_DOMAIN:?Configure o domínio público}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [frontend]
+    restart: unless-stopped
+    networks:
+      app:
+        ipv4_address: 172.29.255.2
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: 172.29.255.0/24
+
+volumes:
+  caddy-data:

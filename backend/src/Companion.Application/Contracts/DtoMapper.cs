@@ -44,7 +44,7 @@ public static class DtoMapper
     public static ParticipantDto ToDto(Participant participant, bool isOnline) =>
         new(participant.Id, participant.DisplayName, participant.Role, isOnline,
             participant.InitiativeModifier, participant.CurrentHitPoints, participant.MaxHitPoints,
-            participant.AvatarRevision);
+            participant.AvatarRevision, participant.IsHiddenFromPanel);
 
     public static string Revision(byte[] version) =>
         version.Length == 0 ? string.Empty : Convert.ToBase64String(version);

@@ -50,7 +50,7 @@ describe('SavedRollEditor', () => {
     await configure(panel)
     await configure(editor)
     const expected = '2#[2#(d20 + d4 + (DES) 2 + (prof) 3 + (Guia) 1) maior]'
-    expect(panel.get('[data-expression]').text()).toBe(expected)
+    expect(panel.get<HTMLInputElement>('input[data-expression]').element.value).toBe(expected)
     expect(editor.get('[data-expression]').text()).toBe(expected)
     // Same options: the same sources, kinds and advantage buttons.
     const options = (w: VueWrapper) => w.findAll('[data-source], [data-kind], [data-advantage], [data-die]').map(el => el.attributes('data-source') ?? el.attributes('data-kind') ?? el.attributes('data-advantage') ?? el.attributes('data-die'))

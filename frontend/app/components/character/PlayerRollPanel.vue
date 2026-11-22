@@ -8,6 +8,7 @@ import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
 import { createResultScrollSession } from '~/utils/scrollToResult'
+import { MAX_EXPRESSION_LENGTH } from '~/utils/rollExpression'
 import {
   cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, weaponDamageSummary, weaponDamageBreakdownPlan, type DamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
@@ -31,11 +32,16 @@ const api = useCompanionApi()
 const character = useCharacterStore()
 
 const config = ref<RollConfig>(emptyConfig())
+const manualExpression = ref<string | null>(null)
 const stats = computed(() => character.character?.stats ?? null)
 const resolved = computed(() => resolveRoll(config.value, stats.value, character.character))
 const savedRolls = computed(() => [...(character.character?.savedRolls ?? [])].sort((a, b) => a.sortOrder - b.sortOrder))
 const offline = computed(() => store.connection === 'offline')
-const canRoll = computed(() => !busy.value && !offline.value && Boolean(resolved.value.expression) && !resolved.value.error)
+const canRoll = computed(() => !busy.value && !offline.value && (
+  manualExpression.value !== null
+    ? Boolean(manualExpression.value.trim())
+    : Boolean(resolved.value.expression) && !resolved.value.error
+))
 
 const busy = ref(false)
 const error = ref('')
@@ -69,22 +75,52 @@ function withValues(dice: AnimatedDie[], roll: DiceRoll): AnimatedDie[] {
   return dice.map(die => ({ ...die, value: queues.get(die.faces)?.shift() }))
 }
 
-async function roll(source: RollConfig = config.value, label?: string) {
+function updateConfig(next: RollConfig) {
+  config.value = next
+  manualExpression.value = null
+  error.value = ''
+}
+
+function editExpression(event: Event) {
+  manualExpression.value = (event.target as HTMLInputElement).value
+  error.value = ''
+}
+
+function rollCurrent() {
+  if (!canRoll.value) return
+  return manualExpression.value === null
+    ? roll(config.value)
+    : roll(null, undefined, manualExpression.value.trim())
+}
+
+async function roll(source: RollConfig | null, label?: string, manual = '') {
   if (!store.session || offline.value || busy.value) return
-  const snapshot = cloneConfig(source)
-  const built = resolveRoll(snapshot, stats.value, character.character)
-  if (built.error || !built.expression) { error.value = built.error ?? ''; return }
+  const snapshot = source && cloneConfig(source)
+  const built = snapshot && resolveRoll(snapshot, stats.value, character.character)
+  const expression = built?.expression ?? manual
+  if (built?.error || !expression) { error.value = built?.error ?? ''; return }
   busy.value = true; error.value = ''
   clearAnimation()
   let revealedOk = false
   try {
-    rollingDice.value = plannedDice(built.dice, built.selection, snapshot.repetitions); settled.value = false; revealStage()
-    const startedAt = performance.now()
-    const damagePlan = snapshot.kind === 'Damage' ? weaponDamageBreakdownPlan(snapshot, stats.value) : null
+    let startedAt = performance.now()
+    if (built && snapshot) {
+      rollingDice.value = plannedDice(built.dice, built.selection, snapshot.repetitions)
+      revealStage()
+    }
+    const damagePlan = snapshot?.kind === 'Damage' ? weaponDamageBreakdownPlan(snapshot, stats.value) : null
+    const rollLabel = label ?? built?.label ?? null
     const result = damagePlan
-      ? await api.rollDice(store.session, built.expression, false, label ?? built.label, damagePlan)
-      : await api.rollDice(store.session, built.expression, false, label ?? built.label)
-    rollingDice.value = withValues(rollingDice.value, result); rollingTotals.value = result.results.map(item => item.total)
+      ? await api.rollDice(store.session, expression, false, rollLabel, damagePlan)
+      : await api.rollDice(store.session, expression, false, rollLabel)
+    if (built) {
+      rollingDice.value = withValues(rollingDice.value, result)
+    } else {
+      rollingDice.value = plannedValues(result.results).map((die, index) => ({ ...die, id: `manual-${index}` }))
+      startedAt = performance.now()
+      revealStage()
+    }
+    rollingTotals.value = result.results.map(item => item.total)
     rollingResult.value = result
     await wait(Math.max(0, 600 - (performance.now() - startedAt)))
     settled.value = true
@@ -97,7 +133,7 @@ async function roll(source: RollConfig = config.value, label?: string) {
     last.value = revealed
     revealedOk = true
     emit('rolled', revealed)
-    if (snapshot.kind === 'Attack' && snapshot.source?.type === 'weapon') {
+    if (snapshot?.kind === 'Attack' && snapshot.source?.type === 'weapon') {
       emit('attack-rolled', revealed, weaponDamageExpression(snapshot, stats.value), weaponDamageSummary(snapshot, stats.value), weaponDamageBreakdownPlan(snapshot, stats.value))
     }
     if (!disposed) holdTimer = setTimeout(clearAnimation, RESULT_HOLD_MS)
@@ -109,9 +145,10 @@ async function roll(source: RollConfig = config.value, label?: string) {
   }
 }
 
-/** A shortcut rolls from the current sheet without replacing the manual draft. */
+/** A shortcut rolls from the current sheet without changing the panel selections. */
 async function useSavedRoll(saved: SavedRoll) {
   if (saved.incomplete) return
+  manualExpression.value = null
   await roll(configFromSavedRoll(saved.data), saved.data.name)
 }
 
@@ -148,13 +185,34 @@ function openEditor() {
       </button>
     </div>
 
-    <RollConfigFields v-model="config" :stats="stats" :character="character.character" :disabled="busy" preselect-single-weapon />
+    <RollConfigFields :model-value="config" :stats="stats" :character="character.character" :disabled="busy" preselect-single-weapon @update:model-value="updateConfig">
+      <template #expression="{ visibleError }">
+        <label class="roll-expression">
+          <span class="roll-expression-label">Expressão</span>
+          <input
+            class="roll-expression-input"
+            type="text"
+            data-expression
+            :value="manualExpression ?? resolved.expression"
+            :maxlength="MAX_EXPRESSION_LENGTH"
+            :disabled="busy"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Ex.: 2d6+3"
+            @input="editExpression"
+            @keydown.enter.prevent="rollCurrent"
+          >
+          <span v-if="manualExpression !== null" class="roll-expression-empty">Expressão manual. Altere uma opção acima para voltar à expressão do painel.</span>
+        </label>
+        <p v-if="manualExpression === null && visibleError" class="form-error" data-roll-error role="alert"><Icon name="lucide:circle-alert" />{{ visibleError }}</p>
+      </template>
+    </RollConfigFields>
 
     <div class="player-roll-actions">
-      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" @click="roll()">
+      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" @click="rollCurrent">
         <Icon :name="busy ? 'lucide:loader-circle' : 'lucide:dices'" :class="{ spin: busy }" />{{ busy ? 'Rolando…' : 'Rolar' }}
       </button>
-      <button class="button ghost small" type="button" data-save-roll :disabled="busy" @click="openEditor">
+      <button class="button ghost small" type="button" data-save-roll :disabled="busy || manualExpression !== null" @click="openEditor">
         <Icon name="lucide:bookmark-plus" />Salvar como rolagem
       </button>
     </div>

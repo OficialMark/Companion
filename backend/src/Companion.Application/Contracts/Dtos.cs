@@ -4,6 +4,7 @@ using Companion.Domain.Models;
 namespace Companion.Application.Contracts;
 
 public sealed record CreateCampaignRequest(string CampaignName, string DisplayName);
+public sealed record RenameCampaignRequest(string Name);
 public sealed record JoinCampaignRequest(string Code, string DisplayName);
 public sealed record RollDiceRequest(string Expression, bool Publish = true, string? Label = null, DiceDamageBreakdownRequest? DamageBreakdown = null);
 public sealed record DiceDamageComponentRequest(string Label, string DamageType, int TermCount);
@@ -13,6 +14,7 @@ public sealed record UpdateCombatantRequest(string Name, int InitiativeModifier,
 public sealed record RollInitiativeRequest(Guid? CombatantId);
 public sealed record UpdateInitiativeModifierRequest(int? InitiativeModifier);
 public sealed record UpdateCombatProfileRequest(int? InitiativeModifier, int? CurrentHitPoints, int? MaxHitPoints = null);
+public sealed record SetParticipantPanelVisibilityRequest(bool IsHiddenFromPanel);
 public sealed record UpdateHitPointsRequest(int CurrentHitPoints);
 public sealed record ResolveAttackRequest(Guid DiceRollId, IReadOnlyList<Guid> TargetCombatantIds);
 public sealed record ConfigureBattlemapRequest(
@@ -53,7 +55,8 @@ public sealed record ParticipantDto(
     int? InitiativeModifier,
     int? CurrentHitPoints = null,
     int? MaxHitPoints = null,
-    Guid? AvatarRevision = null);
+    Guid? AvatarRevision = null,
+    bool IsHiddenFromPanel = false);
 public sealed record ParticipantAvatarDto(byte[] Content, string MediaType, Guid Revision);
 public sealed record DiceRollDto(
     Guid Id,

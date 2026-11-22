@@ -62,6 +62,8 @@ export function useCompanionApi() {
     /** "Sair da campanha" (spec 011, FR-043): apaga só a sessão deste aparelho. Desiste em 5 s para não prender a saída local. */
     leaveSession: (session: Session) => request<void>(`/campaigns/${session.campaignId}/participants/me/session`, { method: 'DELETE', signal: AbortSignal.timeout(5000) }, session.participantToken),
     snapshot: (session: Session) => request<CampaignSnapshot>(`/campaigns/${session.campaignId}/snapshot`, {}, session.participantToken),
+    renameCampaign: (session: Session, name: string) => request<CampaignSnapshot['campaign']>(`/campaigns/${session.campaignId}/name`, { method: 'PUT', body: JSON.stringify({ name }) }, session.participantToken),
+    setParticipantPanelVisibility: (session: Session, participantId: string, isHiddenFromPanel: boolean) => request<Participant>(`/campaigns/${session.campaignId}/participants/${participantId}/panel-visibility`, { method: 'PUT', body: JSON.stringify({ isHiddenFromPanel }) }, session.participantToken),
     rollDice: (session: Session, expression: string, publish = true, label: string | null = null, damageBreakdown?: DiceDamageBreakdownRequest | null) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls`, { method: 'POST', headers: { 'Idempotency-Key': createUuid() }, body: JSON.stringify({ expression, publish, label, damageBreakdown }) }, session.participantToken),
     revealDiceRoll: (session: Session, rollId: string) => request<DiceRoll>(`/campaigns/${session.campaignId}/dice-rolls/${rollId}/reveal`, { method: 'POST' }, session.participantToken),
     createEncounter: (session: Session) => request<Encounter>(`/campaigns/${session.campaignId}/encounters`, { method: 'POST' }, session.participantToken),

@@ -1,5 +1,6 @@
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
+using Companion.Domain.Campaigns;
 
 namespace Companion.Api.Endpoints;
 
@@ -55,6 +56,33 @@ public static class CampaignKnowledgeEndpoints
             return Results.Ok(await service.UploadImageAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), entryId,
                 new CampaignKnowledgeImage(buffer.ToArray(), file.ContentType, file.FileName), ct));
         }).DisableAntiforgery();
+        group.MapGet("/{entryId:guid}/pdf", (Guid campaignId, Guid entryId, HttpContext context, CampaignKnowledgeService service) =>
+        {
+            var pdf = service.GetPdf(campaignId, context.Request.Headers["X-Participant-Token"].ToString(), entryId);
+            context.Response.Headers.CacheControl = "no-store";
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            return Results.File(pdf.Content, "application/pdf", pdf.FileName);
+        });
+        group.MapPut("/{entryId:guid}/pdf", async (Guid campaignId, Guid entryId, HttpRequest request, CampaignKnowledgeService service, CancellationToken ct) =>
+        {
+            const int limit = CampaignKnowledgeEntry.MaxPdfBytes;
+            if (request.ContentLength > limit + 1024 * 1024)
+                return Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, detail: "O PDF deve ter até 20 MB.");
+            if (!request.HasFormContentType)
+                throw new AppException(AppErrorKind.Validation, "Selecione um PDF.");
+
+            var form = await request.ReadFormAsync(ct);
+            var file = form.Files.GetFile("pdf") ?? throw new AppException(AppErrorKind.Validation, "Selecione um PDF.");
+            if (file.Length > limit)
+                return Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, detail: "O PDF deve ter até 20 MB.");
+            await using var stream = file.OpenReadStream();
+            var content = new byte[(int)file.Length];
+            await stream.ReadExactlyAsync(content, ct);
+            return Results.Ok(await service.SetPdfAsync(campaignId, request.Headers["X-Participant-Token"].ToString(),
+                entryId, new CampaignKnowledgePdf(content, file.FileName), ct));
+        }).DisableAntiforgery();
+        group.MapDelete("/{entryId:guid}/pdf", async (Guid campaignId, Guid entryId, HttpRequest request, CampaignKnowledgeService service, CancellationToken ct) =>
+            Results.Ok(await service.SetPdfAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), entryId, null, ct)));
         group.MapPost("/{entryId:guid}/points", async (Guid campaignId, Guid entryId, SaveCampaignMapPointRequest body, HttpRequest request, CampaignKnowledgeService service, CancellationToken ct) =>
             Results.Created("/api/campaigns/" + campaignId + "/knowledge/" + entryId + "/points", await service.AddPointAsync(campaignId, request.Headers["X-Participant-Token"].ToString(), entryId, body, ct)));
         group.MapPut("/{entryId:guid}/points/{pointId:guid}", async (Guid campaignId, Guid entryId, Guid pointId, SaveCampaignMapPointRequest body, HttpRequest request, CampaignKnowledgeService service, CancellationToken ct) =>

@@ -86,6 +86,13 @@ namespace Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
+                    b.Property<byte[]>("PdfContent")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("PdfFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<string>("SharedDescription")
                         .HasMaxLength(12000)
                         .HasColumnType("nvarchar(max)");
@@ -1304,6 +1311,11 @@ namespace Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("InitiativeModifier")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsHiddenFromPanel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<int?>("MaxHitPoints")
                         .HasColumnType("int");

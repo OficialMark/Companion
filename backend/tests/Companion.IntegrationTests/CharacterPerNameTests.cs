@@ -99,8 +99,8 @@ public sealed class CharacterPerNameTests(CompanionApiFactory factory) : Charact
         {
             var db = scope.ServiceProvider.GetRequiredService<CompanionDbContext>();
             var drift = "DRIFT:" + inA.ParticipantId;
-            await db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE CharacterSheets SET OwnerKey = {drift} WHERE ParticipantId = {inA.ParticipantId}");
+            await db.CharacterSheets.Where(sheet => sheet.ParticipantId == inA.ParticipantId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(sheet => sheet.OwnerKey, drift));
         }
 
         var exists = await Send(HttpMethod.Get, $"{Base(inA)}?ifExists=true", inA);

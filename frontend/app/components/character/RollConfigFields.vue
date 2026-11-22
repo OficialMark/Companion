@@ -294,11 +294,13 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
       </button>
     </div>
 
-    <div class="roll-expression" aria-live="polite">
-      <span class="roll-expression-label">Expressão</span>
-      <code data-expression>{{ resolved.expression }}</code>
-      <span v-if="!resolved.expression" class="roll-expression-empty">Toque nos dados para montar a rolagem.</span>
-    </div>
-    <p v-if="visibleError" class="form-error" data-roll-error role="alert"><Icon name="lucide:circle-alert" />{{ visibleError }}</p>
+    <slot name="expression" :visible-error="visibleError">
+      <div class="roll-expression" aria-live="polite">
+        <span class="roll-expression-label">Expressão</span>
+        <code data-expression>{{ resolved.expression }}</code>
+        <span v-if="!resolved.expression" class="roll-expression-empty">Toque nos dados para montar a rolagem.</span>
+      </div>
+      <p v-if="visibleError" class="form-error" data-roll-error role="alert"><Icon name="lucide:circle-alert" />{{ visibleError }}</p>
+    </slot>
   </div>
 </template>

@@ -40,6 +40,7 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(10);
         builder.Property(x => x.CurrentHitPoints);
         builder.Property(x => x.MaxHitPoints);
+        builder.Property(x => x.IsHiddenFromPanel).HasDefaultValue(false);
         builder.HasIndex(x => x.TokenHash).IsUnique();
         builder.HasIndex(x => new { x.CampaignId, x.DisplayName });
         // Identidade da conta (spec 011, FR-042). Já vem em maiúsculas invariantes, então a comparação é
@@ -358,6 +359,8 @@ public sealed class CampaignKnowledgeEntryConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.ImageContent).HasColumnType("varbinary(max)");
         builder.Property(x => x.ImageMediaType).HasMaxLength(32);
         builder.Property(x => x.ImageFileName).HasMaxLength(255);
+        builder.Property(x => x.PdfContent).HasColumnType("varbinary(max)");
+        builder.Property(x => x.PdfFileName).HasMaxLength(255);
         builder.Property(x => x.Version).IsRowVersion();
         builder.HasIndex(x => new { x.CampaignId, x.Kind, x.IsPlayerVisible, x.Title });
         builder.HasOne<Campaign>().WithMany().HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);

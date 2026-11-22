@@ -5,10 +5,10 @@
 .notebook-heading h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5vw, 2.7rem); }
 .notebook-heading .eyebrow { margin: 0; color: var(--gold); font-size: .75rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
 .notebook-lede { margin: 0; color: var(--muted); line-height: 1.5; }
-.notebook-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 14px; background: rgba(0,0,0,.18); }
+.notebook-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 14px; background: rgba(0,0,0,.18); }
 .notebook-tabs button { min-width: 44px; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
 .notebook-tabs button[aria-current="page"] { color: var(--gold); background: rgba(215,174,93,.14); box-shadow: inset 0 0 0 1px rgba(215,174,93,.3); }
-.notebook-layout { min-width: 0; display: grid; grid-template-columns: minmax(260px, .72fr) minmax(0, 1.5fr); align-items: start; gap: 16px; }
+.notebook-layout { min-width: 0; display: grid; grid-template-columns: minmax(260px, .72fr) minmax(0, 1.5fr); align-items: start; gap: 16px; overflow-anchor: none; }
 .notebook-list, .knowledge-detail, .notebook-prompt { min-width: 0; padding: 18px; }
 .notebook-search { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .notebook-search > .icon { color: var(--muted); }
@@ -16,6 +16,7 @@
 .knowledge-items, .point-list, .contribution-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
 .knowledge-item { width: 100%; min-height: 64px; display: flex; align-items: center; gap: 11px; border: 1px solid transparent; border-radius: 11px; padding: 10px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
 .knowledge-item:hover, .knowledge-item.selected { border-color: var(--line-strong); background: rgba(215,174,93,.08); }
+.knowledge-item.pending { cursor: progress; }
 .knowledge-item > .icon:first-child { color: var(--gold); }
 .knowledge-item > span { min-width: 0; flex: 1; display: grid; gap: 4px; }
 .knowledge-item strong, .knowledge-item small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -29,6 +30,11 @@
 .knowledge-detail > .panel-heading h2 { margin: 0; overflow-wrap: anywhere; font-size: clamp(1.7rem, 4vw, 2.2rem); }
 .knowledge-summary { margin: 10px 0 0; color: var(--gold-soft); font-size: 1.03rem; line-height: 1.55; }
 .knowledge-description { margin: 12px 0 20px; color: var(--ink-soft); line-height: 1.68; white-space: pre-wrap; overflow-wrap: anywhere; }
+.knowledge-image-section { display: grid; justify-items: start; gap: 10px; margin: 12px 0 18px; }
+.knowledge-pdf { display: grid; gap: 8px; margin: 12px 0 18px; }
+.knowledge-pdf-name { overflow-wrap: anywhere; }
+.knowledge-pdf-name .icon { margin-inline-end: 6px; }
+.knowledge-image { display: block; max-width: 100%; max-height: 620px; border: 1px solid var(--line); border-radius: 12px; object-fit: contain; }
 .knowledge-form { display: grid; gap: 14px; }
 .knowledge-form .panel-heading { margin: 0 0 2px; }
 .knowledge-form h2 { margin: 0; font-size: 1.7rem; }
@@ -53,7 +59,9 @@
 .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
 .contribution-section, .master-notes { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 16px; }
 .contribution-section h3, .master-notes h3 { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 1.05rem; }
-.contribution-list li { border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; background: rgba(0,0,0,.12); }
+.contribution-list li { display: flex; align-items: start; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; background: rgba(0,0,0,.12); }
+.contribution-copy { min-width: 0; flex: 1; }
+.contribution-delete { flex: none; }
 .contribution-list p { margin: 0 0 7px; color: var(--ink-soft); line-height: 1.55; white-space: pre-wrap; }
 .contribution-list small { color: var(--muted); font-size: .75rem; }
 .inline-contribution { display: grid; justify-items: end; gap: 8px; }

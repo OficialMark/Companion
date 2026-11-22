@@ -116,6 +116,10 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .brand-inline { font-family: 'Libre Caslon Display', Georgia, serif; font-size: 1.15rem; }
 .campaign-heading { justify-content: center; }
 .campaign-name { max-width: 28vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.campaign-name-editable { cursor: text; text-decoration: underline dotted rgba(215,174,93,.45); text-underline-offset: 4px; }
+.campaign-name-input { width: min(28vw, 360px); min-width: 120px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 9px; color: var(--ink); background: rgba(0,0,0,.25); font: inherit; }
+.campaign-name-input:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
+.campaign-name-error { max-width: 220px; color: var(--red-soft); font-size: .72rem; line-height: 1.25; }
 .code-badge, .count-pill, .round-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--gold); background: rgba(215,174,93,.07); font-size: .72rem; font-weight: 700; letter-spacing: .08em; white-space: nowrap; }
 .code-badge { min-height: 34px; padding: 0 12px; cursor: pointer; transition: border-color .15s, background .15s; }
 .code-badge:hover { border-color: var(--line-strong); background: rgba(215,174,93,.12); }
@@ -167,7 +171,17 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .participant-list, .roll-list, .initiative-list { list-style: none; margin: 0; padding: 0; }
 .participant-list { display: grid; gap: 13px; }
 .participant-list li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; }
+.participant-list li.removable { cursor: context-menu; }
 .participant-list li.offline .avatar { filter: grayscale(.6); opacity: .7; }
+.hidden-participants { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; color: var(--muted); font-size: .82rem; }
+.hidden-participants summary { cursor: pointer; }
+.hidden-participants ul { display: grid; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.hidden-participants li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hidden-participants li small { color: var(--muted); }
+.participant-context-menu { position: fixed; z-index: 50; min-width: 200px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 5px; background: var(--panel); box-shadow: 0 10px 28px rgba(0,0,0,.35); }
+.participant-context-menu button { width: 100%; min-height: 38px; border: 0; border-radius: 7px; padding: 0 10px; color: var(--ink); background: transparent; text-align: left; cursor: pointer; }
+.participant-context-menu button:hover { background: rgba(230,119,119,.12); color: var(--red-soft); }
+.participant-context-menu button:disabled { opacity: .5; cursor: not-allowed; }
 .avatar { --avatar-size: 38px; width: var(--avatar-size); height: var(--avatar-size); flex: 0 0 var(--avatar-size); display: grid; place-items: center; overflow: hidden; border-radius: 30%; color: #f6dfac; background: linear-gradient(145deg, #50303c, #38232c); font-size: calc(var(--avatar-size) * .42); font-weight: 700; line-height: 1; user-select: none; }
 .avatar.master { border: 1px solid rgba(215,174,93,.55); color: var(--gold); background: linear-gradient(145deg, #4f3a20, #33261a); }
 .avatar.has-photo { background: #1b1519; }

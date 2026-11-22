@@ -40,6 +40,9 @@ public sealed class Participant
     public int? MaxHitPoints { get; private set; }
     /// <summary>Revision of the current profile photo; null when the participant has none.</summary>
     public Guid? AvatarRevision { get; private set; }
+    public bool IsHiddenFromPanel { get; private set; }
+
+    public void SetHiddenFromPanel(bool hidden) => IsHiddenFromPanel = hidden;
 
     /// <summary>
     /// Guarda o nome normalizado (FR-041). <paramref name="ownsName"/> decide se este participante é a

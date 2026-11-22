@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace Companion.IntegrationTests;
 
 public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly MsSqlContainer _sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
 
     /// <summary>Stands in for pocketdm.com.br so tests never touch the network.</summary>
     public FakeCreatureImageSource ImageSource { get; } = new();
@@ -26,17 +28,19 @@ public sealed class CompanionApiFactory : WebApplicationFactory<Program>, IAsync
     /// <summary>Dados roteirizados para testes de rolagem (spec 011); sem roteiro, rola aleatório como antes.</summary>
     public ScriptedDiceRandomizer Dice { get; } = new();
 
-    public Task InitializeAsync() => _sqlServer.StartAsync();
-    public new Task DisposeAsync() => _sqlServer.DisposeAsync().AsTask();
+    public Task InitializeAsync() => Task.WhenAll(_sqlServer.StartAsync(), _postgres.StartAsync());
+    public new Task DisposeAsync() => Task.WhenAll(_sqlServer.DisposeAsync().AsTask(), _postgres.DisposeAsync().AsTask());
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.UseSetting("ConnectionStrings:Companion", _sqlServer.GetConnectionString());
+        builder.UseSetting("Database:Provider", "PostgreSql");
+        builder.UseSetting("ConnectionStrings:Companion", _postgres.GetConnectionString());
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Companion"] = _sqlServer.GetConnectionString(),
+                ["Database:Provider"] = "PostgreSql",
+                ["ConnectionStrings:Companion"] = _postgres.GetConnectionString(),
                 ["Admin:AccessKey"] = "integration-admin-secret"
             }));
         builder.ConfigureTestServices(services =>

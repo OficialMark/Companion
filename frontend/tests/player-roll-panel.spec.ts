@@ -34,7 +34,7 @@ function setup(character: Character = makeFighter()) {
   return mount(PlayerRollPanel, { attachTo: document.body, global: { stubs: { DiceRollAnimation: true } } })
 }
 
-const expression = (wrapper: VueWrapper) => wrapper.get('[data-expression]').text()
+const expression = (wrapper: VueWrapper) => wrapper.get<HTMLInputElement>('input[data-expression]').element.value
 async function pickSource(wrapper: VueWrapper, key: string) {
   await wrapper.get('[data-source-select]').setValue(key)
 }

@@ -72,6 +72,7 @@ public sealed class CampaignService(
         var existing = FindAccount(campaignId, role, nameKey);
         if (existing is not null)
         {
+            existing.SetHiddenFromPanel(false);
             await AddSessionAsync(existing, sessionHash, now, cancellationToken);
             return (existing, false);
         }
@@ -136,6 +137,42 @@ public sealed class CampaignService(
         var playerCode = db.CampaignAccessCodes.First(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player).Code;
         return Task.FromResult(new CampaignSnapshot(new CampaignDto(campaign.Id, playerCode, campaign.Name),
             ToDto(current), participants, rolls, encounterDto));
+    }
+
+    public async Task<CampaignDto> RenameAsync(
+        Guid campaignId, string token, RenameCampaignRequest request, CancellationToken cancellationToken)
+    {
+        var participant = authorization.Require(campaignId, token);
+        if (participant.Role != ParticipantRole.Master)
+            throw new AppException(AppErrorKind.Forbidden, "Somente o mestre pode alterar o nome da mesa.");
+
+        var name = ValidateName(request.Name, 80, "campanha");
+        var campaign = db.Campaigns.FirstOrDefault(x => x.Id == campaignId)
+            ?? throw new AppException(AppErrorKind.NotFound, "Campanha não encontrada.");
+        campaign.Rename(name);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var updated = new CampaignDto(campaign.Id,
+            db.CampaignAccessCodes.First(x => x.CampaignId == campaignId && x.Role == ParticipantRole.Player).Code,
+            campaign.Name);
+        await notifier.NotifyAsync(campaignId, "CampaignRenamed", updated, cancellationToken);
+        return updated;
+    }
+
+    public async Task<ParticipantDto> SetParticipantPanelVisibilityAsync(
+        Guid campaignId, Guid participantId, string token, SetParticipantPanelVisibilityRequest request,
+        CancellationToken cancellationToken)
+    {
+        var actor = authorization.Require(campaignId, token);
+        if (actor.Role != ParticipantRole.Master)
+            throw new AppException(AppErrorKind.Forbidden, "Somente o mestre pode editar o painel de participantes.");
+
+        var participant = db.Participants.FirstOrDefault(x => x.Id == participantId && x.CampaignId == campaignId)
+            ?? throw new AppException(AppErrorKind.NotFound, "Participante não encontrado nesta campanha.");
+        participant.SetHiddenFromPanel(request.IsHiddenFromPanel);
+        await db.SaveChangesAsync(cancellationToken);
+        await notifier.ParticipantsChangedAsync(campaignId, cancellationToken);
+        return ToDto(participant);
     }
 
     public const string CombatProfileFromSheet = "Iniciativa e vida vêm da sua ficha. Edite pela aba Ficha.";
