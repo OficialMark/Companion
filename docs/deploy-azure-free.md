@@ -81,7 +81,7 @@ Use o **Nome do servidor** mostrado em **Visão geral** no portal do Azure. No P
 No PowerShell do Windows, com Docker Desktop aberto, conecte ao banco padrão usando o administrador do Azure. Substitua o endereço em `$pgHost` pelo endereço copiado do portal.
 
 ```powershell
-$pgHost = 'SEU_SERVIDOR.postgres.database.azure.com'
+$pgHost = 'companion-postre-db-ca.postgres.database.azure.com'
 docker run --rm -it postgres:17-alpine psql "host=$pgHost port=5432 dbname=postgres user=companionadmin sslmode=verify-full sslrootcert=system"
 ```
 
