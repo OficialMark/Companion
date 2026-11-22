@@ -1,5 +1,14 @@
-{$COMPANION_DOMAIN} {
-    @backend path /api/* /hubs/* /health
-    reverse_proxy @backend api:8080
-    reverse_proxy frontend:80
+{
+	servers {
+		trusted_proxies static 172.29.255.6/32
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
+:80 {
+	@backend path /api/* /hubs/* /health
+	reverse_proxy @backend api:8080 {
+		header_up X-Forwarded-For {client_ip}
+	}
+	reverse_proxy frontend:80
 }

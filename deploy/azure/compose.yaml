@@ -2,7 +2,8 @@ name: companion-azure
 
 services:
   api:
-    image: companion-api:${COMPANION_IMAGE_TAG:-latest}
+    build:
+      context: ../../backend
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Database__Provider: PostgreSql
@@ -18,7 +19,8 @@ services:
     networks: [app]
 
   frontend:
-    image: companion-frontend:${COMPANION_IMAGE_TAG:-latest}
+    build:
+      context: ../../frontend
     depends_on:
       api:
         condition: service_healthy
@@ -27,25 +29,28 @@ services:
 
   proxy:
     image: caddy:2-alpine
-    environment:
-      COMPANION_DOMAIN: ${COMPANION_DOMAIN:?Configure o domínio público}
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
     depends_on: [frontend]
     restart: unless-stopped
     networks:
       app:
         ipv4_address: 172.29.255.2
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Configure o token do Cloudflare Tunnel}
+    depends_on: [proxy]
+    restart: unless-stopped
+    networks:
+      app:
+        ipv4_address: 172.29.255.6
+
 networks:
   app:
     ipam:
       config:
         - subnet: 172.29.255.0/24
-
-volumes:
-  caddy-data:
+          ip_range: 172.29.255.128/25
