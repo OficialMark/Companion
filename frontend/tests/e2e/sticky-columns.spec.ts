@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
 import { assertSafeBaseUrl } from './guard'
 
-// Spec 017: on a laptop the player's "Rolar" stays inside the window at every scroll position (the
-// dice column ends at the window bottom wherever it starts), and fitting the column never makes the
-// page height jump while scrolling.
+// Spec 017: on a laptop the player's "Rolar" and the roll history stay inside the window at every
+// scroll position (the dice column ends at the window bottom wherever it starts; the roll panel
+// scrolls on its own above a fixed history slice), and fitting the column never makes the page height
+// jump while scrolling.
 test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', async ({ browser }, info) => {
   test.skip(info.project.name !== 'desktop', 'widths are set explicitly')
   assertSafeBaseUrl()
@@ -39,10 +40,13 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
     await page.waitForTimeout(120)
     const state = await page.evaluate(() => {
       const button = document.querySelector('[data-roll-go]')!.getBoundingClientRect()
-      return { top: button.top, bottom: button.bottom, height: document.documentElement.scrollHeight, vh: innerHeight }
+      const history = document.querySelector('.table-history .history-panel')!.getBoundingClientRect()
+      return { top: button.top, bottom: button.bottom, historyTop: history.top, height: document.documentElement.scrollHeight, vh: innerHeight }
     })
     expect(state.bottom, `Rolar fora da tela com scrollY=${y}`).toBeLessThanOrEqual(state.vh)
     expect(state.top, `Rolar acima da tela com scrollY=${y}`).toBeGreaterThanOrEqual(0)
+    // The history keeps its own slice of the column: at least its heading is on screen (review round 5).
+    expect(state.historyTop, `Histórico fora da tela com scrollY=${y}`).toBeLessThan(state.vh - 80)
     heights.push(state.height)
   }
   expect(new Set(heights).size, `altura da página mudou ao rolar: ${heights.join(', ')}`).toBe(1)

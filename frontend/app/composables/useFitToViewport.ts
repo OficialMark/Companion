@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import { onBeforeUnmount, onMounted, watch, type Ref } from 'vue'
 
 /** Gap kept between a fitted column and the bottom of the window, in px. */
 export const FIT_BOTTOM_GAP = 16
