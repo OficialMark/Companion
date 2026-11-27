@@ -20,7 +20,7 @@
 .roll-toggle input { width: 20px; height: 20px; accent-color: var(--gold); }
 
 /* Dice pad */
-.dice-pad { display: grid; gap: 8px; min-width: 0; }
+.dice-pad { display: grid; gap: 8px; min-width: 0; container: dice-pad / inline-size; }
 .dice-pad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .dice-pad-die {
   position: relative; min-height: 52px; min-width: 44px; display: grid; place-items: center;
@@ -39,7 +39,8 @@
   border-radius: 999px; padding: 0 6px; background: var(--wine-light); color: #fff; font-size: .72rem; font-weight: 800;
   box-shadow: 0 2px 8px rgba(0,0,0,.35);
 }
-.dice-pad-clear { justify-self: start; }
+.dice-pad-clear { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: .78rem; color: var(--muted); }
+.dice-pad-clear .icon { font-size: 1rem; }
 
 /* Extras and repetitions */
 .roll-extras { display: grid; gap: 8px; min-width: 0; }
@@ -121,7 +122,6 @@
 .game-inventory-modal:focus, .game-inventory-head h2:focus { outline: none; }
 
 @media (min-width: 560px) {
-  .dice-pad-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
   .player-roll-actions { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .saved-roll-item { grid-template-columns: 44px minmax(0, 1fr) auto; }
   .saved-roll-item-actions { grid-column: auto; }
@@ -137,3 +137,10 @@
 .master-roll-panel .nested-roller { border: 0; padding: 0; margin: 0; background: transparent; box-shadow: none; }
 .master-roll-panel .nested-roller .panel-heading { display: none; }
 .master-roll-panel .creature-roll { margin-top: 4px; }
+
+/* By the pad's own width (it also lives in the 400 px side column on wide screens): one row of 8 only
+   when 8 cells of 44 px fit, otherwise 2 rows of 4. */
+@container dice-pad (min-width: 420px) {
+  .dice-pad-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .dice-pad-clear-label { display: none; }
+}

@@ -87,6 +87,10 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .button.ghost:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(255,255,255,.03); }
 .button.danger { color: var(--red-soft); }
 .button.ghost.danger:hover:not(:disabled) { border-color: rgba(230,119,119,.45); background: rgba(230,119,119,.06); }
+/* Disabled is told by shape and tone, not only by a fainter colour: a dashed neutral outline, no fill,
+   no shadow. A faded wine primary read as "almost enabled". */
+.button.primary:disabled, .button.secondary:disabled { border-color: rgba(255,246,232,.22); border-style: dashed; background: rgba(255,255,255,.03); color: var(--muted); box-shadow: none; opacity: 1; }
+.button.ghost:disabled { border-style: dashed; opacity: .6; }
 .button.wide { width: 100%; }
 .button.compact { min-height: 40px; padding: 0 12px; font-size: .84rem; }
 .icon-button { width: 44px; height: 44px; flex: 0 0 44px; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; font-size: 1.05rem; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
@@ -131,7 +135,7 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 /* Copy of the campaign name for narrow phones (row 1, next to the logo); hidden elsewhere. */
 .brand-campaign { display: none; }
 .top-actions > * { flex-shrink: 0; }
-.topbar .code-badge { min-height: 44px; }
+.topbar .code-badge, .topbar .connection { min-height: 44px; }
 .view-nav { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: rgba(0,0,0,.22); }
 .view-nav-item { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 10px; padding: 0 16px; background: transparent; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 700; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
 .view-nav-item:hover { color: var(--ink); }
@@ -149,12 +153,58 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .presence-dot.online { background: #4fd192; box-shadow: 0 0 0 4px rgba(79,209,146,.12), 0 0 8px rgba(79,209,146,.45); }
 @keyframes pulse { 50% { opacity: .35; } }
 
-.dashboard { width: min(1380px, 100%); margin: 0 auto; padding: clamp(22px, 4vw, 52px); }
-.welcome-row { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 26px; }
-.welcome-row h1 { margin: 0; font-size: clamp(2.1rem, 6vw, 3.7rem); overflow-wrap: anywhere; }
+/* Up to 2400 px: wide screens get a three-column table instead of a centred strip with empty margins. */
+.dashboard { width: min(2400px, 100%); margin: 0 auto; padding: clamp(22px, 3vw, 44px); }
+.welcome-row { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 20px; }
+/* Greeting, not the page's subject: kept below the panel titles' visual weight so the map leads (P1). */
+.welcome-row h1 { margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); overflow-wrap: anywhere; }
 .offline-warning { max-width: 360px; display: flex; align-items: center; gap: 8px; margin: 0; border: 1px solid rgba(230,119,119,.3); border-radius: var(--radius); padding: 10px 14px; color: var(--red-soft); background: rgba(230,119,119,.08); font-size: .82rem; }
-.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .85fr); gap: 20px; align-items: start; }
-.main-column, .side-column { min-width: 0; display: grid; gap: 20px; }
+/* Mesa: three zones. people = participants + combat (setup, initiative, attack); map; dice = roll
+   panel + public history (a roll sits next to its result).
+   < 1100 px: one column. The side zones dissolve (display: contents) so the order is map, roll,
+     combat, participants, history: the scene first, the most used action right under it.
+   1100–1599: map (hero) | dice; people under the map.
+   >= 1600: people | map | dice; the map takes every pixel the side columns leave.
+   From 1100 px on, the dice column is sticky and the history scrolls inside it, so the roll button
+   and the latest results never leave the screen while the page scrolls. */
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.table-zone, .table-roll, .table-combat, .table-participants, .table-history { min-width: 0; display: grid; gap: 20px; align-content: start; }
+.table-people, .table-dice { display: contents; }
+.table-map { order: 1; }
+.table-roll { order: 2; }
+.table-combat { order: 3; }
+.table-participants { order: 4; }
+.table-history { order: 5; }
+.table-combat:empty { display: none; }
+@media (min-width: 1100px) {
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto 1fr; grid-template-areas: "map dice" "people dice"; }
+  .table-people, .table-dice { display: grid; gap: 20px; align-content: start; min-width: 0; }
+  /* The phone ordering must not leak inside the columns (participants above combat, roll above history). */
+  .table-people > *, .table-dice > * { order: 0; }
+  .table-people { grid-area: people; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+  .table-map { grid-area: map; }
+  .table-dice { grid-area: dice; }
+}
+@media (min-width: 1100px) and (min-height: 700px) {
+  /* overflow-y: a tall roll panel (player with many saved rolls) still scrolls instead of being cut. */
+  .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); grid-template-rows: auto minmax(0, 1fr); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .table-history { min-height: 0; }
+}
+/* Below 1280 px the top bar has two rows (~126 px): the sticky column starts under it. */
+@media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
+  .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: calc(var(--vh) - 156px); }
+}
+@media (min-width: 1100px) and (min-height: 700px) {
+  .table-history > .panel { max-height: 100%; min-height: 220px; overflow-y: auto; overscroll-behavior: contain; }
+}
+@media (min-width: 1600px) {
+  .dashboard-grid { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto; grid-template-areas: "people map dice"; }
+  .table-people { grid-template-columns: minmax(0, 1fr); }
+  .table-map .battlemap-board { max-height: min(calc(var(--vh) - 330px), 1400px); min-height: 480px; }
+}
+.battlemap-idle { display: flex; align-items: center; gap: 16px; }
+.battlemap-idle h2 { margin: 0 0 4px; }
+.battlemap-idle p { margin: 0; color: var(--muted); }
 .panel { min-width: 0; border: 1px solid var(--line); border-radius: 18px; padding: clamp(16px, 3vw, 28px); background: rgba(42,34,41,.84); box-shadow: 0 14px 40px rgba(0,0,0,.13); }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
 .panel-heading > div { min-width: 0; }
@@ -367,27 +417,32 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 }
 
 /* Tablet: single column, side panels side by side (auto-fit so nothing leaves an empty column) */
-@media (max-width: 900px) {
+@media (max-width: 1279px) {
   /* Row 1: logo + actions. Row 2: Mesa/Compêndio + campaign name and code, as one flex row,
-     from tablet width down, so the nav's width never squeezes the actions above it. */
+     below 1280 px: in one row the master's code, the nav and the actions leave the campaign name
+     0 px at 1024 and the player code slid under the master-code toggle (layout audit). */
   .topbar.has-view-nav { grid-template-columns: minmax(0, 1fr) auto; }
   .topbar.has-view-nav .topbar-center { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 10px; min-width: 0; border-top: 1px solid var(--line); padding-top: 8px; }
   .topbar.has-view-nav .campaign-heading { flex: 1 1 auto; min-width: 0; border-top: 0; padding-top: 0; justify-content: flex-end; }
   .topbar.has-view-nav .view-nav { flex: none; }
   .topbar.has-view-nav { row-gap: 8px; }
   .topbar.has-view-nav .campaign-name { max-width: none; }
-  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
-  .side-column { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
   .campaign-name { max-width: 22vw; }
 }
 
-/* Narrow phones: next to the nav the campaign name would shrink to "Co…". It moves up to row 1,
-   beside the logo, where the hidden "Companion" text leaves room (spec 009). Only one copy is
-   displayed at a time, so assistive technology also reads it once. */
-@media (max-width: 480px) {
-  .topbar.has-view-nav .campaign-name { display: none; }
-  .topbar.has-view-nav .brand-campaign { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; min-width: 0; overflow: hidden; overflow-wrap: anywhere; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: .9rem; font-weight: 600; line-height: 1.25; }
-  .topbar.has-view-nav .brand-inline { min-width: 0; }
+/* Phones: the area navigation leaves the top bar and becomes a tab bar fixed at the bottom (thumb
+   reach). The top bar keeps two calm rows: logo + actions, then campaign name + player code. */
+@media (max-width: 680px) {
+  /* No backdrop-filter here: it would become the containing block of the fixed tab bar inside it. */
+  .topbar { backdrop-filter: none; background: rgba(23,18,22,.97); }
+  .topbar.has-view-nav .view-nav { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; max-width: none; overflow: visible; border: 0; border-top: 1px solid var(--line-strong); border-radius: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(23,18,22,.98); box-shadow: 0 -10px 28px rgba(0,0,0,.4); }
+  .topbar.has-view-nav .view-nav-item { min-height: 54px; flex-direction: column; justify-content: center; gap: 3px; padding: 0 4px; font-size: .74rem; }
+  .topbar.has-view-nav .view-nav-item .icon { font-size: 1.25rem; }
+  .app-shell:has(.topbar.has-view-nav) .dashboard { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .app-shell:has(.topbar.has-view-nav) .sheet-summary { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .topbar.has-view-nav .topbar-center { padding-top: 6px; }
+  .topbar.has-view-nav .campaign-heading { justify-content: space-between; }
+  .topbar.has-view-nav .campaign-name { flex: 1 1 auto; min-width: 0; font-weight: 600; }
 }
 
 /* Phone */
@@ -400,11 +455,11 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   .top-actions { gap: 8px; }
   .toggle-label, .connection-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
   .game-mode-toggle { width: 44px; padding: 0; border-radius: 50%; }
-  .connection { width: 34px; justify-content: center; padding: 0; }
+  .connection { width: 44px; justify-content: center; padding: 0; }
   .dashboard { padding: 18px 12px 40px; }
   .welcome-row { align-items: stretch; flex-direction: column; gap: 12px; margin-bottom: 18px; }
   .offline-warning { max-width: none; }
-  .side-column { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-grid, .table-zone, .table-roll, .table-combat, .table-participants, .table-history { gap: 14px; }
   .panel { border-radius: 16px; }
   .panel-heading { margin-bottom: 16px; }
   .panel-heading h2, .panel > h2 { font-size: 1.45rem; }
@@ -464,7 +519,7 @@ select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-
 .sheet-summary { position: sticky; bottom: 12px; z-index: 5; margin-top: 18px; }
 .dashboard:has(.sheet-summary) { padding-bottom: 24px; }
 .sheet-summary-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 0; }
-.sheet-summary-button { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 56px; padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: 14px; color: var(--ink); background: var(--panel-high); box-shadow: 0 10px 30px rgba(0,0,0,.35); cursor: pointer; text-align: left; }
+.sheet-summary-button { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 52px; padding: 8px 16px; border: 1px solid var(--line-strong); border-radius: 14px; color: var(--ink); background: var(--panel-high); box-shadow: 0 10px 30px rgba(0,0,0,.35); cursor: pointer; text-align: left; }
 .sheet-summary-button:disabled { cursor: progress; opacity: .8; }
 .sheet-summary-button:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
 .sheet-summary-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; margin-right: auto; }
@@ -492,3 +547,20 @@ select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-
 .sheet-overview-abilities thead th { color: var(--muted); font-size: .78rem; font-weight: 600; }
 .sheet-overview-abilities td.proficient { color: var(--gold-soft); font-weight: 700; }
 .sheet-overview-conditions { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-soft); }
+
+/* Sheet summary. Phones: one line (name ellipsis, HP and AC kept, the rest dropped) so the floating bar
+   is 52 px, not a two-line slab over the controls. From 1100 px: a static strip above the table, next
+   to the greeting, instead of a bar floating over the map title. */
+@media (max-width: 680px) {
+  .sheet-summary-button { flex-wrap: nowrap; gap: 12px; }
+  .sheet-summary-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-summary-stat:not([data-summary-hp]):not([data-summary-ac]) { display: none; }
+  .button.compact { min-height: 44px; }
+}
+@media (min-width: 1100px) {
+  .dashboard:has(.sheet-summary) { display: flex; flex-direction: column; }
+  .dashboard:has(.sheet-summary) > .welcome-row { order: -2; }
+  .dashboard > .sheet-summary { order: -1; position: static; margin: 0 0 20px; }
+  .dashboard > .sheet-summary .sheet-summary-button { box-shadow: none; background: rgba(52,41,50,.7); }
+  .dashboard:has(.sheet-summary) { padding-bottom: clamp(22px, 3vw, 44px); }
+}

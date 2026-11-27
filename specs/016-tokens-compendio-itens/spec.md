@@ -41,19 +41,19 @@ Como jogador ou mestre, quero colocar um item do catálogo no mapa (corda, baú,
 
 ---
 
-### User Story 3 - Mestre escolhe entre token simples e combate (Priority: P2)
+### User Story 3 - Mestre usa o mesmo seletor só para tokens (Priority: P2)
 
-Como mestre, quero decidir se a criatura entra só como token (cenário, NPC sem ficha em jogo) ou no combate (com iniciativa e PV), para não poluir a ordem de turnos.
+Como mestre, quero que "Do compêndio" crie só tokens de cena, e que colocar uma criatura no combate (com iniciativa e PV) continue no painel Combatentes, para não ter dois catálogos iguais na mesma tela sem saber qual faz o quê.
 
-**Why this priority**: O fluxo antigo do mestre (adicionar ao combate) continua necessário; a novidade é poder colocar só o token.
+**Why this priority**: A review de design (2026-11-27) apontou que um modo "No combate" dentro do seletor repetia a lista do painel Combatentes logo abaixo, violando hierarquia e proximidade. Um catálogo por propósito.
 
-**Independent Test**: Como mestre, abrir "Do compêndio", ver "Só token" e "No combate"; com "No combate" aparece o seletor antigo com quantidade.
+**Independent Test**: Como mestre, abrir "Do compêndio": aparece só a lista de tokens; o painel Combatentes segue com o catálogo de combate.
 
 **Acceptance Scenarios**:
 
-1. **Given** o mestre na aba Criaturas, **When** escolhe "Só token", **Then** a criatura entra como token sem combatente e sem iniciativa.
-2. **Given** o mestre na aba Criaturas, **When** escolhe "No combate", **Then** vê o seletor que adiciona de 1 a 20 combatentes ao encontro.
-3. **Given** o mestre, **When** busca criaturas em "Só token", **Then** vê também as criaturas próprias da mesa.
+1. **Given** o mestre na aba Criaturas, **When** clica em "Adicionar", **Then** a criatura entra como token sem combatente e sem iniciativa.
+2. **Given** o mestre, **When** busca criaturas no seletor, **Then** vê também as criaturas próprias da mesa.
+3. **Given** o mestre quer a criatura no combate, **When** usa o painel Combatentes, **Then** adiciona de 1 a 20 combatentes como antes.
 
 ---
 
@@ -98,7 +98,7 @@ Como mestre, quero que a busca de criaturas dos jogadores mostre só o compêndi
 - **FR-008**: Tokens do compêndio e de itens MUST NOT entrar na ordem de iniciativa.
 - **FR-009**: O nome padrão MUST caber em 40 caracteres, cortando em fronteira de palavra quando possível; um nome informado MUST prevalecer.
 - **FR-010**: O sistema MUST recusar um pedido com criatura e item ao mesmo tempo e entradas inexistentes ou fora do alcance do participante.
-- **FR-011**: O mestre MUST poder escolher entre "Só token" e "No combate" na aba Criaturas.
+- **FR-011**: O seletor "Do compêndio" MUST criar apenas tokens; adicionar combatentes MUST continuar exclusivo do painel Combatentes (um catálogo por propósito na tela).
 - **FR-012**: Tokens de texto livre MUST continuar funcionando como antes.
 - **FR-013**: Criar ou remover um token MUST atualizar o mapa de todos os participantes em tempo real.
 
@@ -121,4 +121,4 @@ Como mestre, quero que a busca de criaturas dos jogadores mostre só o compêndi
 - O compêndio público de criaturas (fonte autorizada já usada na biblioteca) pode ser consultado por jogadores; só as fichas continuam restritas ao mestre.
 - Itens do catálogo não têm imagem própria; o token usa as iniciais do nome e o formato quadrado.
 - A edição feita pelo mestre numa criatura do compêndio não muda o que o jogador vê na busca: o jogador usa a entrada pública.
-- O mestre continua usando "No combate" quando quer PV e iniciativa; "Só token" é para cena.
+- O mestre usa o painel Combatentes quando quer PV e iniciativa; "Do compêndio" é para cena.

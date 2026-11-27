@@ -17,9 +17,11 @@
 .character-tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .character-tab[aria-selected="true"] { color: var(--gold); background: rgba(215,174,93,.14); box-shadow: inset 0 0 0 1px rgba(215,174,93,.35); }
 .character-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-/* Spec 013: five tabs. On a phone, three columns with the icon above the label, so no label is cut ("Características"). */
+/* Spec 013: five tabs. On a phone, one row with the icon above the label; it scrolls sideways when the
+   five do not fit, instead of wrapping 3 + 2 (which read as two unrelated groups). */
 @media (max-width: 640px) {
-  .character-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .character-tabs { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(76px, 1fr); overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .character-tabs::-webkit-scrollbar { display: none; }
   .character-tab { flex-direction: column; gap: 2px; min-height: 54px; padding: 4px 2px; font-size: .78rem; }
 }
 .character-notices { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }

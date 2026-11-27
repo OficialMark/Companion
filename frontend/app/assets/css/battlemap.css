@@ -115,7 +115,7 @@
 .reserve-label { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0 6px; color: var(--muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
 .reserve-token { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px 0 4px; color: var(--ink); background: rgba(255,255,255,.03); cursor: pointer; transition: border-color .15s, background .15s; }
 .reserve-token:hover:not(:disabled) { border-color: var(--line-strong); }
-.reserve-initials { width: 32px; height: 32px; display: grid; place-items: center; border: 1.5px solid #fff8e9; border-radius: 50%; color: #fff8e9; background: var(--token-color, #8e3451); font-size: .72rem; font-weight: 800; }
+.reserve-initials { width: 32px; height: 32px; display: grid; place-items: center; border: 1.5px solid #fff8e9; border-radius: 50%; color: #fff; background: var(--token-color, #8e3451); font-size: .72rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
 .reserve-initials.has-photo { overflow: hidden; background: #1b1519; }
 .reserve-initials img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .reserve-name { color: var(--muted); font-size: .78rem; }
@@ -254,9 +254,12 @@
   .fog-toolbar-actions > .button.fog-done { flex: 0 0 44px; padding: 0; justify-content: center; }
   .fog-done-label { display: none; }
   .fog-hint { font-size: .72rem; }
-  .battlemap-toolbar { justify-content: stretch; }
-  .toolbar-group { flex: 1 1 100%; justify-content: space-between; }
-  .toolbar-group .button.compact { flex: 1 1 0; }
+  /* One row of 44 px icon buttons instead of three stacked rows: the labels stay as accessible names. */
+  .battlemap-toolbar { justify-content: space-between; row-gap: 6px; }
+  .toolbar-group { gap: 4px; }
+  .toolbar-group .button.compact { position: relative; width: 44px; min-width: 44px; padding: 0; }
+  .toolbar-group .button.compact > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  .zoom-label { min-width: 40px; font-size: .72rem; }
   .file-drop { gap: 10px; padding: 10px 12px; }
 }
 
@@ -270,11 +273,6 @@
 /* Spec 016: token from the compendium (creatures) or the item catalog */
 .token-source-picker { display: grid; gap: 10px; }
 .token-source-tabs { margin: 0; }
-.token-source-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.token-source-mode label { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; color: var(--muted); font-size: .82rem; cursor: pointer; transition: border-color .15s, color .15s; }
-.token-source-mode label.active { border-color: var(--gold); color: var(--ink); }
-.token-source-mode label:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
-.token-source-mode input { position: absolute; opacity: 0; pointer-events: none; }
 .token-source-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; max-height: 340px; overflow-y: auto; }
 .token-source-list.loading { opacity: .6; }
 .token-source-row { display: flex; align-items: center; gap: 10px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 6px 8px; background: rgba(255,255,255,.03); }

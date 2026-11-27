@@ -307,12 +307,21 @@ onBeforeUnmount(() => {
       </section>
 
 
+      <!-- Three zones: people (participants + combat), map, dice (roll + history). main.css lays them out as
+           1, 2 or 3 columns by width: the map is the hero; on phones they stack as map, roll, combat,
+           participants, history. -->
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
-        <div class="main-column">
-          <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
-          <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
-          <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
-          <DiceRoller v-else />
+        <div class="table-zone table-people">
+          <div v-if="!gameMode.active.value" class="table-participants">
+            <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
+          </div>
+          <div class="table-combat">
+            <EncounterSetup v-if="!gameMode.active.value" />
+            <InitiativeTracker />
+            <CombatAttack />
+          </div>
+        </div>
+        <div class="table-zone table-map">
           <section v-if="store.snapshot.activeEncounter" class="panel battlemap-panel" aria-labelledby="battlemap-title">
             <div class="panel-heading">
               <div><p class="eyebrow"><Icon name="lucide:map" />Cena compartilhada</p><h2 id="battlemap-title">Battlemap</h2></div>
@@ -363,13 +372,25 @@ onBeforeUnmount(() => {
             </div>
             <p v-if="store.error && store.battlemap" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ store.error }}</p>
           </section>
-          <EncounterSetup v-if="!gameMode.active.value" />
-          <InitiativeTracker />
-          <CombatAttack />
+          <section v-else class="panel battlemap-panel battlemap-idle" aria-labelledby="battlemap-idle-title">
+            <span class="state-icon"><Icon name="lucide:map" size="1.6rem" /></span>
+            <div>
+              <h2 id="battlemap-idle-title">Battlemap</h2>
+              <p>{{ store.isMaster ? 'Inicie a preparação de um combate para publicar um mapa.' : 'O mapa aparece aqui quando o mestre preparar um combate.' }}</p>
+            </div>
+          </section>
         </div>
-        <div class="side-column">
-          <ParticipantsPanel v-if="!gameMode.active.value" :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
-          <RollHistory :rolls="store.snapshot.diceRolls" />
+        <!-- Rolling sits next to its results (proximity): the roll panel, then the public history. -->
+        <div class="table-zone table-dice">
+          <div class="table-roll">
+            <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+            <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
+            <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+            <DiceRoller v-else />
+          </div>
+          <div class="table-history">
+            <RollHistory :rolls="store.snapshot.diceRolls" />
+          </div>
         </div>
       </div>
       <SheetSummaryBar />

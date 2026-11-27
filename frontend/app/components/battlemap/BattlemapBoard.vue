@@ -814,6 +814,17 @@ onBeforeUnmount(() => observer?.disconnect())
       </g>
     </svg>
 
+    <!-- Right under the board: the hint talks about the board (proximity), not about the form below. -->
+    <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
+      <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />
+      <span>
+        <template v-if="!online">Conexão necessária para mover pinos.</template>
+        <template v-else-if="fog.active.value">Modo névoa: os jogadores não veem as áreas cobertas nem as criaturas dentro delas.</template>
+        <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
+        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.<template v-if="hasSheetTokens"> Botão direito (ou Shift+F10) numa criatura abre a ficha.</template></template>
+      </span>
+    </p>
+
     <AttackAreaPanel
       v-if="activeAttackAreaToken"
       :draft="attackAreas.draftFor(activeAttackAreaToken)"
@@ -858,18 +869,9 @@ onBeforeUnmount(() => observer?.disconnect())
         aria-label="Nome do novo token"
         placeholder="Nome do token (ex.: Lobo invocado)"
       >
-      <button data-new-marker-submit class="button ghost compact" type="submit" :disabled="!newMarkerLabel.trim()" @click.prevent="submitNewMarker"><Icon name="lucide:map-pin-plus" /><span>Inserir token</span></button>
-      <button data-board-catalog class="button secondary compact" type="button" :aria-expanded="catalogOpen" @click="catalogOpen = !catalogOpen"><Icon :name="catalogOpen ? 'lucide:x' : 'lucide:book-open'" /><span>{{ catalogOpen ? 'Fechar compêndio' : 'Do compêndio' }}</span></button>
+      <button data-new-marker-submit class="button secondary compact" type="submit" :disabled="!newMarkerLabel.trim()" @click.prevent="submitNewMarker"><Icon name="lucide:map-pin-plus" /><span>Inserir token</span></button>
+      <button data-board-catalog class="button ghost compact" type="button" :aria-expanded="catalogOpen" @click="catalogOpen = !catalogOpen"><Icon :name="catalogOpen ? 'lucide:x' : 'lucide:book-open'" /><span>{{ catalogOpen ? 'Fechar compêndio' : 'Do compêndio' }}</span></button>
     </form>
-    <div v-if="online && catalogOpen" class="battlemap-catalog"><TokenSourcePicker :is-master="isMaster" /></div>
-    <p class="battlemap-status" :class="{ warning: !online, active: online && selectedToken }" aria-live="polite">
-      <Icon :name="!online ? 'lucide:wifi-off' : selectedToken ? 'lucide:mouse-pointer-click' : 'lucide:hand'" class="status-icon" />
-      <span>
-        <template v-if="!online">Conexão necessária para mover pinos.</template>
-        <template v-else-if="fog.active.value">Modo névoa: os jogadores não veem as áreas cobertas nem as criaturas dentro delas.</template>
-        <template v-else-if="selectedToken">Selecione a célula de destino para {{ selectedToken.displayName }}. Coluna {{ cursor.column + 1 }}, linha {{ cursor.row + 1 }}.</template>
-        <template v-else>Arraste seu pino ou selecione-o e depois escolha uma célula. Arraste o fundo para navegar.<template v-if="hasSheetTokens"> Botão direito (ou Shift+F10) numa criatura abre a ficha.</template></template>
-      </span>
-    </p>
+    <div v-if="online && catalogOpen" class="battlemap-catalog"><TokenSourcePicker /></div>
   </div>
 </template>

@@ -109,16 +109,18 @@ describe('TokenSourcePicker', () => {
     expect(wrapper.text()).toContain('Conexão necessária')
   })
 
-  it('gives the master both "only a token" and "into combat"', async () => {
+  it('is a token picker only, also for the master: combat stays in the Combatentes panel', async () => {
     ready('Master')
-    api.listCreatures.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 6 })
-    const wrapper = mount(TokenSourcePicker, { props: { isMaster: true } })
+    const wrapper = mount(TokenSourcePicker)
     await flushPromises()
     expect(wrapper.find('[data-token-source-creature="wolf"]').exists()).toBe(true)
-    await wrapper.get('[data-token-source-mode="combat"]').setValue(true)
+    // One catalog per purpose on the screen (design review): no second "add to combat" list here.
+    expect(wrapper.find('[data-creature-picker]').exists()).toBe(false)
+    expect(api.listCreatures).not.toHaveBeenCalled()
+    await wrapper.get('[data-token-source-creature="wolf"] button').trigger('click')
     await flushPromises()
-    expect(wrapper.find('[data-creature-picker]').exists()).toBe(true)
-    expect(wrapper.find('[data-token-source-creature="wolf"]').exists()).toBe(false)
+    expect(api.createMarker).toHaveBeenCalledWith(expect.anything(), 'e1', { creatureId: 'wolf' })
+    expect(api.addCreaturesToEncounter).not.toHaveBeenCalled()
   })
 })
 

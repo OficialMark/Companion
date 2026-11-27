@@ -73,13 +73,16 @@ function ariaLabel(die: DieKey) {
         <span class="dice-pad-face">{{ die }}</span>
         <span v-if="count(die) > 0" class="dice-pad-badge" aria-hidden="true">{{ count(die) }}</span>
       </button>
+      <!-- Eighth cell of the grid (2 rows of 4 on phones, one row of 8 wider): no row of its own. -->
+      <button
+        type="button"
+        class="dice-pad-die dice-pad-clear"
+        data-clear-dice
+        aria-label="Limpar dados"
+        title="Limpar dados"
+        :disabled="disabled || total === 0"
+        @click="clear"
+      ><Icon name="lucide:eraser" /><span class="dice-pad-clear-label">Limpar</span></button>
     </div>
-    <button
-      type="button"
-      class="button ghost small dice-pad-clear"
-      data-clear-dice
-      :disabled="disabled || total === 0"
-      @click="clear"
-    ><Icon name="lucide:eraser" />Limpar dados</button>
   </div>
 </template>
