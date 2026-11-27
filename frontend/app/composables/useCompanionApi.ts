@@ -2,7 +2,7 @@ import type {
   AdminCampaign, AttackResult, BattlemapSnapshot, CampaignSnapshot, DiceDamageBreakdownRequest, DiceRoll, Encounter,
   CreateMarkerRequest, MoveBattlemapTokenRequest, Participant, ReplaceBattlemapResult, Session, SetAttackAreaRequest, SetTokenAppearanceRequest
 } from '~/types/campaign'
-import type { Creature, CreaturePage, CreatureQuery, RollPreset, SaveCreatureRequest } from '~/types/creatures'
+import type { Creature, CreaturePage, CreatureQuery, CreatureTokenOptionPage, RollPreset, SaveCreatureRequest } from '~/types/creatures'
 import { createUuid } from '~/utils/createUuid'
 
 interface ProblemDetails { title?: string; detail?: string }
@@ -112,6 +112,12 @@ export function useCompanionApi() {
       const params = new URLSearchParams()
       for (const [key, value] of Object.entries(query)) if (value !== undefined && value !== null && value !== '') params.set(key, String(value))
       return request<CreaturePage>(`/campaigns/${session.campaignId}/creatures?${params}`, {}, session.participantToken)
+    },
+    /** Spec 016: creatures any participant may drop on the board (players: public compendium only). */
+    listCreatureTokenOptions: (session: Session, q: string, pageSize = 12) => {
+      const params = new URLSearchParams({ pageSize: String(pageSize) })
+      if (q) params.set('q', q)
+      return request<CreatureTokenOptionPage>(`/campaigns/${session.campaignId}/creatures/token-options?${params}`, {}, session.participantToken)
     },
     creatureTypes: (session: Session) => request<string[]>(`/campaigns/${session.campaignId}/creatures/types`, {}, session.participantToken),
     getCreature: (session: Session, id: string) => request<Creature>(`/campaigns/${session.campaignId}/creatures/${id}`, {}, session.participantToken),

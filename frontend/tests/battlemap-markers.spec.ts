@@ -63,18 +63,21 @@ describe('BattlemapBoard marker tokens', () => {
     expect(wrapper.emitted('create-marker')?.[0]).toEqual(['Familiar'])
   })
 
-  it('offers the creature catalog next to "Inserir token" to the master only', async () => {
+  it('offers the compendium next to "Inserir token" to every participant (spec 016)', async () => {
+    const stubs = { TokenSourcePicker: { props: ['isMaster'], template: '<div data-stub-picker :data-master="String(isMaster)" />' } }
     const player = mount(BattlemapBoard, {
-      props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true }
+      props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true },
+      global: { stubs }
     })
-    expect(player.find('[data-board-catalog]').exists()).toBe(false)
+    await player.get('[data-board-catalog]').trigger('click')
+    expect(player.get('[data-stub-picker]').attributes('data-master')).toBe('false')
     const master = mount(BattlemapBoard, {
       props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: true },
-      global: { stubs: { CreaturePicker: { template: '<div data-stub-picker />' } } }
+      global: { stubs }
     })
     expect(master.find('[data-stub-picker]').exists()).toBe(false)
     await master.get('[data-board-catalog]').trigger('click')
-    expect(master.find('[data-stub-picker]').exists()).toBe(true)
+    expect(master.get('[data-stub-picker]').attributes('data-master')).toBe('true')
     expect(master.get('[data-board-catalog]').attributes('aria-expanded')).toBe('true')
 
     const offline = mount(BattlemapBoard, {

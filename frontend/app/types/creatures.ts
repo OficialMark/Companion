@@ -17,6 +17,16 @@ export interface CreatureSummary {
   imageUrl: string | null
 }
 
+/** Spec 016: what the board token picker gets of a creature (no stat block). */
+export interface CreatureTokenOption {
+  id: string
+  name: string
+  size: CreatureSize
+  type: string
+  imageUrl: string | null
+}
+export interface CreatureTokenOptionPage { items: CreatureTokenOption[]; total: number; page: number; pageSize: number }
+
 export interface CreatureFields {
   name: string
   nameEn: string | null

@@ -83,6 +83,33 @@ public sealed class CreatureService(
         return new CreaturePageDto(items, total, page, pageSize);
     }
 
+    /// <summary>
+    /// Spec 016: the creatures a participant can drop on the board as a token. Players get the public
+    /// compendium only (name, size, type, picture: no stat block); the master also gets the campaign's own.
+    /// </summary>
+    public CreatureTokenOptionPageDto ListTokenOptions(Guid campaignId, string token, string? q, int page, int pageSize)
+    {
+        var actor = authorization.Require(campaignId, token);
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
+        var isMaster = actor.Role == ParticipantRole.Master;
+        var rows = db.Creatures.Where(x => (x.CampaignId == null && !x.IsRemovedFromCompendium) || (isMaster && x.CampaignId == campaignId));
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = Creature.Normalize(q.Trim());
+            rows = rows.Where(x => x.SearchKey.Contains(term));
+        }
+        var total = rows.Count();
+        var items = rows.OrderBy(x => x.Name).ThenBy(x => x.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new { x.Id, x.Name, x.Size, x.Type, x.ImageRevision, x.ImageSourceUrl })
+            .AsEnumerable()
+            .Select(x => new CreatureTokenOptionDto(x.Id, x.Name, x.Size, x.Type,
+                ImageUrl(campaignId, x.Id, x.ImageRevision, x.ImageSourceUrl)))
+            .ToArray();
+        return new CreatureTokenOptionPageDto(items, total, page, pageSize);
+    }
+
     public IReadOnlyList<string> Types(Guid campaignId, string token)
     {
         authorization.Require(campaignId, token, masterOnly: true);

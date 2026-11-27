@@ -76,6 +76,8 @@ const badge = computed(() => Math.max(7, props.size * .17))
 const radius = computed(() => effectiveSize.value * .37)
 // Unique per token so several photo tokens can share one <svg>.
 const clipId = computed(() => `token-photo-${props.token.participantId}`)
+// Spec 016: catalog items are objects, not beings: a rounded square tells them apart at a glance.
+const isItem = computed(() => props.token.sourceKind === 'item')
 </script>
 
 <template>
@@ -83,7 +85,7 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
     data-battlemap-token
     :data-participant-id="token.participantId"
     class="battlemap-token"
-    :class="[{ selected, pending, controllable, defeated, fogged, creature: token.isCreature, 'current-turn': isCurrentTurn }, `token-color-${token.colorKey}`]"
+    :class="[{ selected, pending, controllable, defeated, fogged, creature: token.isCreature, item: isItem, 'current-turn': isCurrentTurn }, `token-color-${token.colorKey}`]"
     :transform="`translate(${x} ${y})`"
     role="button"
     :tabindex="controllable ? 0 : -1"
@@ -103,7 +105,8 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
       role="img"
       :aria-label="`Turno de ${token.displayName}`"
     />
-    <circle class="token-body" :r="radius" />
+    <rect v-if="isItem" class="token-body" :x="-radius" :y="-radius" :width="radius * 2" :height="radius * 2" :rx="radius * .3" />
+    <circle v-else class="token-body" :r="radius" />
     <template v-if="photo">
       <clipPath :id="clipId"><circle :r="radius" /></clipPath>
       <image
@@ -115,7 +118,8 @@ const clipId = computed(() => `token-photo-${props.token.participantId}`)
       />
       <circle class="token-photo-border" :r="radius" />
     </template>
-    <circle class="token-ring" :r="effectiveSize * .43" />
+    <rect v-if="isItem" class="token-ring" :x="-effectiveSize * .43" :y="-effectiveSize * .43" :width="effectiveSize * .86" :height="effectiveSize * .86" :rx="effectiveSize * .13" />
+    <circle v-else class="token-ring" :r="effectiveSize * .43" />
     <text v-if="!photo" text-anchor="middle" dominant-baseline="central" :font-size="effectiveSize * .28">{{ token.initials }}</text>
     <svg
       v-if="healthRatio !== null"

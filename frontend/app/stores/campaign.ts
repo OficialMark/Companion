@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type {
-  AttackAreaShape, BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot,
+  AttackAreaShape, BattlemapInvalidationEvent, BattlemapSnapshot, CampaignEvent, CampaignSnapshot, CreateMarkerRequest,
   DamageAppliedEvent, DiceRoll, Encounter, Participant, Session, StatusCondition
 } from '~/types/campaign'
 
@@ -316,13 +316,17 @@ export const useCampaignStore = defineStore('campaign', {
         this.error = (error as Error).message
       }
     },
-    async createMarker(label: string) {
-      if (!this.session || !this.battlemap) return
+    /** Free-text label, or a compendium creature / catalog item (spec 016). Resolves true on success. */
+    async createMarker(source: string | CreateMarkerRequest) {
+      if (!this.session || !this.battlemap) return false
+      const body: CreateMarkerRequest = typeof source === 'string' ? { label: source } : source
       try {
-        this.battlemap = await useCompanionApi().createMarker(this.session, this.battlemap.encounterId, { label })
+        this.battlemap = await useCompanionApi().createMarker(this.session, this.battlemap.encounterId, body)
         this.error = ''
+        return true
       } catch (error) {
         this.error = (error as Error).message
+        return false
       }
     },
     async removeMarker(markerId: string) {
