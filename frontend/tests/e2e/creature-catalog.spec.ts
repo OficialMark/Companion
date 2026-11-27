@@ -79,10 +79,12 @@ for (const width of [1280, 1024, 375]) {
     // Combat only starts when everyone has HP: the player fills in their profile.
     await setSheetProfile(player, { dexterity: 16, hp: 24 })
 
-    // 4. Start combat, then add a reinforcement from the board's catalog.
+    // 4. Start combat, then add a reinforcement from the board's compendium (spec 016: the picker
+    // makes tokens; mid-combat the master flips "Reforço no combate" to reach the combat catalog).
     await page.getByRole('button', { name: 'Rolar iniciativas', exact: true }).click()
     await page.getByRole('button', { name: 'Começar combate' }).click()
     await page.locator('[data-board-catalog]').click()
+    await page.locator('[data-token-source-reinforcement]').check({ force: true })
     await expect(page.locator('[data-picker-running]')).toBeVisible()
     await page.locator('.battlemap-catalog').getByLabel('Buscar criatura no catálogo').fill('ogro')
     const ogreRow = page.locator('.battlemap-catalog .creature-picker-row').filter({ hasText: /^Ogro/ }).first()

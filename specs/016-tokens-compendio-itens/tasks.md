@@ -54,7 +54,7 @@
 
 **Independent Test**: mestre alterna o modo e vê o seletor de combate.
 
-- [X] T025 [US3] Seletor sem modo de combate (revisado após a review de design: removido o "No combate" que duplicava o catálogo do painel Combatentes) em frontend/app/components/battlemap/TokenSourcePicker.vue
+- [X] T025 [US3] Seletor sem modo de combate na preparação; switch "Reforço no combate" só para o mestre com o combate em andamento (revisado após a review de design e o e2e de reforços da spec 008) em frontend/app/components/battlemap/TokenSourcePicker.vue
 
 ## Phase 7: Polish
 

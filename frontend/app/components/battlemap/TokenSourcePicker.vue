@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import type { CreatureSize, CreatureTokenOption } from '~/types/creatures'
 import type { CatalogItemSummary, ItemCategory } from '~/types/character'
+import CreaturePicker from '~/components/creatures/CreaturePicker.vue'
 
 /**
  * Spec 016: drop a compendium creature or a catalog item on the board as a token. Every participant
- * gets it; the token lands in the reserve, owned by whoever added it. Sending a creature into combat
- * (initiative, HP) stays in the master's Combatentes panel: one catalog per purpose on the screen.
+ * gets it; the token lands in the reserve, owned by whoever added it.
+ * Sending a creature into combat (initiative, HP) belongs to the master's Combatentes panel while the
+ * combat is being prepared. Once it is running that panel is gone, so the master gets a switch here to
+ * add reinforcements (spec 008): one catalog per purpose on the screen, never two side by side.
  */
+const props = withDefaults(defineProps<{ isMaster?: boolean }>(), { isMaster: false })
 type Tab = 'creatures' | 'items'
 const PAGE = 8
 const SIZE_LABEL: Record<CreatureSize, string> = {
@@ -27,6 +31,10 @@ const api = useCompanionApi()
 const characterApi = useCharacterApi()
 
 const tab = ref<Tab>('creatures')
+const reinforcement = ref(false)
+const combatRunning = computed(() => campaign.snapshot?.activeEncounter?.status === 'Active')
+const offersReinforcement = computed(() => props.isMaster && combatRunning.value && tab.value === 'creatures')
+const showsReinforcement = computed(() => offersReinforcement.value && reinforcement.value)
 const search = ref('')
 const creatures = ref<CreatureTokenOption[]>([])
 const items = ref<CatalogItemSummary[]>([])
@@ -104,51 +112,61 @@ async function add(kind: 'creature' | 'item', id: string, name: string) {
       </button>
     </div>
 
-    <label class="creature-search">
-      <Icon name="lucide:search" />
-      <input
-        v-model="search"
-        type="search"
-        data-token-source-search
-        :placeholder="tab === 'creatures' ? 'Buscar criatura: lobo, goblin, dragão…' : 'Buscar item: corda, baú, poção…'"
-        :aria-label="tab === 'creatures' ? 'Buscar criatura no compêndio' : 'Buscar item no catálogo'"
-      >
+    <!-- Only while the combat runs (the Combatentes panel is gone then), only for the master. -->
+    <label v-if="offersReinforcement" class="switch-field token-source-reinforcement">
+      <input v-model="reinforcement" data-token-source-reinforcement type="checkbox" role="switch">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb" /></span>
+      <span class="token-source-reinforcement-text"><strong>Reforço no combate</strong><small>Entra na iniciativa com PV, sem mudar o turno atual.</small></span>
     </label>
 
-    <ul class="token-source-list" :class="{ loading }">
-      <template v-if="tab === 'creatures'">
-        <li v-for="item in creatures" :key="item.id" class="token-source-row" :data-token-source-creature="item.id">
-          <span class="creature-portrait small" :class="{ 'has-image': portrait(item) }">
-            <img v-if="portrait(item)" :src="portrait(item)!" alt="" loading="lazy">
-            <template v-else>{{ initials(item.name) }}</template>
-          </span>
-          <span class="token-source-text">
-            <strong>{{ item.name }}</strong>
-            <small>{{ SIZE_LABEL[item.size] }} · {{ item.type }}</small>
-          </span>
-          <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('creature', item.id, item.name)">
-            <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
-          </button>
-        </li>
-      </template>
-      <template v-else>
-        <li v-for="item in items" :key="item.id" class="token-source-row" :data-token-source-item="item.id">
-          <span class="token-source-item-icon" aria-hidden="true"><Icon :name="CATEGORY[item.category]?.icon ?? 'lucide:package'" /></span>
-          <span class="token-source-text">
-            <strong>{{ item.name }}</strong>
-            <small>{{ CATEGORY[item.category]?.label ?? 'Item' }}<template v-if="item.rarity"> · {{ item.rarity }}</template></small>
-          </span>
-          <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('item', item.id, item.name)">
-            <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
-          </button>
-        </li>
-      </template>
-    </ul>
+    <CreaturePicker v-if="showsReinforcement" />
+    <template v-else>
+      <label class="creature-search">
+        <Icon name="lucide:search" />
+        <input
+          v-model="search"
+          type="search"
+          data-token-source-search
+          :placeholder="tab === 'creatures' ? 'Buscar criatura: lobo, goblin, dragão…' : 'Buscar item: corda, baú, poção…'"
+          :aria-label="tab === 'creatures' ? 'Buscar criatura no compêndio' : 'Buscar item no catálogo'"
+        >
+      </label>
 
-    <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para adicionar.</p>
-    <p v-else-if="!loading && !shown && !error" class="field-hint"><Icon name="lucide:search-x" />Nada encontrado. Tente outro nome.</p>
-    <p v-else-if="total > shown" class="field-hint"><Icon name="lucide:info" />Mostrando {{ shown }} de {{ total }}. Refine a busca para achar outros.</p>
-    <p v-if="added" class="field-hint token-source-done" role="status" data-token-source-done><Icon name="lucide:check" />{{ added }}</p>
-    <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
+      <ul class="token-source-list" :class="{ loading }">
+        <template v-if="tab === 'creatures'">
+          <li v-for="item in creatures" :key="item.id" class="token-source-row" :data-token-source-creature="item.id">
+            <span class="creature-portrait small" :class="{ 'has-image': portrait(item) }">
+              <img v-if="portrait(item)" :src="portrait(item)!" alt="" loading="lazy">
+              <template v-else>{{ initials(item.name) }}</template>
+            </span>
+            <span class="token-source-text">
+              <strong>{{ item.name }}</strong>
+              <small>{{ SIZE_LABEL[item.size] }} · {{ item.type }}</small>
+            </span>
+            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('creature', item.id, item.name)">
+              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
+            </button>
+          </li>
+        </template>
+        <template v-else>
+          <li v-for="item in items" :key="item.id" class="token-source-row" :data-token-source-item="item.id">
+            <span class="token-source-item-icon" aria-hidden="true"><Icon :name="CATEGORY[item.category]?.icon ?? 'lucide:package'" /></span>
+            <span class="token-source-text">
+              <strong>{{ item.name }}</strong>
+              <small>{{ CATEGORY[item.category]?.label ?? 'Item' }}<template v-if="item.rarity"> · {{ item.rarity }}</template></small>
+            </span>
+            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('item', item.id, item.name)">
+              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
+            </button>
+          </li>
+        </template>
+      </ul>
+
+      <p v-if="offline" class="field-hint"><Icon name="lucide:wifi-off" />Conexão necessária para adicionar.</p>
+      <p v-else-if="!loading && !shown && !error" class="field-hint"><Icon name="lucide:search-x" />Nada encontrado. Tente outro nome.</p>
+      <p v-else-if="total > shown" class="field-hint"><Icon name="lucide:info" />Mostrando {{ shown }} de {{ total }}. Refine a busca para achar outros.</p>
+      <p v-if="added" class="field-hint token-source-done" role="status" data-token-source-done><Icon name="lucide:check" />{{ added }}</p>
+      <p v-if="error" class="form-error" role="alert"><Icon name="lucide:circle-alert" />{{ error }}</p>
+    </template>
   </section>
 </template>

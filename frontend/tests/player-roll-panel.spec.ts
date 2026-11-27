@@ -110,6 +110,19 @@ describe('PlayerRollPanel', () => {
     expect(expression(other)).toBe('')
   })
 
+  it('says what a disabled "Rolar" waits for, and drops the hint once there is something to roll', async () => {
+    const wrapper = setup()
+    await startFree(wrapper)
+    expect(wrapper.get('[data-roll-go]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-roll-hint]').text()).toContain('Escolha os dados ou digite uma expressão')
+    expect(wrapper.get('[data-roll-go]').attributes('aria-describedby')).toBe('roll-go-hint')
+
+    await wrapper.get('[data-die="d20"]').trigger('click')
+    expect(wrapper.get('[data-roll-go]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('[data-roll-hint]').exists()).toBe(false)
+    expect(wrapper.get('[data-roll-go]').attributes('aria-describedby')).toBeUndefined()
+  })
+
   it('updates the expression live as the player builds the roll', async () => {
     const wrapper = setup()
     await startFree(wrapper)

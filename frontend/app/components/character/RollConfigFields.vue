@@ -7,7 +7,7 @@ import {
   ADVANTAGE_LABEL, KIND_LABEL, KIND_ORDER, MAX_EXTRA, MAX_EXTRAS, MIN_EXTRA, defaultKindFor, kindsFor, resolveRoll,
   sourceFromKey, sourceKey, usesStrDex, type DiceCounts, type RollConfig
 } from '~/utils/playerRoll'
-import { MAX_LABEL_LENGTH, MAX_REPETITIONS } from '~/utils/rollExpression'
+import { MAX_LABEL_LENGTH, MAX_REPETITIONS, NO_DICE_ERROR } from '~/utils/rollExpression'
 
 /**
  * The controls shared by the Modo Jogo roll panel and the saved roll editor (spec 011, FR-036): both
@@ -27,13 +27,12 @@ const props = withDefaults(defineProps<{
 }>(), { disabled: false, preselectSingleWeapon: false })
 const emit = defineEmits<{ 'update:modelValue': [value: RollConfig] }>()
 
-const NO_DICE = 'Escolha pelo menos um dado.'
 const ADVANTAGES: AdvantageMode[] = ['None', 'Advantage', 'Disadvantage']
 const ADVANTAGE_KEY: Record<AdvantageMode, string> = { None: 'none', Advantage: 'advantage', Disadvantage: 'disadvantage' }
 const ADVANTAGE_ICON: Record<AdvantageMode, string> = { None: 'lucide:minus', Advantage: 'lucide:chevrons-up', Disadvantage: 'lucide:chevrons-down' }
 
 const resolved = computed(() => resolveRoll(props.modelValue, props.stats, props.character))
-const visibleError = computed(() => (resolved.value.error && resolved.value.error !== NO_DICE ? resolved.value.error : null))
+const visibleError = computed(() => (resolved.value.error && resolved.value.error !== NO_DICE_ERROR ? resolved.value.error : null))
 const allowedKinds = computed(() => kindsFor(props.modelValue.source))
 const currentSource = computed(() => sourceKey(props.modelValue.source))
 const disadvantageRule = computed(() => Boolean(props.stats?.rollDefaults.disadvantageOnStrDex))

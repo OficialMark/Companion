@@ -8,7 +8,7 @@ import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
 import { createResultScrollSession } from '~/utils/scrollToResult'
-import { MAX_EXPRESSION_LENGTH } from '~/utils/rollExpression'
+import { MAX_EXPRESSION_LENGTH, NO_DICE_ERROR } from '~/utils/rollExpression'
 import {
   cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, weaponDamageSummary, weaponDamageBreakdownPlan, type DamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
@@ -42,6 +42,12 @@ const canRoll = computed(() => !busy.value && !offline.value && (
     ? Boolean(manualExpression.value.trim())
     : Boolean(resolved.value.expression) && !resolved.value.error
 ))
+/** Why "Rolar" is off when nothing else explains it (no dice, no expression): a disabled main action must say what it waits for. */
+const rollHint = computed(() => {
+  const error = resolved.value.error
+  if (canRoll.value || busy.value || offline.value || (error && error !== NO_DICE_ERROR)) return ''
+  return 'Escolha os dados ou digite uma expressão para rolar.'
+})
 
 const busy = ref(false)
 const error = ref('')
@@ -209,12 +215,13 @@ function openEditor() {
     </RollConfigFields>
 
     <div class="player-roll-actions">
-      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" @click="rollCurrent">
+      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" :aria-describedby="rollHint ? 'roll-go-hint' : undefined" @click="rollCurrent">
         <Icon :name="busy ? 'lucide:loader-circle' : 'lucide:dices'" :class="{ spin: busy }" />{{ busy ? 'Rolando…' : 'Rolar' }}
       </button>
       <button class="button ghost small" type="button" data-save-roll :disabled="busy || manualExpression !== null" @click="openEditor">
         <Icon name="lucide:bookmark-plus" />Salvar como rolagem
       </button>
+      <p v-if="rollHint" id="roll-go-hint" class="field-hint roll-go-hint" data-roll-hint><Icon name="lucide:info" />{{ rollHint }}</p>
     </div>
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>

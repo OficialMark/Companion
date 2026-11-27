@@ -79,6 +79,9 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
 
 <template>
   <div v-if="character.draft && character.stats" class="sheet-core" @focusout="leaveField" @change="leaveField">
+    <!-- Two columns from 1440 px (character.css): who the character is and what it rolls with on the
+         left; skills and reference values on the right. Narrower, the two simply stack. -->
+    <div class="sheet-core-main">
     <section class="sheet-section sheet-identity" aria-labelledby="sheet-identity-title">
       <h2 id="sheet-identity-title" class="sheet-section-title">Personagem</h2>
       <div class="sheet-grid identity-grid">
@@ -183,6 +186,8 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
       </div>
     </section>
 
+    </div>
+    <div class="sheet-core-side">
     <section class="sheet-section" aria-labelledby="sheet-skills-title">
       <h2 id="sheet-skills-title" class="sheet-section-title">Perícias</h2>
       <ul class="skill-list">
@@ -290,5 +295,6 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
         <textarea data-field="notes" maxlength="4000" rows="4" :value="draft.notes ?? ''" @input="text('notes', $event)" />
       </label>
     </section>
+    </div>
   </div>
 </template>

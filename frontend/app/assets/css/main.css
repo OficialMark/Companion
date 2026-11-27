@@ -89,7 +89,10 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .button.ghost.danger:hover:not(:disabled) { border-color: rgba(230,119,119,.45); background: rgba(230,119,119,.06); }
 /* Disabled is told by shape and tone, not only by a fainter colour: a dashed neutral outline, no fill,
    no shadow. A faded wine primary read as "almost enabled". */
-.button.primary:disabled, .button.secondary:disabled { border-color: rgba(255,246,232,.22); border-style: dashed; background: rgba(255,255,255,.03); color: var(--muted); box-shadow: none; opacity: 1; }
+/* A disabled primary keeps a trace of its wine so the main action stays the main action (hierarchy),
+   while the dashed outline, missing fill and cursor say "not yet". */
+.button.primary:disabled { border-color: rgba(187,84,117,.6); border-style: dashed; background: rgba(142,52,81,.14); color: #e7b9c8; box-shadow: none; opacity: 1; }
+.button.secondary:disabled { border-color: rgba(255,246,232,.22); border-style: dashed; background: rgba(255,255,255,.03); color: var(--muted); box-shadow: none; opacity: 1; }
 .button.ghost:disabled { border-style: dashed; opacity: .6; }
 .button.wide { width: 100%; }
 .button.compact { min-height: 40px; padding: 0 12px; font-size: .84rem; }
@@ -176,31 +179,58 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .table-participants { order: 4; }
 .table-history { order: 5; }
 .table-combat:empty { display: none; }
+/* 1100–1599: map, people and history share the wide column; the roll panel stays alone in a sticky
+   column on the right. On a laptop the player's roll panel is a full screen tall, so a history
+   stacked under it was simply never seen (layout review). */
 @media (min-width: 1100px) {
-  .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto 1fr; grid-template-areas: "map dice" "people dice"; }
-  .table-people, .table-dice { display: grid; gap: 20px; align-content: start; min-width: 0; }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto auto 1fr; grid-template-areas: "map roll" "people roll" "history roll"; }
+  .table-people { display: grid; gap: 20px; align-content: start; min-width: 0; grid-area: people; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
   /* The phone ordering must not leak inside the columns (participants above combat, roll above history). */
   .table-people > *, .table-dice > * { order: 0; }
-  .table-people { grid-area: people; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
   .table-map { grid-area: map; }
-  .table-dice { grid-area: dice; }
+  .table-roll { grid-area: roll; }
+  .table-history { grid-area: history; }
+  /* Seven 44 px dice do not fit a 400 px column: two rows of four. */
+  .table-roll .dice-presets { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-@media (min-width: 1100px) and (min-height: 700px) {
-  /* overflow-y: a tall roll panel (player with many saved rolls) still scrolls instead of being cut. */
-  .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); grid-template-rows: auto minmax(0, 1fr); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-  .table-history { min-height: 0; }
-}
-/* Below 1280 px the top bar has two rows (~126 px): the sticky column starts under it. */
-@media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
-  .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: calc(var(--vh) - 156px); }
-}
-@media (min-width: 1100px) and (min-height: 700px) {
-  .table-history > .panel { max-height: 100%; min-height: 220px; overflow-y: auto; overscroll-behavior: contain; }
-}
+/* >= 1600: people | map | dice (roll above its history). */
 @media (min-width: 1600px) {
   .dashboard-grid { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto; grid-template-areas: "people map dice"; }
   .table-people { grid-template-columns: minmax(0, 1fr); }
+  .table-dice { display: grid; gap: 20px; align-content: start; min-width: 0; grid-area: dice; grid-template-rows: auto minmax(0, 1fr); }
+  .table-roll, .table-history { grid-area: auto; }
   .table-map .battlemap-board { max-height: min(calc(var(--vh) - 330px), 1400px); min-height: 480px; }
+}
+/* Side columns follow the scroll and scroll on their own, so a long list (catalog, initiative, a tall
+   roll panel) never stretches the page past the map. Only where the screen is tall enough. */
+@media (min-width: 1100px) and (min-height: 700px) {
+  .table-roll { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+  .table-history > .panel { max-height: min(70vh, 720px); }
+}
+@media (min-width: 1600px) and (min-height: 700px) {
+  .table-roll { position: static; max-height: none; }
+  .table-people, .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+  .table-history { min-height: 0; }
+  .table-history > .panel { max-height: 100%; min-height: 220px; }
+}
+/* Below 1280 px the top bar has two rows (~126 px): sticky columns start under it. */
+@media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
+  .app-shell:has(.topbar.has-view-nav) .table-roll { top: 140px; max-height: calc(var(--vh) - 156px); }
+}
+@media (min-width: 1100px) and (min-height: 700px) {
+  .table-roll, .table-people, .table-dice, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
+  /* Room under the last card, so the bottom fade never sits on content the user cannot scroll past. */
+  .table-roll, .table-people, .table-dice { padding-bottom: 4px; }
+  /* Scroll hint: a soft shadow at the top/bottom edge only while there is more to scroll (the covers
+     scroll with the content, the shadows stay with the box). */
+  .table-history > .panel {
+    background:
+      linear-gradient(#2a2229 30%, rgba(42,34,41,0)) center top / 100% 36px no-repeat local,
+      linear-gradient(rgba(42,34,41,0), #2a2229 70%) center bottom / 100% 36px no-repeat local,
+      radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.45), transparent) center top / 100% 14px no-repeat scroll,
+      radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.45), transparent) center bottom / 100% 14px no-repeat scroll,
+      #2a2229;
+  }
 }
 .battlemap-idle { display: flex; align-items: center; gap: 16px; }
 .battlemap-idle h2 { margin: 0 0 4px; }
@@ -435,11 +465,18 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 @media (max-width: 680px) {
   /* No backdrop-filter here: it would become the containing block of the fixed tab bar inside it. */
   .topbar { backdrop-filter: none; background: rgba(23,18,22,.97); }
-  .topbar.has-view-nav .view-nav { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; max-width: none; overflow: visible; border: 0; border-top: 1px solid var(--line-strong); border-radius: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(23,18,22,.98); box-shadow: 0 -10px 28px rgba(0,0,0,.4); }
-  .topbar.has-view-nav .view-nav-item { min-height: 54px; flex-direction: column; justify-content: center; gap: 3px; padding: 0 4px; font-size: .74rem; }
+  .topbar.has-view-nav .view-nav { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; max-width: none; overflow: visible; border: 0; border-top: 1px solid var(--line-strong); border-radius: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); background: rgba(23,18,22,.98); box-shadow: 0 -10px 28px rgba(0,0,0,.4); }
+  .topbar.has-view-nav .view-nav-item { min-height: 48px; flex-direction: column; justify-content: center; gap: 2px; padding: 0 4px; font-size: .72rem; }
   .topbar.has-view-nav .view-nav-item .icon { font-size: 1.25rem; }
-  .app-shell:has(.topbar.has-view-nav) .dashboard { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .app-shell:has(.topbar.has-view-nav) .sheet-summary { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .app-shell:has(.topbar.has-view-nav) .dashboard { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .app-shell:has(.topbar.has-view-nav) .dashboard:has(.sheet-summary) { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+  /* Focus, anchors and scrollIntoView stop clear of the fixed bars instead of under them. */
+  html:has(.topbar.has-view-nav) { scroll-padding-top: 130px; scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  html:has(.topbar.has-view-nav):has(.sheet-summary) { scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+  /* The sheet summary docks onto the tab bar: one 100 px bottom block (44 + 56: the summary is a touch target too), not two floating
+     cards with a gap between them (14% of an 844 px screen before). */
+  .app-shell:has(.topbar.has-view-nav) .sheet-summary { position: fixed; z-index: 29; left: 0; right: 0; bottom: calc(56px + env(safe-area-inset-bottom)); margin: 0; }
+  .app-shell:has(.topbar.has-view-nav) .sheet-summary-button { min-height: 44px; border-width: 1px 0 0; border-radius: 0; padding: 0 14px; background: rgba(42,34,41,.98); box-shadow: none; font-size: .86rem; }
   .topbar.has-view-nav .topbar-center { padding-top: 6px; }
   .topbar.has-view-nav .campaign-heading { justify-content: space-between; }
   .topbar.has-view-nav .campaign-name { flex: 1 1 auto; min-width: 0; font-weight: 600; }
@@ -507,10 +544,21 @@ select optgroup { background: #17121a; color: #f4d894; font-style: normal; font-
 .master-code-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 1px solid rgba(215,174,93,.25); border-radius: 10px; padding: 0 4px 0 10px; color: var(--gold-soft); background: rgba(215,174,93,.06); }
 .master-code-label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
 .master-code-value { min-width: 6ch; font-family: ui-monospace, monospace; font-size: .95rem; letter-spacing: .08em; color: var(--ink); }
-.master-code-eye { width: 44px; height: 44px; }
+/* One pill, one border: the eye is a 44 px touch area inside it, not a second circle crossing the edge. */
+.master-code-eye { width: 44px; height: 44px; border: 0; border-radius: 8px; }
+.master-code-toggle { min-height: 44px; border: 0; box-shadow: inset 0 0 0 1px rgba(215,174,93,.25); }
 /* Below 1100 px: only the key and the eye while hidden, so the campaign name keeps its room in the top bar. */
-@media (max-width: 1100px) {
+/* Below 1440 px the one-row top bar cannot afford the words "Código do mestre", "Modo Jogo" and "Conectado": they all
+   become icons (title and the status role keep the words for hover and screen readers), and the
+   campaign name gets the room back (at 1280 it had ~20 px and vanished). */
+@media (max-width: 1439px) {
   .master-code-label { display: none; }
+  .topbar .connection-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  .topbar .connection { width: 44px; justify-content: center; padding: 0; }
+  .topbar .game-mode-toggle .toggle-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  .topbar .game-mode-toggle { width: 44px; padding: 0; }
+}
+@media (max-width: 1100px) {
   .master-code-toggle { padding: 0 0 0 8px; gap: 2px; }
   .master-code-toggle:not(.is-visible) .master-code-value { display: none; }
 }

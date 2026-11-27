@@ -282,6 +282,10 @@
 .token-source-row .button { flex: none; min-height: 40px; }
 .token-source-item-icon { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 1.5px solid var(--line-strong); border-radius: 12px; color: var(--gold); background: rgba(0,0,0,.2); font-size: 1.15rem; }
 .token-source-done { color: var(--ink); }
+.token-source-reinforcement { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: rgba(215,174,93,.05); }
+.token-source-reinforcement-text { display: grid; gap: 2px; min-width: 0; }
+.token-source-reinforcement-text strong { color: var(--ink); font-size: .88rem; }
+.token-source-reinforcement-text small { color: var(--muted); font-size: .76rem; font-weight: 500; }
 @media (max-width: 420px) {
   .token-source-row .button span { display: none; }
   .token-source-row .button { width: 44px; min-height: 44px; padding: 0; justify-content: center; }

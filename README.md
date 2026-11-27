@@ -66,6 +66,10 @@ Depois de instalar e conectar os dispositivos à mesma rede virtual:
 
 O Compose continua igual porque publica em `0.0.0.0`. A segurança, o roteamento e o controle de membros da VPN permanecem sob responsabilidade do administrador da rede.
 
+## Testes ponta a ponta e layout
+
+Os testes Playwright e a auditoria de layout (celular até 2560 px) rodam numa instância de validação separada, nunca na porta 3636. Veja o [roteiro de e2e e auditoria de layout](docs/testes-e2e.md).
+
 ## Comandos operacionais
 
 ```powershell

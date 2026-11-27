@@ -16,5 +16,5 @@ Esperado: 10 unitários, 6 de integração e 15 de componente aprovados.
 2. Mestre: criar encontro e publicar um mapa.
 3. Jogador: no mapa, "Do compêndio" > Criaturas > buscar "ogro" > Adicionar. Token "Ogro" na reserva; ao posicionar, ocupa 2x2 com imagem.
 4. Jogador: aba Itens > buscar "corda" > Adicionar. Token quadrado na reserva.
-5. Mestre: vê os dois tokens; "Do compêndio" mostra só a lista de tokens (o combate continua no painel Combatentes).
+5. Mestre: vê os dois tokens; em preparação "Do compêndio" mostra só tokens; com o combate em andamento, o switch "Reforço no combate" leva ao catálogo de combate.
 6. Mestre cria a criatura "Zumbaraque Secreto"; jogador busca "zumbaraque": nada aparece.

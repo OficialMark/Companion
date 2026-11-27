@@ -872,6 +872,6 @@ onBeforeUnmount(() => observer?.disconnect())
       <button data-new-marker-submit class="button secondary compact" type="submit" :disabled="!newMarkerLabel.trim()" @click.prevent="submitNewMarker"><Icon name="lucide:map-pin-plus" /><span>Inserir token</span></button>
       <button data-board-catalog class="button ghost compact" type="button" :aria-expanded="catalogOpen" @click="catalogOpen = !catalogOpen"><Icon :name="catalogOpen ? 'lucide:x' : 'lucide:book-open'" /><span>{{ catalogOpen ? 'Fechar compêndio' : 'Do compêndio' }}</span></button>
     </form>
-    <div v-if="online && catalogOpen" class="battlemap-catalog"><TokenSourcePicker /></div>
+    <div v-if="online && catalogOpen" class="battlemap-catalog"><TokenSourcePicker :is-master="isMaster" /></div>
   </div>
 </template>

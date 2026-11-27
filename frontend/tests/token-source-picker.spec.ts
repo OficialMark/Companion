@@ -109,9 +109,40 @@ describe('TokenSourcePicker', () => {
     expect(wrapper.text()).toContain('Conexão necessária')
   })
 
-  it('is a token picker only, also for the master: combat stays in the Combatentes panel', async () => {
-    ready('Master')
+  it('offers the master a reinforcement switch only while the combat runs (spec 008 reinforcements)', async () => {
+    const campaign = ready('Master')
+    api.listCreatures.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 6 })
+    campaign.snapshot = { activeEncounter: { id: 'e1', status: 'Preparing', round: 0, currentTurnIndex: null, combatants: [] } } as never
+    const wrapper = mount(TokenSourcePicker, { props: { isMaster: true } })
+    await flushPromises()
+    // Preparing: the Combatentes panel is on screen, so no second "add to combat" list here.
+    expect(wrapper.find('[data-token-source-reinforcement]').exists()).toBe(false)
+
+    campaign.snapshot = { activeEncounter: { id: 'e1', status: 'Active', round: 1, currentTurnIndex: 0, combatants: [] } } as never
+    await flushPromises()
+    await wrapper.get('[data-token-source-reinforcement]').setValue(true)
+    await flushPromises()
+    expect(wrapper.find('[data-creature-picker]').exists()).toBe(true)
+    expect(wrapper.find('[data-token-source-creature="wolf"]').exists()).toBe(false)
+
+    // Items never go into combat.
+    await wrapper.get('[data-token-source-tab="items"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-token-source-reinforcement]').exists()).toBe(false)
+    expect(wrapper.find('[data-creature-picker]').exists()).toBe(false)
+  })
+
+  it('never offers the reinforcement switch to a player, even mid-combat', async () => {
+    const campaign = ready('Player')
+    campaign.snapshot = { activeEncounter: { id: 'e1', status: 'Active', round: 1, currentTurnIndex: 0, combatants: [] } } as never
     const wrapper = mount(TokenSourcePicker)
+    await flushPromises()
+    expect(wrapper.find('[data-token-source-reinforcement]').exists()).toBe(false)
+  })
+
+  it('is a token picker only for the master while preparing: combat goes through the Combatentes panel', async () => {
+    ready('Master')
+    const wrapper = mount(TokenSourcePicker, { props: { isMaster: true } })
     await flushPromises()
     expect(wrapper.find('[data-token-source-creature="wolf"]').exists()).toBe(true)
     // One catalog per purpose on the screen (design review): no second "add to combat" list here.

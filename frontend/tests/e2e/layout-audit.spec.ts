@@ -225,6 +225,15 @@ async function measure(page: Page, phone: boolean) {
       }
       // Only judge what is on screen right now (sticky bars, modals) and inside the viewport vertically.
       if (rect.bottom < 0 || rect.top > window.innerHeight) continue
+      // Scrolled out of its own scroll box (sticky side columns): reachable by scrolling it, not covered.
+      let hiddenInScroller = false
+      for (let node = el.parentElement; node && node !== document.body; node = node.parentElement) {
+        const style = getComputedStyle(node)
+        if (style.overflowY === 'visible' && style.overflowX === 'visible') continue
+        const box = node.getBoundingClientRect()
+        if (rect.top + rect.height / 2 > box.bottom || rect.top + rect.height / 2 < box.top) { hiddenInScroller = true; break }
+      }
+      if (hiddenInScroller) continue
       // Probe the center and two points 25% in from opposite corners: corners of pills and
       // rounded buttons belong to the parent, so probing the very corner would be a false alarm.
       const dx = rect.width / 4, dy = rect.height / 4
@@ -316,6 +325,19 @@ async function measure(page: Page, phone: boolean) {
       const right = el.getBoundingClientRect().right
       if (right > widest) { widest = right; widestLabel = label(el) }
     }
+    // A tab scrolled out of its own tab list is a navigation item nobody sees (Ficha "Rola..." bug).
+    for (const list of document.querySelectorAll('[role=tablist]')) {
+      if (!visible(list)) continue
+      const box = list.getBoundingClientRect()
+      for (const tab of list.querySelectorAll('[role=tab]')) {
+        const rect = tab.getBoundingClientRect()
+        if (rect.right > box.right + 1 || rect.left < box.left - 1) clipped.push({ kind: 'tab-hidden', detail: `${label(tab)} fora da lista de abas` })
+      }
+    }
+    // The campaign name is the page's context: squeezed to a sliver it is as good as gone (1280 px bug).
+    const names = [...document.querySelectorAll('.topbar .campaign-name')].filter(visible)
+    const nameWidth = names.length ? Math.round(Math.max(...names.map(el => el.getBoundingClientRect().width))) : 0
+    if (nameWidth < 100) clipped.push({ kind: 'campaign-name', detail: `nome da campanha com ${nameWidth}px na barra` })
     const overflow = Math.max(document.documentElement.scrollWidth - W, Math.round(widest - W))
     if (overflow > 0) offscreen.push({ kind: 'overflow', detail: `widest ${widestLabel} right=${Math.round(widest)}` })
     return {
