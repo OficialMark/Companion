@@ -287,7 +287,7 @@ onBeforeUnmount(closeDetail)
         </form>
         <p v-if="error" class="form-error" role="alert">{{ error }}</p>
         <div v-if="busy && !items.length" class="empty-state" role="status">Carregando…</div>
-        <div v-else-if="!items.length" class="empty-state"><span class="state-icon"><Icon :name="category.icon" size="1.6rem" /></span><p>Nenhum registro nesta seção ainda.</p><button class="button secondary small" type="button" :disabled="offline" @click="startCreate">Adicionar {{ categorySingular.toLowerCase() }}</button></div>
+        <div v-else-if="!items.length" class="empty-state"><span class="state-icon"><Icon :name="category.icon" size="1.6rem" /></span><p>Nenhum registro nesta seção ainda.</p><button class="button ghost small" type="button" :disabled="offline" @click="startCreate">Criar o primeiro registro</button></div>
         <ul v-else class="knowledge-items">
           <li v-for="item in items" :key="item.id">
             <button class="knowledge-item" :class="{ selected: selected?.id === item.id, pending: pendingEntryId === item.id }" :aria-busy="pendingEntryId === item.id" type="button" @click="openEntry(item)">

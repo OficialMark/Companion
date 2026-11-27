@@ -50,11 +50,11 @@
 - [X] T023 [US4] Integração: busca e criação recusadas para jogador, permitidas ao mestre; opções sem PV/CA; acesso anônimo recusado em backend/tests/Companion.IntegrationTests/BattlemapTokenSourceApiTests.cs
 - [X] T024 [US4] Integração: duas origens (400), entradas desconhecidas (404), label vazio (400) em backend/tests/Companion.IntegrationTests/BattlemapTokenSourceApiTests.cs
 
-## Phase 6: User Story 3 - Mestre escolhe "Só token" ou "No combate" (P2)
+## Phase 6: User Story 3 - Seletor só de tokens também para o mestre (P2)
 
 **Independent Test**: mestre alterna o modo e vê o seletor de combate.
 
-- [X] T025 [US3] Grupo de rádio "Só token"/"No combate" que reaproveita `CreaturePicker` em frontend/app/components/battlemap/TokenSourcePicker.vue
+- [X] T025 [US3] Seletor sem modo de combate na preparação; switch "Reforço no combate" só para o mestre com o combate em andamento (revisado após a review de design e o e2e de reforços da spec 008) em frontend/app/components/battlemap/TokenSourcePicker.vue
 
 ## Phase 7: Polish
 
@@ -73,4 +73,4 @@ T002, T003 e T004 (uma migration por provedor) rodam juntos; T012 e T013 também
 
 ## Implementation Strategy
 
-MVP = US1 (jogador com criatura). US2 e US4 completam o pedido; US3 preserva o fluxo antigo do mestre.
+MVP = US1 (jogador com criatura). US2 e US4 completam o pedido; US3 mantém o combate só no painel Combatentes.

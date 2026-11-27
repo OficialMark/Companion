@@ -64,20 +64,20 @@ describe('BattlemapBoard marker tokens', () => {
   })
 
   it('offers the compendium next to "Inserir token" to every participant (spec 016)', async () => {
-    const stubs = { TokenSourcePicker: { props: ['isMaster'], template: '<div data-stub-picker :data-master="String(isMaster)" />' } }
+    const stubs = { TokenSourcePicker: { template: '<div data-stub-picker />' } }
     const player = mount(BattlemapBoard, {
       props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'player-0', isMaster: false, online: true },
       global: { stubs }
     })
     await player.get('[data-board-catalog]').trigger('click')
-    expect(player.get('[data-stub-picker]').attributes('data-master')).toBe('false')
+    expect(player.find('[data-stub-picker]').exists()).toBe(true)
     const master = mount(BattlemapBoard, {
       props: { battlemap: markerSnapshot({ tokens: [] }), imageSource: 'blob:test', currentParticipantId: 'master', isMaster: true, online: true },
       global: { stubs }
     })
     expect(master.find('[data-stub-picker]').exists()).toBe(false)
     await master.get('[data-board-catalog]').trigger('click')
-    expect(master.get('[data-stub-picker]').attributes('data-master')).toBe('true')
+    expect(master.find('[data-stub-picker]').exists()).toBe(true)
     expect(master.get('[data-board-catalog]').attributes('aria-expanded')).toBe('true')
 
     const offline = mount(BattlemapBoard, {

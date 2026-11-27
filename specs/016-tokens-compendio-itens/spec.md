@@ -41,19 +41,20 @@ Como jogador ou mestre, quero colocar um item do catálogo no mapa (corda, baú,
 
 ---
 
-### User Story 3 - Mestre escolhe entre token simples e combate (Priority: P2)
+### User Story 3 - Um catálogo por propósito na tela do mestre (Priority: P2)
 
-Como mestre, quero decidir se a criatura entra só como token (cenário, NPC sem ficha em jogo) ou no combate (com iniciativa e PV), para não poluir a ordem de turnos.
+Como mestre, quero que "Do compêndio" crie tokens de cena e que colocar uma criatura no combate (com iniciativa e PV) aconteça pelo painel Combatentes durante a preparação. Com o combate em andamento, quando esse painel some, quero um switch "Reforço no combate" no próprio seletor.
 
-**Why this priority**: O fluxo antigo do mestre (adicionar ao combate) continua necessário; a novidade é poder colocar só o token.
+**Why this priority**: A review de design (2026-11-27) apontou que um modo "No combate" sempre visível no seletor repetia a lista do painel Combatentes logo abaixo, violando hierarquia e proximidade. Mas os reforços no meio do combate (spec 008) precisam continuar possíveis: o switch só aparece quando o painel Combatentes não está na tela.
 
-**Independent Test**: Como mestre, abrir "Do compêndio", ver "Só token" e "No combate"; com "No combate" aparece o seletor antigo com quantidade.
+**Independent Test**: Como mestre em preparação, abrir "Do compêndio": só a lista de tokens. Começar o combate, abrir "Do compêndio" e ligar "Reforço no combate": aparece o catálogo de combate, que adiciona combatentes sem mudar o turno atual.
 
 **Acceptance Scenarios**:
 
-1. **Given** o mestre na aba Criaturas, **When** escolhe "Só token", **Then** a criatura entra como token sem combatente e sem iniciativa.
-2. **Given** o mestre na aba Criaturas, **When** escolhe "No combate", **Then** vê o seletor que adiciona de 1 a 20 combatentes ao encontro.
-3. **Given** o mestre, **When** busca criaturas em "Só token", **Then** vê também as criaturas próprias da mesa.
+1. **Given** o mestre em preparação, **When** abre "Do compêndio", **Then** não há switch de reforço e "Adicionar" cria um token sem combatente.
+2. **Given** o combate em andamento, **When** o mestre liga "Reforço no combate" na aba Criaturas, **Then** vê o catálogo de combate (1 a 20 cópias, iniciativa rolada).
+3. **Given** a aba Itens ou um jogador, **When** o seletor abre, **Then** nunca há switch de reforço.
+4. **Given** o mestre, **When** busca criaturas no seletor, **Then** vê também as criaturas próprias da mesa.
 
 ---
 
@@ -98,7 +99,7 @@ Como mestre, quero que a busca de criaturas dos jogadores mostre só o compêndi
 - **FR-008**: Tokens do compêndio e de itens MUST NOT entrar na ordem de iniciativa.
 - **FR-009**: O nome padrão MUST caber em 40 caracteres, cortando em fronteira de palavra quando possível; um nome informado MUST prevalecer.
 - **FR-010**: O sistema MUST recusar um pedido com criatura e item ao mesmo tempo e entradas inexistentes ou fora do alcance do participante.
-- **FR-011**: O mestre MUST poder escolher entre "Só token" e "No combate" na aba Criaturas.
+- **FR-011**: O seletor "Do compêndio" MUST criar tokens. Adicionar combatentes MUST ficar no painel Combatentes durante a preparação; com o combate em andamento, o seletor do mestre MUST oferecer o switch "Reforço no combate" (nunca para jogadores nem na aba Itens).
 - **FR-012**: Tokens de texto livre MUST continuar funcionando como antes.
 - **FR-013**: Criar ou remover um token MUST atualizar o mapa de todos os participantes em tempo real.
 
@@ -121,4 +122,4 @@ Como mestre, quero que a busca de criaturas dos jogadores mostre só o compêndi
 - O compêndio público de criaturas (fonte autorizada já usada na biblioteca) pode ser consultado por jogadores; só as fichas continuam restritas ao mestre.
 - Itens do catálogo não têm imagem própria; o token usa as iniciais do nome e o formato quadrado.
 - A edição feita pelo mestre numa criatura do compêndio não muda o que o jogador vê na busca: o jogador usa a entrada pública.
-- O mestre continua usando "No combate" quando quer PV e iniciativa; "Só token" é para cena.
+- O mestre usa o painel Combatentes quando quer PV e iniciativa; "Do compêndio" é para cena.

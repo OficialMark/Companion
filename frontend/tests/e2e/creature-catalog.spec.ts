@@ -46,7 +46,7 @@ for (const width of [1280, 1024, 375]) {
     await page.getByRole('button', { name: 'Iniciar preparação' }).click()
     await expect(page.getByRole('button', { name: 'Do catálogo' }).last()).toHaveAttribute('aria-pressed', 'true')
     await page.getByLabel('Buscar criatura no catálogo').first().fill('goblin')
-    const goblinRow = page.locator('.encounter-setup .creature-picker-row').filter({ hasText: /^Goblin/ }).first()
+    const goblinRow = page.locator('.encounter-setup .creature-picker-row').filter({ has: page.getByRole('button', { name: 'Ver ficha de Goblin', exact: true }) })
     await expect(goblinRow).toBeVisible()
     await goblinRow.getByRole('button', { name: 'Mais uma' }).click()
     await goblinRow.getByRole('button', { name: 'Adicionar' }).click()
@@ -79,13 +79,15 @@ for (const width of [1280, 1024, 375]) {
     // Combat only starts when everyone has HP: the player fills in their profile.
     await setSheetProfile(player, { dexterity: 16, hp: 24 })
 
-    // 4. Start combat, then add a reinforcement from the board's catalog.
+    // 4. Start combat, then add a reinforcement from the board's compendium (spec 016: the picker
+    // makes tokens; mid-combat the master flips "Reforço no combate" to reach the combat catalog).
     await page.getByRole('button', { name: 'Rolar iniciativas', exact: true }).click()
     await page.getByRole('button', { name: 'Começar combate' }).click()
     await page.locator('[data-board-catalog]').click()
+    await page.locator('[data-token-source-reinforcement]').check({ force: true })
     await expect(page.locator('[data-picker-running]')).toBeVisible()
     await page.locator('.battlemap-catalog').getByLabel('Buscar criatura no catálogo').fill('ogro')
-    const ogreRow = page.locator('.battlemap-catalog .creature-picker-row').filter({ hasText: /^Ogro/ }).first()
+    const ogreRow = page.locator('.battlemap-catalog .creature-picker-row').filter({ has: page.getByRole('button', { name: 'Ver ficha de Ogro', exact: true }) })
     await ogreRow.getByRole('button', { name: 'Adicionar' }).click()
     await expect(page.locator('.battlemap-catalog').getByText(/Ogro.* adicionado ao combate\./)).toBeVisible()
     await page.locator('.battlemap-catalog').scrollIntoViewIfNeeded()

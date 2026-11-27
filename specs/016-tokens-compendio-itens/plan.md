@@ -6,7 +6,7 @@
 
 ## Summary
 
-O token representativo (spec 006, `BattlemapMarker`) ganha uma origem opcional: uma criatura do compêndio ou um item do catálogo. O servidor resolve a entrada com as regras de visibilidade de cada participante, deriva nome e tamanho, e o snapshot do mapa devolve a origem e a imagem da criatura. Uma rota nova lista criaturas com o mínimo necessário para escolher o token, liberada para jogadores mas restrita ao compêndio público. No frontend, o botão "Do compêndio" passa a existir para todos e abre o `TokenSourcePicker` (abas Criaturas/Itens; o mestre escolhe "Só token" ou "No combate"). Itens são desenhados como quadrado arredondado.
+O token representativo (spec 006, `BattlemapMarker`) ganha uma origem opcional: uma criatura do compêndio ou um item do catálogo. O servidor resolve a entrada com as regras de visibilidade de cada participante, deriva nome e tamanho, e o snapshot do mapa devolve a origem e a imagem da criatura. Uma rota nova lista criaturas com o mínimo necessário para escolher o token, liberada para jogadores mas restrita ao compêndio público. No frontend, o botão "Do compêndio" passa a existir para todos e abre o `TokenSourcePicker` (abas Criaturas/Itens; cria tokens. Na preparação o combate fica no painel Combatentes; com o combate em andamento o mestre tem o switch "Reforço no combate", para nunca haver dois catálogos iguais na mesma tela). Itens são desenhados como quadrado arredondado.
 
 ## Technical Context
 

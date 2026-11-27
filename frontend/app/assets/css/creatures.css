@@ -226,7 +226,7 @@ body.modal-open { overflow: hidden; }
 /* Catalog picker inside combat preparation */
 .setup-mode { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.18); }
 .setup-mode .view-tab { padding: 0 14px; font-size: .86rem; }
-.creature-picker { display: grid; gap: 10px; }
+.creature-picker { display: grid; gap: 10px; container: creature-picker / inline-size; }
 .creature-picker .creature-search { flex: none; }
 .creature-picker-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; transition: opacity .15s; }
 .creature-picker-list.loading { opacity: .55; }
@@ -240,11 +240,14 @@ body.modal-open { overflow: hidden; }
 .creature-picker .roll-stepper-value { min-width: 30px; }
 .creature-picker .button.compact { min-height: 44px; }
 .creature-picker-done { color: #9be3bd; }
-@media (max-width: 560px) {
+/* By the picker's own width, not the viewport's: on wide screens it lives in a narrow side column. */
+@container creature-picker (max-width: 520px) {
   .creature-picker-row { flex-wrap: wrap; }
   .creature-picker-info { flex-basis: 100%; }
   .creature-picker-actions { flex: 1 1 100%; justify-content: space-between; }
   .creature-picker-actions .button { flex: 1 1 auto; }
+}
+@media (max-width: 560px) {
   .setup-mode { display: flex; }
   .setup-mode .view-tab { flex: 1 1 0; justify-content: center; }
 }

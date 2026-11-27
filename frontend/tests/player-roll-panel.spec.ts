@@ -110,6 +110,37 @@ describe('PlayerRollPanel', () => {
     expect(expression(other)).toBe('')
   })
 
+  it('shows the player\'s own latest roll from the history under "Rolar" after a reload, never someone else\'s', async () => {
+    const wrapper = setup()
+    const campaign = useCampaignStore()
+    const mine = { ...diceRoll('r1', 'd20+3', 'Ataque', 17), participantId: 'p1', createdAt: '2026-11-19T10:00:00Z' }
+    const older = { ...diceRoll('r0', 'd20', null, 4), participantId: 'p1', createdAt: '2026-11-19T09:00:00Z' }
+    const theirs = { ...diceRoll('r2', 'd20', 'Furtividade', 9), participantId: 'p2', createdAt: '2026-11-19T11:00:00Z' }
+    campaign.snapshot = { diceRolls: [theirs, older, mine] } as never
+    await nextTick()
+    const card = wrapper.get('[data-roll-last]')
+    expect(card.text()).toContain('Ataque')
+    expect(card.text()).toContain('17')
+    expect(card.text()).not.toContain('Furtividade')
+    // The same result rides in the action row (shown on wide screens, where that row is stuck).
+    const chip = wrapper.get('[data-roll-last-chip]')
+    expect(chip.text()).toContain('17')
+    expect(chip.attributes('aria-live')).toBe('polite')
+  })
+
+  it('says what a disabled "Rolar" waits for, and drops the hint once there is something to roll', async () => {
+    const wrapper = setup()
+    await startFree(wrapper)
+    expect(wrapper.get('[data-roll-go]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-roll-hint]').text()).toContain('Escolha os dados ou digite uma expressão')
+    expect(wrapper.get('[data-roll-go]').attributes('aria-describedby')).toBe('roll-go-hint')
+
+    await wrapper.get('[data-die="d20"]').trigger('click')
+    expect(wrapper.get('[data-roll-go]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('[data-roll-hint]').exists()).toBe(false)
+    expect(wrapper.get('[data-roll-go]').attributes('aria-describedby')).toBeUndefined()
+  })
+
   it('updates the expression live as the player builds the roll', async () => {
     const wrapper = setup()
     await startFree(wrapper)

@@ -94,6 +94,9 @@ export function buildExpression(input: RollExpressionInput): string {
   return repetitions > 1 ? `${repetitions}#[${body}]` : body
 }
 
+/** Not a real error while the player is still choosing: the panels hide it and explain what is missing instead. */
+export const NO_DICE_ERROR = 'Escolha pelo menos um dado.'
+
 /**
  * Valida os limites do contrato antes de enviar. Devolve a mensagem em PT-BR ou null.
  * Os dados contam as duas execuções de maior/menor e todas as repetições.
@@ -107,7 +110,7 @@ export function expressionLimits(input: RollExpressionInput): string | null {
   if (dice.some(({ count }) => !Number.isInteger(count) || count < 0)) {
     return 'A quantidade de cada dado deve ser um número inteiro, zero ou mais.'
   }
-  if (dice.length === 0) return 'Escolha pelo menos um dado.'
+  if (dice.length === 0) return NO_DICE_ERROR
   const executions = input.selection === 'none' ? 1 : 2
   const total = dice.reduce((sum, item) => sum + item.count, 0) * executions * repetitions
   if (total > MAX_DICE) {

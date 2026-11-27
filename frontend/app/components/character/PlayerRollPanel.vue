@@ -8,7 +8,7 @@ import RollConfigFields from '~/components/character/RollConfigFields.vue'
 import SavedRollEditor from '~/components/character/SavedRollEditor.vue'
 import { RESULT_HOLD_MS } from '~/utils/creatureRoll'
 import { createResultScrollSession } from '~/utils/scrollToResult'
-import { MAX_EXPRESSION_LENGTH } from '~/utils/rollExpression'
+import { MAX_EXPRESSION_LENGTH, NO_DICE_ERROR } from '~/utils/rollExpression'
 import {
   cloneConfig, configFromSavedRoll, emptyConfig, plannedDice, plannedValues, resolveRoll, weaponDamageExpression, weaponDamageSummary, weaponDamageBreakdownPlan, type DamageBreakdownPlan, type RollConfig
 } from '~/utils/playerRoll'
@@ -42,10 +42,31 @@ const canRoll = computed(() => !busy.value && !offline.value && (
     ? Boolean(manualExpression.value.trim())
     : Boolean(resolved.value.expression) && !resolved.value.error
 ))
+/** Why "Rolar" is off when nothing else explains it (no dice, no expression): a disabled main action must say what it waits for. */
+const rollHint = computed(() => {
+  const error = resolved.value.error
+  if (canRoll.value || busy.value || offline.value || (error && error !== NO_DICE_ERROR)) return ''
+  return 'Escolha os dados ou digite uma expressão para rolar.'
+})
 
 const busy = ref(false)
 const error = ref('')
-const last = ref<DiceRoll | null>(null)
+/** Result rolled in this page session (shown right after the animation). */
+const sessionLast = ref<DiceRoll | null>(null)
+/**
+ * The player's own latest public roll, from the table history: after a reload or on another device the
+ * result still sits under "Rolar" instead of only far away in the history (design review, round 3).
+ */
+const latestOwn = computed(() => {
+  const me = store.session?.participantId
+  let newest: DiceRoll | null = null
+  for (const roll of store.snapshot?.diceRolls ?? []) {
+    if (roll.participantId !== me) continue
+    if (!newest || roll.createdAt > newest.createdAt) newest = roll
+  }
+  return newest
+})
+const last = computed(() => sessionLast.value ?? latestOwn.value)
 const rollingDice = ref<AnimatedDie[]>([])
 const settled = ref(false)
 const rollingResult = ref<DiceRoll | null>(null)
@@ -130,7 +151,7 @@ async function roll(source: RollConfig | null, label?: string, manual = '') {
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) {
       store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50)
     }
-    last.value = revealed
+    sessionLast.value = revealed
     revealedOk = true
     emit('rolled', revealed)
     if (snapshot?.kind === 'Attack' && snapshot.source?.type === 'weapon') {
@@ -209,12 +230,19 @@ function openEditor() {
     </RollConfigFields>
 
     <div class="player-roll-actions">
-      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" @click="rollCurrent">
+      <button class="button primary roll-go" type="button" data-roll-go :disabled="!canRoll" :aria-describedby="rollHint ? 'roll-go-hint' : undefined" @click="rollCurrent">
         <Icon :name="busy ? 'lucide:loader-circle' : 'lucide:dices'" :class="{ spin: busy }" />{{ busy ? 'Rolando…' : 'Rolar' }}
       </button>
       <button class="button ghost small" type="button" data-save-roll :disabled="busy || manualExpression !== null" @click="openEditor">
         <Icon name="lucide:bookmark-plus" />Salvar como rolagem
       </button>
+      <p v-if="rollHint" id="roll-go-hint" class="field-hint roll-go-hint" data-roll-hint><Icon name="lucide:info" />{{ rollHint }}</p>
+      <!-- Wide screens: this row is stuck at the foot of the dice column and is the one place the result
+           shows (the card below is hidden there: two copies read as a glitch, review round 7). On phones
+           it is display:none, so only the card is read out. -->
+      <p v-if="last && !rollingDice.length" class="roll-last-chip" data-roll-last-chip aria-live="polite">
+        <Icon name="lucide:sparkles" /><span class="roll-last-chip-label">{{ last.label || 'Último resultado' }}</span><strong>{{ last.total }}</strong>
+      </p>
     </div>
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>

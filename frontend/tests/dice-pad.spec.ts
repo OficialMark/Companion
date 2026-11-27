@@ -21,6 +21,16 @@ beforeEach(() => { vi.useFakeTimers() })
 afterEach(() => { vi.useRealTimers(); document.body.innerHTML = '' })
 
 describe('DicePad', () => {
+  it('puts "Limpar dados" in the dice grid as its eighth cell, not on a row of its own (design review)', () => {
+    const { wrapper } = mountPad({ d6: 1 })
+    const cells = wrapper.findAll('.dice-pad-grid > button')
+    expect(cells).toHaveLength(8)
+    const clear = cells[7]!
+    expect(clear.attributes('data-clear-dice')).toBeDefined()
+    expect(clear.attributes('aria-label')).toBe('Limpar dados')
+    expect(clear.attributes('disabled')).toBeUndefined()
+  })
+
   it('shows the seven dice with a 44px-ready label and a count badge', async () => {
     const { wrapper } = mountPad({ d6: 3 })
     expect(wrapper.findAll('[data-die]').map(die => die.attributes('data-die'))).toEqual(['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'])

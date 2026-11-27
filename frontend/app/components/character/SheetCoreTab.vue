@@ -79,6 +79,9 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
 
 <template>
   <div v-if="character.draft && character.stats" class="sheet-core" @focusout="leaveField" @change="leaveField">
+    <!-- Two columns from 1440 px (character.css): who the character is, what it rolls with and its base
+         values on the left; skills, casting and notes on the right (balanced heights). Narrower, they stack. -->
+    <div class="sheet-core-main">
     <section class="sheet-section sheet-identity" aria-labelledby="sheet-identity-title">
       <h2 id="sheet-identity-title" class="sheet-section-title">Personagem</h2>
       <div class="sheet-grid identity-grid">
@@ -183,6 +186,33 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
       </div>
     </section>
 
+
+    <section class="sheet-section" aria-labelledby="sheet-base-title">
+      <h2 id="sheet-base-title" class="sheet-section-title">Valores-base</h2>
+      <p class="sheet-hint">Itens equipados somam por cima destes valores, sem alterá-los.</p>
+      <div class="sheet-grid">
+        <label class="sheet-field short"><span>PV máximos base</span>
+          <input data-field="baseMaxHitPoints" type="number" inputmode="numeric" min="1" max="9999" :value="draft.baseMaxHitPoints" @input="number('baseMaxHitPoints', $event, 1, 9999)">
+        </label>
+        <label class="sheet-field short"><span>CA sem armadura</span>
+          <input data-field="unarmoredBaseArmorClass" type="number" inputmode="numeric" min="0" max="30" :value="draft.unarmoredBaseArmorClass" @input="number('unarmoredBaseArmorClass', $event, 0, 30)">
+        </label>
+        <label class="sheet-field"><span>Soma sem armadura</span>
+          <select data-field="unarmoredAbility" :value="draft.unarmoredAbility ?? ''" @change="edit({ unarmoredAbility: (($event.target as HTMLSelectElement).value || null) as AbilityCode | null })">
+            <option value="">Só DES</option>
+            <option v-for="code in ABILITY_ORDER.filter(x => x !== 'Dex')" :key="code" :value="code">DES + {{ ABILITY_LABEL[code] }}</option>
+          </select>
+        </label>
+        <label class="sheet-field short"><span>Deslocamento (m)</span>
+          <input data-field="baseSpeed" type="number" inputmode="decimal" min="0" max="300" step="1.5" :value="draft.baseSpeed" @input="decimal('baseSpeed', $event)">
+        </label>
+        <label class="sheet-field short"><span>Visão no escuro (m)</span>
+          <input data-field="darkvision" type="number" inputmode="decimal" min="0" max="300" step="1.5" :value="draft.baseSenses.darkvision ?? ''" @input="setDarkvision">
+        </label>
+      </div>
+    </section>
+    </div>
+    <div class="sheet-core-side">
     <section class="sheet-section" aria-labelledby="sheet-skills-title">
       <h2 id="sheet-skills-title" class="sheet-section-title">Perícias</h2>
       <ul class="skill-list">
@@ -210,31 +240,6 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
           />
         </li>
       </ul>
-    </section>
-
-    <section class="sheet-section" aria-labelledby="sheet-base-title">
-      <h2 id="sheet-base-title" class="sheet-section-title">Valores-base</h2>
-      <p class="sheet-hint">Itens equipados somam por cima destes valores, sem alterá-los.</p>
-      <div class="sheet-grid">
-        <label class="sheet-field short"><span>PV máximos base</span>
-          <input data-field="baseMaxHitPoints" type="number" inputmode="numeric" min="1" max="9999" :value="draft.baseMaxHitPoints" @input="number('baseMaxHitPoints', $event, 1, 9999)">
-        </label>
-        <label class="sheet-field short"><span>CA sem armadura</span>
-          <input data-field="unarmoredBaseArmorClass" type="number" inputmode="numeric" min="0" max="30" :value="draft.unarmoredBaseArmorClass" @input="number('unarmoredBaseArmorClass', $event, 0, 30)">
-        </label>
-        <label class="sheet-field"><span>Soma sem armadura</span>
-          <select data-field="unarmoredAbility" :value="draft.unarmoredAbility ?? ''" @change="edit({ unarmoredAbility: (($event.target as HTMLSelectElement).value || null) as AbilityCode | null })">
-            <option value="">Só DES</option>
-            <option v-for="code in ABILITY_ORDER.filter(x => x !== 'Dex')" :key="code" :value="code">DES + {{ ABILITY_LABEL[code] }}</option>
-          </select>
-        </label>
-        <label class="sheet-field short"><span>Deslocamento (m)</span>
-          <input data-field="baseSpeed" type="number" inputmode="decimal" min="0" max="300" step="1.5" :value="draft.baseSpeed" @input="decimal('baseSpeed', $event)">
-        </label>
-        <label class="sheet-field short"><span>Visão no escuro (m)</span>
-          <input data-field="darkvision" type="number" inputmode="decimal" min="0" max="300" step="1.5" :value="draft.baseSenses.darkvision ?? ''" @input="setDarkvision">
-        </label>
-      </div>
     </section>
 
     <section class="sheet-section" aria-labelledby="sheet-casting-title">
@@ -290,5 +295,6 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
         <textarea data-field="notes" maxlength="4000" rows="4" :value="draft.notes ?? ''" @input="text('notes', $event)" />
       </label>
     </section>
+    </div>
   </div>
 </template>

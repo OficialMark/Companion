@@ -5,13 +5,13 @@ import CreaturePicker from '~/components/creatures/CreaturePicker.vue'
 
 /**
  * Spec 016: drop a compendium creature or a catalog item on the board as a token. Every participant
- * gets it; the token lands in the reserve, owned by whoever added it. The master can also send a
- * creature into combat (initiative, HP) through the existing picker.
+ * gets it; the token lands in the reserve, owned by whoever added it.
+ * Sending a creature into combat (initiative, HP) belongs to the master's Combatentes panel while the
+ * combat is being prepared. Once it is running that panel is gone, so the master gets a switch here to
+ * add reinforcements (spec 008): one catalog per purpose on the screen, never two side by side.
  */
 const props = withDefaults(defineProps<{ isMaster?: boolean }>(), { isMaster: false })
-
 type Tab = 'creatures' | 'items'
-type CreatureMode = 'token' | 'combat'
 const PAGE = 8
 const SIZE_LABEL: Record<CreatureSize, string> = {
   Tiny: 'Miúda', Small: 'Pequena', Medium: 'Média', Large: 'Grande', Huge: 'Enorme', Gargantuan: 'Imensa'
@@ -31,7 +31,10 @@ const api = useCompanionApi()
 const characterApi = useCharacterApi()
 
 const tab = ref<Tab>('creatures')
-const creatureMode = ref<CreatureMode>('token')
+const reinforcement = ref(false)
+const combatRunning = computed(() => campaign.snapshot?.activeEncounter?.status === 'Active')
+const offersReinforcement = computed(() => props.isMaster && combatRunning.value && tab.value === 'creatures')
+const showsReinforcement = computed(() => offersReinforcement.value && reinforcement.value)
 const search = ref('')
 const creatures = ref<CreatureTokenOption[]>([])
 const items = ref<CatalogItemSummary[]>([])
@@ -41,7 +44,6 @@ const error = ref('')
 const added = ref('')
 const adding = ref<string | null>(null)
 const offline = computed(() => campaign.connection === 'offline')
-const showsCombatPicker = computed(() => props.isMaster && tab.value === 'creatures' && creatureMode.value === 'combat')
 const shown = computed(() => tab.value === 'creatures' ? creatures.value.length : items.value.length)
 
 let sequence = 0
@@ -49,7 +51,7 @@ let debounce: ReturnType<typeof setTimeout> | undefined
 
 async function load() {
   const session = campaign.session
-  if (!session || showsCombatPicker.value) return
+  if (!session) return
   const current = ++sequence
   loading.value = true
   error.value = ''
@@ -78,7 +80,7 @@ watch(search, () => {
   clearTimeout(debounce)
   debounce = setTimeout(load, 250)
 })
-watch([tab, creatureMode], () => {
+watch(tab, () => {
   added.value = ''
   void load()
 })
@@ -110,18 +112,19 @@ async function add(kind: 'creature' | 'item', id: string, name: string) {
       </button>
     </div>
 
-    <div v-if="isMaster && tab === 'creatures'" class="token-source-mode" role="radiogroup" aria-label="Como a criatura entra no mapa">
-      <label :class="{ active: creatureMode === 'token' }">
-        <input v-model="creatureMode" type="radio" value="token" name="token-source-mode" data-token-source-mode="token">
-        <Icon name="lucide:map-pin" /><span>Só token</span>
-      </label>
-      <label :class="{ active: creatureMode === 'combat' }">
-        <input v-model="creatureMode" type="radio" value="combat" name="token-source-mode" data-token-source-mode="combat">
-        <Icon name="lucide:swords" /><span>No combate</span>
-      </label>
-    </div>
+    <!-- Only while the combat runs (the Combatentes panel is gone then), only for the master. -->
+    <label v-if="offersReinforcement" class="switch-field token-source-reinforcement">
+      <input v-model="reinforcement" data-token-source-reinforcement type="checkbox" role="switch">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb" /></span>
+      <span class="token-source-reinforcement-text"><strong>Reforço no combate</strong><small>Entra na iniciativa com PV, sem mudar o turno atual.</small></span>
+    </label>
 
-    <CreaturePicker v-if="showsCombatPicker" />
+    <!-- Preparing: say where combat creatures go, so the missing "into combat" option reads as a choice, not a gap. -->
+    <p v-else-if="isMaster && tab === 'creatures' && !combatRunning" class="field-hint token-source-combat-hint" data-token-source-combat-hint>
+      <Icon name="lucide:swords" />Aqui as criaturas entram como token de cena. Para pôr no combate, com iniciativa e PV, use o painel Combatentes.
+    </p>
+
+    <CreaturePicker v-if="showsReinforcement" />
     <template v-else>
       <label class="creature-search">
         <Icon name="lucide:search" />
