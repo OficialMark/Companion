@@ -59,7 +59,7 @@ test('right-click on the board never leaves the browser menu free to open', asyn
   await page.getByRole('button', { name: 'Entrar como mestre' }).click()
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
   await page.getByLabel('Buscar criatura no catálogo').first().fill('goblin')
-  await page.locator('.encounter-setup .creature-picker-row').filter({ hasText: /^Goblin/ }).first().getByRole('button', { name: 'Adicionar' }).click()
+  await page.locator('.encounter-setup .creature-picker-row').filter({ has: page.getByRole('button', { name: 'Ver ficha de Goblin', exact: true }) }).getByRole('button', { name: 'Adicionar' }).click()
   await expect(page.getByText('Goblin adicionado ao combate.')).toBeVisible()
   await page.getByLabel('Imagem do battlemap').setInputFiles({ name: 'mapa.png', mimeType: 'image/png', buffer: await mapPng(page) })
   await page.getByLabel('Colunas do grid').fill('10')

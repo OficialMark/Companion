@@ -64,7 +64,7 @@ test('mestre: código na barra, compêndio em abas com busca ampla e rolagem por
   await page.getByRole('button', { name: 'Mesa', exact: true }).click()
   await page.getByRole('button', { name: 'Iniciar preparação' }).click()
   await page.getByLabel('Buscar criatura no catálogo').first().fill('goblin')
-  await page.locator('.encounter-setup .creature-picker-row').filter({ hasText: /^Goblin/ }).first().getByRole('button', { name: 'Adicionar' }).click()
+  await page.locator('.encounter-setup .creature-picker-row').filter({ has: page.getByRole('button', { name: 'Ver ficha de Goblin', exact: true }) }).getByRole('button', { name: 'Adicionar' }).click()
   await expect(page.getByText('Goblin adicionado ao combate.')).toBeVisible()
   const source = page.locator('[data-master-roll-source]')
   await expect(source.locator('option')).toHaveCount(2)

@@ -22,6 +22,13 @@ describe('battlemap viewport math', () => {
     const zoomed = viewport.cellSize.value
     viewport.resize(1600, 1200)
     expect(viewport.cellSize.value).toBe(zoomed)
+    // Any touch or key on the board also freezes the framing: nothing moves under the pointer
+    // between aiming at a token and clicking it (e2e right-click regression).
+    viewport.reset()
+    viewport.resize(600, 450)
+    viewport.hold()
+    viewport.resize(1300, 975)
+    expect(viewport.cellSize.value).toBe(25)
     // "Ajustar mapa" style reset hands framing back to the stage.
     viewport.reset()
     viewport.resize(1300, 975)

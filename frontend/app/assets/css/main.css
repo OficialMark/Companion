@@ -26,6 +26,11 @@
 
 * { box-sizing: border-box; }
 html { min-height: 100%; background: #171216; }
+/* The top bar is sticky: focus, anchors and scrollIntoView must stop below it, or the first row of a
+   focused board (a token!) lands hidden under the bar (e2e right-click regression). Two-row bar below
+   1280 px; the phone values (with the bottom tab bar) are set in the phone block. */
+html:has(.topbar) { scroll-padding-top: 84px; }
+@media (max-width: 1279px) { html:has(.topbar.has-view-nav) { scroll-padding-top: 140px; } }
 body { margin: 0; min-width: 320px; min-height: var(--vh); background:
   radial-gradient(circle at 15% 0%, rgba(142, 52, 81, .18), transparent 33rem),
   linear-gradient(145deg, #181317, #211820 62%, #171216); }
@@ -179,48 +184,45 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 .table-participants { order: 4; }
 .table-history { order: 5; }
 .table-combat:empty { display: none; }
-/* 1100–1599: map, people and history share the wide column; the roll panel stays alone in a sticky
-   column on the right. On a laptop the player's roll panel is a full screen tall, so a history
-   stacked under it was simply never seen (layout review). */
+/* 1100–1599: map and people share the wide column; roll and history (a roll next to its result)
+   share the right one, which follows the scroll and scrolls on its own. */
 @media (min-width: 1100px) {
-  .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto auto 1fr; grid-template-areas: "map roll" "people roll" "history roll"; }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto 1fr; grid-template-areas: "map dice" "people dice"; }
   .table-people { display: grid; gap: 20px; align-content: start; min-width: 0; grid-area: people; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+  .table-dice { display: grid; gap: 20px; align-content: start; min-width: 0; grid-area: dice; grid-template-rows: auto minmax(0, 1fr); }
   /* The phone ordering must not leak inside the columns (participants above combat, roll above history). */
   .table-people > *, .table-dice > * { order: 0; }
   .table-map { grid-area: map; }
-  .table-roll { grid-area: roll; }
-  .table-history { grid-area: history; }
   /* Seven 44 px dice do not fit a 400 px column: two rows of four. */
   .table-roll .dice-presets { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Greeting on one compact line: the map starts ~60 px higher. */
+  .welcome-row { margin-bottom: 16px; }
+  .welcome-row h1 { font-size: 1.75rem; }
 }
 /* >= 1600: people | map | dice (roll above its history). */
 @media (min-width: 1600px) {
   .dashboard-grid { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto; grid-template-areas: "people map dice"; }
   .table-people { grid-template-columns: minmax(0, 1fr); }
-  .table-dice { display: grid; gap: 20px; align-content: start; min-width: 0; grid-area: dice; grid-template-rows: auto minmax(0, 1fr); }
-  .table-roll, .table-history { grid-area: auto; }
   .table-map .battlemap-board { max-height: min(calc(var(--vh) - 330px), 1400px); min-height: 480px; }
 }
 /* Side columns follow the scroll and scroll on their own, so a long list (catalog, initiative, a tall
    roll panel) never stretches the page past the map. Only where the screen is tall enough. */
 @media (min-width: 1100px) and (min-height: 700px) {
-  .table-roll { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
-  .table-history > .panel { max-height: min(70vh, 720px); }
-}
-@media (min-width: 1600px) and (min-height: 700px) {
-  .table-roll { position: static; max-height: none; }
-  .table-people, .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+  .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
   .table-history { min-height: 0; }
   .table-history > .panel { max-height: 100%; min-height: 220px; }
 }
+@media (min-width: 1600px) and (min-height: 700px) {
+  .table-people { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+}
 /* Below 1280 px the top bar has two rows (~126 px): sticky columns start under it. */
 @media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
-  .app-shell:has(.topbar.has-view-nav) .table-roll { top: 140px; max-height: calc(var(--vh) - 156px); }
+  .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: calc(var(--vh) - 156px); }
 }
 @media (min-width: 1100px) and (min-height: 700px) {
-  .table-roll, .table-people, .table-dice, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
+  .table-people, .table-dice, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
   /* Room under the last card, so the bottom fade never sits on content the user cannot scroll past. */
-  .table-roll, .table-people, .table-dice { padding-bottom: 4px; }
+  .table-people, .table-dice { padding-bottom: 4px; }
   /* Scroll hint: a soft shadow at the top/bottom edge only while there is more to scroll (the covers
      scroll with the content, the shadows stay with the box). */
   .table-history > .panel {

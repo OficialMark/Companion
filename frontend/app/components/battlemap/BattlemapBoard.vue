@@ -389,6 +389,7 @@ function clickSurface(event: MouseEvent) {
 }
 
 function startTokenDrag(event: PointerEvent, token: BattlemapToken) {
+  viewport.hold()
   suppressSurfaceClick = false
   if (event.button === 2) guardBrowserMenu('pointerup')
   if (fog.active.value) return
@@ -434,6 +435,7 @@ function startPan(event: PointerEvent) {
 }
 
 function pointerDown(event: PointerEvent) {
+  viewport.hold()
   suppressSurfaceClick = false
   if (event.button === 2) guardBrowserMenu('pointerup')
   // A pan that ended without a click (right/middle button) must not swallow the next click.
@@ -566,6 +568,7 @@ function wheel(event: WheelEvent) {
 }
 
 function keydown(event: KeyboardEvent) {
+  viewport.hold()
   if (event.key === 'Escape') {
     if (fog.active.value) exitFogMode()
     else closeAttackAreaPanel()

@@ -177,7 +177,11 @@ async function seedTable(browser: Browser): Promise<{ master: Session; player: S
   await playerPage.getByLabel('Seu nome').fill('Ayla Ventoleste')
   await playerPage.getByRole('button', { name: 'Entrar na campanha' }).click()
   await playerPage.locator('.dashboard').waitFor()
-  const player = await playerPage.evaluate(() => Object.fromEntries(Object.entries(localStorage)))
+  // One roll of the player's own, so the shots show its result right under "Rolar".
+  await playerPage.locator('[data-die="d20"]').first().click({ timeout: 5000 }).catch(() => {})
+  await playerPage.locator('[data-roll-go]').first().click({ timeout: 5000 }).catch(() => {})
+  await playerPage.locator('[data-roll-last]').first().waitFor({ timeout: 8000 }).catch(() => {})
+  const player =await playerPage.evaluate(() => Object.fromEntries(Object.entries(localStorage)))
   await playerContext.close()
   await context.close()
   return { master, player }

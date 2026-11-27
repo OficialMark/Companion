@@ -49,6 +49,8 @@ export const useCharacterStore = defineStore('character', {
     /** Edit sequence included in the save in flight (or last saved). */
     savedSequence: 0,
     inFlight: false,
+    /** A CharacterChanged received while local edits are being saved; consumed after the write settles. */
+    remoteChangePending: false,
     notices: [] as string[]
   }),
   getters: {
@@ -89,6 +91,7 @@ export const useCharacterStore = defineStore('character', {
         if (!current()) return
         this.editSequence = this.savedSequence
         this.apply(character, { resetDraft: true })
+        this.remoteChangePending = false
         this.saveState = 'idle'
       } catch (error) {
         if (current()) this.error = (error as Error).message
@@ -99,8 +102,23 @@ export const useCharacterStore = defineStore('character', {
     /** Another device of the same account changed the sheet: reload unless there are unsaved edits here. */
     async onRemoteChange(participantId: string) {
       if (participantId !== useCampaignStore().session?.participantId) return
-      if (this.stale || this.inFlight) return
+      // Mid-save: remember it and reload once the write settles, instead of dropping another
+      // device's change until the next one.
+      if (this.stale || this.inFlight) {
+        this.remoteChangePending = true
+        return
+      }
+      await this.reconcile()
+    },
+    /**
+     * Reload the server's snapshot after a CharacterChanged. SignalR also echoes this device's own
+     * write: keep the "Salvo" confirmation the user just saw instead of resetting it to idle.
+     */
+    async reconcile() {
+      const current = this.ticket()
+      const savedLocally = this.saveState === 'saved'
       await this.load()
+      if (current() && savedLocally && !this.error) this.saveState = 'saved'
     },
     editSheet(patch: Partial<CharacterSheetData>) {
       if (!this.draft) return
@@ -147,6 +165,10 @@ export const useCharacterStore = defineStore('character', {
       }
       // Edits typed while the save was in flight go in a second save.
       if (saved && current() && this.stale) await this.flush()
+      else if (current() && this.remoteChangePending && !this.stale && this.saveState !== 'conflict') {
+        this.remoteChangePending = false
+        await this.reconcile()
+      }
     },
     /**
      * Item, spell and roll actions: the server answers with the whole recalculated character. Queued

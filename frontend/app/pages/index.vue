@@ -315,10 +315,12 @@ onBeforeUnmount(() => {
           <div v-if="!gameMode.active.value" class="table-participants">
             <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           </div>
+          <!-- Turn order first: it is what the table checks most after the map; the creature catalog of
+               the preparation goes under it (design review, round 2). -->
           <div class="table-combat">
-            <EncounterSetup v-if="!gameMode.active.value" />
             <InitiativeTracker />
             <CombatAttack />
+            <EncounterSetup v-if="!gameMode.active.value" />
           </div>
         </div>
         <div class="table-zone table-map">

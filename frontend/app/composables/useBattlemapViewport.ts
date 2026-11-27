@@ -84,6 +84,9 @@ export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
     clamp()
   }
 
+  /** The user started interacting with the board: nothing may move under their pointer from now on. */
+  function hold() { adjusted = true }
+
   function moveBy(deltaX: number, deltaY: number) {
     if (deltaX || deltaY) adjusted = true
     pan.x += deltaX
@@ -102,5 +105,5 @@ export function useBattlemapViewport(columns: Ref<number>, rows: Ref<number>) {
 
   watch([columns, rows], reset)
 
-  return { viewportWidth, viewportHeight, cellSize, pan, reset, defaultScale, fit, zoom, moveBy, resize, clamp }
+  return { viewportWidth, viewportHeight, cellSize, pan, reset, defaultScale, fit, zoom, moveBy, resize, clamp, hold }
 }
