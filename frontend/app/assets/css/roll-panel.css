@@ -68,7 +68,10 @@
 .roll-last-chip .icon { align-self: center; color: var(--gold); }
 .roll-last-chip-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .roll-last-chip strong { margin-left: auto; color: var(--gold); font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
-@media (min-width: 1100px) and (min-height: 700px) { .table-dice .roll-last-chip { display: flex; } }
+@media (min-width: 1100px) and (min-height: 700px) {
+  .table-dice .roll-last-chip { display: flex; }
+  .table-dice .player-roll-panel [data-roll-last] { display: none; }
+}
 .player-roll-panel .roll-stage { min-width: 0; overflow: hidden; }
 .player-roll-panel .roll-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--ink-soft); overflow-wrap: anywhere; }
 .player-roll-panel .roll-last strong { color: var(--gold); font-size: 1.3rem; }

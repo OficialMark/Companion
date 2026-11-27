@@ -207,7 +207,7 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   .dashboard-grid { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr) minmax(340px, 400px); grid-template-rows: auto; grid-template-areas: "people map dice"; }
   .table-people { grid-template-columns: minmax(0, 1fr); }
   /* Heading, toolbar, hint, reserve and the token form also fit in the window under the board. */
-  .table-map .battlemap-board { max-height: min(calc(var(--vh) - 470px), 1400px); min-height: 420px; }
+  .table-map .battlemap-board { max-height: min(calc(var(--vh) - 520px), 1400px); min-height: 400px; }
 }
 /* Side columns follow the scroll and scroll on their own, so a long list (catalog, initiative, a tall
    roll panel) never stretches the page past the map. Only where the screen is tall enough. */

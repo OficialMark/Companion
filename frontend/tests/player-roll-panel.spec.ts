@@ -125,7 +125,7 @@ describe('PlayerRollPanel', () => {
     // The same result rides in the action row (shown on wide screens, where that row is stuck).
     const chip = wrapper.get('[data-roll-last-chip]')
     expect(chip.text()).toContain('17')
-    expect(chip.attributes('aria-hidden')).toBe('true')
+    expect(chip.attributes('aria-live')).toBe('polite')
   })
 
   it('says what a disabled "Rolar" waits for, and drops the hint once there is something to roll', async () => {
