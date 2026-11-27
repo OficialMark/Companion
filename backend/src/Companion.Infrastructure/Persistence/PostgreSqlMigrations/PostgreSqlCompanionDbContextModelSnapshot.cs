@@ -650,8 +650,14 @@ namespace Companion.Infrastructure.Persistence.PostgreSqlMigrations
                     b.Property<Guid>("BattlemapId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CatalogItemId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatureId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Label")
                         .IsRequired()

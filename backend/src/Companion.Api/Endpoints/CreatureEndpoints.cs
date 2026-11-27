@@ -17,7 +17,10 @@ public static class CreatureEndpoints
             Results.Ok(service.List(campaignId, Token(request),
                 new CreatureQuery(q, size, type, crMin, crMax, origin, page ?? 1, pageSize ?? 30))));
 
-        group.MapGet("/types", (Guid campaignId, HttpRequest request, CreatureService service) =>
+        group.MapGet("/token-options", (Guid campaignId, HttpRequest request, CreatureService service, string? q, int? page, int? pageSize) =>
+            Results.Ok(service.ListTokenOptions(campaignId, Token(request), q, page ?? 1, pageSize ?? 12)));
+
+        group.MapGet("/types",(Guid campaignId, HttpRequest request, CreatureService service) =>
             Results.Ok(service.Types(campaignId, Token(request))));
 
         group.MapGet("/{creatureId:guid}", (Guid campaignId, Guid creatureId, HttpRequest request, CreatureService service) =>

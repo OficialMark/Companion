@@ -35,7 +35,11 @@ public sealed record SetAttackAreaRequest(string Shape, int Radius, int? Width, 
 public sealed record SetFogRequest(string? Mask);
 public sealed record SetHitPointsVisibilityRequest(bool Hidden);
 public sealed record SetTokenAppearanceRequest(int FootprintSize, IReadOnlyList<string> StatusConditions);
-public sealed record CreateMarkerRequest(string Label);
+/// <summary>
+/// Spec 016: a free-text token (Label), or one taken from the creature compendium (CreatureId) or the item
+/// catalog (ItemId). With a source, Label is optional and defaults to the entry's name.
+/// </summary>
+public sealed record CreateMarkerRequest(string? Label, Guid? CreatureId = null, Guid? ItemId = null);
 
 public sealed record SessionResponse(
     Guid CampaignId,
@@ -150,7 +154,10 @@ public sealed record BattlemapTokenDto(
     // Spec 008: creature tokens show the library image and remember the last roll setup.
     string? ImageUrl = null,
     Guid? CreatureId = null,
-    RollPresetDto? RollPreset = null);
+    RollPresetDto? RollPreset = null,
+    // Spec 016: where a marker came from ("creature" | "item"; null = free text) and the entry id.
+    string? SourceKind = null,
+    Guid? SourceId = null);
 public sealed record RollPresetDto(int Count, int Die, string? Ability, int Bonus);
 public sealed record SetRollPresetRequest(int Count, int Die, string? Ability, int Bonus);
 public sealed record BattlemapSnapshotDto(

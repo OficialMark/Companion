@@ -142,13 +142,19 @@ export interface BattlemapToken {
   imageUrl?: string | null
   creatureId?: string | null
   rollPreset?: { count: number; die: number; ability: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null; bonus: number } | null
+  /** Spec 016: a marker taken from the creature compendium or the item catalog (null = free text). */
+  sourceKind?: 'creature' | 'item' | null
+  sourceId?: string | null
 }
 export interface SetTokenAppearanceRequest {
   footprintSize: number
   statusConditions: StatusCondition[]
 }
+/** Spec 016: free text (label), or a compendium creature / catalog item (label optional: defaults to its name). */
 export interface CreateMarkerRequest {
-  label: string
+  label?: string | null
+  creatureId?: string | null
+  itemId?: string | null
 }
 export interface BattlemapSnapshot {
   id: string

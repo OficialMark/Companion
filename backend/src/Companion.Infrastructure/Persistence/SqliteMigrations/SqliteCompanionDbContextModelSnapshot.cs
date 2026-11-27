@@ -639,8 +639,14 @@ namespace Companion.Infrastructure.Persistence.SqliteMigrations
                     b.Property<Guid>("BattlemapId")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("CatalogItemId")
+                        .HasColumnType("TEXT");
+
                     b.Property<long>("CreatedAt")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("CreatureId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Label")
                         .IsRequired()

@@ -61,6 +61,10 @@ public sealed record CreatureDto(
     int InitiativeModifier,
     string Revision);
 
+/// <summary>Spec 016: what the board token picker needs of a creature, and nothing more (no stat block).</summary>
+public sealed record CreatureTokenOptionDto(Guid Id, string Name, CreatureSize Size, string Type, string? ImageUrl);
+public sealed record CreatureTokenOptionPageDto(IReadOnlyList<CreatureTokenOptionDto> Items, int Total, int Page, int PageSize);
+
 public sealed record CreaturePageDto(IReadOnlyList<CreatureSummaryDto> Items, int Total, int Page, int PageSize);
 
 public sealed record CreatureQuery(

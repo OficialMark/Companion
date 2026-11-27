@@ -266,3 +266,25 @@
   .battlemap-new-marker > .button { flex: 1 1 auto; }
   .battlemap-catalog { padding: 8px; }
 }
+
+/* Spec 016: token from the compendium (creatures) or the item catalog */
+.token-source-picker { display: grid; gap: 10px; }
+.token-source-tabs { margin: 0; }
+.token-source-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.token-source-mode label { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; color: var(--muted); font-size: .82rem; cursor: pointer; transition: border-color .15s, color .15s; }
+.token-source-mode label.active { border-color: var(--gold); color: var(--ink); }
+.token-source-mode label:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+.token-source-mode input { position: absolute; opacity: 0; pointer-events: none; }
+.token-source-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; max-height: 340px; overflow-y: auto; }
+.token-source-list.loading { opacity: .6; }
+.token-source-row { display: flex; align-items: center; gap: 10px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 6px 8px; background: rgba(255,255,255,.03); }
+.token-source-text { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+.token-source-text strong { overflow: hidden; color: var(--ink); font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.token-source-text small { overflow: hidden; color: var(--muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.token-source-row .button { flex: none; min-height: 40px; }
+.token-source-item-icon { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 1.5px solid var(--line-strong); border-radius: 12px; color: var(--gold); background: rgba(0,0,0,.2); font-size: 1.15rem; }
+.token-source-done { color: var(--ink); }
+@media (max-width: 420px) {
+  .token-source-row .button span { display: none; }
+  .token-source-row .button { width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+}

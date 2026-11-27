@@ -1,3 +1,4 @@
+using Companion.Application.Catalog;
 using Companion.Application.Creatures;
 using Companion.Application.Campaigns;
 using Companion.Application.Contracts;
@@ -373,16 +374,41 @@ public sealed class BattlemapService(
         var battlemap = db.Battlemaps.SingleOrDefault(x => x.EncounterId == encounterId)
             ?? throw new AppException(AppErrorKind.NotFound, "O encontro ainda não possui battlemap.");
 
+        if (request.CreatureId is not null && request.ItemId is not null)
+            throw new AppException(AppErrorKind.Validation, "Escolha uma criatura ou um item, não os dois.");
+
+        var label = request.Label;
+        CreatureSize? size = null;
+        if (request.CreatureId is { } creatureId)
+        {
+            var creature = TokenCreature(campaignId, actor, creatureId);
+            label = string.IsNullOrWhiteSpace(label) ? BattlemapMarker.LabelFrom(creature.Name) : label;
+            size = creature.Size;
+        }
+        else if (request.ItemId is { } itemId)
+        {
+            var item = CatalogScope.ResolveItem(db, campaignId, itemId);
+            label = string.IsNullOrWhiteSpace(label) ? BattlemapMarker.LabelFrom(item.Name) : label;
+        }
+
         BattlemapMarker marker;
         try
         {
-            marker = new BattlemapMarker(Guid.NewGuid(), battlemap.Id, actor.Id, request.Label, timeProvider.GetUtcNow());
+            marker = new BattlemapMarker(Guid.NewGuid(), battlemap.Id, actor.Id, label ?? string.Empty, timeProvider.GetUtcNow(),
+                request.CreatureId, request.ItemId);
         }
         catch (ArgumentException exception)
         {
             throw new AppException(AppErrorKind.Validation, exception.Message);
         }
         db.Add(marker);
+        if (Footprint(size) > 1)
+        {
+            // A compendium creature enters at its sheet size (Large 2x2...), like a combatant does.
+            var appearance = BattlemapTokenAppearance.ForMarker(Guid.NewGuid(), battlemap.Id, marker.Id);
+            appearance.SetFootprintSize(Footprint(size));
+            db.Add(appearance);
+        }
 
         await db.SaveChangesAsync(cancellationToken);
         var snapshot = ToSnapshot(campaignId, battlemap, actor);
@@ -451,6 +477,19 @@ public sealed class BattlemapService(
         if (participant is not null) return participant.Id == actor.Id;
         if (marker is not null) return marker.OwnerParticipantId == actor.Id;
         return false;
+    }
+
+    /// <summary>
+    /// The creature a participant may turn into a token (spec 016): players see the public compendium
+    /// only, so the master's own creatures (and edits) never leak through the picker; the master may use
+    /// any creature of the campaign.
+    /// </summary>
+    private Creature TokenCreature(Guid campaignId, Participant actor, Guid creatureId)
+    {
+        var isMaster = actor.Role == ParticipantRole.Master;
+        return db.Creatures.SingleOrDefault(x => x.Id == creatureId &&
+                   ((x.CampaignId == null && !x.IsRemovedFromCompendium) || (isMaster && x.CampaignId == campaignId)))
+               ?? throw new AppException(AppErrorKind.NotFound, "Criatura não encontrada no compêndio.");
     }
 
     private Encounter RequireEncounter(Guid campaignId, Guid encounterId) =>
@@ -544,12 +583,22 @@ public sealed class BattlemapService(
                     CreatureId: combatant.CreatureId,
                     RollPreset: isMaster ? Preset(appearance) : null);
             });
-        var markerTokens = db.BattlemapMarkers
+        var markers = db.BattlemapMarkers
             .Where(x => x.BattlemapId == battlemap.Id)
             .OrderBy(x => x.CreatedAt)
-            .AsEnumerable()
+            .ToArray();
+        var markerCreatureIds = markers.Where(x => x.CreatureId != null).Select(x => x.CreatureId!.Value).Distinct().ToArray();
+        // A creature deleted after its token was placed simply loses the picture; the token stays.
+        var markerCreatures = markerCreatureIds.Length == 0
+            ? []
+            : db.Creatures.Where(x => markerCreatureIds.Contains(x.Id))
+                .Select(x => new { x.Id, x.ImageRevision, x.ImageSourceUrl })
+                .AsEnumerable()
+                .ToDictionary(x => x.Id);
+        var markerTokens = markers
             .Select(marker =>
             {
+                var source = marker.CreatureId is { } sourceCreatureId ? markerCreatures.GetValueOrDefault(sourceCreatureId) : null;
                 markerPositions.TryGetValue(marker.Id, out var position);
                 markerAreas.TryGetValue(marker.Id, out var area);
                 markerAppearances.TryGetValue(marker.Id, out var appearance);
@@ -566,7 +615,10 @@ public sealed class BattlemapService(
                     StatusConditions: appearance?.StatusConditions.Select(x => x.ToString()).ToArray() ?? [],
                     IsMarker: true,
                     OwnerParticipantId: marker.OwnerParticipantId,
-                    RollPreset: isMaster || marker.OwnerParticipantId == observer.Id ? Preset(appearance) : null);
+                    ImageUrl: source is null ? null : CreatureService.ImageUrl(campaignId, source.Id, source.ImageRevision, source.ImageSourceUrl),
+                    RollPreset: isMaster || marker.OwnerParticipantId == observer.Id ? Preset(appearance) : null,
+                    SourceKind: marker.CreatureId is not null ? "creature" : marker.CatalogItemId is not null ? "item" : null,
+                    SourceId: marker.CreatureId ?? marker.CatalogItemId);
             });
         var tokens = playerTokens.Concat(creatureTokens).Concat(markerTokens).ToArray();
         if (observer.Role != ParticipantRole.Master && battlemap.FogMask is not null)
