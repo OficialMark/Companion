@@ -119,6 +119,11 @@ async function add(kind: 'creature' | 'item', id: string, name: string) {
       <span class="token-source-reinforcement-text"><strong>Reforço no combate</strong><small>Entra na iniciativa com PV, sem mudar o turno atual.</small></span>
     </label>
 
+    <!-- Preparing: say where combat creatures go, so the missing "into combat" option reads as a choice, not a gap. -->
+    <p v-else-if="isMaster && tab === 'creatures' && !combatRunning" class="field-hint token-source-combat-hint" data-token-source-combat-hint>
+      <Icon name="lucide:swords" />Aqui as criaturas entram como token de cena. Para pôr no combate, com iniciativa e PV, use o painel Combatentes.
+    </p>
+
     <CreaturePicker v-if="showsReinforcement" />
     <template v-else>
       <label class="creature-search">

@@ -115,8 +115,10 @@ describe('TokenSourcePicker', () => {
     campaign.snapshot = { activeEncounter: { id: 'e1', status: 'Preparing', round: 0, currentTurnIndex: null, combatants: [] } } as never
     const wrapper = mount(TokenSourcePicker, { props: { isMaster: true } })
     await flushPromises()
-    // Preparing: the Combatentes panel is on screen, so no second "add to combat" list here.
+    // Preparing: the Combatentes panel is on screen, so no second "add to combat" list here,
+    // only a line saying where combat creatures go.
     expect(wrapper.find('[data-token-source-reinforcement]').exists()).toBe(false)
+    expect(wrapper.get('[data-token-source-combat-hint]').text()).toContain('painel Combatentes')
 
     campaign.snapshot = { activeEncounter: { id: 'e1', status: 'Active', round: 1, currentTurnIndex: 0, combatants: [] } } as never
     await flushPromises()
@@ -138,6 +140,7 @@ describe('TokenSourcePicker', () => {
     const wrapper = mount(TokenSourcePicker)
     await flushPromises()
     expect(wrapper.find('[data-token-source-reinforcement]').exists()).toBe(false)
+    expect(wrapper.find('[data-token-source-combat-hint]').exists()).toBe(false)
   })
 
   it('is a token picker only for the master while preparing: combat goes through the Combatentes panel', async () => {

@@ -110,6 +110,20 @@ describe('PlayerRollPanel', () => {
     expect(expression(other)).toBe('')
   })
 
+  it('shows the player\'s own latest roll from the history under "Rolar" after a reload, never someone else\'s', async () => {
+    const wrapper = setup()
+    const campaign = useCampaignStore()
+    const mine = { ...diceRoll('r1', 'd20+3', 'Ataque', 17), participantId: 'p1', createdAt: '2026-11-19T10:00:00Z' }
+    const older = { ...diceRoll('r0', 'd20', null, 4), participantId: 'p1', createdAt: '2026-11-19T09:00:00Z' }
+    const theirs = { ...diceRoll('r2', 'd20', 'Furtividade', 9), participantId: 'p2', createdAt: '2026-11-19T11:00:00Z' }
+    campaign.snapshot = { diceRolls: [theirs, older, mine] } as never
+    await nextTick()
+    const card = wrapper.get('[data-roll-last]')
+    expect(card.text()).toContain('Ataque')
+    expect(card.text()).toContain('17')
+    expect(card.text()).not.toContain('Furtividade')
+  })
+
   it('says what a disabled "Rolar" waits for, and drops the hint once there is something to roll', async () => {
     const wrapper = setup()
     await startFree(wrapper)

@@ -51,7 +51,22 @@ const rollHint = computed(() => {
 
 const busy = ref(false)
 const error = ref('')
-const last = ref<DiceRoll | null>(null)
+/** Result rolled in this page session (shown right after the animation). */
+const sessionLast = ref<DiceRoll | null>(null)
+/**
+ * The player's own latest public roll, from the table history: after a reload or on another device the
+ * result still sits under "Rolar" instead of only far away in the history (design review, round 3).
+ */
+const latestOwn = computed(() => {
+  const me = store.session?.participantId
+  let newest: DiceRoll | null = null
+  for (const roll of store.snapshot?.diceRolls ?? []) {
+    if (roll.participantId !== me) continue
+    if (!newest || roll.createdAt > newest.createdAt) newest = roll
+  }
+  return newest
+})
+const last = computed(() => sessionLast.value ?? latestOwn.value)
 const rollingDice = ref<AnimatedDie[]>([])
 const settled = ref(false)
 const rollingResult = ref<DiceRoll | null>(null)
@@ -136,7 +151,7 @@ async function roll(source: RollConfig | null, label?: string, manual = '') {
     if (store.snapshot && !store.snapshot.diceRolls.some(item => item.id === revealed.id)) {
       store.snapshot.diceRolls.unshift(revealed); store.snapshot.diceRolls = store.snapshot.diceRolls.slice(0, 50)
     }
-    last.value = revealed
+    sessionLast.value = revealed
     revealedOk = true
     emit('rolled', revealed)
     if (snapshot?.kind === 'Attack' && snapshot.source?.type === 'weapon') {

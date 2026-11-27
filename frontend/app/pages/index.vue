@@ -16,6 +16,10 @@ import type { DamageBreakdownPlan } from '~/utils/playerRoll'
 const store = useCampaignStore()
 const realtime = useCampaignRealtime()
 const gameMode = useGameMode()
+// Sticky side columns end at the window bottom wherever they start (their foot holds "Rolar").
+const peopleZone = ref<HTMLElement | null>(null)
+const diceZone = ref<HTMLElement | null>(null)
+useFitToViewport([peopleZone, diceZone])
 const loading = ref(true)
 const editingCampaignName = ref(false)
 const campaignNameDraft = ref('')
@@ -311,7 +315,7 @@ onBeforeUnmount(() => {
            1, 2 or 3 columns by width: the map is the hero; on phones they stack as map, roll, combat,
            participants, history. -->
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
-        <div class="table-zone table-people">
+        <div ref="peopleZone" class="table-zone table-people">
           <div v-if="!gameMode.active.value" class="table-participants">
             <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           </div>
@@ -383,7 +387,7 @@ onBeforeUnmount(() => {
           </section>
         </div>
         <!-- Rolling sits next to its results (proximity): the roll panel, then the public history. -->
-        <div class="table-zone table-dice">
+        <div ref="diceZone" class="table-zone table-dice">
           <div class="table-roll">
             <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
             <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />

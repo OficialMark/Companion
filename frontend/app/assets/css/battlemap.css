@@ -52,7 +52,9 @@
 
 /* Board */
 .battlemap-shell { min-width: 0; display: grid; gap: 10px; }
-.battlemap-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.battlemap-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+/* Zoom on the left; the map actions (fog, fit, scale) grouped on the right instead of one floating mid-bar. */
+.battlemap-toolbar > .toolbar-group:first-child { margin-right: auto; }
 .toolbar-group { display: flex; align-items: center; gap: 6px; }
 .zoom-label { min-width: 58px; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: center; }
 /* Board height follows the map proportion (--map-ratio), clamped to a comfortable range. */
@@ -273,6 +275,7 @@
 /* Spec 016: token from the compendium (creatures) or the item catalog */
 .token-source-picker { display: grid; gap: 10px; }
 .token-source-tabs { margin: 0; }
+.token-source-tabs button.active { box-shadow: inset 0 0 0 1px rgba(215,174,93,.55), 0 4px 16px rgba(0,0,0,.2); }
 .token-source-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; max-height: 340px; overflow-y: auto; }
 .token-source-list.loading { opacity: .6; }
 .token-source-row { display: flex; align-items: center; gap: 10px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 6px 8px; background: rgba(255,255,255,.03); }

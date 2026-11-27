@@ -193,8 +193,9 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   /* The phone ordering must not leak inside the columns (participants above combat, roll above history). */
   .table-people > *, .table-dice > * { order: 0; }
   .table-map { grid-area: map; }
-  /* Seven 44 px dice do not fit a 400 px column: two rows of four. */
-  .table-roll .dice-presets { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* Seven 44 px dice fit a 400 px column in one row with a 4 px gap (4 + 3 left a hole). */
+  .table-roll .dice-presets { gap: 4px; }
+  .table-roll .die-button { min-width: 0; padding: 0 2px; }
   /* Greeting on one compact line: the map starts ~60 px higher. */
   .welcome-row { margin-bottom: 16px; }
   .welcome-row h1 { font-size: 1.75rem; }
@@ -208,16 +209,24 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 /* Side columns follow the scroll and scroll on their own, so a long list (catalog, initiative, a tall
    roll panel) never stretches the page past the map. Only where the screen is tall enough. */
 @media (min-width: 1100px) and (min-height: 700px) {
-  .table-dice { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+  .table-dice { position: sticky; top: 88px; max-height: var(--fit-height, calc(var(--vh) - 104px)); }
   .table-history { min-height: 0; }
   .table-history > .panel { max-height: 100%; min-height: 220px; }
 }
+/* The player's roll panel is taller than a laptop screen: "Rolar" sticks to the foot of the dice column
+   so the main action is never below the fold, while the options scroll behind it. */
+@media (min-width: 1100px) and (min-height: 700px) {
+  .table-dice .player-roll-actions { position: sticky; bottom: -1px; z-index: 2; margin: 0 -4px; padding: 14px 4px 6px; background: linear-gradient(rgba(42,34,41,0), #2a2229 16px); }
+}
 @media (min-width: 1600px) and (min-height: 700px) {
-  .table-people { position: sticky; top: 88px; max-height: calc(var(--vh) - 104px); }
+  .table-people { position: sticky; top: 88px; max-height: var(--fit-height, calc(var(--vh) - 104px)); }
+  /* "Rolar iniciativas" / "Começar combate" stay at the bottom of the scrolling column instead of
+     after the whole creature catalog. */
+  .table-people .encounter-setup > .button-row { position: sticky; bottom: -1px; z-index: 2; margin: 0 -4px; padding: 12px 4px 4px; background: linear-gradient(rgba(42,34,41,0), #2a2229 14px); }
 }
 /* Below 1280 px the top bar has two rows (~126 px): sticky columns start under it. */
 @media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
-  .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: calc(var(--vh) - 156px); }
+  .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: var(--fit-height, calc(var(--vh) - 156px)); }
 }
 @media (min-width: 1100px) and (min-height: 700px) {
   .table-people, .table-dice, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
