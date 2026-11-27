@@ -237,6 +237,11 @@ function openEditor() {
         <Icon name="lucide:bookmark-plus" />Salvar como rolagem
       </button>
       <p v-if="rollHint" id="roll-go-hint" class="field-hint roll-go-hint" data-roll-hint><Icon name="lucide:info" />{{ rollHint }}</p>
+      <!-- Wide screens: this row is stuck at the foot of the scrolling dice column, so the result rides
+           with "Rolar" (the full card below may be scrolled away). aria-hidden: the card announces it. -->
+      <p v-if="last && !rollingDice.length" class="roll-last-chip" data-roll-last-chip aria-hidden="true">
+        <Icon name="lucide:sparkles" /><span class="roll-last-chip-label">{{ last.label || 'Último resultado' }}</span><strong>{{ last.total }}</strong>
+      </p>
     </div>
 
     <div v-if="rollingDice.length" ref="stage" class="roll-stage" data-roll-stage>

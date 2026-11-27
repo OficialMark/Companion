@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { assertSafeBaseUrl } from './guard'
 
-// Spec 017: on a laptop the player's "Rolar" and the roll history stay inside the window at every
-// scroll position (the dice column ends at the window bottom wherever it starts; the roll panel
-// scrolls on its own above a fixed history slice), and fitting the column never makes the page height
-// jump while scrolling.
+// Spec 017: on a laptop the player's "Rolar" and their last result stay inside the window at every
+// scroll position (the dice column ends at the window bottom wherever it starts and its action row is
+// stuck to its foot), and fitting the column never makes the page height jump while scrolling.
 test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', async ({ browser }, info) => {
   test.skip(info.project.name !== 'desktop', 'widths are set explicitly')
   assertSafeBaseUrl()
@@ -32,6 +31,10 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
   await page.getByLabel('Seu nome').fill('Ayla')
   await page.getByRole('button', { name: 'Entrar na campanha' }).click()
   await page.locator('[data-roll-go]').waitFor()
+  await page.locator('[data-die="d20"]').first().click()
+  await page.locator('[data-roll-go]').click()
+  await page.locator('[data-roll-last-chip]').waitFor({ timeout: 10_000 })
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(400)
 
   const heights: number[] = []
@@ -40,13 +43,14 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
     await page.waitForTimeout(120)
     const state = await page.evaluate(() => {
       const button = document.querySelector('[data-roll-go]')!.getBoundingClientRect()
-      const history = document.querySelector('.table-history .history-panel')!.getBoundingClientRect()
-      return { top: button.top, bottom: button.bottom, historyTop: history.top, height: document.documentElement.scrollHeight, vh: innerHeight }
+      const chip = document.querySelector('[data-roll-last-chip]')?.getBoundingClientRect()
+      return { top: button.top, bottom: button.bottom, chipBottom: chip?.bottom ?? null, height: document.documentElement.scrollHeight, vh: innerHeight }
     })
     expect(state.bottom, `Rolar fora da tela com scrollY=${y}`).toBeLessThanOrEqual(state.vh)
     expect(state.top, `Rolar acima da tela com scrollY=${y}`).toBeGreaterThanOrEqual(0)
-    // The history keeps its own slice of the column: at least its heading is on screen (review round 5).
-    expect(state.historyTop, `Histórico fora da tela com scrollY=${y}`).toBeLessThan(state.vh - 80)
+    // The player's own last result rides with "Rolar" in the stuck footer (review round 6).
+    expect(state.chipBottom, `último resultado ausente com scrollY=${y}`).not.toBeNull()
+    expect(state.chipBottom!, `último resultado fora da tela com scrollY=${y}`).toBeLessThanOrEqual(state.vh)
     heights.push(state.height)
   }
   expect(new Set(heights).size, `altura da página mudou ao rolar: ${heights.join(', ')}`).toBe(1)

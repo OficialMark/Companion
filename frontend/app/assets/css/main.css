@@ -212,12 +212,12 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
 /* Side columns follow the scroll and scroll on their own, so a long list (catalog, initiative, a tall
    roll panel) never stretches the page past the map. Only where the screen is tall enough. */
 @media (min-width: 1100px) and (min-height: 700px) {
-  /* The column is a flex stack: the roll panel scrolls on its own ("Rolar" stuck at its foot) and the
-     history keeps a fixed slice at the bottom, so both are on screen at once (review round 5). */
-  .table-dice { position: sticky; top: 88px; max-height: var(--fit-height, calc(var(--vh) - 104px)); display: flex; flex-direction: column; }
-  .table-dice > .table-roll { flex: 0 1 auto; min-height: 160px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; border-radius: 18px; }
-  .table-history { flex: 0 0 auto; min-height: 0; }
-  .table-history > .panel { max-height: min(38vh, 340px); min-height: 200px; }
+  /* The column scrolls as a whole (a roll panel is a laptop screen tall: splitting the height with the
+     history squashed it to its header, review round 6); "Rolar" and the player's last result stay
+     stuck at its foot. */
+  .table-dice { position: sticky; top: 88px; max-height: var(--fit-height, calc(var(--vh) - 104px)); }
+  .table-history { min-height: 0; }
+  .table-history > .panel { max-height: 100%; min-height: 220px; }
 }
 /* The player's roll panel is taller than a laptop screen: "Rolar" sticks to the foot of the dice column
    so the main action is never below the fold, while the options scroll behind it. */
@@ -237,7 +237,7 @@ input[type="checkbox"], input[type="range"] { min-height: 0; padding: 0; }
   .app-shell:has(.topbar.has-view-nav) .table-dice { top: 140px; max-height: var(--fit-height, calc(var(--vh) - 156px)); }
 }
 @media (min-width: 1100px) and (min-height: 700px) {
-  .table-people, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
+  .table-people, .table-dice, .table-history > .panel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(215,174,93,.35) transparent; }
   /* Scroll hint: a soft shadow at the top/bottom edge only while there is more to scroll (the covers
      scroll with the content, the shadows stay with the box). */
   .table-history > .panel {

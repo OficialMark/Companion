@@ -63,6 +63,12 @@
 .player-roll-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .player-roll-actions .roll-go { width: 100%; min-height: 52px; font-size: 1.05rem; }
 .roll-go-hint { grid-column: 1 / -1; margin: 0; }
+/* Last result next to "Rolar": only where the actions row is stuck to the column foot (>= 1100 px). */
+.roll-last-chip { display: none; grid-column: 1 / -1; align-items: baseline; gap: 8px; min-width: 0; margin: 0; color: var(--ink-soft); font-size: .86rem; }
+.roll-last-chip .icon { align-self: center; color: var(--gold); }
+.roll-last-chip-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roll-last-chip strong { margin-left: auto; color: var(--gold); font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+@media (min-width: 1100px) and (min-height: 700px) { .table-dice .roll-last-chip { display: flex; } }
 .player-roll-panel .roll-stage { min-width: 0; overflow: hidden; }
 .player-roll-panel .roll-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0; color: var(--ink-soft); overflow-wrap: anywhere; }
 .player-roll-panel .roll-last strong { color: var(--gold); font-size: 1.3rem; }
