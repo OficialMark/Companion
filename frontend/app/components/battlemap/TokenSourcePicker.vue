@@ -148,8 +148,8 @@ async function add(kind: 'creature' | 'item', id: string, name: string) {
               <strong>{{ item.name }}</strong>
               <small>{{ SIZE_LABEL[item.size] }} · {{ item.type }}</small>
             </span>
-            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('creature', item.id, item.name)">
-              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
+            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" @click="add('creature', item.id, item.name)">
+              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span class="token-source-label">Adicionar</span><span class="token-source-short-label">Pôr</span><span class="sr-only"> {{ item.name }} ao mapa</span>
             </button>
           </li>
         </template>
@@ -160,8 +160,8 @@ async function add(kind: 'creature' | 'item', id: string, name: string) {
               <strong>{{ item.name }}</strong>
               <small>{{ CATEGORY[item.category]?.label ?? 'Item' }}<template v-if="item.rarity"> · {{ item.rarity }}</template></small>
             </span>
-            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" :aria-label="`Adicionar ${item.name} ao mapa`" @click="add('item', item.id, item.name)">
-              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span>Adicionar</span>
+            <button class="button secondary compact" type="button" :disabled="adding !== null || offline" @click="add('item', item.id, item.name)">
+              <Icon :name="adding === item.id ? 'lucide:loader-circle' : 'lucide:map-pin-plus'" /><span class="token-source-label">Adicionar</span><span class="token-source-short-label">Pôr</span><span class="sr-only"> {{ item.name }} ao mapa</span>
             </button>
           </li>
         </template>

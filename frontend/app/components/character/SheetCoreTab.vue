@@ -215,7 +215,7 @@ const SENSE_LABEL: Record<string, string> = { darkvision: 'Visão no escuro', bl
     <div class="sheet-core-side">
     <section class="sheet-section" aria-labelledby="sheet-skills-title">
       <h2 id="sheet-skills-title" class="sheet-section-title">Perícias</h2>
-      <ul class="skill-list">
+      <ul class="skill-list" :style="{ '--skill-rows-two': Math.ceil(SKILLS.length / 2), '--skill-rows-three': Math.ceil(SKILLS.length / 3) }">
         <li v-for="skill in SKILLS" :key="skill.key" class="skill-row" :data-skill="skill.key">
           <button
             type="button"

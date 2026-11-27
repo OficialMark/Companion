@@ -4,14 +4,22 @@
 .player-roll-panel .panel-heading { margin-bottom: 0; flex-wrap: wrap; }
 
 /* Shared controls (RollConfigFields) */
-.roll-config { display: grid; gap: 12px; min-width: 0; }
+.roll-config { display: grid; gap: 12px; min-width: 0; container: roll-config / inline-size; }
 .roll-config-row { display: grid; gap: 10px; min-width: 0; }
 .roll-source select { text-overflow: ellipsis; }
 /* Kinds: 4 short labels; advantage: 3 labels. Fixed columns so 375px never wraps or scrolls sideways. */
 .roll-segment { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 0; }
-.roll-segment.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.roll-segment.three { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.2fr); }
 .roll-segment .roll-chip { width: 100%; min-width: 0; padding: 0 6px; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 419px) { .roll-segment .roll-chip .icon { display: none; } }
+@media (max-width: 419px) { .roll-segment:not(.three) .roll-chip .icon { display: none; } }
+.roll-segment.three .roll-chip { justify-content: center; padding-inline: 8px; }
+@container roll-config (280px <= width < 365px) {
+  .roll-segment.three .roll-chip .icon { display: none; }
+}
+@container roll-config (width < 280px) {
+  .roll-segment.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .roll-segment.three .roll-chip span:not(.icon) { display: none; }
+}
 .roll-config-hint, .roll-config-warning { display: flex; align-items: flex-start; gap: 7px; margin: 0; font-size: .8rem; line-height: 1.45; }
 .roll-config-hint { color: var(--muted); }
 .roll-config-hint .icon, .roll-config-warning .icon { margin-top: .15em; }

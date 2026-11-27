@@ -24,7 +24,7 @@
 .knowledge-item small { color: var(--muted); font-size: .77rem; }
 .knowledge-item > .icon:last-child { color: var(--gold-soft); }
 .notebook-pagination { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 12px; color: var(--muted); font-size: .8rem; }
-.notebook-prompt { min-height: 220px; display: grid; justify-items: start; align-content: center; gap: 12px; }
+.notebook-prompt { width: min(100%, 720px); min-height: 220px; justify-self: center; display: grid; justify-items: center; align-content: center; gap: 12px; text-align: center; }
 .notebook-prompt h2, .notebook-prompt p { margin: 0; }
 .notebook-prompt p { color: var(--muted); line-height: 1.45; }
 .knowledge-detail > .panel-heading { align-items: start; }
