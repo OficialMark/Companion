@@ -117,6 +117,23 @@ describe('Compendium screen', () => {
     expect(wrapper.get('[data-mine]').attributes('aria-pressed')).toBe('true')
   })
 
+  it('shows initials when a creature portrait cannot be rendered', async () => {
+    session('Master')
+    const imageUrl = '/portraits/wolf'
+    useImageCacheStore().urls[imageUrl] = 'blob:http://localhost/wolf'
+    useCreatureStore().items = [{
+      id: 'wolf', name: 'Lobo Cinzento', nameEn: 'Grey Wolf', size: 'Medium',
+      type: 'Besta', challengeRating: '1/4', armorClass: 13, hitPoints: 11,
+      origin: 'Compendium', imageUrl
+    }]
+    const wrapper = mount(CreatureLibrary)
+    const portrait = wrapper.get('.creature-portrait')
+    await portrait.get('img').trigger('error')
+    expect(portrait.find('img').exists()).toBe(false)
+    expect(portrait.text()).toBe('LC')
+    wrapper.unmount()
+  })
+
   it('has the Compêndio title and the Nova criatura action', async () => {
     session('Master')
     const wrapper = mount(CreatureLibrary)

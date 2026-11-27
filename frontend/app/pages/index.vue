@@ -21,6 +21,20 @@ const gameMode = useGameMode()
 const peopleZone = ref<HTMLElement | null>(null)
 const diceZone = ref<HTMLElement | null>(null)
 useFitToViewport([peopleZone, diceZone])
+const playerHistoryTarget = ref<HTMLElement | null>(null)
+const desktopHistory = ref(false)
+const historyMedia = typeof window !== 'undefined' && window.matchMedia?.('(min-width: 1100px)')
+function updateHistoryPlacement() {
+  desktopHistory.value = Boolean(historyMedia && historyMedia.matches)
+}
+onMounted(() => {
+  updateHistoryPlacement()
+  historyMedia && historyMedia.addEventListener('change', updateHistoryPlacement)
+})
+onBeforeUnmount(() => {
+  historyMedia && historyMedia.removeEventListener('change', updateHistoryPlacement)
+})
+const sideHistory = computed(() => !store.isMaster && desktopHistory.value)
 const loading = ref(true)
 const editingCampaignName = ref(false)
 const campaignNameDraft = ref('')
@@ -312,11 +326,9 @@ onBeforeUnmount(() => {
       </section>
 
 
-      <!-- Three zones: people (participants + combat), map, dice (roll + history). main.css lays them out as
-           1, 2 or 3 columns by width: the map is the hero; on phones they stack as map, roll, combat,
-           participants, history. -->
-      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
+      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value, 'player-table': !store.isMaster }">
         <div ref="peopleZone" class="table-zone table-people">
+          <div v-if="!store.isMaster" ref="playerHistoryTarget" class="table-history-target"></div>
           <div v-if="!gameMode.active.value" class="table-participants">
             <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           </div>
@@ -387,7 +399,6 @@ onBeforeUnmount(() => {
             </div>
           </section>
         </div>
-        <!-- Rolling sits next to its results (proximity): the roll panel, then the public history. -->
         <div ref="diceZone" class="table-zone table-dice">
           <div class="table-roll">
             <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
@@ -395,9 +406,11 @@ onBeforeUnmount(() => {
             <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
             <DiceRoller v-else />
           </div>
-          <div class="table-history">
-            <RollHistory :rolls="store.snapshot.diceRolls" />
-          </div>
+          <Teleport :to="playerHistoryTarget ?? 'body'" :disabled="!sideHistory || !playerHistoryTarget">
+            <div class="table-history">
+              <RollHistory :rolls="store.snapshot.diceRolls" />
+            </div>
+          </Teleport>
         </div>
       </div>
       <SheetSummaryBar />

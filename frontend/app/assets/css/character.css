@@ -36,7 +36,7 @@
    name ended ~330 px away from its bonus at 1920). Skills drop to two columns inside the side one. */
 @media (min-width: 1440px) {
   .sheet-core { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
-  .sheet-core-side .skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sheet-core-side .skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--skill-rows-two), auto); }
   /* Six abilities in a half-width column cut "Salvaguarda" to "S…": three per row instead. */
   .sheet-core-main .ability-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -77,7 +77,7 @@
 .sheet-inline-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; color: var(--ink-soft); font-size: .86rem; }
 
 .ability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.ability-card { display: grid; gap: 8px; min-width: 0; border: 1px solid var(--line); border-radius: 14px; padding: 10px; background: rgba(255,255,255,.025); }
+.ability-card { display: grid; gap: 8px; min-width: 0; container: ability-card / inline-size; border: 1px solid var(--line); border-radius: 14px; padding: 10px; background: rgba(255,255,255,.025); }
 .ability-card header { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
 .ability-abbr { color: var(--gold); font-weight: 800; letter-spacing: .06em; }
 .ability-name { color: var(--muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -88,7 +88,11 @@
 .save-toggle, .skill-training, .chip { cursor: pointer; }
 .save-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
 .save-toggle { min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: transparent; color: var(--ink-soft); font-size: .8rem; }
-.save-toggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-toggle span { overflow-wrap: anywhere; }
+@container ability-card (max-width: 184px) {
+  .save-row { grid-template-columns: minmax(0, 1fr); }
+  .save-toggle { justify-content: center; gap: 4px; padding-inline: 4px; font-size: .75rem; }
+}
 .save-toggle[aria-pressed="true"] { border-color: rgba(99,194,144,.45); color: #9be3bd; }
 
 .skill-list { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 0; padding: 0; list-style: none; }
@@ -115,14 +119,14 @@
   .sheet-field.wide { grid-column: 1 / -1; }
   .sheet-combat-strip { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .ability-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--skill-rows-two), auto); grid-auto-flow: column; column-gap: 24px; }
 }
 
 @media (min-width: 1024px) {
   .sheet-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .identity-grid .sheet-field.wide { grid-column: span 2; }
   .ability-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .skill-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .skill-list { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(var(--skill-rows-three), auto); }
   .casting-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 

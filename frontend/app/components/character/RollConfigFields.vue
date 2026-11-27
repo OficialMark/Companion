@@ -226,7 +226,9 @@ function formatBonus(value: number) { return value >= 0 ? `+${value}` : `${value
         :tabindex="modelValue.advantage === mode ? 0 : -1"
         :disabled="disabled"
         @click="selectAdvantage(mode)"
-      ><Icon :name="ADVANTAGE_ICON[mode]" />{{ ADVANTAGE_LABEL[mode] }}</button>
+      :aria-label="ADVANTAGE_LABEL[mode]"
+        :title="ADVANTAGE_LABEL[mode]"
+      ><Icon :name="ADVANTAGE_ICON[mode]" /><span>{{ ADVANTAGE_LABEL[mode] }}</span></button>
     </div>
     <p v-if="showReason" class="roll-config-warning" data-disadvantage-reason role="status">
       <Icon name="lucide:shield-alert" />{{ stats?.rollDefaults.reason || 'Desvantagem em FOR e DES.' }}

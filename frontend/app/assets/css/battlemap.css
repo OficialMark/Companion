@@ -58,7 +58,7 @@
 .toolbar-group { display: flex; align-items: center; gap: 6px; }
 .zoom-label { min-width: 58px; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: center; }
 /* Board height follows the map proportion (--map-ratio), clamped to a comfortable range. */
-.battlemap-board { width: 100%; height: auto; aspect-ratio: var(--map-ratio, 4 / 3); min-height: 320px; max-height: min(72svh, 680px); display: block; overflow: hidden; border: 1px solid rgba(215,174,93,.3); border-radius: 14px; background: #100d10; box-shadow: inset 0 0 35px rgba(0,0,0,.35); touch-action: none; cursor: grab; }
+.battlemap-board { width: 100%; height: auto; aspect-ratio: var(--map-ratio, 4 / 3); min-height: 320px; max-height: min(72svh, 680px); display: block; overflow: hidden; border: 1px solid rgba(215,174,93,.3); border-radius: 14px; background: var(--panel); touch-action: none; cursor: grab; }
 .battlemap-board:active { cursor: grabbing; }
 .battlemap-board:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .battlemap-backdrop { fill: #0b090b; }
@@ -284,12 +284,15 @@
 .token-source-text small { overflow: hidden; color: var(--muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
 .token-source-row .button { flex: none; min-height: 40px; }
 .token-source-item-icon { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 1.5px solid var(--line-strong); border-radius: 12px; color: var(--gold); background: rgba(0,0,0,.2); font-size: 1.15rem; }
+.token-source-short-label { display: none; }
 .token-source-done { color: var(--ink); }
 .token-source-reinforcement { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: rgba(215,174,93,.05); }
 .token-source-reinforcement-text { display: grid; gap: 2px; min-width: 0; }
 .token-source-reinforcement-text strong { color: var(--ink); font-size: .88rem; }
 .token-source-reinforcement-text small { color: var(--muted); font-size: .76rem; font-weight: 500; }
-@media (max-width: 420px) {
-  .token-source-row .button span { display: none; }
-  .token-source-row .button { width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+@media (max-width: 680px) {
+  .token-source-list { max-height: none; overflow: visible; }
+  .token-source-row .button { min-width: 44px; min-height: 44px; padding-inline: 8px; justify-content: center; }
+  .token-source-row .token-source-label { display: none; }
+  .token-source-row .token-source-short-label { display: inline; }
 }

@@ -56,6 +56,20 @@
 - [X] T028 Testes de componente: dice-pad, player-roll-panel, token-source-picker, battlemap-viewport, battlemap-markers
 - [X] T029 Rodadas cegas A/B até PASS; vitest, typecheck, e2e desktop + Android e gate de layout verdes
 
+## Phase 9: Acabamento responsivo
+
+- [X] T030 Histórico do jogador na coluna de pessoas no desktop, com teste de visibilidade e de redimensionamento em frontend/tests/e2e/sticky-columns.spec.ts
+- [X] T031 Fundo do palco do battlemap na cor do painel
+- [X] T032 Contraste do primário desabilitado com borda tracejada
+- [X] T033 Rodapés fixos com cantos inferiores arredondados e borda
+- [X] T034 Espaçamento e rótulos acessíveis nos controles de vantagem
+- [X] T035 Ação única de criação e estado vazio centralizado na Campanha
+- [X] T036 Colunas laterais proporcionais e combatentes em uma linha nas telas largas
+- [X] T037 Rótulo completo de salvaguarda nos cartões estreitos
+- [X] T038 Ações e paginação em uma linha no compêndio, com iniciais quando a imagem não carrega
+- [X] T039 Rótulo Pôr e rolagem da página no seletor de tokens móvel
+- [X] T040 Fluxo das perícias por coluna, na mesma ordem do teclado
+
 ## Dependencies
 
 Setup → Foundational → US1 e US2 (paralelos) → US3 → US4 → US5 → Polish.

@@ -35,8 +35,8 @@ Como mestre ou jogador num monitor largo, quero que o mapa ocupe o centro e que 
 
 **Acceptance Scenarios**:
 
-1. **Given** 1600 px ou mais, **When** a Mesa abre, **Then** aparecem 3 colunas: participantes e combate | mapa | rolagem e histórico.
-2. **Given** 1100 a 1599 px, **When** a Mesa abre, **Then** o mapa fica na coluna larga com participantes e combate abaixo, e rolagem e histórico ficam numa coluna lateral.
+1. **Given** 1600 px ou mais, **When** a Mesa abre, **Then** aparecem 3 colunas: participantes e combate | mapa | rolagem. O histórico fica com a rolagem para o mestre e com os participantes para o jogador.
+2. **Given** 1100 a 1599 px, **When** a Mesa abre, **Then** o mapa fica na coluna larga com participantes e combate abaixo, e a rolagem fica numa coluna lateral. O histórico fica com a rolagem para o mestre e com os participantes para o jogador. A partir de 1280 px, o jogador tem participantes, combate e histórico em uma terceira coluna ao lado do mapa.
 3. **Given** as colunas laterais, **When** a página rola, **Then** elas acompanham e rolam por dentro, com sombra indicando que há mais conteúdo.
 4. **Given** um mapa pequeno numa tela grande, **When** ele abre, **Then** preenche o palco (até 80 px por célula) e acompanha o palco enquanto ele cresce, até o usuário tocar no mapa.
 5. **Given** a Ficha a partir de 1440 px, **When** abre, **Then** fica em 2 colunas: personagem, combate, atributos e valores-base | perícias, conjuração e anotações.
@@ -101,7 +101,7 @@ Como jogador, quero ver "Salvo" depois de editar e receber mudanças feitas em o
 
 ### Functional Requirements
 
-- **FR-001**: A Mesa MUST se organizar em 3 zonas (pessoas e combate, mapa, rolagem e histórico), em 1, 2 ou 3 colunas conforme a largura (abaixo de 1100, 1100–1599, 1600 ou mais).
+- **FR-001**: A Mesa MUST se organizar em 3 zonas (pessoas e combate, mapa, rolagem), em 1 coluna abaixo de 1100 px, 2 colunas até 1279 px para o jogador ou até 1599 px para o mestre, e 3 colunas nas larguras maiores. A partir de 1100 px, o histórico do jogador fica na zona de pessoas. Nos demais casos, fica na zona de rolagem.
 - **FR-002**: No celular a navegação entre áreas MUST ficar numa barra de abas inferior fixa, com alvos de pelo menos 44 px.
 - **FR-003**: Nenhuma tela MUST ter rolagem horizontal de página, controle coberto por outro elemento (fora de modais e barras fixas sobre conteúdo rolável) ou controle fora da tela.
 - **FR-004**: Abaixo de 768 px todo controle MUST ter área de toque de pelo menos 44×44 px.

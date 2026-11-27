@@ -12,6 +12,7 @@
 .creature-library .panel-heading h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.1; }
 .creature-library-lead { margin: 6px 0 0; color: var(--ink-soft); font-size: .92rem; }
 .creature-library-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.creature-library-actions .button, .creature-pagination > span { white-space: nowrap; }
 .creature-mine[aria-pressed="true"] { border-color: rgba(99,194,144,.5); color: #9be3bd; background: rgba(99,194,144,.12); }
 /* Filters (spec 009): search on its own row, then five equal selects and "Limpar" at the end. */
 .creature-filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: center; }
@@ -220,7 +221,11 @@ body.modal-open { overflow: hidden; }
   .creature-cr select { flex: 1 1 0; min-width: 0; }
   .creature-grid-list { grid-template-columns: 1fr; }
   .creature-library-actions { width: 100%; }
-  .creature-library-actions .button { flex: 1 1 0; justify-content: center; }
+  .creature-library-actions .button { flex: 1 1 auto; justify-content: center; }
+}
+@media (max-width: 420px) {
+  .creature-pagination .button { min-width: 44px; justify-content: center; }
+  .creature-pagination .button span:not(.icon) { display: none; }
 }
 
 /* Catalog picker inside combat preparation */

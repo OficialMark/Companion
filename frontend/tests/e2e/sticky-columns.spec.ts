@@ -37,6 +37,11 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(400)
 
+  const history = page.getByRole('region', { name: 'Histórico', exact: true })
+  const firstRoll = history.locator('.roll-list > li').first()
+  await expect(page.locator('.table-people').getByRole('region', { name: 'Histórico', exact: true })).toHaveCount(1)
+  await expect(firstRoll).toBeInViewport({ ratio: 0.9 })
+
   const heights: number[] = []
   for (const y of [0, 120, 240, 400, 700, 1200]) {
     await page.evaluate(top => window.scrollTo(0, top), y)
@@ -54,6 +59,15 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
     heights.push(state.height)
   }
   expect(new Set(heights).size, `altura da página mudou ao rolar: ${heights.join(', ')}`).toBe(1)
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(page.locator('.table-people').getByRole('region', { name: 'Histórico', exact: true })).toHaveCount(1)
+  await expect(firstRoll).toBeInViewport({ ratio: 0.9 })
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(page.locator('.table-dice').getByRole('region', { name: 'Histórico', exact: true })).toHaveCount(1)
+  await expect(history).toHaveCount(1)
+  await expect(firstRoll).toContainText('Ayla')
   await master.close()
   await page.close()
 })

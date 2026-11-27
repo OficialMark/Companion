@@ -13,6 +13,7 @@ const selected = ref<CampaignKnowledgeDetail | null>(null)
 const busy = ref(false)
 const error = ref('')
 const formOpen = ref(false)
+const titleInput = ref<HTMLInputElement | null>(null)
 const form = reactive({ title: '', summary: '', description: '', visible: true })
 const contribution = ref('')
 const note = ref('')
@@ -116,8 +117,10 @@ async function prepareImage(session: NonNullable<typeof store.session>, entryId:
   try { await image.decode() } catch { /* Keep the URL; the rendered image can still report its own load error. */ }
   return url
 }
-function startCreate() {
+async function startCreate() {
   closeDetail(); form.title = ''; form.summary = ''; form.description = ''; form.visible = kind.value !== 'MasterRecord'; formOpen.value = true
+  await nextTick()
+  titleInput.value?.focus()
 }
 function startEdit() {
   if (!selected.value) return
@@ -287,7 +290,7 @@ onBeforeUnmount(closeDetail)
         </form>
         <p v-if="error" class="form-error" role="alert">{{ error }}</p>
         <div v-if="busy && !items.length" class="empty-state" role="status">Carregando…</div>
-        <div v-else-if="!items.length" class="empty-state"><span class="state-icon"><Icon :name="category.icon" size="1.6rem" /></span><p>Nenhum registro nesta seção ainda.</p><button class="button ghost small" type="button" :disabled="offline" @click="startCreate">Criar o primeiro registro</button></div>
+        <div v-else-if="!items.length" class="empty-state"><span class="state-icon"><Icon :name="category.icon" size="1.6rem" /></span><p>Nenhum registro nesta seção ainda.</p></div>
         <ul v-else class="knowledge-items">
           <li v-for="item in items" :key="item.id">
             <button class="knowledge-item" :class="{ selected: selected?.id === item.id, pending: pendingEntryId === item.id }" :aria-busy="pendingEntryId === item.id" type="button" @click="openEntry(item)">
@@ -302,7 +305,7 @@ onBeforeUnmount(closeDetail)
       <article v-if="formOpen" class="panel knowledge-detail" aria-label="Editar registro da campanha">
         <form class="knowledge-form" @submit.prevent="saveEntry">
           <div class="panel-heading"><div><p class="eyebrow">{{ selected ? 'Editar informação' : 'Novo registro' }}</p><h2>{{ selected ? 'Atualizar' : 'Cadastrar' }} {{ categorySingular.toLowerCase() }}</h2></div><button class="icon-button" type="button" aria-label="Cancelar" @click="formOpen = false">×</button></div>
-          <label class="sheet-field"><span>Nome</span><input v-model="form.title" type="text" maxlength="120" required autofocus></label>
+          <label class="sheet-field"><span>Nome</span><input ref="titleInput" v-model="form.title" type="text" maxlength="120" required autofocus></label>
           <label class="sheet-field"><span>Resumo</span><input v-model="form.summary" type="text" maxlength="500"></label>
           <label class="sheet-field"><span>{{ kind === 'MasterRecord' ? 'Anotações' : 'Descrição compartilhada' }}</span><textarea v-model="form.description" rows="7" maxlength="12000" /></label>
           <label v-if="isMaster && kind !== 'Journal' && kind !== 'MasterRecord'" class="notebook-visibility"><input v-model="form.visible" type="checkbox"><span><strong>Visível aos jogadores</strong><small>Desative para manter este registro reservado ao mestre.</small></span></label>
@@ -347,7 +350,7 @@ onBeforeUnmount(closeDetail)
         <section v-if="selected.kind !== 'MasterRecord'" class="contribution-section"><h3>Informações do grupo</h3><ul v-if="selected.contributions.length" class="contribution-list"><li v-for="entry in selected.contributions" :key="entry.id"><div class="contribution-copy"><p>{{ entry.body }}</p><small>{{ entry.author }} · {{ dateLabel(entry.createdAt) }}</small></div><button v-if="isMaster || entry.authorId === store.session?.participantId" class="icon-button contribution-delete" type="button" :aria-label="`Remover contribuição de ${entry.author}`" :disabled="busy || offline" @click="removeContribution(entry)"><Icon name="lucide:trash-2" /></button></li></ul><p v-else class="field-hint">Ainda não há contribuições. Adicione um detalhe que o grupo descobriu.</p><form class="inline-contribution" @submit.prevent="addContribution"><label class="sr-only" for="new-contribution">Nova informação</label><textarea id="new-contribution" v-model="contribution" rows="3" maxlength="8000" placeholder="Adicionar informação compartilhada…" :disabled="offline" /><button class="button secondary small" type="submit" :disabled="busy || offline || !contribution.trim()"><Icon name="lucide:send" />Publicar</button></form></section>
         <section v-if="isMaster" class="master-notes"><h3><Icon name="lucide:lock-keyhole" />Anotações pessoais do mestre</h3><textarea v-model="note" rows="4" maxlength="12000" placeholder="Somente mestres desta campanha podem ver estas notas." :disabled="offline" /><button class="button ghost small" type="button" :disabled="busy || offline" @click="saveMasterNote"><Icon name="lucide:save" />Salvar anotação privada</button></section>
       </article>
-      <section v-else class="panel notebook-prompt"><span class="state-icon"><Icon :name="category.icon" size="1.8rem" /></span><h2>{{ category.label }}</h2><p>{{ kind === 'MasterRecord' ? 'Anotações privadas, visíveis somente aos mestres desta campanha.' : 'Selecione um registro ou crie uma nova informação para o grupo.' }}</p><button class="button primary" type="button" :disabled="offline" @click="startCreate"><Icon name="lucide:plus" />Novo registro</button></section>
+      <section v-else class="panel notebook-prompt"><span class="state-icon"><Icon :name="category.icon" size="1.8rem" /></span><h2>{{ category.label }}</h2><p>{{ kind === 'MasterRecord' ? 'Anotações privadas, visíveis somente aos mestres desta campanha.' : 'Selecione um registro ou crie uma nova informação para o grupo.' }}</p></section>
     </div>
   </section>
 </template>

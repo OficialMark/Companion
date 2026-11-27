@@ -9,6 +9,7 @@ const creatures = useCreatureStore()
 const images = useImageCacheStore()
 const search = ref(creatures.query.q)
 let debounce: ReturnType<typeof setTimeout> | undefined
+const failedPortraits = reactive(new Set<string>())
 
 const sizes = Object.entries(CREATURE_SIZE_LABELS) as Array<[CreatureSize, string]>
 const origins = Object.entries(ORIGIN_LABELS) as Array<[CreatureOrigin, string]>
@@ -28,7 +29,10 @@ watch(search, value => {
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]!.toUpperCase()).join('')
 }
-function portrait(item: CreatureSummary) { return item.imageUrl ? images.urls[item.imageUrl] ?? null : null }
+function portrait(item: CreatureSummary) {
+  const url = item.imageUrl ? images.urls[item.imageUrl] : null
+  return url && !failedPortraits.has(url) ? url : null
+}
 function onCr(field: 'crMin' | 'crMax', event: Event) {
   const value = (event.target as HTMLSelectElement).value
   creatures.setQuery({ [field]: value === '' ? null : challengeValue(value) })
@@ -93,8 +97,8 @@ onBeforeUnmount(() => clearTimeout(debounce))
     <ul class="creature-grid-list" :class="{ loading: creatures.loading }">
       <li v-for="item in creatures.items" :key="item.id">
         <button class="creature-card" type="button" :data-creature-id="item.id" @click="creatures.open(item.id)">
-          <span class="creature-portrait" :class="{ 'has-image': portrait(item) }">
-            <img v-if="portrait(item)" :src="portrait(item)!" alt="" loading="lazy">
+          <span class="creature-portrait" :class="{ 'has-image': portrait(item) }" aria-hidden="true">
+            <img v-if="portrait(item)" :src="portrait(item)!" alt="" loading="lazy" @error="failedPortraits.add(($event.currentTarget as HTMLImageElement).src)">
             <template v-else>{{ initials(item.name) }}</template>
           </span>
           <span class="creature-card-text">
@@ -120,9 +124,9 @@ onBeforeUnmount(() => clearTimeout(debounce))
     </div>
 
     <nav v-if="creatures.pageCount > 1" class="creature-pagination" aria-label="Páginas">
-      <button class="button ghost compact" type="button" :disabled="creatures.query.page <= 1 || creatures.loading" @click="creatures.setQuery({ page: creatures.query.page - 1 })"><Icon name="lucide:chevron-left" />Anterior</button>
+      <button class="button ghost compact" type="button" :disabled="creatures.query.page <= 1 || creatures.loading" aria-label="Anterior" @click="creatures.setQuery({ page: creatures.query.page - 1 })"><Icon name="lucide:chevron-left" /><span>Anterior</span></button>
       <span>Página {{ creatures.query.page }} de {{ creatures.pageCount }}</span>
-      <button class="button ghost compact" type="button" :disabled="creatures.query.page >= creatures.pageCount || creatures.loading" @click="creatures.setQuery({ page: creatures.query.page + 1 })">Próxima<Icon name="lucide:chevron-right" /></button>
+      <button class="button ghost compact" type="button" :disabled="creatures.query.page >= creatures.pageCount || creatures.loading" aria-label="Próxima" @click="creatures.setQuery({ page: creatures.query.page + 1 })"><span>Próxima</span><Icon name="lucide:chevron-right" /></button>
     </nav>
 
     <p class="creature-credit">
