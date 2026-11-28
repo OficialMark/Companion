@@ -39,6 +39,8 @@ interface ScreenReport {
   smallTargets: Finding[]
   lowContrast: Finding[]
   contentWidthRatio: number
+  contentWidth: number
+  marginDifference: number
   columns: number
 }
 
@@ -99,9 +101,13 @@ test('layout audit across widths', async ({ browser }, info) => {
     expect.soft(report.clipped, `${where}: texto cortado sem reticências`).toEqual([])
     expect.soft(report.smallTargets, `${where}: alvos de toque < 44 px`).toEqual([])
     expect.soft(report.lowContrast, `${where}: contraste < 4.5:1`).toEqual([])
-    // Wide screens: content must spread (several columns, most of the width), not sit in a narrow strip.
     if (report.viewport === 'desktop-1920' || report.viewport === 'wide-2560') {
-      expect.soft(report.contentWidthRatio, `${where}: largura usada`).toBeGreaterThanOrEqual(0.8)
+      if (report.screen === 'master-compendio' || report.screen.endsWith('-campanha')) {
+        expect.soft(report.contentWidth, `${where}: largura máxima`).toBe(1380)
+        expect.soft(report.marginDifference, `${where}: diferença entre margens`).toBeLessThanOrEqual(1)
+      } else {
+        expect.soft(report.contentWidthRatio, `${where}: largura usada`).toBeGreaterThanOrEqual(0.8)
+      }
     }
   }
 })
@@ -348,6 +354,8 @@ async function measure(page: Page, phone: boolean) {
       horizontalOverflow: overflow,
       covered, offscreen, clipped, smallTargets, lowContrast,
       contentWidthRatio: dashboard ? Number((dashboard.width / W).toFixed(2)) : 0,
+      contentWidth: dashboard ? Math.round(dashboard.width) : 0,
+      marginDifference: dashboard ? Math.abs(dashboard.left - (document.documentElement.clientWidth - dashboard.right)) : Infinity,
       columns
     }
   }, phone)

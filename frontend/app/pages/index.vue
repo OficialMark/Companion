@@ -21,20 +21,6 @@ const gameMode = useGameMode()
 const peopleZone = ref<HTMLElement | null>(null)
 const diceZone = ref<HTMLElement | null>(null)
 useFitToViewport([peopleZone, diceZone])
-const playerHistoryTarget = ref<HTMLElement | null>(null)
-const desktopHistory = ref(false)
-const historyMedia = typeof window !== 'undefined' && window.matchMedia?.('(min-width: 1100px)')
-function updateHistoryPlacement() {
-  desktopHistory.value = Boolean(historyMedia && historyMedia.matches)
-}
-onMounted(() => {
-  updateHistoryPlacement()
-  historyMedia && historyMedia.addEventListener('change', updateHistoryPlacement)
-})
-onBeforeUnmount(() => {
-  historyMedia && historyMedia.removeEventListener('change', updateHistoryPlacement)
-})
-const sideHistory = computed(() => !store.isMaster && desktopHistory.value)
 const loading = ref(true)
 const editingCampaignName = ref(false)
 const campaignNameDraft = ref('')
@@ -300,7 +286,7 @@ onBeforeUnmount(() => {
       <h1>Não foi possível abrir a mesa</h1><p>{{ store.error }}</p>
       <button class="button primary" type="button" @click="activate"><Icon name="lucide:refresh-cw" />Tentar novamente</button>
     </div>
-    <div v-else-if="store.snapshot" class="dashboard">
+    <div v-else-if="store.snapshot" class="dashboard" :class="{ 'dashboard-centered': view === 'compendio' || view === 'campanha' }">
       <template v-if="view === 'campanha'">
         <CampaignNotebook />
       </template>
@@ -327,17 +313,12 @@ onBeforeUnmount(() => {
 
 
       <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value, 'player-table': !store.isMaster }">
-        <div ref="peopleZone" class="table-zone table-people">
-          <div v-if="!store.isMaster" ref="playerHistoryTarget" class="table-history-target"></div>
-          <div v-if="!gameMode.active.value" class="table-participants">
-            <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
-          </div>
-          <!-- Turn order first: it is what the table checks most after the map; the creature catalog of
-               the preparation goes under it (design review, round 2). -->
-          <div class="table-combat">
-            <InitiativeTracker />
-            <CombatAttack />
-            <EncounterSetup v-if="!gameMode.active.value" />
+        <div ref="diceZone" class="table-zone table-dice">
+          <div class="table-roll">
+            <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+            <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
+            <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
+            <DiceRoller v-else />
           </div>
         </div>
         <div class="table-zone table-map">
@@ -399,18 +380,18 @@ onBeforeUnmount(() => {
             </div>
           </section>
         </div>
-        <div ref="diceZone" class="table-zone table-dice">
-          <div class="table-roll">
-            <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
-            <PlayerRollPanel v-else-if="showPlayerPanel" :game-mode="gameMode.active.value" @attack-rolled="onPlayerAttackRolled" @open-inventory="inventoryOpen = true" />
-            <QuickDiceRoller v-else-if="gameMode.active.value" @rolled-d20="onQuickRolledD20" />
-            <DiceRoller v-else />
+        <div ref="peopleZone" class="table-zone table-people">
+          <div v-if="!gameMode.active.value" class="table-participants">
+            <ParticipantsPanel :participants="store.snapshot.participants" :avatars="store.avatarUrls" />
           </div>
-          <Teleport :to="playerHistoryTarget ?? 'body'" :disabled="!sideHistory || !playerHistoryTarget">
-            <div class="table-history">
-              <RollHistory :rolls="store.snapshot.diceRolls" />
-            </div>
-          </Teleport>
+          <div class="table-history">
+            <RollHistory :rolls="store.snapshot.diceRolls" />
+          </div>
+          <div class="table-combat">
+            <InitiativeTracker />
+            <CombatAttack />
+            <EncounterSetup v-if="!gameMode.active.value" />
+          </div>
         </div>
       </div>
       <SheetSummaryBar />
