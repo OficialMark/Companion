@@ -11,25 +11,27 @@ Pré-requisitos:
 - Docker Desktop no Windows ou Docker Engine com Compose
 - Portas TCP 3636 (frontend) e 5252 (API) livres
 
-No PowerShell, a partir da raiz do projeto:
+Em uma instalação nova, execute no PowerShell, a partir da raiz do projeto:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Edite `.env` e configure `POSTGRES_PASSWORD` e `ADMIN_ACCESS_KEY`. Depois execute:
+Edite `.env` e configure `ADMIN_ACCESS_KEY`. Depois inicie a stack.
 
 ```powershell
 docker compose up --build -d
 docker compose ps
 ```
 
-Quando os três serviços estiverem saudáveis, abra [http://localhost:3636](http://localhost:3636). A API também fica disponível diretamente em `http://localhost:5252`. O PostgreSQL permanece na rede Docker, sem porta publicada.
+Quando o frontend e a API estiverem saudáveis, abra [http://localhost:3636](http://localhost:3636). A API também fica disponível diretamente em `http://localhost:5252`. Instalações novas usam SQLite.
+
+Se já existe uma instalação com PostgreSQL, preserve o `.env` atual e siga a [migração local para SQLite](docs/deploy-local-sqlite.md) para manter as mesas salvas.
 
 Para acompanhar a inicialização:
 
 ```powershell
-docker compose logs -f api frontend postgres
+docker compose logs -f api frontend
 ```
 
 ## Deploy na Azure
@@ -82,11 +84,11 @@ docker compose restart
 # Parar sem perder dados
 docker compose down
 
-# ATENÇÃO: parar e remover definitivamente o volume de desenvolvimento
+# ATENÇÃO: parar e remover definitivamente os volumes de dados
 docker compose down -v
 ```
 
-O PostgreSQL guarda os dados no volume nomeado `companion-pg-data`, que persiste durante `restart` e `down` normal.
+O SQLite guarda o arquivo em `/data/companion.db`, no volume Docker `companion-sqlite-data`. O volume PostgreSQL legado `companion-pg-data` também persiste durante `restart` e `down` normal.
 
 ## Desenvolvimento
 
