@@ -70,6 +70,13 @@
 - [X] T039 Rótulo Pôr e rolagem da página no seletor de tokens móvel
 - [X] T040 Fluxo das perícias por coluna, na mesma ordem do teclado
 
+## Phase 10: Disposição das colunas
+
+- [X] T041 Rolagem à esquerda e Participantes acima do Histórico à direita em desktop para mestre e jogador
+- [X] T042 Compêndio e Campanha centralizados, com limite de 1380 px
+- [X] T043 Testes de posição das colunas e auditoria de largura e centralização
+- [X] T044 Preservar edições da ficha durante a atualização disparada pelo SignalR, com teste de regressão dos PV
+
 ## Dependencies
 
 Setup → Foundational → US1 e US2 (paralelos) → US3 → US4 → US5 → Polish.

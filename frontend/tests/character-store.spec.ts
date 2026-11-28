@@ -227,6 +227,39 @@ describe('store da ficha: escritas do mesmo aparelho em fila', () => {
     expect(store.saveState).toBe('saved')
   })
 
+  it('preserva os PV editados enquanto o eco do SignalR recarrega a ficha', async () => {
+    const store = useCharacterStore()
+    const initial = makeCharacter({ participantId: 'pA', version: 'v1' })
+    const saved = makeCharacter({
+      participantId: 'pA', version: 'v2',
+      sheet: { ...initial.sheet, baseMaxHitPoints: 24, currentHitPoints: 10 }
+    })
+    store.apply(initial, { resetDraft: true })
+    api.saveSheet.mockResolvedValueOnce(saved)
+    store.editSheet({ baseMaxHitPoints: 24 })
+    await store.flush()
+
+    const refresh = deferred<ReturnType<typeof makeCharacter>>()
+    api.getCharacter.mockReturnValueOnce(refresh.promise)
+    const reconciliation = store.onRemoteChange('pA')
+    await Promise.resolve()
+    expect(api.getCharacter).toHaveBeenCalledTimes(1)
+
+    store.editSheet({ currentHitPoints: 24 })
+    refresh.resolve(saved)
+    await reconciliation
+    expect(store.draft?.currentHitPoints).toBe(24)
+    expect(store.saveState).toBe('saving')
+
+    api.saveSheet.mockResolvedValueOnce(makeCharacter({
+      participantId: 'pA', version: 'v3',
+      sheet: { ...saved.sheet, currentHitPoints: 24 }
+    }))
+    await store.flush()
+    expect(api.saveSheet).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ currentHitPoints: 24 }), 'v2')
+    expect(store.saveState).toBe('saved')
+  })
+
   it('uma escrita que falha não trava a fila', async () => {
     const store = useCharacterStore()
     store.apply(makeCharacter({ participantId: 'pA' }), { resetDraft: true })

@@ -35,12 +35,12 @@ Como mestre ou jogador num monitor largo, quero que o mapa ocupe o centro e que 
 
 **Acceptance Scenarios**:
 
-1. **Given** 1600 px ou mais, **When** a Mesa abre, **Then** aparecem 3 colunas: participantes e combate | mapa | rolagem. O histórico fica com a rolagem para o mestre e com os participantes para o jogador.
-2. **Given** 1100 a 1599 px, **When** a Mesa abre, **Then** o mapa fica na coluna larga com participantes e combate abaixo, e a rolagem fica numa coluna lateral. O histórico fica com a rolagem para o mestre e com os participantes para o jogador. A partir de 1280 px, o jogador tem participantes, combate e histórico em uma terceira coluna ao lado do mapa.
+1. **Given** 1600 px ou mais, **When** a Mesa abre, **Then** aparecem três colunas. A rolagem fica à esquerda, o mapa no centro e, à direita, Participantes acima do Histórico, seguidos pelo combate.
+2. **Given** 1100 a 1599 px, **When** a Mesa abre, **Then** a rolagem fica à esquerda. A coluna larga tem o mapa e, abaixo dele, Participantes, Histórico e combate. A partir de 1280 px, o jogador tem essas três áreas em uma coluna própria à direita do mapa.
 3. **Given** as colunas laterais, **When** a página rola, **Then** elas acompanham e rolam por dentro, com sombra indicando que há mais conteúdo.
 4. **Given** um mapa pequeno numa tela grande, **When** ele abre, **Then** preenche o palco (até 80 px por célula) e acompanha o palco enquanto ele cresce, até o usuário tocar no mapa.
 5. **Given** a Ficha a partir de 1440 px, **When** abre, **Then** fica em 2 colunas: personagem, combate, atributos e valores-base | perícias, conjuração e anotações.
-6. **Given** 1920 ou 2560 px, **When** qualquer área abre, **Then** o conteúdo usa pelo menos 80% da largura.
+6. **Given** 1920 ou 2560 px, **When** a Mesa ou a Ficha abre, **Then** o conteúdo usa pelo menos 80% da largura. O Compêndio e a Campanha ficam centralizados e limitados a 1380 px.
 
 ---
 
@@ -101,18 +101,18 @@ Como jogador, quero ver "Salvo" depois de editar e receber mudanças feitas em o
 
 ### Functional Requirements
 
-- **FR-001**: A Mesa MUST se organizar em 3 zonas (pessoas e combate, mapa, rolagem), em 1 coluna abaixo de 1100 px, 2 colunas até 1279 px para o jogador ou até 1599 px para o mestre, e 3 colunas nas larguras maiores. A partir de 1100 px, o histórico do jogador fica na zona de pessoas. Nos demais casos, fica na zona de rolagem.
+- **FR-001**: A Mesa MUST se organizar em três zonas (rolagem, mapa, pessoas), em uma coluna abaixo de 1100 px, duas colunas até 1279 px para o jogador ou até 1599 px para o mestre e três colunas nas larguras maiores. Em duas ou três colunas, a rolagem fica à esquerda e Participantes aparece acima do Histórico na zona da direita.
 - **FR-002**: No celular a navegação entre áreas MUST ficar numa barra de abas inferior fixa, com alvos de pelo menos 44 px.
 - **FR-003**: Nenhuma tela MUST ter rolagem horizontal de página, controle coberto por outro elemento (fora de modais e barras fixas sobre conteúdo rolável) ou controle fora da tela.
 - **FR-004**: Abaixo de 768 px todo controle MUST ter área de toque de pelo menos 44×44 px.
 - **FR-005**: Texto MUST ter contraste de pelo menos 4.5:1 (3:1 se grande).
-- **FR-006**: Em 1920 e 2560 px o conteúdo MUST usar pelo menos 80% da largura.
+- **FR-006**: Em 1920 e 2560 px a Mesa e a Ficha MUST usar pelo menos 80% da largura. O Compêndio e a Campanha MUST ter margens simétricas e largura máxima de 1380 px.
 - **FR-007**: O nome da campanha MUST aparecer na barra superior com pelo menos 100 px em todas as larguras.
 - **FR-008**: O mapa MUST abrir ajustado ao palco (células de 16 a 80 px) e acompanhar o palco até a primeira interação do usuário.
 - **FR-009**: Foco e rolagem automática MUST parar fora das barras fixas.
 - **FR-010**: Botões desabilitados MUST se distinguir por forma, não só por cor; "Rolar" desabilitado MUST explicar o que falta.
 - **FR-011**: Um auditor automático MUST verificar FR-003 a FR-007 e abas fora da lista em 8 telas × 7 larguras, falhando com o elemento culpado.
-- **FR-012**: O indicador "Salvo" MUST sobreviver ao eco da própria gravação; mudanças remotas recebidas durante uma gravação MUST ser carregadas ao fim dela.
+- **FR-012**: O indicador "Salvo" MUST sobreviver ao eco da própria gravação; mudanças remotas recebidas durante uma gravação MUST ser carregadas ao fim dela. Uma resposta de atualização remota MUST preservar edições locais iniciadas depois do pedido de atualização.
 
 ### Key Entities
 
@@ -123,7 +123,7 @@ Nenhuma entidade de dados nova.
 ### Measurable Outcomes
 
 - **SC-001**: 0 controles cobertos, 0 px de rolagem lateral e 0 alvos abaixo de 44 px nas 56 combinações de tela e largura (antes: código sobre "Campanha" em todas as telas de celular, 82 px de rolagem lateral com o compêndio aberto, alvos de 40 px).
-- **SC-002**: Largura usada em 1920 px sobe de 72% para pelo menos 95%, e em 2560 px de 54% para pelo menos 90%.
+- **SC-002**: Na Mesa e na Ficha, largura usada em 1920 px de pelo menos 95% e em 2560 px de pelo menos 90%. No Compêndio e na Campanha, margens simétricas e largura máxima de 1380 px.
 - **SC-003**: Num crítico cego comparando antes e depois, a versão nova vence todas as telas avaliadas.
 - **SC-004**: O bloco inferior fixo do jogador no celular ocupa no máximo 12% da altura de uma tela de 844 px (antes: 14% em dois blocos soltos).
 

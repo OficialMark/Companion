@@ -3,10 +3,11 @@ name: companion
 services:
   postgres:
     image: postgres:17-alpine
+    scale: ${COMPANION_POSTGRES_REPLICAS:-1}
     environment:
       POSTGRES_DB: companion
       POSTGRES_USER: companion
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-}"
     volumes:
       - companion-pg-data:/var/lib/postgresql/data
     healthcheck:
@@ -20,6 +21,29 @@ services:
       companion-internal:
         ipv4_address: 172.29.255.5
 
+  sqlite-volume:
+    image: mcr.microsoft.com/dotnet/aspnet:10.0
+    user: root
+    network_mode: none
+    entrypoint: ["/bin/sh", "-ec", "chown app:app /data && chmod 0700 /data"]
+    volumes:
+      - companion-sqlite-data:/data
+
+  sqlite-import:
+    profiles: [migration]
+    build:
+      context: ./backend
+      target: sqlite-import
+    environment:
+      COMPANION_POSTGRES_SOURCE: "Host=postgres;Port=5432;Database=companion;Username=companion;Password=${POSTGRES_PASSWORD:-}"
+    command: ["/data/companion.db"]
+    depends_on:
+      sqlite-volume:
+        condition: service_completed_successfully
+    volumes:
+      - companion-sqlite-data:/data
+    networks: [companion-internal]
+
   api:
     build:
       context: ./backend
@@ -27,12 +51,17 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      Database__Provider: PostgreSql
-      ConnectionStrings__Companion: Host=postgres;Port=5432;Database=companion;Username=companion;Password=${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      Database__Provider: ${COMPANION_DATABASE_PROVIDER:-PostgreSql}
+      ConnectionStrings__Companion: "${COMPANION_DATABASE_CONNECTION:-Host=postgres;Port=5432;Database=companion;Username=companion;Password=${POSTGRES_PASSWORD:-}}"
       Admin__AccessKey: ${ADMIN_ACCESS_KEY}
+    volumes:
+      - companion-sqlite-data:/data
     depends_on:
+      sqlite-volume:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
+        required: false
     ports:
       - "0.0.0.0:5252:8080"
     healthcheck:
@@ -67,6 +96,7 @@ services:
 
 volumes:
   companion-pg-data:
+  companion-sqlite-data:
 
 networks:
   companion-internal:

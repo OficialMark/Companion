@@ -32,7 +32,7 @@ $env:E2E_BASE_URL = 'http://127.0.0.1:3616'
 npx playwright test --grep-invert "layout audit"
 ```
 
-`admin.spec.ts` só roda com `E2E_ADMIN_KEY`; os demais pulos são por projeto (larguras fixas no desktop, gestos de mouse).
+O cenário de exclusão de mesa em `admin.spec.ts` só roda com `E2E_ADMIN_KEY`; os demais pulos são por projeto (larguras fixas no desktop, gestos de mouse).
 
 ## 4. Auditoria de layout (gate)
 
@@ -53,6 +53,6 @@ Percorre Mesa, Mesa com o compêndio aberto, Compêndio, Ficha e Campanha do mes
 | Texto cortado | `nowrap` sem reticências, aba fora da sua lista, nome da campanha com menos de 100 px |
 | Alvo de toque | controle menor que 44×44 px abaixo de 768 px |
 | Contraste | texto abaixo de 4.5:1 (3:1 se grande) |
-| Largura | conteúdo usando menos de 80% da tela em 1920 e 2560 px |
+| Largura | Mesa ou Ficha usando menos de 80% da tela em 1920 e 2560 px, ou Compêndio ou Campanha com margens assimétricas ou largura diferente de 1380 px nessas telas |
 
 Em `LAYOUT_AUDIT_DIR` ficam `summary.txt`, `report.json` e uma captura de página inteira e outra só da janela (`__view`) por tela. Com `LAYOUT_AUDIT_ONLY=1` o auditor só coleta, sem falhar (para tirar uma linha de base).
