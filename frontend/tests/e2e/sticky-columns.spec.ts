@@ -6,6 +6,7 @@ import { assertSafeBaseUrl } from './guard'
 // stuck to its foot), and fitting the column never makes the page height jump while scrolling.
 test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', async ({ browser }, info) => {
   test.skip(info.project.name !== 'desktop', 'widths are set explicitly')
+  test.setTimeout(75_000)
   assertSafeBaseUrl()
   const master = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await master.goto('/')
@@ -14,6 +15,8 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
   await master.getByRole('button', { name: 'Criar e entrar' }).click()
   const code = await master.locator('.created-code').first().innerText()
   await master.getByRole('button', { name: 'Entrar como mestre' }).click()
+  await expect(master.locator('.table-people')).toBeVisible()
+  await expectDesktopColumns(master)
   await master.getByRole('button', { name: 'Iniciar preparação' }).click()
   const png = await master.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 900
@@ -23,6 +26,18 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
   await master.getByLabel('Imagem do battlemap').setInputFiles({ name: 'm.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') })
   await master.getByRole('button', { name: 'Publicar battlemap' }).click()
   await master.locator('[data-board-surface]').waitFor()
+  await master.getByRole('button', { name: 'Manual', exact: true }).click()
+  const form = master.locator('.combatant-form')
+  const formBox = (await form.boundingBox())!
+  for (const control of await form.locator('input, button').all()) {
+    const box = (await control.boundingBox())!
+    expect(box.x).toBeGreaterThanOrEqual(formBox.x)
+    expect(box.x + box.width).toBeLessThanOrEqual(formBox.x + formBox.width + 1)
+  }
+  await form.getByRole('textbox', { name: 'Nome' }).fill('Sentinela')
+  await form.getByLabel('Vida atual').fill('12')
+  await form.getByRole('button', { name: 'Adicionar', exact: true }).click()
+  await expect(master.getByLabel('Nome de Sentinela')).toHaveValue('Sentinela')
 
   for (const displayName of ['Lia', 'Caio', 'Bia', 'Rui']) {
     const join = await master.request.post('/api/campaigns/join', { data: { code, displayName } })
@@ -71,6 +86,11 @@ test('the player keeps "Rolar" on screen while the Mesa scrolls (1280x800)', asy
   await expectDesktopColumns(page)
   await master.setViewportSize({ width: 1920, height: 1080 })
   await expectDesktopColumns(master)
+  await master.setViewportSize({ width: 1279, height: 800 })
+  const tabletMap = (await master.locator('.table-map').boundingBox())!
+  const tabletPeople = (await master.locator('.table-people').boundingBox())!
+  expect(tabletPeople.x).toBeCloseTo(tabletMap.x, 0)
+  expect(tabletPeople.y).toBeGreaterThanOrEqual(tabletMap.y + tabletMap.height)
   await expect(page.locator('.table-people').getByRole('region', { name: 'Histórico', exact: true })).toHaveCount(1)
   await expect(firstRoll).toBeInViewport({ ratio: 0.9 })
 

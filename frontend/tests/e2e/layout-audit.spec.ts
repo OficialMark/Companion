@@ -101,6 +101,10 @@ test('layout audit across widths', async ({ browser }, info) => {
     expect.soft(report.clipped, `${where}: texto cortado sem reticências`).toEqual([])
     expect.soft(report.smallTargets, `${where}: alvos de toque < 44 px`).toEqual([])
     expect.soft(report.lowContrast, `${where}: contraste < 4.5:1`).toEqual([])
+    if (report.screen.endsWith('-mesa') || report.screen.endsWith('-mesa-compendio')) {
+      const desktop = ['laptop-1280', 'desktop-1920', 'wide-2560'].includes(report.viewport)
+      expect.soft(report.columns, `${where}: número de colunas na Mesa`).toBe(desktop ? 3 : 1)
+    }
     if (report.viewport === 'desktop-1920' || report.viewport === 'wide-2560') {
       if (report.screen === 'master-compendio' || report.screen.endsWith('-campanha')) {
         expect.soft(report.contentWidth, `${where}: largura máxima`).toBe(1380)

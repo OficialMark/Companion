@@ -35,8 +35,8 @@ Como mestre ou jogador num monitor largo, quero que o mapa ocupe o centro e que 
 
 **Acceptance Scenarios**:
 
-1. **Given** 1600 px ou mais, **When** a Mesa abre, **Then** aparecem três colunas. A rolagem fica à esquerda, o mapa no centro e, à direita, Participantes acima do Histórico, seguidos pelo combate.
-2. **Given** 1100 a 1599 px, **When** a Mesa abre, **Then** a rolagem fica à esquerda. A coluna larga tem o mapa e, abaixo dele, Participantes, Histórico e combate. A partir de 1280 px, o jogador tem essas três áreas em uma coluna própria à direita do mapa.
+1. **Given** 1280 px ou mais, **When** a Mesa abre, **Then** aparecem três colunas. A rolagem fica à esquerda, o mapa no centro e, à direita, Participantes acima do Histórico, seguidos pelo combate.
+2. **Given** 1100 a 1279 px, **When** a Mesa abre, **Then** a rolagem fica à esquerda. A coluna larga tem o mapa e, abaixo dele, Participantes, Histórico e combate.
 3. **Given** as colunas laterais, **When** a página rola, **Then** elas acompanham e rolam por dentro, com sombra indicando que há mais conteúdo.
 4. **Given** um mapa pequeno numa tela grande, **When** ele abre, **Then** preenche o palco (até 80 px por célula) e acompanha o palco enquanto ele cresce, até o usuário tocar no mapa.
 5. **Given** a Ficha a partir de 1440 px, **When** abre, **Then** fica em 2 colunas: personagem, combate, atributos e valores-base | perícias, conjuração e anotações.
@@ -101,7 +101,7 @@ Como jogador, quero ver "Salvo" depois de editar e receber mudanças feitas em o
 
 ### Functional Requirements
 
-- **FR-001**: A Mesa MUST se organizar em três zonas (rolagem, mapa, pessoas), em uma coluna abaixo de 1100 px, duas colunas até 1279 px para o jogador ou até 1599 px para o mestre e três colunas nas larguras maiores. Em duas ou três colunas, a rolagem fica à esquerda e Participantes aparece acima do Histórico na zona da direita.
+- **FR-001**: A Mesa MUST se organizar em três zonas (rolagem, mapa, pessoas), em uma coluna abaixo de 1100 px, duas colunas de 1100 a 1279 px e três colunas a partir de 1280 px, para mestre e jogador no zoom padrão. Em duas ou três colunas, a rolagem fica à esquerda e Participantes aparece acima do Histórico na zona da direita.
 - **FR-002**: No celular a navegação entre áreas MUST ficar numa barra de abas inferior fixa, com alvos de pelo menos 44 px.
 - **FR-003**: Nenhuma tela MUST ter rolagem horizontal de página, controle coberto por outro elemento (fora de modais e barras fixas sobre conteúdo rolável) ou controle fora da tela.
 - **FR-004**: Abaixo de 768 px todo controle MUST ter área de toque de pelo menos 44×44 px.

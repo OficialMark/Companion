@@ -77,6 +77,12 @@
 - [X] T043 Testes de posição das colunas e auditoria de largura e centralização
 - [X] T044 Preservar edições da ficha durante a atualização disparada pelo SignalR, com teste de regressão dos PV
 
+## Phase 11: Zoom padrão
+
+- [X] T045 Três colunas da Mesa a partir de 1280 px também para o mestre
+- [X] T046 Preparação e catálogo adaptados à largura do painel lateral
+- [X] T047 Regressão de desktop em 1280 px e verificação da transição em 1279 px
+
 ## Dependencies
 
 Setup → Foundational → US1 e US2 (paralelos) → US3 → US4 → US5 → Polish.
