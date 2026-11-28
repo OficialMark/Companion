@@ -53,6 +53,7 @@ Percorre Mesa, Mesa com o compêndio aberto, Compêndio, Ficha e Campanha do mes
 | Texto cortado | `nowrap` sem reticências, aba fora da sua lista, nome da campanha com menos de 100 px |
 | Alvo de toque | controle menor que 44×44 px abaixo de 768 px |
 | Contraste | texto abaixo de 4.5:1 (3:1 se grande) |
+| Colunas da Mesa | uma coluna em celular e tablet e três em 1280, 1920 e 2560 px, para mestre e jogador |
 | Largura | Mesa ou Ficha usando menos de 80% da tela em 1920 e 2560 px, ou Compêndio ou Campanha com margens assimétricas ou largura diferente de 1380 px nessas telas |
 
 Em `LAYOUT_AUDIT_DIR` ficam `summary.txt`, `report.json` e uma captura de página inteira e outra só da janela (`__view`) por tela. Com `LAYOUT_AUDIT_ONLY=1` o auditor só coleta, sem falhar (para tirar uma linha de base).

@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
       </section>
 
 
-      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value, 'player-table': !store.isMaster }">
+      <div class="dashboard-grid" :class="{ 'game-mode': gameMode.active.value }">
         <div ref="diceZone" class="table-zone table-dice">
           <div class="table-roll">
             <MasterRollPanel v-if="store.isMaster" :game-mode="gameMode.active.value" @rolled-d20="onQuickRolledD20" />

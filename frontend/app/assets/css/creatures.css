@@ -252,6 +252,10 @@ body.modal-open { overflow: hidden; }
   .creature-picker-actions { flex: 1 1 100%; justify-content: space-between; }
   .creature-picker-actions .button { flex: 1 1 auto; }
 }
+@container creature-picker (max-width: 270px) {
+  .creature-picker-actions { flex-wrap: wrap; }
+  .creature-picker-actions .button { flex-basis: 100%; justify-content: center; }
+}
 @media (max-width: 560px) {
   .setup-mode { display: flex; }
   .setup-mode .view-tab { flex: 1 1 0; justify-content: center; }
