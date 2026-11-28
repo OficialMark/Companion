@@ -112,7 +112,7 @@ Como jogador, quero ver "Salvo" depois de editar e receber mudanças feitas em o
 - **FR-009**: Foco e rolagem automática MUST parar fora das barras fixas.
 - **FR-010**: Botões desabilitados MUST se distinguir por forma, não só por cor; "Rolar" desabilitado MUST explicar o que falta.
 - **FR-011**: Um auditor automático MUST verificar FR-003 a FR-007 e abas fora da lista em 8 telas × 7 larguras, falhando com o elemento culpado.
-- **FR-012**: O indicador "Salvo" MUST sobreviver ao eco da própria gravação; mudanças remotas recebidas durante uma gravação MUST ser carregadas ao fim dela.
+- **FR-012**: O indicador "Salvo" MUST sobreviver ao eco da própria gravação; mudanças remotas recebidas durante uma gravação MUST ser carregadas ao fim dela. Uma resposta de atualização remota MUST preservar edições locais iniciadas depois do pedido de atualização.
 
 ### Key Entities
 

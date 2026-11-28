@@ -75,6 +75,7 @@
 - [X] T041 Rolagem à esquerda e Participantes acima do Histórico à direita em desktop para mestre e jogador
 - [X] T042 Compêndio e Campanha centralizados, com limite de 1380 px
 - [X] T043 Testes de posição das colunas e auditoria de largura e centralização
+- [X] T044 Preservar edições da ficha durante a atualização disparada pelo SignalR, com teste de regressão dos PV
 
 ## Dependencies
 

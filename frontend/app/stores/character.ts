@@ -79,8 +79,10 @@ export const useCharacterStore = defineStore('character', {
       this.notices = character.notices ?? []
       if (!preserveDraft && (resetDraft || !this.draft || !this.stale)) this.draft = sheetData(character)
     },
-    async load() {
+    async load({ preserveLocalEdits = false } = {}) {
       const current = this.ticket()
+      const sequence = this.editSequence
+      const canApply = () => current() && (!preserveLocalEdits || sequence === this.editSequence)
       this.loading = true
       this.error = ''
       try {
@@ -88,13 +90,13 @@ export const useCharacterStore = defineStore('character', {
         // pending write from this device and then be overwritten by that write's older answer.
         const session = this.session()
         const character = await enqueueWrite(() => useCharacterApi().getCharacter(session))
-        if (!current()) return
+        if (!canApply()) return
         this.editSequence = this.savedSequence
         this.apply(character, { resetDraft: true })
         this.remoteChangePending = false
-        this.saveState = 'idle'
+        if (!preserveLocalEdits) this.saveState = 'idle'
       } catch (error) {
-        if (current()) this.error = (error as Error).message
+        if (canApply()) this.error = (error as Error).message
       } finally {
         if (current()) this.loading = false
       }
@@ -111,14 +113,11 @@ export const useCharacterStore = defineStore('character', {
       await this.reconcile()
     },
     /**
-     * Reload the server's snapshot after a CharacterChanged. SignalR also echoes this device's own
-     * write: keep the "Salvo" confirmation the user just saw instead of resetting it to idle.
+     * Refresh after CharacterChanged. An echo from this device keeps the save status and
+     * must not overwrite a new edit made while the refresh is in flight.
      */
     async reconcile() {
-      const current = this.ticket()
-      const savedLocally = this.saveState === 'saved'
-      await this.load()
-      if (current() && savedLocally && !this.error) this.saveState = 'saved'
+      await this.load({ preserveLocalEdits: true })
     },
     editSheet(patch: Partial<CharacterSheetData>) {
       if (!this.draft) return
